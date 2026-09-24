@@ -244,7 +244,13 @@
         #scrabble-grid { contain: layout paint; -webkit-tap-highlight-color: transparent; }
         .letter-cell { contain: layout paint style; backface-visibility: hidden; }
         #screen-game { overscroll-behavior: none; }
-    </style>
+    
+        /* Çoklu oyuncu: oyun akışını engellemeyen puan uçuşu */
+        .score-fly { position: fixed; z-index: 90; pointer-events:none; font-weight:900; font-size:18px;
+            transform: translate3d(0,0,0) scale(.9); opacity:1; transition: transform .72s cubic-bezier(.2,.8,.2,1), opacity .72s ease;
+            text-shadow:0 2px 8px rgba(0,0,0,.28); will-change:transform,opacity; }
+        .score-fly.go { transform: translate3d(var(--dx),var(--dy),0) scale(1.22); opacity:0; }
+</style>
     <!-- Firebase: yalnızca çok oyunculu modda kullanılan hafif compat SDK -->
     <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
@@ -269,7 +275,7 @@
 
                 <div class="w-full max-w-sm mt-5 space-y-3 shrink-0">
                     <button id="btn-solo-mode" class="w-full min-h-[76px] flex items-center gap-4 px-5 bg-gradient-to-b from-emerald-400 to-green-600 text-white rounded-[24px] border-4 border-emerald-200/70 shadow-[0_8px_0_#166534] active:translate-y-1 active:shadow-[0_4px_0_#166534] transition">
-                        <span class="text-4xl">🤖</span><span class="text-left flex-1"><b class="block text-xl leading-5 font-black">TEKLİ OYUNCU</b><small class="font-bold text-green-50">Bilgisayara karşı oyna</small></span><span id="solo-arrow" class="text-3xl font-black transition-transform">›</span>
+                        <span class="text-4xl">🤖</span><span class="text-left flex-1"><b class="block text-xl leading-5 font-black">TEKLİ OYUN (BİLGİSAYARA KARŞI)</b><small class="font-bold text-green-50">Zorluk seç ve hemen başla</small></span><span id="solo-arrow" class="text-3xl font-black transition-transform">›</span>
                     </button>
 
                     <!-- Tekli Oyuncu açıldığında seçenekler iki ana düğmenin arasına girer. -->
@@ -419,7 +425,7 @@
         <!-- ================= SAYDAM & TAHTAYI GÖSTEREN GERİ SAYIM MODALI ================= -->
         <div id="modal-countdown" class="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px] flex items-center justify-center z-50 hidden">
             <div class="flex flex-col items-center justify-center bg-white/90 border border-slate-200/80 p-6 rounded-3xl shadow-2xl backdrop-blur-md">
-                <div id="countdown-number" class="text-7xl font-black text-amber-500 drop-shadow-sm">5</div>
+                <div id="countdown-number" class="text-7xl font-black text-amber-500 drop-shadow-sm" style="transition:transform .16s ease-out, filter .16s ease-out; will-change:transform;">10</div>
                 <div class="text-slate-800 font-black text-xs tracking-widest uppercase mt-3 bg-white px-4 py-1.5 rounded-full border border-slate-200 shadow-sm">
                     DÜELLO BAŞLIYOR!
                 </div>
@@ -61878,7 +61884,8 @@ BLİK
             appId: "1:968159872150:web:c80429010ec21363116eb7"
         };
         let mpDb=null, mpRoomRef=null, mpRoomCode=null, mpRole=null, mpRoomData=null;
-        let mpListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null;
+        let mpListener=null, mpWordsListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null;
+        let mpSeenWordEvents=new Set();
         function ensureFirebase(){
             if(mpDb) return true;
             if(!window.firebase){ showToast('İnternet bağlantısı/Firebase yüklenemedi','rose'); return false; }
@@ -61895,7 +61902,7 @@ BLİK
             const code=makeRoomCode(); mpRoomCode=code; mpRole='host';
             const ready=prewarmedBoard || loadBoardCache() || generateOptimizedBoard(3); prewarmedBoard=null;
             const ref=mpDb.ref('rooms/'+code); mpRoomRef=ref;
-            await ref.set({createdAt:firebase.database.ServerValue.TIMESTAMP,status:'waiting',host:true,guest:false,ready:{host:false,guest:false},board:ready.board,scores:{host:0,guest:0},startAt:0});
+            await ref.set({createdAt:firebase.database.ServerValue.TIMESTAMP,status:'waiting',host:true,guest:false,ready:{host:false,guest:false},board:ready.board,scores:{host:0,guest:0},startAt:0,countdownAt:0,words:{}});
             setMpPanelRoom(code,'Oda hazır. Davet linkini arkadaşına gönder.'); attachRoomListener();
         }
         async function joinRoom(code){
@@ -61911,17 +61918,28 @@ BLİK
                 const d=snap.val(); if(!d) return; mpRoomData=d;
                 if(d.scores){p1Score=d.scores.host||0;p2Score=d.scores.guest||0;updateScores();}
                 if(mpRole==='host' && d.guest && d.status==='waiting'){
-                    document.getElementById('mp-status').innerText='Rakip bağlandı ✓ İkiniz de odaya girince 5 saniyelik senkron geri sayım başlayacak.';
+                    document.getElementById('mp-status').innerText='Rakip bağlandı ✓ İkiniz de odaya girince 10 saniyelik senkron geri sayım başlayacak.';
                 } else if(d.guest) document.getElementById('mp-status').innerText='İki oyuncu odada ✓';
 
                 // Her iki cihaz oyun ekranına gerçekten girmeden maç başlatılmaz.
                 // Host, iki READY işaretini gördüğünde Firebase sunucu saatine göre tek bir ortak
                 // başlangıç anı belirler. Böylece iki telefonda ayrı sayaç başlatmak yerine
                 // aynı startAt zamanına kilitleniriz.
-                if(mpRole==='host' && d.status==='waiting' && d.ready?.host && d.ready?.guest && !d.startAt){
+                if(mpRole==='host' && d.status==='waiting' && d.ready?.host && d.ready?.guest && !d.countdownAt){
                     scheduleSynchronizedStart();
                 }
-                if(mpEntered && d.status==='starting' && d.startAt && !mpStarted) startSyncedMatch(d);
+                if(mpEntered && d.status==='starting' && d.countdownAt && !mpStarted) startSyncedMatch(d);
+            });
+            if(mpWordsListener) mpRoomRef.child('words').off('child_added',mpWordsListener);
+            mpWordsListener=mpRoomRef.child('words').on('child_added',snap=>{
+                const ev=snap.val(); if(!ev || mpSeenWordEvents.has(snap.key)) return;
+                mpSeenWordEvents.add(snap.key);
+                // Kendi olayımız zaten yerelde çizildi; yalnızca rakibin doğru sözcüğünü anında göster.
+                if(ev.role===mpRole) return;
+                sessionFoundWords.add(ev.word);
+                addTickerBadge(ev.word, ev.role==='host');
+                showToast(`${ev.role==='host'?'1. OYUNCU':'2. OYUNCU'}: ${ev.word} (+${ev.pts})`, ev.role==='host'?'amber':'sky');
+                flyScore(ev.pts, ev.role==='host');
             });
         }
         function renderProvidedBoard(board){
@@ -61934,7 +61952,7 @@ BLİK
             if(!mpRoomData||!mpRoomData.board) return; mpEntered=true; mpStarted=false;
             document.getElementById('screen-home').classList.add('hidden'); document.getElementById('screen-game').classList.remove('hidden');
             document.getElementById('p1-title').innerText='1. OYUNCU'; document.getElementById('p2-title').innerText='2. OYUNCU';
-            p1Score=mpRoomData.scores?.host||0; p2Score=mpRoomData.scores?.guest||0; updateScores(); remainingSeconds=60; sessionFoundWords.clear(); document.getElementById('words-ticker').innerHTML='';
+            p1Score=mpRoomData.scores?.host||0; p2Score=mpRoomData.scores?.guest||0; updateScores(); remainingSeconds=60; sessionFoundWords.clear(); mpSeenWordEvents.clear(); document.getElementById('words-ticker').innerHTML='';
             renderProvidedBoard(mpRoomData.board);
             if(mpRole==='host' && !mpRoomData.guest){
                 document.getElementById('screen-game').classList.add('hidden'); document.getElementById('screen-home').classList.remove('hidden'); document.getElementById('mp-status').innerText='Rakip henüz bağlanmadı…'; mpEntered=false; return;
@@ -61949,20 +61967,32 @@ BLİK
             mpSchedulingStart=true;
             try{
                 const snap=await mpRoomRef.once('value'), d=snap.val();
-                if(!d || d.status!=='waiting' || !d.ready?.host || !d.ready?.guest || d.startAt) return;
-                // Firebase .info/serverTimeOffset ile düzeltilmiş ortak saat. 5.5 sn tampon,
-                // ilk ekranda iki cihazın da net biçimde 5 görmesini sağlar.
-                const serverNow=Date.now()+mpServerOffset;
-                await mpRoomRef.update({status:'starting', startAt:serverNow+5500});
+                if(!d || d.status!=='waiting' || !d.ready?.host || !d.ready?.guest || d.countdownAt) return;
+                // Geri sayım başlangıcı doğrudan Firebase sunucu zaman damgasıdır. İki cihaz da
+                // aynı countdownAt + 10.000 ms hedefini kullanır; yerel ağ gecikmesi sayacı kaydırmaz.
+                await mpRoomRef.update({status:'starting', countdownAt:firebase.database.ServerValue.TIMESTAMP});
             } finally { mpSchedulingStart=false; }
         }
         function startSyncedMatch(d){
-            mpStarted=true; isMatchActive=false; clearInterval(mpClock); const modal=document.getElementById('modal-countdown'),num=document.getElementById('countdown-number'); modal.classList.remove('hidden');
-            const tick=()=>{const now=Date.now()+mpServerOffset, left=d.startAt-now;
-                if(left>0){num.innerText=Math.min(5,Math.max(1,Math.ceil(left/1000))); return;}
-                clearInterval(mpClock); modal.classList.add('hidden'); isMatchActive=true; remainingSeconds=60; document.getElementById('game-timer').innerText='60'; startMultiplayerTimer(d.startAt);
+            mpStarted=true; isMatchActive=false; clearInterval(mpClock);
+            const modal=document.getElementById('modal-countdown'),num=document.getElementById('countdown-number');
+            const startAt=Number(d.countdownAt)+10000;
+            modal.classList.remove('hidden');
+            const tick=()=>{
+                const now=Date.now()+mpServerOffset, left=startAt-now;
+                if(left>0){
+                    const n=Math.min(10,Math.max(1,Math.ceil(left/1000)));
+                    num.innerText=n;
+                    const progress=(10-n)/9;
+                    num.style.transform=`scale(${(1+progress*.34).toFixed(3)})`;
+                    num.style.filter=`drop-shadow(0 0 ${Math.round(4+progress*12)}px rgba(245,158,11,.35))`;
+                    return;
+                }
+                clearInterval(mpClock); num.style.transform='scale(1)'; num.style.filter='';
+                modal.classList.add('hidden'); isMatchActive=true; remainingSeconds=60;
+                document.getElementById('game-timer').innerText='60'; startMultiplayerTimer(startAt);
             };
-            tick(); mpClock=setInterval(tick,50);
+            tick(); mpClock=setInterval(tick,33);
         }
         function startMultiplayerTimer(startAt){
             clearInterval(timerInterval); timerInterval=setInterval(()=>{const elapsed=Math.floor((Date.now()+mpServerOffset-startAt)/1000);remainingSeconds=Math.max(0,60-elapsed);document.getElementById('game-timer').innerText=remainingSeconds;if(remainingSeconds<=10)document.getElementById('game-timer').classList.add('timer-warning');if(remainingSeconds<=0){clearInterval(timerInterval);endGame();}},200);
@@ -62022,21 +62052,25 @@ BLİK
             const numEl = document.getElementById('countdown-number');
             modal.classList.remove('hidden');
 
-            let count = 2;
+            let count = 10;
             numEl.innerText = count;
-
+            numEl.style.transform = 'scale(1)';
             const interval = setInterval(() => {
                 count--;
-                if (count === 1) {
-                    numEl.innerText = "1";
+                if (count >= 1) {
+                    numEl.innerText = count;
+                    const progress=(10-count)/9;
+                    numEl.style.transform=`scale(${(1+progress*.34).toFixed(3)})`;
                 } else if (count === 0) {
                     numEl.innerText = "BAŞLA!";
+                    numEl.style.transform='scale(1.38)';
                 } else {
                     clearInterval(interval);
+                    numEl.style.transform='scale(1)';
                     modal.classList.add('hidden');
                     onComplete();
                 }
-            }, 800);
+            }, 1000);
         }
 
         // ================= OYUNLAŞTIRILMIŞ AKILLI TAHTA MOTORU =================
@@ -62375,8 +62409,31 @@ BLİK
             });
 
             addTickerBadge(word, isP1);
+            flyScore(pts, isP1);
             adjustScore(isP1 ? pts : 0, !isP1 ? pts : 0);
+            if(mpRole) publishMpWord(word, pts);
             clearPath();
+        }
+
+        async function publishMpWord(word, pts) {
+            if(!mpRoomRef || !mpRole) return;
+            const ref=mpRoomRef.child('words').push();
+            mpSeenWordEvents.add(ref.key);
+            await ref.set({word,pts,role:mpRole,at:firebase.database.ServerValue.TIMESTAMP});
+        }
+
+        function flyScore(pts, isP1) {
+            const target=document.getElementById(isP1?'p1-score-val':'p2-score-val');
+            if(!target) return;
+            const tr=target.getBoundingClientRect();
+            const el=document.createElement('div'); el.className='score-fly'; el.textContent=`+${pts}`;
+            el.style.color=isP1?'#fbbf24':'#38bdf8';
+            const sx=innerWidth/2-16, sy=Math.min(innerHeight*.78, innerHeight-120);
+            el.style.left=sx+'px'; el.style.top=sy+'px';
+            el.style.setProperty('--dx',(tr.left+tr.width/2-sx)+'px');
+            el.style.setProperty('--dy',(tr.top+tr.height/2-sy)+'px');
+            document.body.appendChild(el); requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('go')));
+            setTimeout(()=>el.remove(),780);
         }
 
         function adjustScore(p1Delta, p2Delta) {
