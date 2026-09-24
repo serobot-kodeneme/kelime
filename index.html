@@ -356,15 +356,17 @@
                     <div class="flex justify-between items-center"><b class="text-slate-800">👥 ÇOKLU OYUNCU</b><button id="btn-close-friend" class="text-2xl font-black text-slate-500">×</button></div>
                     <div id="mp-create-view" class="mt-3 space-y-2">
                         <button id="btn-create-room" class="w-full min-h-[48px] rounded-2xl bg-gradient-to-b from-sky-400 to-blue-600 text-white font-black shadow-lg border-2 border-sky-200">ODA OLUŞTUR</button>
-                        <div class="flex gap-2"><input id="room-code-input" maxlength="6" placeholder="ODA KODU" class="min-w-0 flex-1 uppercase text-center font-black tracking-[.18em] rounded-xl border-2 border-slate-200 bg-slate-50 px-2"><button id="btn-join-code" class="px-4 rounded-xl bg-indigo-700 text-white font-black">KATIL</button></div>
+                        <div class="rounded-xl bg-sky-50 border border-sky-100 px-3 py-2 text-[11px] font-bold text-sky-900">Oda oluştur, bağlantıyı arkadaşına gönder. Oyun yalnızca davet bağlantısıyla iki kişilik olarak çalışır.</div>
                     </div>
                     <div id="mp-room-view" class="hidden mt-3 text-center">
                         <div class="text-[10px] font-black text-slate-500 uppercase">ODA KODU</div>
                         <input id="mp-room-code" readonly value="------" class="mt-1 w-full text-center text-2xl font-black tracking-[.22em] text-indigo-800 bg-indigo-50 border-2 border-indigo-100 rounded-xl py-2 select-all cursor-text" />
                         <div id="mp-status" class="mt-2 rounded-xl bg-slate-100 p-2 text-xs font-bold text-slate-600">Oda hazırlanıyor…</div>
+                        <div class="mt-2 text-[10px] font-black text-slate-500 uppercase">DAVET BAĞLANTISI</div>
+                        <input id="mp-room-url" readonly value="" class="mt-1 w-full text-[11px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 select-all cursor-text" />
                         <button id="btn-copy-link" class="w-full mt-3 min-h-[44px] rounded-xl bg-sky-100 border-2 border-sky-300 text-sky-900 font-black text-xs">🔗 BAĞLANTIYI KOPYALA</button>
                         <button id="btn-share-link" class="w-full mt-2 min-h-[44px] rounded-xl bg-emerald-100 border-2 border-emerald-300 text-emerald-900 font-black text-xs">📨 DAVET ET</button>
-                        <button id="btn-enter-room" class="w-full mt-2 min-h-[46px] rounded-xl bg-indigo-700 text-white font-black">⚔️ ODAYA GİT</button>
+                        <button id="btn-enter-room" class="hidden">ODAYA GİT</button>
                         <button id="btn-close-room" class="hidden w-full mt-2 min-h-[40px] rounded-xl bg-rose-50 border-2 border-rose-200 text-rose-700 font-black text-xs">ODAYI KAPAT</button>
                     </div>
                 </div>
@@ -62012,6 +62014,19 @@ BLİK
             mpDb.ref('.info/serverTimeOffset').on('value',s=>{ mpServerOffset=Number(s.val()||0); });
             return true;
         }
+        async function waitFirebaseConnected(timeoutMs=6000){
+            if(!ensureFirebase()) return false;
+            const connectedRef=mpDb.ref('.info/connected');
+            const first=await connectedRef.once('value');
+            if(first.val()===true) return true;
+            return await new Promise(resolve=>{
+                let done=false;
+                const finish=v=>{ if(done)return; done=true; clearTimeout(timer); connectedRef.off('value',listener); resolve(v); };
+                const listener=s=>{ if(s.val()===true) finish(true); };
+                connectedRef.on('value',listener);
+                const timer=setTimeout(()=>finish(false),timeoutMs);
+            });
+        }
         function serverNow(){ return Date.now()+mpServerOffset; }
         function makeRoomCode(){
             const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -62019,12 +62034,10 @@ BLİK
             return Array.from(r,n=>chars[n%chars.length]).join('');
         }
         function inviteUrl(code){
-            const u=new URL(location.href); u.searchParams.set('room',code); u.searchParams.set('join','1'); u.hash=''; return u.toString();
+            const u=new URL(location.href); u.searchParams.set('room',code); u.searchParams.delete('join'); u.searchParams.delete('as'); u.hash=''; return u.toString();
         }
-        function setRoomUrl(code,role){
-            const u=new URL(location.href); u.searchParams.set('room',code);
-            if(role==='guest') u.searchParams.set('join','1'); else u.searchParams.delete('join');
-            u.hash=''; history.replaceState(null,'',u.toString());
+        function setRoomUrl(code){
+            const u=new URL(location.href); u.searchParams.set('room',code); u.searchParams.delete('join'); u.searchParams.delete('as'); u.hash=''; history.replaceState(null,'',u.toString());
         }
         function clearInviteFromUrl(){
             const u=new URL(location.href); ['room','join','as'].forEach(k=>u.searchParams.delete(k)); history.replaceState(null,'',u.toString());
@@ -62033,6 +62046,7 @@ BLİK
             document.getElementById('mp-create-view')?.classList.add('hidden');
             document.getElementById('mp-room-view')?.classList.remove('hidden');
             const c=document.getElementById('mp-room-code'); if(c)c.value=code;
+            const url=document.getElementById('mp-room-url'); if(url)url.value=inviteUrl(code);
             const st=document.getElementById('mp-status'); if(st)st.innerText=status;
         }
         async function markPresence(){
@@ -62045,7 +62059,7 @@ BLİK
         function isOnline(p){ return !!(p && (p===true || p.online===true)); }
 
         async function createRoom(){
-            if(!ensureFirebase()) return;
+            if(!await waitFirebaseConnected()){ showToast('Sunucuya bağlanılamadı. İnternet bağlantını kontrol et.','rose'); return; }
             let code='',ref=null;
             for(let i=0;i<12;i++){
                 const candidate=makeRoomCode(); const candidateRef=mpDb.ref('rooms/'+candidate);
@@ -62054,13 +62068,10 @@ BLİK
             if(!code){ showToast('Oda oluşturulamadı. Tekrar dene.','rose'); return; }
 
             const hostId=getClientToken();
-            const ownerToken=(crypto.randomUUID?crypto.randomUUID():hostId+'_'+Date.now());
             const readyBoard=prewarmedBoard || loadBoardCache() || generateOptimizedBoard(3); prewarmedBoard=null;
             await ref.set({
-                schema:11, persistent:true,
-                createdAt:firebase.database.ServerValue.TIMESTAMP,
-                ownerToken, hostId, guestId:null,
-                status:'waiting', round:1,
+                schema:12, mode:'invite-only-v1', createdAt:firebase.database.ServerValue.TIMESTAMP,
+                hostId, guestId:null, status:'waiting', round:1,
                 board:readyBoard.board, startAt:0,
                 scores:{host:0,guest:0}, words:{},
                 rematch:{host:false,guest:false,expiresAt:0},
@@ -62068,46 +62079,38 @@ BLİK
             });
 
             mpRoomCode=code; mpRole='host'; mpRoomRef=ref; mpRoomData=null; mpRound=1; mpEntered=false; mpStarted=false;
-            rememberOwnedRoom(code,ownerToken); setRoomUrl(code,'host'); await markPresence();
-            setMpPanelRoom(code,'1. oyuncusun. Bağlantıyı arkadaşına gönder.');
+            setRoomUrl(code); await markPresence();
+            setMpPanelRoom(code,'1. oyuncusun. Davet bağlantısını arkadaşına gönder; 2. oyuncu gelince oyun otomatik başlayacak.');
             document.getElementById('btn-close-room')?.classList.remove('hidden');
-            const enterBtn=document.getElementById('btn-enter-room');
-            if(enterBtn){ enterBtn.classList.remove('hidden'); enterBtn.innerText='⚔️ ODAYA GİT'; }
-            document.getElementById('modal-mp-waiting')?.classList.add('hidden');
             setMpState(MP_STATES.WAITING);
             attachRoomListener();
         }
 
-        async function joinRoom(code,forceGuest=false){
+        async function joinRoom(code){
             code=(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
-            if(!code||!ensureFirebase()) return false;
+            if(!code) return false;
+            if(!await waitFirebaseConnected()){ showToast('Sunucuya bağlanılamadı.','rose'); return false; }
             const ref=mpDb.ref('rooms/'+code); const snap=await ref.once('value');
-            if(!snap.exists()){ setMpPanelRoom(code,'Oda bulunamadı.'); showToast('Oda bulunamadı.','rose'); return false; }
+            if(!snap.exists()){ showToast('Davet odası bulunamadı veya kapatılmış.','rose'); clearInviteFromUrl(); return false; }
             const d=snap.val()||{}; const clientId=getClientToken();
-            const localHost=(d.hostId===clientId)||ownsRoomLocally(code,d.ownerToken);
-            const role=(!forceGuest && localHost)?'host':'guest';
-
-            if(role==='guest'){
-                const claim=await ref.transaction(room=>{
-                    if(!room) return;
-                    const current=room.guestId;
-                    const currentOnline=room.presence?.guest?.online===true;
-                    if(current && current!==clientId && currentOnline) return;
-                    room.guestId=clientId;
-                    room.presence=room.presence||{};
-                    room.presence.guest={online:true,clientId,at:firebase.database.ServerValue.TIMESTAMP};
-                    return room;
+            let role=null;
+            if(d.hostId===clientId){
+                role='host';
+            }else{
+                const guestRef=ref.child('guestId');
+                const claim=await guestRef.transaction(current=>{
+                    if(current===null || current===clientId) return clientId;
+                    return;
                 });
-                if(!claim.committed){ showToast('Bu odada zaten 2. oyuncu var.','rose'); return false; }
+                if(!claim.committed){ showToast('Bu davet odasında zaten 2 oyuncu var.','rose'); return false; }
+                role='guest';
             }
 
             mpRoomCode=code; mpRole=role; mpRoomRef=ref; mpRoomData=(await ref.once('value')).val()||{};
             mpRound=Number(mpRoomData.round||1); mpEntered=false; mpStarted=false;
-            await markPresence(); setRoomUrl(code,role);
-            setMpPanelRoom(code,role==='host'?'1. oyuncu olarak odana bağlandın.':'2. oyuncu olarak odaya bağlandın.');
+            await markPresence(); setRoomUrl(code);
+            setMpPanelRoom(code,role==='host'?'1. oyuncu olarak odana yeniden bağlandın.':'2. oyuncu olarak davet odasına bağlandın.');
             document.getElementById('btn-close-room')?.classList.toggle('hidden',role!=='host');
-            const enterBtn=document.getElementById('btn-enter-room');
-            if(enterBtn){ enterBtn.classList.toggle('hidden',role!=='host'); enterBtn.innerText='⚔️ ODAYA GİT'; }
             setMpState(mpRoomData.status||MP_STATES.WAITING);
             attachRoomListener();
             if(role==='guest') await enterMultiplayerRoom();
@@ -62232,9 +62235,9 @@ BLİK
                 if(d.status==='waiting'){
                     setMpState(MP_STATES.WAITING);
                     if(mpRole==='host'){
-                        if(!d.guestId){
+                        if(!d.guestId || !isOnline(d.presence?.guest)){
                             document.getElementById('modal-mp-waiting')?.classList.add('hidden');
-                            const st=document.getElementById('mp-status'); if(st)st.innerText='2. oyuncunun odaya katılması bekleniyor…';
+                            const st=document.getElementById('mp-status'); if(st)st.innerText='2. oyuncunun davet bağlantısıyla bağlanması bekleniyor…';
                         }else{
                             document.getElementById('modal-mp-waiting')?.classList.add('hidden');
                             const st=document.getElementById('mp-status'); if(st)st.innerText='2. oyuncu bağlandı ✓ Oyun hazırlanıyor…';
@@ -62362,10 +62365,7 @@ BLİK
         };
         document.getElementById('btn-close-friend').onclick = () => document.getElementById('friend-invite-panel').classList.add('hidden');
         document.getElementById('btn-create-room').onclick = createRoom;
-        document.getElementById('btn-join-code').onclick = async()=>{
-            const code=document.getElementById('room-code-input').value;
-            await joinRoom(code,true);
-        };
+        document.getElementById('btn-join-code')?.addEventListener('click',()=>{});
         document.getElementById('btn-copy-link').onclick = async()=>{
             if(!mpRoomCode)return;
             try{
@@ -62378,36 +62378,24 @@ BLİK
             if(!mpRoomCode) return;
             const url=inviteUrl(mpRoomCode);
             try{
-                if(navigator.share) await navigator.share({title:'Kelime Düellosu',text:`Oda kodu: ${mpRoomCode}`,url});
+                if(navigator.share) await navigator.share({title:'Kelime Düellosu',text:'Kelime Düellosu daveti — bağlantıya dokun ve odaya katıl.',url});
                 else { await navigator.clipboard.writeText(url); showToast('Davet bağlantısı kopyalandı.','emerald'); }
             }catch(e){}
         };
-        // Odayı kuran 1. oyuncu isterse ODAYA GİT ile oyun ekranına geçip arkadaşını burada bekleyebilir.
-        document.getElementById('btn-enter-room').onclick=async()=>{
-            if(!mpRoomRef || mpRole!=='host') return;
-            await enterMultiplayerRoom();
-            const st=document.getElementById('mp-status'); if(st) st.innerText='2. oyuncunun odaya katılması bekleniyor…';
-            document.getElementById('modal-mp-waiting')?.classList.add('hidden');
-        };
+        document.getElementById('btn-enter-room')?.addEventListener('click',()=>{});
         document.getElementById('btn-close-mp-waiting').onclick=()=>document.getElementById('modal-mp-waiting').classList.add('hidden');
 
         window.addEventListener('load',async()=>{
             const u=new URL(location.href);
             const code=(u.searchParams.get('room')||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
             if(!code) return;
-            const isInvite=u.searchParams.get('join')==='1';
             document.getElementById('screen-game')?.classList.add('hidden');
             document.getElementById('screen-home')?.classList.remove('hidden');
             document.getElementById('friend-invite-panel')?.classList.remove('hidden');
-            if(isInvite){
-                const ok=await joinRoom(code,true);
-                if(ok){ const st=document.getElementById('mp-status'); if(st)st.innerText='2. oyuncu olarak bağlandın. Oyun hazırlanıyor…'; }
-                return;
-            }
-            // Host sayfayı yenilerse aynı odaya 1. oyuncu olarak geri bağlanır.
-            if(ensureFirebase()){
-                const snap=await mpDb.ref('rooms/'+code).once('value'); const d=snap.val();
-                if(d && (d.hostId===getClientToken() || ownsRoomLocally(code,d.ownerToken))) await joinRoom(code,false);
+            const ok=await joinRoom(code);
+            if(ok){
+                const st=document.getElementById('mp-status');
+                if(st) st.innerText=mpRole==='host'?'Odan yeniden açıldı. Arkadaşını bekliyorsun.':'Davet kabul edildi. 1. oyuncuyla senkronize ediliyor…';
             }
         });
 
@@ -62418,11 +62406,11 @@ BLİK
 
         document.getElementById('btn-close-room').onclick=async()=>{
             if(!mpRoomRef || mpRole!=='host') return;
-            if(!confirm('Bu kalıcı oda tamamen kapatılsın mı?')) return;
+            if(!confirm('Bu oda kapatılsın mı? Davet bağlantısı artık çalışmayacak.')) return;
             try{
                 const snap=await mpRoomRef.once('value'),d=snap.val();
-                if(!d || !ownsRoomLocally(mpRoomCode,d.ownerToken)){ showToast('Bu odayı yalnızca kurucusu kapatabilir.','rose'); return; }
-                await mpRoomRef.remove(); localStorage.removeItem(ownerKey(mpRoomCode));
+                if(!d || d.hostId!==getClientToken()){ showToast('Bu odayı yalnızca kurucusu kapatabilir.','rose'); return; }
+                await mpRoomRef.remove();
                 if(mpListener) mpRoomRef.off('value',mpListener);
                 if(mpWordsListener) mpRoomRef.child('words').off('child_added',mpWordsListener);
                 mpRoomRef=null;mpRoomCode=null;mpRole=null;mpRoomData=null;setMpState(MP_STATES.IDLE);
