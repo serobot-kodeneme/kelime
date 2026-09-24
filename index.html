@@ -419,7 +419,7 @@
         <!-- ================= SAYDAM & TAHTAYI GÖSTEREN GERİ SAYIM MODALI ================= -->
         <div id="modal-countdown" class="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px] flex items-center justify-center z-50 hidden">
             <div class="flex flex-col items-center justify-center bg-white/90 border border-slate-200/80 p-6 rounded-3xl shadow-2xl backdrop-blur-md">
-                <div id="countdown-number" class="text-7xl font-black text-amber-500 drop-shadow-sm">2</div>
+                <div id="countdown-number" class="text-7xl font-black text-amber-500 drop-shadow-sm">5</div>
                 <div class="text-slate-800 font-black text-xs tracking-widest uppercase mt-3 bg-white px-4 py-1.5 rounded-full border border-slate-200 shadow-sm">
                     DÜELLO BAŞLIYOR!
                 </div>
@@ -61895,7 +61895,7 @@ BLİK
             const code=makeRoomCode(); mpRoomCode=code; mpRole='host';
             const ready=prewarmedBoard || loadBoardCache() || generateOptimizedBoard(3); prewarmedBoard=null;
             const ref=mpDb.ref('rooms/'+code); mpRoomRef=ref;
-            await ref.set({createdAt:firebase.database.ServerValue.TIMESTAMP,status:'waiting',host:true,guest:false,board:ready.board,scores:{host:0,guest:0},startAt:0});
+            await ref.set({createdAt:firebase.database.ServerValue.TIMESTAMP,status:'waiting',host:true,guest:false,ready:{host:false,guest:false},board:ready.board,scores:{host:0,guest:0},startAt:0});
             setMpPanelRoom(code,'Oda hazır. Davet linkini arkadaşına gönder.'); attachRoomListener();
         }
         async function joinRoom(code){
@@ -61911,8 +61911,16 @@ BLİK
                 const d=snap.val(); if(!d) return; mpRoomData=d;
                 if(d.scores){p1Score=d.scores.host||0;p2Score=d.scores.guest||0;updateScores();}
                 if(mpRole==='host' && d.guest && d.status==='waiting'){
-                    document.getElementById('mp-status').innerText='Rakip bağlandı ✓ Odaya gir ve düelloyu başlat.';
+                    document.getElementById('mp-status').innerText='Rakip bağlandı ✓ İkiniz de odaya girince 5 saniyelik senkron geri sayım başlayacak.';
                 } else if(d.guest) document.getElementById('mp-status').innerText='İki oyuncu odada ✓';
+
+                // Her iki cihaz oyun ekranına gerçekten girmeden maç başlatılmaz.
+                // Host, iki READY işaretini gördüğünde Firebase sunucu saatine göre tek bir ortak
+                // başlangıç anı belirler. Böylece iki telefonda ayrı sayaç başlatmak yerine
+                // aynı startAt zamanına kilitleniriz.
+                if(mpRole==='host' && d.status==='waiting' && d.ready?.host && d.ready?.guest && !d.startAt){
+                    scheduleSynchronizedStart();
+                }
                 if(mpEntered && d.status==='starting' && d.startAt && !mpStarted) startSyncedMatch(d);
             });
         }
@@ -61928,18 +61936,33 @@ BLİK
             document.getElementById('p1-title').innerText='1. OYUNCU'; document.getElementById('p2-title').innerText='2. OYUNCU';
             p1Score=mpRoomData.scores?.host||0; p2Score=mpRoomData.scores?.guest||0; updateScores(); remainingSeconds=60; sessionFoundWords.clear(); document.getElementById('words-ticker').innerHTML='';
             renderProvidedBoard(mpRoomData.board);
-            if(mpRole==='host'){
-                if(!mpRoomData.guest){ document.getElementById('screen-game').classList.add('hidden'); document.getElementById('screen-home').classList.remove('hidden'); document.getElementById('mp-status').innerText='Rakip henüz bağlanmadı…'; mpEntered=false; return; }
-                await mpRoomRef.update({status:'starting',startAt:firebase.database.ServerValue.TIMESTAMP});
-                const ss=await mpRoomRef.child('startAt').once('value'); await mpRoomRef.update({startAt:(ss.val()||Date.now())+3500});
-            } else if(mpRoomData.status==='starting' && mpRoomData.startAt) startSyncedMatch(mpRoomData);
+            if(mpRole==='host' && !mpRoomData.guest){
+                document.getElementById('screen-game').classList.add('hidden'); document.getElementById('screen-home').classList.remove('hidden'); document.getElementById('mp-status').innerText='Rakip henüz bağlanmadı…'; mpEntered=false; return;
+            }
+            // Bu cihaz hazır. Başlangıcı yalnızca iki cihaz da READY olduktan sonra host planlar.
+            await mpRoomRef.child('ready/'+mpRole).set(true);
+            if(mpRoomData.status==='starting' && mpRoomData.startAt) startSyncedMatch(mpRoomData);
+        }
+        let mpSchedulingStart=false;
+        async function scheduleSynchronizedStart(){
+            if(mpSchedulingStart || !mpRoomRef || mpRole!=='host') return;
+            mpSchedulingStart=true;
+            try{
+                const snap=await mpRoomRef.once('value'), d=snap.val();
+                if(!d || d.status!=='waiting' || !d.ready?.host || !d.ready?.guest || d.startAt) return;
+                // Firebase .info/serverTimeOffset ile düzeltilmiş ortak saat. 5.5 sn tampon,
+                // ilk ekranda iki cihazın da net biçimde 5 görmesini sağlar.
+                const serverNow=Date.now()+mpServerOffset;
+                await mpRoomRef.update({status:'starting', startAt:serverNow+5500});
+            } finally { mpSchedulingStart=false; }
         }
         function startSyncedMatch(d){
             mpStarted=true; isMatchActive=false; clearInterval(mpClock); const modal=document.getElementById('modal-countdown'),num=document.getElementById('countdown-number'); modal.classList.remove('hidden');
-            mpClock=setInterval(()=>{const now=Date.now()+mpServerOffset, left=d.startAt-now;
-                if(left>0){num.innerText=Math.max(1,Math.ceil(left/1000)); return;}
+            const tick=()=>{const now=Date.now()+mpServerOffset, left=d.startAt-now;
+                if(left>0){num.innerText=Math.min(5,Math.max(1,Math.ceil(left/1000))); return;}
                 clearInterval(mpClock); modal.classList.add('hidden'); isMatchActive=true; remainingSeconds=60; document.getElementById('game-timer').innerText='60'; startMultiplayerTimer(d.startAt);
-            },80);
+            };
+            tick(); mpClock=setInterval(tick,50);
         }
         function startMultiplayerTimer(startAt){
             clearInterval(timerInterval); timerInterval=setInterval(()=>{const elapsed=Math.floor((Date.now()+mpServerOffset-startAt)/1000);remainingSeconds=Math.max(0,60-elapsed);document.getElementById('game-timer').innerText=remainingSeconds;if(remainingSeconds<=10)document.getElementById('game-timer').classList.add('timer-warning');if(remainingSeconds<=0){clearInterval(timerInterval);endGame();}},200);
