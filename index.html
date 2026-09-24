@@ -115,11 +115,18 @@
 
         /* Harfleri El ile Topluyormuş Hissi Veren Efekt */
         .tile-dragging {
-            background-color: #fbbf24 !important;
-            color: #451a03 !important;
             transform: scale(1.2) translateY(-4px) !important;
             z-index: 25;
-            box-shadow: 0 10px 22px rgba(245, 158, 11, 0.65) !important;
+        }
+        .tile-dragging-p1 {
+            background-color: #fde68a !important;
+            color: #713f12 !important;
+            box-shadow: 0 10px 22px rgba(245, 158, 11, 0.38) !important;
+        }
+        .tile-dragging-p2 {
+            background-color: #bae6fd !important;
+            color: #0c4a6e !important;
+            box-shadow: 0 10px 22px rgba(14, 165, 233, 0.34) !important;
         }
 
         @keyframes floatingToastAnim {
@@ -61910,7 +61917,7 @@ BLİK
             const code=makeRoomCode(); mpRoomCode=code; mpRole='host';
             const ready=prewarmedBoard || loadBoardCache() || generateOptimizedBoard(3); prewarmedBoard=null;
             const ref=mpDb.ref('rooms/'+code); mpRoomRef=ref;
-            await ref.set({createdAt:firebase.database.ServerValue.TIMESTAMP,status:'waiting',host:true,guest:false,ready:{host:false,guest:false},board:ready.board,scores:{host:0,guest:0},startAt:0,countdownAt:0,words:{}});
+            await ref.set({createdAt:firebase.database.ServerValue.TIMESTAMP,status:'waiting',host:true,guest:false,ready:{host:false,guest:false},board:ready.board,scores:{host:0,guest:0},startAt:0,countdownAt:0,words:{},claimedWords:{}});
             setMpPanelRoom(code,'Oda hazır. Davet linkini arkadaşına gönder.'); attachRoomListener();
         }
         async function joinRoom(code){
@@ -61952,7 +61959,9 @@ BLİK
         function processMpWordEvent(key,ev){
             if(!ev || !key || mpSeenWordEvents.has(key)) return;
             mpSeenWordEvents.add(key);
-            if(mpFoundWords[ev.role]) mpFoundWords[ev.role].add(ev.word);
+            // Çoklu oyunda bulunan kelime iki oyuncu için de artık puan dışıdır.
+            mpFoundWords.host.add(ev.word);
+            mpFoundWords.guest.add(ev.word);
             // Kendi sözcüğümüz yerelde anında işlendi. Rakibin sözcüğünü Firebase'den tahtaya yansıt.
             if(ev.role===mpRole) return;
             if(Array.isArray(ev.path)) applyClaimedPath(ev.path, ev.role==='host');
@@ -62355,7 +62364,7 @@ BLİK
                 const prev = selectedPath[selectedPath.length - 2];
                 if (prev.r === row && prev.c === col) {
                     const removed = selectedPath.pop();
-                    removed.el.classList.remove('tile-dragging');
+                    removed.el.classList.remove('tile-dragging','tile-dragging-p1','tile-dragging-p2');
                     syncWordDisplay();
                     return;
                 }
@@ -62378,12 +62387,13 @@ BLİK
 
         function addCellToPath(r, c, cell) {
             selectedPath.push({ r, c, char: gridBoard[r][c], el: cell });
-            cell.classList.add('tile-dragging');
+            const selectingAsP1 = mpRole ? (mpRole === 'host') : (chosenAvatarId === 'av_1');
+            cell.classList.add('tile-dragging', selectingAsP1 ? 'tile-dragging-p1' : 'tile-dragging-p2');
             syncWordDisplay();
         }
 
         function clearPath() {
-            selectedPath.forEach(p => p.el.classList.remove('tile-dragging'));
+            selectedPath.forEach(p => p.el.classList.remove('tile-dragging','tile-dragging-p1','tile-dragging-p2'));
             selectedPath = [];
             syncWordDisplay();
         }
@@ -62409,7 +62419,7 @@ BLİK
         }
 
 
-        function submitWord() {
+        async function submitWord() {
             if (!isMatchActive || selectedPath.length === 0) return;
             const word = selectedPath.map(p => p.char).join('');
             const pts = word.split('').reduce((sum, ch) => sum + (TILE_SCORES[ch] || 1), 0);
@@ -62428,15 +62438,36 @@ BLİK
                 return;
             }
 
-            const alreadyFound = mpRole ? mpFoundWords[mpRole].has(word) : sessionFoundWords.has(word);
-            if (alreadyFound) {
-                showToast(`Sen bu sözcüğü zaten buldun! (-${pts})`, 'rose');
-                adjustScore(isP1 ? -pts : 0, !isP1 ? -pts : 0);
+            // Bir kelime aynı maçta yalnızca bir kez puan kazandırır. Harfler ise başka kelimelerde serbestçe kullanılabilir.
+            if (mpRole) {
+                const normalizedWord = word.toLocaleUpperCase('tr-TR');
+                const wordKey = encodeURIComponent(normalizedWord).replace(/\./g, '%2E');
+                const claimRef = mpRoomRef.child('claimedWords').child(wordKey);
+                try {
+                    const tx = await claimRef.transaction(current => {
+                        if (current !== null) return;
+                        return { word: normalizedWord, role: mpRole, at: firebase.database.ServerValue.TIMESTAMP };
+                    });
+                    if (!tx.committed) {
+                        showToast(`${word} daha önce bulundu!`, 'rose');
+                        clearPath();
+                        return;
+                    }
+                } catch (err) {
+                    showToast('Senkronizasyon kontrol ediliyor, tekrar dene.', 'rose');
+                    clearPath();
+                    return;
+                }
+            } else if (sessionFoundWords.has(word)) {
+                showToast(`${word} daha önce bulundu!`, 'rose');
                 clearPath();
                 return;
             }
 
-            if(mpRole) mpFoundWords[mpRole].add(word); else sessionFoundWords.add(word);
+            if(mpRole) {
+                mpFoundWords.host.add(word);
+                mpFoundWords.guest.add(word);
+            } else sessionFoundWords.add(word);
             showToast(`${word} (+${pts})`, isP1 ? 'amber' : 'sky');
             if (typeof confetti === 'function') confetti({ particleCount: 50, spread: 70, origin: { y: 0.6 } });
 
