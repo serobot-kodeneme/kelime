@@ -62128,7 +62128,7 @@ BLİK
             document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
             const rs=document.getElementById('rematch-inline-status'); if(rs){rs.classList.add('hidden');rs.innerText='';}
             const replay=document.getElementById('btn-play-again'); if(replay){replay.disabled=false;replay.innerText='YENİ OYUN';}
-            if(d.board) renderProvidedBoard(d.board);
+            if(d.board && renderProvidedBoard(d.board)) hydrateMultiplayerBoardState(d);
         }
 
         async function enterMultiplayerRoom(){
@@ -62144,7 +62144,8 @@ BLİK
                 p1Score=Number(d.scores?.host||0); p2Score=Number(d.scores?.guest||0); updateScores();
                 remainingSeconds=60; sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
                 const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
-                renderProvidedBoard(d.board);
+                if (!renderProvidedBoard(d.board)) return;
+                hydrateMultiplayerBoardState(d);
             }
             if(d.status==='countdown' && d.startAt && !mpStarted) startSyncedMatch(d);
         }
@@ -62657,6 +62658,64 @@ BLİK
             container.appendChild(frag);
             const finalStats = analyzeBoardWords(boardFoundWords).stats;
             console.info(`Dengeli tahta: ${finalStats.total} kelime | 2H:${finalStats.easy} | 3-4H:${finalStats.medium} | 5H:${finalStats.bridge} | 6-9H:${finalStats.hidden}`);
+        }
+
+
+        // Çoklu oyuncu da tekli oyunla AYNI 9x9 tahta DOM yapısını kullanır.
+        // Firebase'den gelen hazır tahta burada yalnızca çizilir; seçim/sürükleme/puanlama
+        // olayları aşağıdaki ortak pointer ve submitWord motoru tarafından yönetilir.
+        function renderProvidedBoard(board) {
+            const container = document.getElementById('scrabble-grid');
+            if (!container) throw new Error('scrabble-grid bulunamadı');
+
+            const valid = Array.isArray(board) && board.length === BOARD_SIZE &&
+                board.every(row => Array.isArray(row) && row.length === BOARD_SIZE);
+            if (!valid) {
+                console.error('Geçersiz multiplayer tahtası:', board);
+                showToast('Oyun tahtası yüklenemedi. Oda yeniden senkronize ediliyor.', 'rose');
+                return false;
+            }
+
+            // Tekli buildGrid() ile aynı yerel oyun durumunu hazırla.
+            clearPath();
+            container.innerHTML = '';
+            domCells = [];
+            gridBoard = board.map(row => row.map(ch => String(ch || '').toLocaleUpperCase('tr-TR')));
+            boardFoundWords = solveBoardWords(gridBoard);
+
+            const frag = document.createDocumentFragment();
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    const char = gridBoard[r][c];
+                    const cell = document.createElement('div');
+                    cell.className = 'letter-cell';
+                    cell.id = `cell-${r}-${c}`;
+                    cell.innerHTML = `<span>${char}</span><span class="tile-score">${TILE_SCORES[char] || 1}</span>`;
+                    frag.appendChild(cell);
+                    domCells.push(cell);
+                }
+            }
+            container.appendChild(frag);
+            syncWordDisplay();
+            return true;
+        }
+
+        function hydrateMultiplayerBoardState(d) {
+            if (!d || !d.words || !domCells.length) return;
+            const entries = Object.entries(d.words);
+            for (const [key, ev] of entries) {
+                if (!ev || Number(ev.round || mpRound) !== Number(mpRound)) continue;
+                const word = String(ev.word || '').toLocaleUpperCase('tr-TR');
+                if (!word) continue;
+                mpFoundWords.host.add(word);
+                mpFoundWords.guest.add(word);
+                sessionFoundWords.add(word);
+                if (Array.isArray(ev.path)) applyClaimedPath(ev.path, ev.role === 'host');
+                if (!mpSeenWordEvents.has(key)) {
+                    mpSeenWordEvents.add(key);
+                    addTickerBadge(word, ev.role === 'host');
+                }
+            }
         }
 
         // ================= KESİNTİSİZ HASSAS DOKUNMATİK / FARE İMLECİ KONTROLÜ =================
