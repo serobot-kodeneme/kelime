@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Kelime Düellosu - 10x10 Akıllı Tahta</title>
+    <title>Kelime Düellosu - 9x9 Akıllı Tahta</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -34,17 +34,20 @@
             flex-direction: column;
         }
 
-        /* 10x10 Scrabble Izgarası ve El İmleci */
+        /* 9x9 Scrabble Izgarası - mobil ve web için büyük dokunma alanları */
         .scrabble-board {
             width: 100%;
             aspect-ratio: 1 / 1;
             display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            grid-template-rows: repeat(10, 1fr);
+            grid-template-columns: repeat(9, minmax(0, 1fr));
+            grid-template-rows: repeat(9, minmax(0, 1fr));
             background-color: #94a3b8;
-            gap: 3px;
-            padding: 4px;
-            border-radius: 14px;
+            gap: clamp(2px, 0.55vw, 4px);
+            padding: clamp(3px, 0.75vw, 5px);
+            border-radius: 16px;
+            box-sizing: border-box;
+            overscroll-behavior: contain;
+            -webkit-tap-highlight-color: transparent;
             box-shadow: inset 0 2px 8px rgba(0,0,0,0.15), 0 8px 20px rgba(0,0,0,0.15);
             touch-action: none;
             cursor: grab;
@@ -61,10 +64,14 @@
             align-items: center;
             justify-content: center;
             font-family: 'Quicksand', sans-serif;
-            font-size: 1.45rem;
+            font-size: clamp(1.42rem, 6.3vw, 1.92rem);
             font-weight: 900;
             position: relative;
-            border-radius: 6px;
+            border-radius: clamp(7px, 1.8vw, 10px);
+            min-width: 0;
+            min-height: 0;
+            line-height: 1;
+            contain: layout paint;
             box-shadow: 0 2px 0 #cbd5e1;
             transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.1s ease, box-shadow 0.12s ease;
             pointer-events: none;
@@ -74,7 +81,7 @@
             position: absolute;
             bottom: 2px;
             right: 3px;
-            font-size: 0.62rem;
+            font-size: clamp(0.55rem, 2.2vw, 0.72rem);
             font-weight: 800;
             color: #64748b;
             line-height: 1;
@@ -225,7 +232,7 @@
             #btn-action-clear, #btn-action-submit { min-height: 44px; }
         }
 
-        /* 10x10 mobil oyun ekranı: bilgi minimum, tahta ve eylemler maksimum */
+        /* 9x9 mobil oyun ekranı: büyük harfler, geniş dokunma alanı */
         #compact-game-header { min-height: 52px; }
         .compact-player { display:flex; flex-direction:column; min-width:0; max-width:132px; }
         .compact-identity { display:flex; align-items:center; gap:5px; min-width:0; }
@@ -273,6 +280,34 @@
             transform: translate3d(0,0,0) scale(.9); opacity:1; transition: transform .72s cubic-bezier(.2,.8,.2,1), opacity .72s ease;
             text-shadow:0 2px 8px rgba(0,0,0,.28); will-change:transform,opacity; }
         .score-fly.go { transform: translate3d(var(--dx),var(--dy),0) scale(1.22); opacity:0; }
+
+        /* 9x9 oynanabilirlik ayarları */
+        #scrabble-grid {
+            width: min(100%, 560px);
+            max-width: 560px;
+            margin-inline: auto;
+        }
+        @media (max-width: 520px) {
+            #scrabble-grid {
+                width: min(calc(100vw - 12px), calc(100dvh - 148px)) !important;
+                max-width: none !important;
+            }
+            .letter-cell {
+                font-size: clamp(1.35rem, 6.9vw, 1.72rem);
+                box-shadow: 0 2px 0 #cbd5e1;
+            }
+            .letter-cell .tile-score { bottom: 2px; right: 3px; }
+        }
+        @media (min-width: 700px) {
+            #app-container { max-width: 620px; }
+            #scrabble-grid { width: min(72vh, 560px) !important; }
+            .letter-cell { font-size: 1.82rem; }
+        }
+        @media (pointer: coarse) {
+            .scrabble-board { cursor: default; }
+            .letter-cell { transition: transform .07s ease, background-color .07s ease, box-shadow .07s ease; }
+            .tile-hover-tremble { animation: none !important; }
+        }
 </style>
     <!-- Firebase: yalnızca çok oyunculu modda kullanılan hafif compat SDK -->
     <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -377,7 +412,7 @@
             </div>
 
             <div class="w-full relative flex-1 min-h-0 bg-slate-900 flex flex-col justify-start px-2 pt-1 pb-0 overflow-hidden">
-                <!-- El İmleciyle Toplanabilir 10x10 Izgara -->
+                <!-- Basılı tutup sürükleyerek oynanan 9x9 Izgara -->
                 <div id="scrabble-grid" class="scrabble-board touch-none select-none w-full max-w-md mx-auto"></div>
 
                 <div id="mobile-word-status" class="w-full bg-slate-950 px-3 py-1.5 text-center min-h-[30px] flex items-center justify-center border border-slate-800 mt-1.5 rounded-xl" style="margin-bottom:max(5px, env(safe-area-inset-bottom));">
@@ -62328,7 +62363,7 @@ BLİK
         // Zorluk piramidi: çok sayıda 2 harfli kolay sözcük, güçlü bir 3-4 harfli orta katman
         // ve daha az sayıda 6-9 harfli "gizli" sözcük. Tahta ekrana çizilmeden önce bellekte
         // puanlanır; en dengeli aday seçilir. Böylece görsel katman değişmeden oyun kalitesi artar.
-        const BOARD_SIZE = 10;
+        const BOARD_SIZE = 9;
         const BOARD_DIRS = [
             {dr:0,dc:1},{dr:0,dc:-1},{dr:1,dc:0},{dr:-1,dc:0}
         ];
@@ -62340,11 +62375,11 @@ BLİK
         });
         // Minimumlar tahta kabul şartıdır; ideal aralıklar adayları birbirine karşı puanlar.
         const BOARD_BALANCE = Object.freeze({
-            easyMin: 45, easyIdeal: 75,
-            mediumMin: 150, mediumIdeal: 245,
-            bridgeMin: 28, bridgeIdeal: 68,
-            hiddenMin: 10, hiddenIdeal: 22, hiddenMax: 42,
-            totalMin: 330, totalIdeal: 520
+            easyMin: 34, easyIdeal: 58,
+            mediumMin: 105, mediumIdeal: 180,
+            bridgeMin: 18, bridgeIdeal: 42,
+            hiddenMin: 7, hiddenIdeal: 15, hiddenMax: 30,
+            totalMin: 230, totalIdeal: 370
         });
         const FILL_LETTERS = "AAAAAAAABCCÇDDEEEEEEEFGĞHHIIIIIİİİİJKKKLLLMMMNNNOOÖPRRRRSSSŞTTTUUÜVYYZ";
 
@@ -62385,26 +62420,26 @@ BLİK
             // KOLAY OYNANABİLİRLİK: Tahtanın omurgası doğrudan gerçek sözcüklerden kurulur.
             // Uzun sözcükler düz çizgide saklanır; kısa/orta sözcükler bunların çevresine serpiştirilir.
             // Böylece oyuncu ilk bakışta kısa kelimeler bulabilirken 6-9 harflik ödüllü kelimeler de vardır.
-            const longSeeds = shuffledSample(BOARD_POOLS.hidden69, 26);
-            const bridgeSeeds = shuffledSample(BOARD_POOLS.bridge5, 90);
-            const mediumSeeds = shuffledSample(BOARD_POOLS.medium34, 420);
-            const easySeeds = shuffledSample(BOARD_POOLS.easy2, 120);
+            const longSeeds = shuffledSample(BOARD_POOLS.hidden69, 22);
+            const bridgeSeeds = shuffledSample(BOARD_POOLS.bridge5, 72);
+            const mediumSeeds = shuffledSample(BOARD_POOLS.medium34, 330);
+            const easySeeds = shuffledSample(BOARD_POOLS.easy2, 100);
 
             let placedLong = 0, placedOther = 0;
             // Her tahtada 6, 7, 8 ve 9 harfli sözcüklerin görünür düz hatlar oluşturma ihtimalini yükselt.
             for (const word of longSeeds) {
-                if (placedLong >= 14) break;
+                if (placedLong >= 10) break;
                 if (tryPlaceWord(board, word, placedLong >= 5)) placedLong++;
             }
             // 5 ve 3-4 harflileri kesişimli yerleştir; kesişim olmazsa ikinci denemede bağımsız koridor aç.
             for (const word of [...bridgeSeeds, ...mediumSeeds]) {
-                if (placedOther >= 70) break;
+                if (placedOther >= 54) break;
                 if (tryPlaceWord(board, word, true) || tryPlaceWord(board, word, false)) placedOther++;
             }
             // 2 harfli gerçek sözcükleri özellikle dikerek oyunun ilk saniyelerini kolaylaştır.
             let easyPlaced = 0;
             for (const word of easySeeds) {
-                if (easyPlaced >= 28) break;
+                if (easyPlaced >= 24) break;
                 if (tryPlaceWord(board, word, false)) easyPlaced++;
             }
 
@@ -62442,7 +62477,7 @@ BLİK
             return {stats, accepted, score};
         }
 
-        const BOARD_CACHE_KEY = 'kd_board_cache_v4_10x10';
+        const BOARD_CACHE_KEY = 'kd_board_cache_v5_9x9';
         let prewarmedBoard = null;
 
         function packBoardResult(board, words) {
@@ -62545,16 +62580,23 @@ BLİK
 
         gridEl.addEventListener('pointerdown', (e) => {
             if (!isMatchActive) return;
+            e.preventDefault();
             isPointerDown = true;
             activeGridRect = gridEl.getBoundingClientRect(); // sürükleme boyunca yalnızca bir kez ölç
             gridEl.classList.add('is-grabbing');
-            gridEl.setPointerCapture(e.pointerId);
+            try { gridEl.setPointerCapture(e.pointerId); } catch (_) {}
             clearPath();
             processPointerAt(e.clientX, e.clientY, activeGridRect);
-        });
+        }, {passive:false});
 
         gridEl.addEventListener('pointermove', (e) => {
             if (!isMatchActive || !isPointerDown) return;
+            e.preventDefault();
+            // Tarayıcı destekliyorsa aradaki örnekleri de işle; hızlı parmak hareketinde hücre atlamasını azaltır.
+            const samples = typeof e.getCoalescedEvents === 'function' ? e.getCoalescedEvents() : null;
+            if (samples && samples.length > 1) {
+                for (const sample of samples) processPointerAt(sample.clientX, sample.clientY, activeGridRect);
+            }
             pendingPointer = {x:e.clientX, y:e.clientY};
             if (pointerFrame) return;
             pointerFrame = requestAnimationFrame(() => {
@@ -62563,7 +62605,7 @@ BLİK
                 const p = pendingPointer; pendingPointer = null;
                 processPointerAt(p.x, p.y, activeGridRect);
             });
-        });
+        }, {passive:false});
 
         const finishPointer = (e, shouldSubmit = true) => {
             if (!isPointerDown) return;
