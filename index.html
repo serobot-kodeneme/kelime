@@ -62024,7 +62024,7 @@ BLİK
                     document.getElementById('game-timer').classList.remove('timer-warning');
                     document.getElementById('modal-gameover').classList.add('hidden');
                     document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
-                    const replayBtn=document.getElementById('btn-play-again'); if(replayBtn){ replayBtn.disabled=false; replayBtn.innerText='TEKRAR OYNA'; }
+                    const replayBtn=document.getElementById('btn-play-again'); if(replayBtn){ replayBtn.disabled=false; replayBtn.innerText='TEKRAR OYNA'; replayBtn.classList.toggle('hidden', !!mpRole && mpRole!=='host'); }
                     renderProvidedBoard(d.board);
                     if(mpEntered) mpRoomRef.child('ready/'+mpRole).set(true);
                 } else if(!mpRound) mpRound=incomingRound;
@@ -62043,20 +62043,21 @@ BLİK
                     const req=d.rematchRequest||null;
                     const modal=document.getElementById('modal-rematch-waiting');
                     const actions=document.getElementById('rematch-request-actions');
-                    if(req && Number(req.round||0)===Number(d.round||1)){
+                    if(req && req.from==='host' && Number(req.round||0)===Number(d.round||1)){
                         modal?.classList.remove('hidden');
-                        if(req.from===mpRole){
+                        if(mpRole==='host'){
                             actions?.classList.add('hidden');
-                            document.getElementById('rematch-wait-title').innerText='Tekrar oynama isteğin gönderildi';
-                            document.getElementById('rematch-wait-sub').innerText='Arkadaşının yanıtı bekleniyor. Oda açık kalmaya devam edecek.';
-                        }else{
+                            document.getElementById('rematch-wait-title').innerText='Tekrar oynama isteği gönderildi';
+                            document.getElementById('rematch-wait-sub').innerText='2. oyuncunun ONAYLA demesi bekleniyor.';
+                        }else if(mpRole==='guest'){
                             actions?.classList.remove('hidden');
-                            document.getElementById('rematch-wait-title').innerText='Arkadaşın tekrar oynamak istiyor';
-                            document.getElementById('rematch-wait-sub').innerText='Yeni hazırlanmış oyun tahtasında yeniden kapışmak ister misin?';
+                            document.getElementById('rematch-wait-title').innerText='1. oyuncu tekrar oynamak istiyor';
+                            document.getElementById('rematch-wait-sub').innerText='Yeni oyun tahtasında yeniden oynamayı onaylıyor musun?';
+                            const a=document.getElementById('btn-rematch-accept'), r=document.getElementById('btn-rematch-decline');
+                            if(a) a.innerText='ONAYLA'; if(r) r.innerText='REDDET';
                         }
                     }
                 }
-                if(d.status==='finished' && d.rematch?.host && d.rematch?.guest && !mpRematchBusy) launchPreparedRematch();
                 if(d.status==='waiting' && d.presence?.host && d.presence?.guest && d.ready?.host && d.ready?.guest && !d.countdownAt){
                     scheduleSynchronizedStart();
                 }
@@ -62828,34 +62829,43 @@ BLİK
 
         async function handlePlayAgain(){
             if(!mpRoomRef || !mpRole){ location.reload(); return; }
+            // Rövanş teklifini yalnızca oda kurucusu (1. oyuncu/host) gönderebilir.
+            if(mpRole!=='host') return;
             const btn=document.getElementById('btn-play-again');
-            btn.disabled=true; btn.innerText='RAKİP BEKLENİYOR…';
+            btn.disabled=true; btn.innerText='ONAY BEKLENİYOR…';
             try{
-                // Oyun bittiğinde nextBoard zaten hazırlanır. Burada yalnızca bu oyuncunun
-                // yeni maça hazır olduğunu işaretliyoruz; oda/rol/bağlantı kesinlikle değişmez.
-                await mpRoomRef.child('rematch/'+mpRole).set(true);
+                await mpRoomRef.child('rematchRequest').set({from:'host',round:Number(mpRoomData?.round||1),at:firebase.database.ServerValue.TIMESTAMP});
                 const modal=document.getElementById('modal-rematch-waiting');
                 modal?.classList.remove('hidden');
                 document.getElementById('rematch-request-actions')?.classList.add('hidden');
-                document.getElementById('rematch-wait-title').innerText='Yeni oyuna hazırsın';
-                document.getElementById('rematch-wait-sub').innerText='Diğer oyuncunun TEKRAR OYNA düğmesine basması bekleniyor…';
+                document.getElementById('rematch-wait-title').innerText='Tekrar oynama isteği gönderildi';
+                document.getElementById('rematch-wait-sub').innerText='2. oyuncunun onayı bekleniyor. Oda açık kalmaya devam edecek.';
             }catch(e){
                 btn.disabled=false; btn.innerText='TEKRAR OYNA';
-                showToast('Hazır bilgisi gönderilemedi. Tekrar dene.','rose');
+                showToast('Tekrar oynama isteği gönderilemedi.','rose');
             }
         }
 
         async function acceptRematchRequest(){
-            if(!mpRoomRef||!mpRole) return;
+            if(!mpRoomRef||mpRole!=='guest') return;
             document.getElementById('rematch-request-actions')?.classList.add('hidden');
             document.getElementById('rematch-wait-title').innerText='Yeni oyun hazırlanıyor…';
             document.getElementById('rematch-wait-sub').innerText='Senkronizasyon ve 5 saniyelik geri sayım birazdan başlayacak.';
+            const fallback=generateOptimizedBoard(3).board;
             await mpRoomRef.transaction(d=>{
-                if(!d || d.status!=='finished' || !d.rematchRequest) return;
-                const requester=d.rematchRequest.from;
-                if(requester===mpRole) return;
-                d.rematch={host:false,guest:false}; d.rematch[requester]=true; d.rematch[mpRole]=true;
-                d.rematchRequest=null; return d;
+                if(!d || d.status!=='finished' || !d.rematchRequest || d.rematchRequest.from!=='host') return;
+                if(Number(d.rematchRequest.round||0)!==Number(d.round||1)) return;
+                d.status='waiting';
+                d.round=Number(d.round||1)+1;
+                d.board=d.nextBoard || fallback;
+                d.nextBoard=null;
+                d.scores={host:0,guest:0};
+                d.ready={host:false,guest:false};
+                d.rematch={host:false,guest:false};
+                d.rematchRequest=null;
+                d.startAt=0; d.countdownAt=0;
+                d.words=null; d.claimedWords=null;
+                return d;
             });
         }
 
@@ -62931,7 +62941,12 @@ BLİK
                 }).then(()=>prepareNextRoundBoard());
             }
             document.getElementById('modal-gameover').classList.remove('hidden');
-            const replayBtn=document.getElementById('btn-play-again'); if(replayBtn){ replayBtn.disabled=false; replayBtn.innerText='TEKRAR OYNA'; }
+            const replayBtn=document.getElementById('btn-play-again');
+            if(replayBtn){
+                replayBtn.disabled=false; replayBtn.innerText='TEKRAR OYNA';
+                // Çoklu oyunda rövanş teklifini yalnızca oda kurucusu görür.
+                replayBtn.classList.toggle('hidden', !!mpRole && mpRole!=='host');
+            }
 
             document.getElementById('final-score-val-p1').innerText = p1Score;
             document.getElementById('final-score-val-p2').innerText = p2Score;
@@ -63004,8 +63019,12 @@ BLİK
             renderWordsForLetter(null, e.target.value.trim());
         };
 
-        document.getElementById('btn-close-rematch-waiting')?.addEventListener('click',()=>{
-            document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
+        document.getElementById('btn-close-rematch-waiting')?.addEventListener('click',async()=>{
+            if(mpRole==='guest' && mpRoomData?.status==='finished' && mpRoomData?.rematchRequest?.from==='host'){
+                await declineRematchRequest();
+            }else{
+                document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
+            }
         });
         document.getElementById('btn-rematch-accept')?.addEventListener('click',acceptRematchRequest);
         document.getElementById('btn-rematch-decline')?.addEventListener('click',declineRematchRequest);
