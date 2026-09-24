@@ -83,19 +83,27 @@
 
         /* 1. Oyuncu Ele Geçirilen Taşlar */
         .tile-claimed-p1 {
-            background-color: #facc15 !important;
-            color: #422006 !important;
-            box-shadow: 0 2px 0 #ca8a04 !important;
+            background-color: #fef3c7 !important;
+            color: #713f12 !important;
+            box-shadow: 0 2px 0 #fbbf24 !important;
         }
         .tile-claimed-p1 .tile-score { color: #854d0e !important; }
 
         /* 2. Oyuncu Ele Geçirilen Taşlar */
         .tile-claimed-p2 {
-            background-color: #38bdf8 !important;
-            color: #082f49 !important;
-            box-shadow: 0 2px 0 #0284c7 !important;
+            background-color: #e0f2fe !important;
+            color: #0c4a6e !important;
+            box-shadow: 0 2px 0 #7dd3fc !important;
         }
         .tile-claimed-p2 .tile-score { color: #0369a1 !important; }
+
+        @keyframes tileHoverTremble {
+            0%,100% { transform: translate(0,0) rotate(0deg); }
+            25% { transform: translate(-0.45px,0) rotate(-0.25deg); }
+            50% { transform: translate(0.45px,-0.35px) rotate(0.25deg); }
+            75% { transform: translate(0,0.35px) rotate(-0.15deg); }
+        }
+        .letter-cell.tile-hover-tremble { animation: tileHoverTremble .16s ease-in-out 1; }
 
         /* Harfleri El ile Topluyormuş Hissi Veren Efekt */
         .tile-dragging {
@@ -275,7 +283,7 @@
 
                 <div class="w-full max-w-sm mt-5 space-y-3 shrink-0">
                     <button id="btn-solo-mode" class="w-full min-h-[76px] flex items-center gap-4 px-5 bg-gradient-to-b from-emerald-400 to-green-600 text-white rounded-[24px] border-4 border-emerald-200/70 shadow-[0_8px_0_#166534] active:translate-y-1 active:shadow-[0_4px_0_#166534] transition">
-                        <span class="text-4xl">🤖</span><span class="text-left flex-1"><b class="block text-xl leading-5 font-black">TEKLİ OYUN (BİLGİSAYARA KARŞI)</b><small class="font-bold text-green-50">Zorluk seç ve hemen başla</small></span><span id="solo-arrow" class="text-3xl font-black transition-transform">›</span>
+                        <span class="text-4xl">🤖</span><span class="text-left flex-1"><b class="block text-xl leading-5 font-black">TEKLİ OYUN</b><small class="font-bold text-green-50">Zorluk seç ve hemen başla</small></span><span id="solo-arrow" class="text-3xl font-black transition-transform">›</span>
                     </button>
 
                     <!-- Tekli Oyuncu açıldığında seçenekler iki ana düğmenin arasına girer. -->
@@ -308,10 +316,10 @@
                     </div>
                 </div>
 
-                <div class="mt-auto pt-5 w-full max-w-sm grid grid-cols-3 gap-3 shrink-0">
-                    <button id="btn-settings" class="flex flex-col items-center gap-1 text-slate-800 font-black text-[10px]"><span class="w-12 h-12 rounded-full bg-indigo-700 border-4 border-indigo-200 text-white text-2xl flex items-center justify-center shadow-lg">⚙</span>Ayarlar</button>
-                    <button id="btn-howto" class="flex flex-col items-center gap-1 text-slate-800 font-black text-[10px]"><span class="w-12 h-12 rounded-full bg-indigo-700 border-4 border-indigo-200 text-white text-2xl flex items-center justify-center shadow-lg">?</span>Nasıl Oynanır?</button>
-                    <button id="btn-about" class="flex flex-col items-center gap-1 text-slate-800 font-black text-[10px]"><span class="w-12 h-12 rounded-full bg-indigo-700 border-4 border-indigo-200 text-white text-2xl flex items-center justify-center shadow-lg">i</span>Hakkında</button>
+                <div class="mt-auto pt-5 w-full max-w-sm grid grid-cols-3 gap-2.5 shrink-0">
+                    <button id="btn-settings" class="group min-h-[78px] rounded-2xl bg-white/90 border border-slate-200 shadow-md flex flex-col items-center justify-center gap-1.5 text-slate-700 font-black text-[10px] active:scale-95 transition-all hover:-translate-y-0.5 hover:shadow-lg"><span class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center group-hover:rotate-12 transition-transform"><svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.09A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.09A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.09A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.13.38.34.72.6 1 .3.3.7.45 1.1.4H21v4h-.09A1.7 1.7 0 0 0 19.4 15Z"/></svg></span>Ayarlar</button>
+                    <button id="btn-howto" class="group min-h-[78px] rounded-2xl bg-white/90 border border-slate-200 shadow-md flex flex-col items-center justify-center gap-1.5 text-slate-700 font-black text-[10px] active:scale-95 transition-all hover:-translate-y-0.5 hover:shadow-lg"><span class="w-10 h-10 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center group-hover:scale-110 transition-transform"><svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.3 2.3 0 1 1 3.9 1.7c-1.1.9-1.7 1.4-1.7 2.8"/><path d="M12 17h.01"/></svg></span>Nasıl Oynanır?</button>
+                    <button id="btn-about" class="group min-h-[78px] rounded-2xl bg-white/90 border border-slate-200 shadow-md flex flex-col items-center justify-center gap-1.5 text-slate-700 font-black text-[10px] active:scale-95 transition-all hover:-translate-y-0.5 hover:shadow-lg"><span class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center group-hover:scale-110 transition-transform"><svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><path d="M12 7h.01"/></svg></span>Hakkında</button>
                 </div>
             </div>
         </div>
@@ -356,18 +364,9 @@
                 <!-- El İmleciyle Toplanabilir 10x10 Izgara -->
                 <div id="scrabble-grid" class="scrabble-board touch-none select-none w-full max-w-md mx-auto"></div>
 
-                <div id="mobile-action-row" class="flex gap-2 w-full px-1 pt-1.5 shrink-0">
-                    <button id="btn-action-clear" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-white font-black py-3 rounded-xl text-xs uppercase border border-slate-700 active:scale-95">
-                        TEMİZLE
-                    </button>
-                    <button id="btn-action-submit" class="w-2/3 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 text-slate-950 font-black py-3 rounded-xl text-sm uppercase shadow-lg active:scale-98">
-                        GÖNDER
-                    </button>
-                </div>
-
                 <div id="mobile-word-status" class="w-full bg-slate-950 px-3 py-1.5 text-center min-h-[30px] flex items-center justify-center border border-slate-800 mt-1.5 rounded-xl" style="margin-bottom:max(5px, env(safe-area-inset-bottom));">
                     <span id="word-status-desc" class="text-[11px] font-bold text-slate-300 italic truncate px-1">
-                        Harfleri seç; sözlükteyse puanını burada göreceksin.
+                        Bir harfe basılı tutup sürükle; bıraktığında sözcük otomatik kontrol edilir.
                     </span>
                 </div>
             </div>
@@ -378,9 +377,9 @@
             <div class="max-w-sm mx-auto">
                 <div class="flex items-center justify-between mb-4"><button id="btn-howto-back" class="w-10 h-10 rounded-full bg-white shadow font-black text-xl">‹</button><h2 class="font-black text-xl text-indigo-950">NASIL OYNANIR?</h2><div class="w-10"></div></div>
                 <div class="space-y-3">
-                    <div class="bg-white rounded-3xl p-4 shadow-lg border border-sky-100"><div class="flex gap-4 items-center"><div class="grid grid-cols-3 gap-1 shrink-0"><span class="w-8 h-8 rounded-lg bg-amber-100 border-2 border-amber-300 flex items-center justify-center font-black">K</span><span class="w-8 h-8 rounded-lg bg-amber-100 border-2 border-amber-300 flex items-center justify-center font-black">E</span><span class="w-8 h-8 rounded-lg bg-amber-100 border-2 border-amber-300 flex items-center justify-center font-black">L</span><span class="w-8 h-8 rounded-lg bg-amber-100 border-2 border-amber-300 flex items-center justify-center font-black">İ</span><span class="w-8 h-8 rounded-lg bg-amber-100 border-2 border-amber-300 flex items-center justify-center font-black">M</span><span class="w-8 h-8 rounded-lg bg-amber-100 border-2 border-amber-300 flex items-center justify-center font-black">E</span></div><div><b class="text-indigo-950">1. Harfleri birleştir</b><p class="text-xs text-slate-600 mt-1">Yan yana, yukarı-aşağı veya çapraz komşu harflere dokunarak kelime oluştur.</p></div></div></div>
-                    <div class="bg-white rounded-3xl p-4 shadow-lg border border-sky-100"><div class="flex gap-4 items-center"><div class="text-5xl">☝️</div><div><b class="text-indigo-950">2. Parmağını sürükle</b><p class="text-xs text-slate-600 mt-1">Bir harften başlayıp komşu harflere sürükle. Aynı hücreyi aynı kelimede iki kez kullanamazsın.</p></div></div></div>
-                    <div class="bg-white rounded-3xl p-4 shadow-lg border border-sky-100"><div class="flex gap-4 items-center"><div class="bg-emerald-100 text-emerald-700 font-black px-3 py-2 rounded-xl text-center">KELİME<br><span class="text-xs">✓ +PUAN</span></div><div><b class="text-indigo-950">3. Sözlük kontrolü</b><p class="text-xs text-slate-600 mt-1">En az 2 harf seç. Oluşturduğun sözcük ana sözlükte varsa GÖNDER ile puanı kazanırsın.</p></div></div></div>
+                    <div class="bg-white rounded-3xl p-4 shadow-lg border border-sky-100"><div class="flex gap-4 items-center"><div class="grid grid-cols-3 gap-1 shrink-0"><span class="w-8 h-8 rounded-lg bg-amber-100 border-2 border-amber-300 flex items-center justify-center font-black">K</span><span class="w-8 h-8 rounded-lg bg-amber-100 border-2 border-amber-300 flex items-center justify-center font-black">E</span><span class="w-8 h-8 rounded-lg bg-amber-100 border-2 border-amber-300 flex items-center justify-center font-black">L</span><span class="w-8 h-8 rounded-lg bg-amber-100 border-2 border-amber-300 flex items-center justify-center font-black">İ</span><span class="w-8 h-8 rounded-lg bg-amber-100 border-2 border-amber-300 flex items-center justify-center font-black">M</span><span class="w-8 h-8 rounded-lg bg-amber-100 border-2 border-amber-300 flex items-center justify-center font-black">E</span></div><div><b class="text-indigo-950">1. Harfleri birleştir</b><p class="text-xs text-slate-600 mt-1">Yalnızca yatay ve dikey komşu harfleri birleştir. Çapraz geçiş yapılamaz.</p></div></div></div>
+                    <div class="bg-white rounded-3xl p-4 shadow-lg border border-sky-100"><div class="flex gap-4 items-center"><div class="text-5xl">☝️</div><div><b class="text-indigo-950">2. Parmağını sürükle</b><p class="text-xs text-slate-600 mt-1">Bir harfe basılı tut ve yatay/dikey komşu harflere sürükle. Parmağını veya fareyi bıraktığında seçim otomatik tamamlanır.</p></div></div></div>
+                    <div class="bg-white rounded-3xl p-4 shadow-lg border border-sky-100"><div class="flex gap-4 items-center"><div class="bg-emerald-100 text-emerald-700 font-black px-3 py-2 rounded-xl text-center">KELİME<br><span class="text-xs">✓ +PUAN</span></div><div><b class="text-indigo-950">3. Sözlük kontrolü</b><p class="text-xs text-slate-600 mt-1">En az 2 harf seç. Parmağını veya fareyi bıraktığında sözcük otomatik kontrol edilir; sözlükte varsa puanın hemen eklenir.</p></div></div></div>
                     <div class="bg-white rounded-3xl p-4 shadow-lg border border-sky-100"><div class="flex gap-4 items-center"><div class="text-4xl">⏱️</div><div><b class="text-indigo-950">4. Süre dolmadan bul</b><p class="text-xs text-slate-600 mt-1">60 saniye içinde mümkün olduğunca çok geçerli kelime bul. Uzun ve değerli harfli kelimeler daha fazla puan getirir.</p></div></div></div>
                     <div class="bg-indigo-950 text-white rounded-3xl p-4 shadow-lg"><div class="flex gap-3 items-center"><span class="text-4xl">🏆</span><div><b>Düelloyu kazan</b><p class="text-xs text-indigo-100 mt-1">Süre sonunda en yüksek puana ulaşan oyuncu kazanır.</p></div></div></div>
                 </div>
@@ -388,7 +387,7 @@
         </div>
         <!-- ================= HAKKINDA (ŞİMDİLİK BOŞ) ================= -->
         <div id="screen-about" class="absolute inset-0 z-[80] hidden bg-gradient-to-b from-sky-100 to-white p-4">
-            <div class="max-w-sm mx-auto"><div class="flex items-center justify-between"><button id="btn-about-back" class="w-10 h-10 rounded-full bg-white shadow font-black text-xl">‹</button><h2 class="font-black text-xl text-indigo-950">HAKKINDA</h2><div class="w-10"></div></div></div>
+            <div class="max-w-sm mx-auto"><div class="flex items-center justify-between"><button id="btn-about-back" class="w-10 h-10 rounded-full bg-white shadow font-black text-xl">‹</button><h2 class="font-black text-xl text-indigo-950">HAKKINDA</h2><div class="w-10"></div></div><div class="mt-8 bg-white/90 border-2 border-sky-200 rounded-3xl p-6 shadow-lg text-center"><div class="text-5xl mb-3">🎮</div><div class="font-black text-2xl text-indigo-950 mb-2">Kelime Düellosu</div><p class="text-sm font-bold text-slate-700">Serdar BAYRAKTAR tarafından yapılmıştır.</p></div></div>
         </div>
 
         <!-- ================= EKRAN 3: SÖZLÜK MODALI ================= -->
@@ -425,9 +424,9 @@
         <!-- ================= SAYDAM & TAHTAYI GÖSTEREN GERİ SAYIM MODALI ================= -->
         <div id="modal-countdown" class="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px] flex items-center justify-center z-50 hidden">
             <div class="flex flex-col items-center justify-center bg-white/90 border border-slate-200/80 p-6 rounded-3xl shadow-2xl backdrop-blur-md">
-                <div id="countdown-number" class="text-7xl font-black text-amber-500 drop-shadow-sm" style="transition:transform .16s ease-out, filter .16s ease-out; will-change:transform;">10</div>
-                <div class="text-slate-800 font-black text-xs tracking-widest uppercase mt-3 bg-white px-4 py-1.5 rounded-full border border-slate-200 shadow-sm">
-                    DÜELLO BAŞLIYOR!
+                <div id="countdown-number" class="text-7xl font-black text-amber-500 drop-shadow-sm" style="transition:transform .16s ease-out, filter .16s ease-out; will-change:transform;">5</div>
+                <div id="countdown-status" class="text-slate-800 font-black text-xs tracking-widest uppercase mt-3 bg-white px-4 py-1.5 rounded-full border border-slate-200 shadow-sm">
+                    SENKRONİZE EDİLİYOR…
                 </div>
             </div>
         </div>
@@ -61886,6 +61885,7 @@ BLİK
         let mpDb=null, mpRoomRef=null, mpRoomCode=null, mpRole=null, mpRoomData=null;
         let mpListener=null, mpWordsListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null;
         let mpSeenWordEvents=new Set();
+        const mpFoundWords={host:new Set(),guest:new Set()};
         function ensureFirebase(){
             if(mpDb) return true;
             if(!window.firebase){ showToast('İnternet bağlantısı/Firebase yüklenemedi','rose'); return false; }
@@ -61918,7 +61918,7 @@ BLİK
                 const d=snap.val(); if(!d) return; mpRoomData=d;
                 if(d.scores){p1Score=d.scores.host||0;p2Score=d.scores.guest||0;updateScores();}
                 if(mpRole==='host' && d.guest && d.status==='waiting'){
-                    document.getElementById('mp-status').innerText='Rakip bağlandı ✓ İkiniz de odaya girince 10 saniyelik senkron geri sayım başlayacak.';
+                    document.getElementById('mp-status').innerText='Rakip bağlandı ✓ İkiniz de odaya girince 5 saniyelik senkron geri sayım başlayacak.';
                 } else if(d.guest) document.getElementById('mp-status').innerText='İki oyuncu odada ✓';
 
                 // Her iki cihaz oyun ekranına gerçekten girmeden maç başlatılmaz.
@@ -61936,7 +61936,8 @@ BLİK
                 mpSeenWordEvents.add(snap.key);
                 // Kendi olayımız zaten yerelde çizildi; yalnızca rakibin doğru sözcüğünü anında göster.
                 if(ev.role===mpRole) return;
-                sessionFoundWords.add(ev.word);
+                if(mpFoundWords[ev.role]) mpFoundWords[ev.role].add(ev.word);
+                if(Array.isArray(ev.path)) applyClaimedPath(ev.path, ev.role==='host');
                 addTickerBadge(ev.word, ev.role==='host');
                 showToast(`${ev.role==='host'?'1. OYUNCU':'2. OYUNCU'}: ${ev.word} (+${ev.pts})`, ev.role==='host'?'amber':'sky');
                 flyScore(ev.pts, ev.role==='host');
@@ -61952,7 +61953,7 @@ BLİK
             if(!mpRoomData||!mpRoomData.board) return; mpEntered=true; mpStarted=false;
             document.getElementById('screen-home').classList.add('hidden'); document.getElementById('screen-game').classList.remove('hidden');
             document.getElementById('p1-title').innerText='1. OYUNCU'; document.getElementById('p2-title').innerText='2. OYUNCU';
-            p1Score=mpRoomData.scores?.host||0; p2Score=mpRoomData.scores?.guest||0; updateScores(); remainingSeconds=60; sessionFoundWords.clear(); mpSeenWordEvents.clear(); document.getElementById('words-ticker').innerHTML='';
+            p1Score=mpRoomData.scores?.host||0; p2Score=mpRoomData.scores?.guest||0; updateScores(); remainingSeconds=60; sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear(); document.getElementById('words-ticker').innerHTML='';
             renderProvidedBoard(mpRoomData.board);
             if(mpRole==='host' && !mpRoomData.guest){
                 document.getElementById('screen-game').classList.add('hidden'); document.getElementById('screen-home').classList.remove('hidden'); document.getElementById('mp-status').innerText='Rakip henüz bağlanmadı…'; mpEntered=false; return;
@@ -61969,26 +61970,28 @@ BLİK
                 const snap=await mpRoomRef.once('value'), d=snap.val();
                 if(!d || d.status!=='waiting' || !d.ready?.host || !d.ready?.guest || d.countdownAt) return;
                 // Geri sayım başlangıcı doğrudan Firebase sunucu zaman damgasıdır. İki cihaz da
-                // aynı countdownAt + 10.000 ms hedefini kullanır; yerel ağ gecikmesi sayacı kaydırmaz.
+                // aynı countdownAt + 5.000 ms hedefini kullanır; yerel ağ gecikmesi sayacı kaydırmaz.
                 await mpRoomRef.update({status:'starting', countdownAt:firebase.database.ServerValue.TIMESTAMP});
             } finally { mpSchedulingStart=false; }
         }
         function startSyncedMatch(d){
             mpStarted=true; isMatchActive=false; clearInterval(mpClock);
-            const modal=document.getElementById('modal-countdown'),num=document.getElementById('countdown-number');
-            const startAt=Number(d.countdownAt)+10000;
+            const modal=document.getElementById('modal-countdown'),num=document.getElementById('countdown-number'),status=document.getElementById('countdown-status');
+            const startAt=Number(d.countdownAt)+5000;
+            if(status) status.innerText='SENKRONİZE EDİLİYOR…';
             modal.classList.remove('hidden');
             const tick=()=>{
                 const now=Date.now()+mpServerOffset, left=startAt-now;
                 if(left>0){
-                    const n=Math.min(10,Math.max(1,Math.ceil(left/1000)));
+                    const n=Math.min(5,Math.max(1,Math.ceil(left/1000)));
                     num.innerText=n;
-                    const progress=(10-n)/9;
+                    const progress=(5-n)/4;
                     num.style.transform=`scale(${(1+progress*.34).toFixed(3)})`;
                     num.style.filter=`drop-shadow(0 0 ${Math.round(4+progress*12)}px rgba(245,158,11,.35))`;
                     return;
                 }
                 clearInterval(mpClock); num.style.transform='scale(1)'; num.style.filter='';
+                if(status) status.innerText='DÜELLO BAŞLIYOR!';
                 modal.classList.add('hidden'); isMatchActive=true; remainingSeconds=60;
                 document.getElementById('game-timer').innerText='60'; startMultiplayerTimer(startAt);
             };
@@ -62052,25 +62055,14 @@ BLİK
             const numEl = document.getElementById('countdown-number');
             modal.classList.remove('hidden');
 
-            let count = 10;
-            numEl.innerText = count;
-            numEl.style.transform = 'scale(1)';
-            const interval = setInterval(() => {
-                count--;
-                if (count >= 1) {
-                    numEl.innerText = count;
-                    const progress=(10-count)/9;
-                    numEl.style.transform=`scale(${(1+progress*.34).toFixed(3)})`;
-                } else if (count === 0) {
-                    numEl.innerText = "BAŞLA!";
-                    numEl.style.transform='scale(1.38)';
-                } else {
-                    clearInterval(interval);
-                    numEl.style.transform='scale(1)';
-                    modal.classList.add('hidden');
-                    onComplete();
-                }
-            }, 1000);
+            // Tekli oyuncu: geri sayım yok; BAŞLA! 1,5 saniye görünür.
+            numEl.innerText = 'BAŞLA!';
+            numEl.style.transform = 'scale(1.38)';
+            setTimeout(() => {
+                numEl.style.transform = 'scale(1)';
+                modal.classList.add('hidden');
+                onComplete();
+            }, 1500);
         }
 
         // ================= OYUNLAŞTIRILMIŞ AKILLI TAHTA MOTORU =================
@@ -62079,8 +62071,7 @@ BLİK
         // puanlanır; en dengeli aday seçilir. Böylece görsel katman değişmeden oyun kalitesi artar.
         const BOARD_SIZE = 10;
         const BOARD_DIRS = [
-            {dr:0,dc:1},{dr:0,dc:-1},{dr:1,dc:0},{dr:-1,dc:0},
-            {dr:1,dc:1},{dr:1,dc:-1},{dr:-1,dc:1},{dr:-1,dc:-1}
+            {dr:0,dc:1},{dr:0,dc:-1},{dr:1,dc:0},{dr:-1,dc:0}
         ];
         const BOARD_POOLS = Object.freeze({
             easy2: WORDS_BY_LENGTH.get(2) || [],
@@ -62275,6 +62266,24 @@ BLİK
         let pendingPointer = null;
         let pointerFrame = 0;
 
+        let lastHoverCell=-1;
+        gridEl.addEventListener('pointermove', (e) => {
+            if(e.pointerType==='touch' || isPointerDown) return;
+            const rect=gridEl.getBoundingClientRect();
+            if(e.clientX<rect.left||e.clientX>rect.right||e.clientY<rect.top||e.clientY>rect.bottom) return;
+            const col=Math.floor(((e.clientX-rect.left)/rect.width)*BOARD_SIZE);
+            const row=Math.floor(((e.clientY-rect.top)/rect.height)*BOARD_SIZE);
+            const idx=row*BOARD_SIZE+col;
+            if(idx===lastHoverCell || !domCells[idx]) return;
+            lastHoverCell=idx;
+            const cell=domCells[idx];
+            cell.classList.remove('tile-hover-tremble');
+            void cell.offsetWidth;
+            cell.classList.add('tile-hover-tremble');
+            setTimeout(()=>cell.classList.remove('tile-hover-tremble'),170);
+        }, {passive:true});
+        gridEl.addEventListener('pointerleave',()=>{lastHoverCell=-1;});
+
         gridEl.addEventListener('pointerdown', (e) => {
             if (!isMatchActive) return;
             isPointerDown = true;
@@ -62297,17 +62306,22 @@ BLİK
             });
         });
 
-        const releasePointer = (e) => {
+        const finishPointer = (e, shouldSubmit = true) => {
+            if (!isPointerDown) return;
+            // Son hareket karesi henüz işlenmediyse parmağın/farenin bırakıldığı noktayı da hesaba kat.
+            if (shouldSubmit && activeGridRect) processPointerAt(e.clientX, e.clientY, activeGridRect);
             isPointerDown = false;
             pendingPointer = null;
             activeGridRect = null;
             if (pointerFrame) { cancelAnimationFrame(pointerFrame); pointerFrame = 0; }
             gridEl.classList.remove('is-grabbing');
             try { gridEl.releasePointerCapture(e.pointerId); } catch(err) {}
+            if (shouldSubmit && selectedPath.length) submitWord();
+            else clearPath();
         };
 
-        gridEl.addEventListener('pointerup', releasePointer);
-        gridEl.addEventListener('pointercancel', releasePointer);
+        gridEl.addEventListener('pointerup', (e) => finishPointer(e, true));
+        gridEl.addEventListener('pointercancel', (e) => finishPointer(e, false));
 
         function processPointerAt(clientX, clientY, rect = activeGridRect) {
             if (!rect) rect = gridEl.getBoundingClientRect();
@@ -62341,7 +62355,7 @@ BLİK
             const dr = Math.abs(last.r - r);
             const dc = Math.abs(last.c - c);
             const alreadySelected = selectedPath.some(p => p.r === r && p.c === c);
-            return (dr <= 1 && dc <= 1) && !alreadySelected;
+            return (dr + dc === 1) && !alreadySelected;
         }
 
         function addCellToPath(r, c, cell) {
@@ -62362,7 +62376,7 @@ BLİK
             const desc = document.getElementById('word-status-desc');
 
             if (word.length === 0) {
-                desc.innerText = "Komşu harfleri birleştirerek kelimeler türet!";
+                desc.innerText = "Yatay veya dikey komşu harfleri sürükleyerek kelime oluştur!";
                 desc.className = "text-[11px] font-bold text-slate-300 italic truncate px-1";
             } else if (word.length < 2) {
                 desc.innerText = `"${word}" (En az 2 harfli olmalı)`;
@@ -62376,8 +62390,6 @@ BLİK
             }
         }
 
-        document.getElementById('btn-action-clear').onclick = clearPath;
-        document.getElementById('btn-action-submit').onclick = submitWord;
 
         function submitWord() {
             if (!isMatchActive || selectedPath.length === 0) return;
@@ -62385,21 +62397,28 @@ BLİK
             const pts = word.split('').reduce((sum, ch) => sum + (TILE_SCORES[ch] || 1), 0);
             const isP1 = mpRole ? (mpRole === 'host') : (chosenAvatarId === 'av_1');
 
-            if (word.length < 2 || !WORD_SET.has(word)) {
+            // Tek bir harfe dokunup bırakmak hata sayılmaz ve puan cezası vermez.
+            if (word.length < 2) {
+                clearPath();
+                return;
+            }
+
+            if (!WORD_SET.has(word)) {
                 showToast(`${word} (-${pts}) Geçersiz!`, 'rose');
                 adjustScore(isP1 ? -pts : 0, !isP1 ? -pts : 0);
                 clearPath();
                 return;
             }
 
-            if (sessionFoundWords.has(word)) {
-                showToast(`Zaten bulundu! (-${pts})`, 'rose');
+            const alreadyFound = mpRole ? mpFoundWords[mpRole].has(word) : sessionFoundWords.has(word);
+            if (alreadyFound) {
+                showToast(`Sen bu sözcüğü zaten buldun! (-${pts})`, 'rose');
                 adjustScore(isP1 ? -pts : 0, !isP1 ? -pts : 0);
                 clearPath();
                 return;
             }
 
-            sessionFoundWords.add(word);
+            if(mpRole) mpFoundWords[mpRole].add(word); else sessionFoundWords.add(word);
             showToast(`${word} (+${pts})`, isP1 ? 'amber' : 'sky');
             if (typeof confetti === 'function') confetti({ particleCount: 50, spread: 70, origin: { y: 0.6 } });
 
@@ -62411,15 +62430,24 @@ BLİK
             addTickerBadge(word, isP1);
             flyScore(pts, isP1);
             adjustScore(isP1 ? pts : 0, !isP1 ? pts : 0);
-            if(mpRole) publishMpWord(word, pts);
+            if(mpRole) publishMpWord(word, pts, selectedPath.map(p=>({r:p.r,c:p.c})));
             clearPath();
         }
 
-        async function publishMpWord(word, pts) {
+        async function publishMpWord(word, pts, path) {
             if(!mpRoomRef || !mpRole) return;
             const ref=mpRoomRef.child('words').push();
             mpSeenWordEvents.add(ref.key);
-            await ref.set({word,pts,role:mpRole,at:firebase.database.ServerValue.TIMESTAMP});
+            await ref.set({word,pts,role:mpRole,path,at:firebase.database.ServerValue.TIMESTAMP});
+        }
+
+        function applyClaimedPath(path, isP1) {
+            path.forEach(pos=>{
+                const el=document.getElementById(`cell-${pos.r}-${pos.c}`);
+                if(!el) return;
+                el.classList.remove('tile-claimed-p1','tile-claimed-p2');
+                el.classList.add(isP1?'tile-claimed-p1':'tile-claimed-p2');
+            });
         }
 
         function flyScore(pts, isP1) {
@@ -62479,7 +62507,7 @@ BLİK
         function solveBoardWords(board = gridBoard) {
             const found = new Map();
             const visited = Array.from({length:BOARD_SIZE}, () => Array(BOARD_SIZE).fill(false));
-            const deltas = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+            const deltas = [[-1,0],[0,-1],[0,1],[1,0]];
             const MAX_SOLVE_LEN = 9; // 6-9 harfli gizli sözcükleri de tahta analizine ve bota dahil eder.
 
             function dfs(r, c, curStr, path) {
