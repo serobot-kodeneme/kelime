@@ -63235,7 +63235,7 @@ BLİK
                 mpFoundWords.guest.add(word);
             } else sessionFoundWords.add(word);
             showToast(`${word} (+${pts})`, isP1 ? 'amber' : 'sky');
-            if (typeof confetti === 'function') confetti({ particleCount: matchMedia('(pointer:coarse)').matches ? 24 : 36, spread: 64, origin: { y: 0.6 } });
+            if (typeof confetti === 'function') confetti({ particleCount: mpRole ? (matchMedia('(pointer:coarse)').matches ? 14 : 20) : (matchMedia('(pointer:coarse)').matches ? 24 : 36), spread: 64, origin: { y: 0.6 } });
 
             selectedPath.forEach(p => {
                 p.el.classList.add(isP1 ? 'tile-claimed-p1' : 'tile-claimed-p2');
@@ -63392,14 +63392,14 @@ BLİK
         // ================= BÜYÜK ŞENLİKLİ KAZANMA KUTLAMASI =================
         function launchGrandCelebration() {
             if (typeof confetti !== 'function') return;
-            const duration = 4.5 * 1000;
+            const duration = (mpRole ? 3.2 : 4.5) * 1000;
             const animationEnd = Date.now() + duration;
 
             const interval = setInterval(function() {
                 const timeLeft = animationEnd - Date.now();
                 if (timeLeft <= 0) return clearInterval(interval);
 
-                const particleCount = 45 * (timeLeft / duration);
+                const particleCount = (mpRole ? 26 : 45) * (timeLeft / duration);
                 confetti({
                     particleCount,
                     startVelocity: 35,
@@ -63417,9 +63417,9 @@ BLİK
             }, 250);
 
             // Merkezden büyük şenlik patlamaları
-            setTimeout(() => confetti({ particleCount: 120, spread: 100, origin: { y: 0.5 }, zIndex: 999 }), 300);
-            setTimeout(() => confetti({ particleCount: 160, spread: 120, origin: { y: 0.4 }, zIndex: 999 }), 900);
-            setTimeout(() => confetti({ particleCount: 200, spread: 140, origin: { y: 0.6 }, zIndex: 999 }), 1600);
+            setTimeout(() => confetti({ particleCount: mpRole ? 70 : 120, spread: 100, origin: { y: 0.5 }, zIndex: 999 }), 300);
+            setTimeout(() => confetti({ particleCount: mpRole ? 90 : 160, spread: 120, origin: { y: 0.4 }, zIndex: 999 }), 900);
+            setTimeout(() => confetti({ particleCount: mpRole ? 110 : 200, spread: 140, origin: { y: 0.6 }, zIndex: 999 }), 1600);
         }
 
         async function waitUntilRoomFinished(timeoutMs=3500){
