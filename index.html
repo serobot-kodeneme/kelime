@@ -62118,16 +62118,29 @@ BLİK
         }
 
         function resetLocalMultiplayerRound(d){
+            // Yeni round başlarken önceki maçtan kalan hiçbir yerel durum taşınmasın.
             mpRound=Number(d.round||1); mpStarted=false; mpEntered=false; mpLastBeepSecond=null;
-            clearInterval(mpClock); clearInterval(timerInterval); isMatchActive=false;
+            clearInterval(mpClock); mpClock=null;
+            clearInterval(timerInterval); timerInterval=null;
+            clearTimeout(botInterval); botInterval=null;
+            isMatchActive=false; isPointerDown=false;
+            try{ clearPath(); }catch(e){ selectedPath=[]; }
+
             p1Score=Number(d.scores?.host||0); p2Score=Number(d.scores?.guest||0); updateScores();
-            remainingSeconds=60; sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
+            remainingSeconds=60;
+            sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
+
             const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
+            const preview=document.getElementById('selected-word-preview'); if(preview)preview.innerText='';
             const gt=document.getElementById('game-timer'); if(gt){gt.innerText='60';gt.classList.remove('timer-warning');}
+            document.getElementById('modal-countdown')?.classList.add('hidden');
             document.getElementById('modal-gameover')?.classList.add('hidden');
             document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
             const rs=document.getElementById('rematch-inline-status'); if(rs){rs.classList.add('hidden');rs.innerText='';}
-            const replay=document.getElementById('btn-play-again'); if(replay){replay.disabled=false;replay.innerText='YENİ OYUN';}
+            const replay=document.getElementById('btn-play-again');
+            if(replay){ replay.disabled=false; replay.innerText='YENİ OYUN'; replay.classList.remove('hidden'); }
+
+            // Aynı oda, tamamen yeni tahta. Tekli moddaki render/input motoru kullanılır.
             if(d.board && renderProvidedBoard(d.board)) hydrateMultiplayerBoardState(d);
         }
 
@@ -62164,24 +62177,31 @@ BLİK
         }
 
         async function hostStartRematch(){
+            // Yeni round'u yalnızca host kurar. Böylece iki cihazın ayrı tahta üretmesi engellenir.
             if(mpRole!=='host'||mpRematchBusy||!mpRoomRef) return;
             mpRematchBusy=true;
             try{
                 const fresh=generateOptimizedBoard(3).board;
-                await mpRoomRef.transaction(d=>{
+                const now=serverNow();
+                const result=await mpRoomRef.transaction(d=>{
                     if(!d || d.status!=='finished') return;
                     const r=d.rematch||{};
                     const expiresAt=Number(r.expiresAt||0);
-                    if(!r.host || !r.guest || !expiresAt || expiresAt<serverNow()) return;
+                    if(!r.host || !r.guest || !expiresAt || expiresAt<now) return;
+
                     d.round=Number(d.round||1)+1;
                     d.board=fresh;
                     d.scores={host:0,guest:0};
                     d.words={};
                     d.rematch={host:false,guest:false,expiresAt:0};
                     d.status='countdown';
-                    d.startAt=serverNow()+5200;
+                    d.startAt=now+5200;
                     return d;
                 });
+                if(!result.committed) return;
+            }catch(e){
+                console.error('Rematch start error',e);
+                showToast('Yeni oyun başlatılamadı. Tekrar deneyin.','rose');
             }finally{ mpRematchBusy=false; }
         }
 
@@ -63124,24 +63144,51 @@ BLİK
             setTimeout(() => confetti({ particleCount: 200, spread: 140, origin: { y: 0.6 }, zIndex: 999 }), 1600);
         }
 
+        async function waitUntilRoomFinished(timeoutMs=3500){
+            if(!mpRoomRef) return false;
+            const started=Date.now();
+            while(Date.now()-started<timeoutMs){
+                try{
+                    const snap=await mpRoomRef.child('status').once('value');
+                    if(snap.val()==='finished') return true;
+                }catch(e){}
+                await new Promise(r=>setTimeout(r,120));
+            }
+            return false;
+        }
+
         async function handlePlayAgain(){
             if(!mpRoomRef || !mpRole){ location.reload(); return; }
+            const btn=document.getElementById('btn-play-again');
+            if(btn){ btn.disabled=true; btn.innerText='HAZIRLANIYOR…'; }
             try{
-                const now=serverNow();
+                // Guest, host'un FINISHED yazısı ulaşmadan çok hızlı tıklarsa isteği kaybetmesin.
+                const finished=await waitUntilRoomFinished();
+                if(!finished) throw new Error('room-not-finished');
+
                 const role=mpRole;
-                const res=await mpRoomRef.transaction(d=>{
-                    if(!d || d.status!=='finished') return;
-                    d.rematch=d.rematch||{host:false,guest:false,expiresAt:0};
-                    const exp=Number(d.rematch.expiresAt||0);
-                    if(!exp || exp<now){ d.rematch={host:false,guest:false,expiresAt:now+30000}; }
-                    d.rematch[role]=true;
-                    if(!d.rematch.expiresAt || d.rematch.expiresAt<now) d.rematch.expiresAt=now+30000;
-                    return d;
+                const rematchRef=mpRoomRef.child('rematch');
+                const res=await rematchRef.transaction(current=>{
+                    const now=serverNow();
+                    let r=current||{host:false,guest:false,expiresAt:0};
+                    const exp=Number(r.expiresAt||0);
+                    if(!exp || exp<now) r={host:false,guest:false,expiresAt:now+30000};
+                    r[role]=true;
+                    return r;
                 });
                 if(!res.committed) throw new Error('rematch-not-committed');
-                const d=res.snapshot.val()||{}; renderRematchState(d);
-                if(mpRole==='host' && d.rematch?.host && d.rematch?.guest) await hostStartRematch();
-            }catch(e){ showToast('Yeni oyun isteği gönderilemedi.','rose'); }
+
+                const r=res.snapshot.val()||{};
+                const d={...(mpRoomData||{}),status:'finished',rematch:r};
+                renderRematchState(d);
+
+                // Host ikinci onayı da görürse yeni round'u tek başına oluşturur.
+                if(mpRole==='host' && r.host && r.guest && Number(r.expiresAt||0)>=serverNow()) await hostStartRematch();
+            }catch(e){
+                console.error('Rematch request error',e);
+                if(btn){ btn.disabled=false; btn.innerText='YENİ OYUN'; }
+                showToast('Yeni oyun isteği gönderilemedi. Tekrar deneyin.','rose');
+            }
         }
 
         async function acceptRematchRequest(){ return handlePlayAgain(); }
