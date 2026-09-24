@@ -448,6 +448,18 @@
             </div>
         </div>
 
+        <!-- ================= TEKRAR MAÇ BEKLEME MODALI ================= -->
+        <div id="modal-rematch-waiting" class="absolute inset-0 bg-slate-950/45 backdrop-blur-[2px] flex items-center justify-center z-[70] hidden">
+            <div class="relative w-11/12 max-w-sm bg-white/95 border border-amber-100 p-7 rounded-[30px] shadow-2xl text-center">
+                <button id="btn-close-rematch-waiting" aria-label="Kapat" class="absolute right-3 top-3 w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-black text-xl leading-none hover:bg-slate-200">×</button>
+                <div class="mx-auto mb-4 w-16 h-16 rounded-full bg-amber-50 border-2 border-amber-100 flex items-center justify-center">
+                    <div class="w-8 h-8 rounded-full border-4 border-amber-200 border-t-amber-500 animate-spin"></div>
+                </div>
+                <div id="rematch-wait-title" class="text-lg font-black text-slate-800">Diğer oyuncunun TEKRAR OYNA düğmesine basması gerekiyor</div>
+                <div id="rematch-wait-sub" class="mt-2 text-xs font-bold text-slate-500">Oda açık kalacak. Rakibin hazır olduğunda yeni maç otomatik hazırlanacak.</div>
+            </div>
+        </div>
+
         <!-- ================= SAYDAM & TAHTAYI GÖSTEREN GERİ SAYIM MODALI ================= -->
         <div id="modal-countdown" class="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px] flex items-center justify-center z-50 hidden">
             <div class="flex flex-col items-center justify-center bg-white/90 border border-slate-200/80 p-6 rounded-3xl shadow-2xl backdrop-blur-md">
@@ -61955,6 +61967,8 @@ BLİK
                     document.getElementById('words-ticker').innerHTML=''; document.getElementById('game-timer').innerText='60';
                     document.getElementById('game-timer').classList.remove('timer-warning');
                     document.getElementById('modal-gameover').classList.add('hidden');
+                    document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
+                    const replayBtn=document.getElementById('btn-play-again'); if(replayBtn){ replayBtn.disabled=false; replayBtn.innerText='TEKRAR OYNA'; }
                     renderProvidedBoard(d.board);
                     if(mpEntered) mpRoomRef.child('ready/'+mpRole).set(true);
                 } else if(!mpRound) mpRound=incomingRound;
@@ -61969,6 +61983,12 @@ BLİK
                 // Host, iki READY işaretini gördüğünde Firebase sunucu saatine göre tek bir ortak
                 // başlangıç anı belirler. Böylece iki telefonda ayrı sayaç başlatmak yerine
                 // aynı startAt zamanına kilitleniriz.
+                if(d.status==='finished' && d.rematch?.[mpRole]){
+                    document.getElementById('modal-rematch-waiting')?.classList.remove('hidden');
+                    const both=!!(d.rematch?.host && d.rematch?.guest);
+                    document.getElementById('rematch-wait-title').innerText = both ? 'İki oyuncu da hazır!' : 'Diğer oyuncunun TEKRAR OYNA düğmesine basması gerekiyor';
+                    document.getElementById('rematch-wait-sub').innerText = both ? 'Yeni oyun tahtası hazırlanıyor ve senkronize ediliyor…' : 'Oda açık kalacak. Rakibin hazır olduğunda yeni maç otomatik hazırlanacak.';
+                }
                 if(mpRole==='host' && d.status==='finished' && d.rematch?.host && d.rematch?.guest && !mpRematchBusy){
                     createRematchRound(d);
                 }
@@ -62714,11 +62734,19 @@ BLİK
 
         async function handlePlayAgain(){
             if(!mpRoomRef || !mpRole){ location.reload(); return; }
-            if(mpRoomData?.status!=='finished') return;
             const btn=document.getElementById('btn-play-again');
             btn.disabled=true; btn.innerText='RAKİP BEKLENİYOR…';
-            await mpRoomRef.child('rematch/'+mpRole).set(true);
-            showToast('Tekrar maç isteğin gönderildi. Rakip bekleniyor…','sky');
+            document.getElementById('modal-rematch-waiting')?.classList.remove('hidden');
+            document.getElementById('rematch-wait-title').innerText='Diğer oyuncunun TEKRAR OYNA düğmesine basması gerekiyor';
+            document.getElementById('rematch-wait-sub').innerText='Oda açık kalacak. Rakibin hazır olduğunda yeni maç otomatik hazırlanacak.';
+            try{
+                // Durum dinleyicisinin gecikmesini beklemeden bu oyuncunun rövanş isteğini kalıcı odaya yaz.
+                await mpRoomRef.child('rematch/'+mpRole).set(true);
+            }catch(e){
+                btn.disabled=false; btn.innerText='TEKRAR OYNA';
+                document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
+                showToast('Bağlantı kurulamadı. Tekrar dene.','rose');
+            }
         }
 
         async function createRematchRound(d){
@@ -62813,6 +62841,10 @@ BLİK
         document.getElementById('dict-search-input').oninput = (e) => {
             renderWordsForLetter(null, e.target.value.trim());
         };
+
+        document.getElementById('btn-close-rematch-waiting')?.addEventListener('click',()=>{
+            document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
+        });
 
         // İlk boya/ana menü tamamlandıktan sonra ağır tahta analizi boş zamanda yapılır.
         scheduleBoardPrewarm();
