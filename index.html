@@ -62062,12 +62062,13 @@ BLİK
                 }
                 if(mpEntered && d.status==='starting' && d.countdownAt && !mpStarted) startSyncedMatch(d);
             });
-            // Sözcük senkronizasyonu: child_added yerine tüm words düğümünü value ile izliyoruz.
-            // Böylece kısa bağlantı kopmalarında kaçırılan doğru sözcükler de tekrar bağlanınca işlenir.
-            if(mpWordsListener) mpRoomRef.child('words').off('value',mpWordsListener);
-            mpWordsListener=mpRoomRef.child('words').on('value',snap=>{
+            // claimedWords tek ve otoriter gerçek zamanlı akıştır: kelimenin kazanılması ile
+            // rakibe gösterilmesi aynı Firebase transaction'ında oluşur. Böylece ayrı bir
+            // 'words' yazımını beklemeyiz ve rakip doğru sözcüğü mümkün olan en erken anda görür.
+            if(mpWordsListener) mpRoomRef.child('claimedWords').off('value',mpWordsListener);
+            mpWordsListener=mpRoomRef.child('claimedWords').on('value',snap=>{
                 const events=[];
-                snap.forEach(ch=>{ const ev=ch.val(); if(ev) events.push({key:ch.key,...ev}); });
+                snap.forEach(ch=>{ const ev=ch.val(); if(ev && ev.word) events.push({key:ch.key,...ev}); });
                 events.sort((a,b)=>(a.at||0)-(b.at||0));
                 events.forEach(ev=>processMpWordEvent(ev.key,ev));
             });
@@ -62613,7 +62614,11 @@ BLİK
                 try {
                     const tx = await claimRef.transaction(current => {
                         if (current !== null) return;
-                        return { word: normalizedWord, role: mpRole, at: firebase.database.ServerValue.TIMESTAMP };
+                        return {
+                            word: normalizedWord, role: mpRole, pts: pts,
+                            path: selectedPath.map(p=>({r:p.r,c:p.c})),
+                            round: mpRound, at: firebase.database.ServerValue.TIMESTAMP
+                        };
                     });
                     if (!tx.committed) {
                         showToast(`${word} daha önce bulundu!`, 'rose');
@@ -62645,7 +62650,7 @@ BLİK
             addTickerBadge(word, isP1);
             flyScore(pts, isP1);
             adjustScore(isP1 ? pts : 0, !isP1 ? pts : 0);
-            if(mpRole) publishMpWord(word, pts, selectedPath.map(p=>({r:p.r,c:p.c})));
+            // Çoklu oyunda kelime olayı claimedWords transaction'ı ile zaten atomik olarak yayımlandı.
             clearPath();
         }
 
@@ -62824,17 +62829,20 @@ BLİK
         async function handlePlayAgain(){
             if(!mpRoomRef || !mpRole){ location.reload(); return; }
             const btn=document.getElementById('btn-play-again');
-            btn.disabled=true; btn.innerText='İSTEK GÖNDERİLDİ…';
+            btn.disabled=true; btn.innerText='RAKİP BEKLENİYOR…';
             try{
-                await prepareNextRoundBoard();
-                await mpRoomRef.transaction(d=>{
-                    if(!d || d.status!=='finished') return;
-                    const round=Number(d.round||1);
-                    if(!d.rematchRequest || Number(d.rematchRequest.round||0)!==round)
-                        d.rematchRequest={from:mpRole,round:round,at:firebase.database.ServerValue.TIMESTAMP};
-                    return d;
-                });
-            }catch(e){ btn.disabled=false; btn.innerText='TEKRAR OYNA'; showToast('İstek gönderilemedi. Tekrar dene.','rose'); }
+                // Oyun bittiğinde nextBoard zaten hazırlanır. Burada yalnızca bu oyuncunun
+                // yeni maça hazır olduğunu işaretliyoruz; oda/rol/bağlantı kesinlikle değişmez.
+                await mpRoomRef.child('rematch/'+mpRole).set(true);
+                const modal=document.getElementById('modal-rematch-waiting');
+                modal?.classList.remove('hidden');
+                document.getElementById('rematch-request-actions')?.classList.add('hidden');
+                document.getElementById('rematch-wait-title').innerText='Yeni oyuna hazırsın';
+                document.getElementById('rematch-wait-sub').innerText='Diğer oyuncunun TEKRAR OYNA düğmesine basması bekleniyor…';
+            }catch(e){
+                btn.disabled=false; btn.innerText='TEKRAR OYNA';
+                showToast('Hazır bilgisi gönderilemedi. Tekrar dene.','rose');
+            }
         }
 
         async function acceptRematchRequest(){
@@ -62874,7 +62882,8 @@ BLİK
                     if(!d || d.status!=='finished') return;
                     if(!d.nextBoard) d.nextBoard=fresh.board;
                     if(!d.rematch) d.rematch={host:false,guest:false};
-                    d.rematch={host:false,guest:false}; d.rematchRequest=null;
+                    // Hazır işaretlerine burada dokunma. İki cihaz endGame'i farklı anlarda
+                    // çalıştırsa bile oyuncunun TEKRAR OYNA tıklaması kaybolmamalı.
                     return d;
                 });
             }catch(e){ console.warn('Yeni tahta hazırlanamadı',e); }
@@ -62913,8 +62922,11 @@ BLİK
                 // Oda silinmez; kurucu ODAYI KAPAT demediği sürece kod kalıcıdır.
                 mpRoomRef.transaction(d=>{
                     if(!d) return;
-                    if(d.status!=='finished') d.status='finished';
-                    if(!d.rematch) d.rematch={host:false,guest:false};
+                    if(d.status!=='finished'){
+                        d.status='finished';
+                        d.rematch={host:false,guest:false};
+                        d.rematchRequest=null;
+                    } else if(!d.rematch) d.rematch={host:false,guest:false};
                     return d;
                 }).then(()=>prepareNextRoundBoard());
             }
