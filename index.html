@@ -62044,8 +62044,8 @@ BLİK
         let mpState=MP_STATES.IDLE;
         let mpDb=null, mpRoomRef=null, mpRoomCode=null, mpRole=null, mpRoomData=null;
         let mpListener=null, mpWordsListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null;
-        let mpRound=0, mpStartBusy=false, mpRematchBusy=false, mpPresenceRef=null;
-        let mpSeenWordEvents=new Set(), mpAudioCtx=null, mpLastBeepSecond=null;
+        let mpRound=0, mpStartBusy=false, mpRematchBusy=false, mpPresenceRef=null, mpLastRoomMetaSig='';
+        let mpSeenWordEvents=new Set(), mpLastBeepSecond=null;
         const mpFoundWords={host:new Set(),guest:new Set()};
 
         function setMpState(next){ mpState=next; document.documentElement.dataset.mpState=next; }
@@ -62058,10 +62058,6 @@ BLİK
             }
             return t;
         }
-        function ownerKey(code){ return 'kd_room_owner_'+code; }
-        function rememberOwnedRoom(code,token){ localStorage.setItem(ownerKey(code),token); }
-        function ownsRoomLocally(code,ownerToken){ return !!ownerToken && localStorage.getItem(ownerKey(code))===ownerToken; }
-
         function ensureFirebase(){
             if(mpDb) return true;
             if(!window.firebase){ showToast('Firebase yüklenemedi. İnternet bağlantını kontrol et.','rose'); return false; }
@@ -62424,7 +62420,9 @@ BLİK
             if(mpRole!=='host'||mpRematchBusy||!mpRoomRef) return;
             mpRematchBusy=true;
             try{
-                const fresh=generateOptimizedBoard(3).board;
+                const ready=prewarmedBoard || loadBoardCache() || generateOptimizedBoard(2);
+                prewarmedBoard=null;
+                const fresh=ready.board;
                 const now=serverNow();
                 const result=await mpRoomRef.transaction(d=>{
                     if(!d || d.status!=='finished') return;
@@ -62442,6 +62440,7 @@ BLİK
                     return d;
                 });
                 if(!result.committed) return;
+                setTimeout(scheduleBoardPrewarm,250);
             }catch(e){
                 console.error('Rematch start error',e);
                 showToast('Yeni oyun başlatılamadı. Tekrar deneyin.','rose');
@@ -62484,6 +62483,7 @@ BLİK
         function attachRoomListener(){
             if(!mpRoomRef) return;
             if(mpListener) mpRoomRef.off('value',mpListener);
+            mpLastRoomMetaSig='';
             mpListener=mpRoomRef.on('value',async snap=>{
                 const d=snap.val();
                 if(!d){ if(mpRole){showToast('Oda kapatıldı.','rose'); returnToHomeFromMultiplayer();} return; }
@@ -62491,6 +62491,14 @@ BLİK
                 if(d.hostId===clientId) mpRole='host';
                 else if(d.guestId===clientId) mpRole='guest';
                 mpRoomData=d;
+
+                // words altına her kelime yazıldığında kök value olayı da tetiklenir.
+                // Oyun metası değişmediyse pahalı durum akışını tekrar çalıştırma.
+                const metaSig=[d.status,Number(d.round||1),Number(d.startAt||0),d.guestId||'',
+                    Number(d.scores?.host||0),Number(d.scores?.guest||0),isOnline(d.presence?.guest),
+                    !!d.rematch?.host,!!d.rematch?.guest,Number(d.rematch?.expiresAt||0)].join('|');
+                if(metaSig===mpLastRoomMetaSig) return;
+                mpLastRoomMetaSig=metaSig;
 
                 const newRound=Number(d.round||1);
                 if(mpRound && newRound!==mpRound){ resetLocalMultiplayerRound(d); await enterMultiplayerRoom(); }
@@ -62554,12 +62562,12 @@ BLİK
         }
 
         function playCountdownBeep(n){
+            const ctx=ensureGameAudio(); if(!ctx) return;
             try{
-                mpAudioCtx=mpAudioCtx||new (window.AudioContext||window.webkitAudioContext)();
-                if(mpAudioCtx.state==='suspended') mpAudioCtx.resume();
-                const o=mpAudioCtx.createOscillator(),g=mpAudioCtx.createGain(),t=mpAudioCtx.currentTime;
-                o.frequency.value=n===1?760:560+(5-n)*38; g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.06,t+.01); g.gain.exponentialRampToValueAtTime(.0001,t+.11);
-                o.connect(g);g.connect(mpAudioCtx.destination);o.start(t);o.stop(t+.12);
+                const o=ctx.createOscillator(),g=ctx.createGain(),t=ctx.currentTime;
+                o.frequency.value=n===1?760:560+(5-n)*38;
+                g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.06,t+.01); g.gain.exponentialRampToValueAtTime(.0001,t+.11);
+                o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+.12);
             }catch(e){}
         }
         function startSyncedMatch(d){
@@ -62581,7 +62589,7 @@ BLİK
                 remainingSeconds=60; const t=document.getElementById('game-timer'); if(t)t.innerText='60';
                 startMultiplayerTimer(startAt);
             };
-            tick(); mpClock=setInterval(tick,33);
+            tick(); mpClock=setInterval(tick,90);
         }
         function startMultiplayerTimer(startAt){
             clearInterval(timerInterval);
@@ -62620,19 +62628,30 @@ BLİK
             await mpRoomRef.child('scores/'+mpRole).set(mpRole==='host'?p1Score:p2Score);
         }
 
-        function showIncomingRematchPrompt(){
-            document.getElementById('modal-rematch-waiting')?.classList.remove('hidden');
-            document.getElementById('rematch-request-actions')?.classList.remove('hidden');
-            const title=document.getElementById('rematch-wait-title'); if(title)title.innerText='Arkadaşın tekrar oynamak istiyor';
-            const sub=document.getElementById('rematch-wait-sub'); if(sub)sub.innerText='Tekrar Oyna dersen aynı odada yepyeni 9×9 tahta hazırlanacak.';
+        function detachMultiplayerListeners(){
+            if(mpRoomRef && mpListener){ mpRoomRef.off('value',mpListener); mpListener=null; }
+            if(mpRoomRef && mpWordsListener){ mpRoomRef.child('words').off('child_added',mpWordsListener); mpWordsListener=null; }
+        }
+        function resetMultiplayerClientState(){
+            detachMultiplayerListeners();
+            clearInterval(mpClock); mpClock=null;
+            clearInterval(timerInterval); timerInterval=null;
+            clearTimeout(botInterval); botInterval=null;
+            if(pointerFrame){ cancelAnimationFrame(pointerFrame); pointerFrame=0; }
+            isPointerDown=false; pendingPointer=null; activeGridRect=null; isMatchActive=false;
+            try{ clearPath(); }catch(_){ selectedPath=[]; }
+            mpEntered=false; mpStarted=false; mpStartBusy=false; mpRematchBusy=false;
+            mpRoomRef=null; mpRoomCode=null; mpRole=null; mpRoomData=null; mpPresenceRef=null; mpRound=0; mpLastRoomMetaSig='';
+            mpSeenWordEvents.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear();
+            setMpState(MP_STATES.IDLE);
         }
         function returnToHomeFromMultiplayer(){
-            clearInterval(mpClock); clearInterval(timerInterval); isMatchActive=false; mpEntered=false; mpStarted=false;
+            resetMultiplayerClientState();
             document.getElementById('modal-countdown')?.classList.add('hidden');
             document.getElementById('modal-gameover')?.classList.add('hidden');
             document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
-            document.getElementById('screen-game')?.classList.add('hidden'); document.getElementById('screen-home')?.classList.remove('hidden');
-            setMpState(MP_STATES.IDLE);
+            document.getElementById('screen-game')?.classList.add('hidden');
+            document.getElementById('screen-home')?.classList.remove('hidden');
         }
 
         // Yeni ana menü akışı
@@ -62703,9 +62722,7 @@ BLİK
                 const snap=await mpRoomRef.once('value'),d=snap.val();
                 if(!d || d.hostId!==getClientToken()){ showToast('Bu odayı yalnızca kurucusu kapatabilir.','rose'); return; }
                 await mpRoomRef.remove();
-                if(mpListener) mpRoomRef.off('value',mpListener);
-                if(mpWordsListener) mpRoomRef.child('words').off('child_added',mpWordsListener);
-                mpRoomRef=null;mpRoomCode=null;mpRole=null;mpRoomData=null;setMpState(MP_STATES.IDLE);
+                resetMultiplayerClientState();
                 clearInviteFromUrl();
                 document.getElementById('mp-room-view').classList.add('hidden');
                 document.getElementById('mp-create-view').classList.remove('hidden');
@@ -62972,7 +62989,7 @@ BLİK
             container.innerHTML = '';
             domCells = [];
             gridBoard = board.map(row => row.map(ch => String(ch || '').toLocaleUpperCase('tr-TR')));
-            boardFoundWords = solveBoardWords(gridBoard);
+            boardFoundWords = []; // Çoklu oyunda bot yok; pahalı tam-tahta çözümü gereksiz.
 
             const frag = document.createDocumentFragment();
             for (let r = 0; r < BOARD_SIZE; r++) {
@@ -63017,6 +63034,8 @@ BLİK
         let activeGridRect = null;
         let pendingPointer = null;
         let pointerFrame = 0;
+        let hoverTrembleTimer = null;
+        let hoverTrembleCell = null;
 
         let lastHoverCell=-1;
         gridEl.addEventListener('pointermove', (e) => {
@@ -63029,12 +63048,18 @@ BLİK
             if(idx===lastHoverCell || !domCells[idx]) return;
             lastHoverCell=idx;
             const cell=domCells[idx];
+            if(hoverTrembleCell && hoverTrembleCell!==cell) hoverTrembleCell.classList.remove('tile-hover-tremble');
+            hoverTrembleCell=cell;
             cell.classList.remove('tile-hover-tremble');
             void cell.offsetWidth;
             cell.classList.add('tile-hover-tremble');
-            setTimeout(()=>cell.classList.remove('tile-hover-tremble'),170);
+            clearTimeout(hoverTrembleTimer);
+            hoverTrembleTimer=setTimeout(()=>{ cell.classList.remove('tile-hover-tremble'); if(hoverTrembleCell===cell) hoverTrembleCell=null; },170);
         }, {passive:true});
-        gridEl.addEventListener('pointerleave',()=>{lastHoverCell=-1;});
+        gridEl.addEventListener('pointerleave',()=>{
+            lastHoverCell=-1; clearTimeout(hoverTrembleTimer); hoverTrembleTimer=null;
+            if(hoverTrembleCell) hoverTrembleCell.classList.remove('tile-hover-tremble'); hoverTrembleCell=null;
+        });
 
         gridEl.addEventListener('pointerdown', (e) => {
             // Çoklu oyunda Firebase PLAYING durumundaysa yerel bayrak gecikmiş olsa bile input'u aç.
@@ -63210,7 +63235,7 @@ BLİK
                 mpFoundWords.guest.add(word);
             } else sessionFoundWords.add(word);
             showToast(`${word} (+${pts})`, isP1 ? 'amber' : 'sky');
-            if (typeof confetti === 'function') confetti({ particleCount: 50, spread: 70, origin: { y: 0.6 } });
+            if (typeof confetti === 'function') confetti({ particleCount: matchMedia('(pointer:coarse)').matches ? 24 : 36, spread: 64, origin: { y: 0.6 } });
 
             selectedPath.forEach(p => {
                 p.el.classList.add(isP1 ? 'tile-claimed-p1' : 'tile-claimed-p2');
@@ -63223,12 +63248,6 @@ BLİK
             clearPath();
         }
 
-        async function publishMpWord(word, pts, path) {
-            if(!mpRoomRef || !mpRole) return;
-            const ref=mpRoomRef.child('words').push();
-            mpSeenWordEvents.add(ref.key);
-            await ref.set({word,pts,role:mpRole,path,at:firebase.database.ServerValue.TIMESTAMP});
-        }
 
         function applyClaimedPath(path, isP1) {
             path.forEach(pos=>{
@@ -63299,9 +63318,15 @@ BLİK
             const visited = Array.from({length:BOARD_SIZE}, () => Array(BOARD_SIZE).fill(false));
             const deltas = [[-1,0],[0,-1],[0,1],[1,0]];
             const MAX_SOLVE_LEN = 9; // 6-9 harfli gizli sözcükleri de tahta analizine ve bota dahil eder.
+            // Aynı çözüm turunda aynı önek yüzlerce kez denenebilir. Yerel memo RAM'i şişirmeden binary-search yükünü azaltır.
+            const prefixMemo = new Map();
+            const prefixExists = str => {
+                if(prefixMemo.has(str)) return prefixMemo.get(str);
+                const ok=hasWordPrefix(str); prefixMemo.set(str,ok); return ok;
+            };
 
             function dfs(r, c, curStr, path) {
-                if (!hasWordPrefix(curStr)) return;
+                if (!prefixExists(curStr)) return;
                 if (curStr.length >= 2 && WORD_SET.has(curStr) && !found.has(curStr)) {
                     found.set(curStr, { word: curStr, path: [...path] });
                 }
@@ -63444,11 +63469,6 @@ BLİK
             }
         }
 
-        async function acceptRematchRequest(){ return handlePlayAgain(); }
-        async function declineRematchRequest(){ return; }
-
-        async function prepareNextRoundBoard(){ /* state-machine rematch akışında gerekli değil */ }
-        async function launchPreparedRematch(){ /* geriye dönük no-op */ }
 
         function endGame(){
             if(!isMatchActive && mpRole && mpState===MP_STATES.FINISHED) return;
@@ -63534,8 +63554,11 @@ BLİK
             });
         }
 
+        let dictSearchTimer=null;
         document.getElementById('dict-search-input').oninput = (e) => {
-            renderWordsForLetter(null, e.target.value.trim());
+            const q=e.target.value.trim();
+            clearTimeout(dictSearchTimer);
+            dictSearchTimer=setTimeout(()=>renderWordsForLetter(null,q),120);
         };
 
         document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
