@@ -327,7 +327,7 @@
                         <div class="text-[10px] font-black text-slate-500 uppercase">ODA KODU</div><div id="mp-room-code" class="text-2xl font-black tracking-[.22em] text-indigo-800">------</div>
                         <div id="mp-status" class="mt-2 rounded-xl bg-slate-100 p-2 text-xs font-bold text-slate-600">Oda hazırlanıyor…</div>
                         <button id="btn-copy-link" class="w-full mt-3 min-h-[44px] rounded-xl bg-sky-100 border-2 border-sky-300 text-sky-900 font-black text-xs">🔗 BAĞLANTIYI KOPYALA</button>
-                        <button id="btn-enter-room" class="w-full mt-2 min-h-[46px] rounded-xl bg-indigo-700 text-white font-black">⚔️ ODAYA GİRİŞ</button>
+                        <button id="btn-enter-room" class="w-full mt-2 min-h-[46px] rounded-xl bg-indigo-700 text-white font-black">⚔️ ODAYA KATIL</button>
                         <button id="btn-close-room" class="hidden w-full mt-2 min-h-[40px] rounded-xl bg-rose-50 border-2 border-rose-200 text-rose-700 font-black text-xs">ODAYI KAPAT</button>
                     </div>
                 </div>
@@ -457,7 +457,7 @@
                 <div class="mx-auto mb-4 w-16 h-16 rounded-full bg-sky-50 border-2 border-sky-100 flex items-center justify-center">
                     <div class="w-8 h-8 rounded-full border-4 border-sky-200 border-t-sky-600 animate-spin"></div>
                 </div>
-                <div class="text-lg font-black text-slate-800">2. oyuncunun bağlanması bekleniyor</div>
+                <div class="text-lg font-black text-slate-800">2. oyuncunun odaya katılması bekleniyor</div>
                 <div class="mt-2 text-xs font-bold text-slate-500">Arkadaşın bağlantıyı açtığında senkronizasyon otomatik başlayacak.</div>
             </div>
         </div>
@@ -61996,7 +61996,7 @@ BLİK
             });
             rememberOwnedRoom(code,ownerToken); mpRound=1;
             setRoomUrl(code,'host'); await markPresence();
-            setMpPanelRoom(code,'Kalıcı oda hazır. Bu kodu daha sonra da kullanabilirsiniz.');
+            setMpPanelRoom(code,'Oda kuruldu ✓ Bağlantıyı arkadaşına gönder, sonra ODAYA KATIL düğmesine bas.');
             document.getElementById('btn-close-room')?.classList.remove('hidden');
             attachRoomListener();
         }
@@ -62043,9 +62043,12 @@ BLİK
                 } else if(!mpRound) mpRound=incomingRound;
                 if(d.scores){p1Score=d.scores.host||0;p2Score=d.scores.guest||0;updateScores();}
                 if(mpRole==='host' && d.presence?.guest && d.status==='waiting'){
-                    document.getElementById('mp-status').innerText='Rakip bağlandı ✓ Senkronizasyon hazırlanıyor…';
+                    document.getElementById('mp-status').innerText='2. oyuncu bağlandı ✓ Senkronize ediliyor…';
                     document.getElementById('modal-mp-waiting')?.classList.add('hidden');
-                    if(mpWantsEnter && !mpEntered) enterMultiplayerRoom();
+                    if(mpWantsEnter && !mpEntered){
+                        mpRoomRef.child('ready/host').set(true);
+                        enterMultiplayerRoom();
+                    }
                 } else if(d.presence?.host && d.presence?.guest) document.getElementById('mp-status').innerText='İki oyuncu odada ✓';
 
                 // Her iki cihaz oyun ekranına gerçekten girmeden maç başlatılmaz.
@@ -62071,7 +62074,7 @@ BLİK
                         }
                     }
                 }
-                if(d.status==='waiting' && d.presence?.host && d.presence?.guest && d.ready?.host && d.ready?.guest && !d.countdownAt){
+                if(mpRole==='host' && d.status==='waiting' && d.presence?.host && d.presence?.guest && d.ready?.host && d.ready?.guest && !d.countdownAt){
                     scheduleSynchronizedStart();
                 }
                 if(mpEntered && d.status==='starting' && d.countdownAt && !mpStarted) startSyncedMatch(d);
@@ -62116,7 +62119,7 @@ BLİK
                 document.getElementById('screen-game').classList.add('hidden');
                 document.getElementById('screen-home').classList.remove('hidden');
                 document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
-                document.getElementById('mp-status').innerText='2. oyuncunun bağlanması bekleniyor…';
+                document.getElementById('mp-status').innerText='2. oyuncunun odaya katılması bekleniyor…';
                 mpEntered=false; return;
             }
             // Bu cihaz hazır. Başlangıcı yalnızca iki cihaz da READY olduktan sonra host planlar.
@@ -62125,16 +62128,24 @@ BLİK
         }
         let mpSchedulingStart=false;
         async function scheduleSynchronizedStart(){
-            if(mpSchedulingStart || !mpRoomRef) return;
+            if(mpRole!=='host' || mpSchedulingStart || !mpRoomRef) return;
             mpSchedulingStart=true;
             try{
+                // Son durum tekrar okunur. Başlangıç planını yalnızca oda kurucusu yapar.
                 const snap=await mpRoomRef.once('value'), d=snap.val();
                 if(!d || d.status!=='waiting' || !d.presence?.host || !d.presence?.guest || !d.ready?.host || !d.ready?.guest || d.countdownAt) return;
-                // Geri sayım başlangıcı doğrudan Firebase sunucu zaman damgasıdır. İki cihaz da
-                // aynı countdownAt + 5.000 ms hedefini kullanır; yerel ağ gecikmesi sayacı kaydırmaz.
-                const sharedStartAt = Date.now() + mpServerOffset + 5000;
-                await mpRoomRef.update({status:'starting', countdownAt:firebase.database.ServerValue.TIMESTAMP, startAt:sharedStartAt});
-            } finally { mpSchedulingStart=false; }
+                const serverNow=Date.now()+mpServerOffset;
+                const sharedStartAt=serverNow+5000;
+                // Tek update: iki cihaz aynı status/startAt verisini görür.
+                await mpRoomRef.update({
+                    status:'starting',
+                    countdownAt:serverNow,
+                    startAt:sharedStartAt
+                });
+            }catch(e){
+                console.error('Senkron başlangıç hatası',e);
+                showToast('Senkronizasyon kurulamadı. Tekrar deneyin.','rose');
+            }finally{ mpSchedulingStart=false; }
         }
         let mpAudioCtx=null, mpLastBeepSecond=null;
         function playCountdownBeep(second){
@@ -62192,13 +62203,21 @@ BLİK
         document.getElementById('btn-friend-mode').onclick = () => { setDifficultyOpen(false); document.getElementById('friend-invite-panel').classList.toggle('hidden'); };
         document.getElementById('btn-close-friend').onclick = () => document.getElementById('friend-invite-panel').classList.add('hidden');
         document.getElementById('btn-create-room').onclick = createRoom;
-        document.getElementById('btn-join-code').onclick = () => joinRoom(document.getElementById('room-code-input').value);
+        document.getElementById('btn-join-code').onclick = async()=>{
+            const code=document.getElementById('room-code-input').value;
+            await joinRoom(code,false);
+            if(!mpRoomRef || mpRole!=='guest') return;
+            mpWantsEnter=true;
+            await enterMultiplayerRoom();
+        };
         document.getElementById('btn-copy-link').onclick = async()=>{ if(!mpRoomCode)return; await navigator.clipboard.writeText(inviteUrl(mpRoomCode)); document.getElementById('mp-status').innerText='Bağlantı kopyalandı ✓'; };
         document.getElementById('btn-enter-room').onclick = async()=>{
+            if(!mpRoomRef || mpRole!=='host'){ showToast('Önce oda oluştur.','rose'); return; }
             mpWantsEnter=true;
-            if(mpRole==='host' && (!mpRoomData || !mpRoomData.presence?.guest)){
+            await mpRoomRef.child('ready/host').set(true);
+            if(!mpRoomData?.presence?.guest){
                 document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
-                if(mpRoomRef) await mpRoomRef.child('ready/host').set(true);
+                document.getElementById('mp-status').innerText='2. oyuncunun odaya katılması bekleniyor…';
                 return;
             }
             await enterMultiplayerRoom();
@@ -62208,30 +62227,33 @@ BLİK
         function clearInviteFromUrl(){
             const u=new URL(location.href); u.searchParams.delete('room'); u.searchParams.delete('as'); history.replaceState(null,'',u.toString());
         }
-        window.addEventListener('load',()=>{
-            const u=new URL(location.href), code=(u.searchParams.get('room')||'').toUpperCase();
+        window.addEventListener('load',async()=>{
+            const u=new URL(location.href), code=(u.searchParams.get('room')||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
             if(!code) return;
-            // Davet bağlantısı her zaman ana sayfada karşılanır. Firebase'e, oyuncu BAŞLA
-            // demeden bağlanmayız; böylece davet linki kullanıcıyı doğrudan oda paneline atmaz.
-            pendingInviteCode=code;
+            // Davet linki 2. oyuncuyu aynı odaya doğrudan bağlar.
+            // Ana ekran kısa süre görünür; Firebase bağlantısı kurulunca oyun ekranına geçilir.
             document.getElementById('screen-game')?.classList.add('hidden');
             document.getElementById('screen-home')?.classList.remove('hidden');
-            document.getElementById('friend-invite-panel')?.classList.add('hidden');
-            document.getElementById('invite-room-code').innerText='ODA: '+code;
-            document.getElementById('modal-room-invite').classList.remove('hidden');
-        });
-        document.getElementById('btn-invite-start').onclick=async()=>{
-            const code=pendingInviteCode; if(!code) return;
-            const btn=document.getElementById('btn-invite-start'); btn.disabled=true; btn.innerText='BAĞLANIYOR…';
+            document.getElementById('friend-invite-panel')?.classList.remove('hidden');
             try{
                 await joinRoom(code,false);
-                if(!mpRoomRef || mpRole!=='guest'){
-                    showToast('Odaya bağlanılamadı. Oda kodunu kontrol et.','rose'); return;
+                if(!mpRoomRef){ showToast('Oda bulunamadı veya bağlantı kurulamadı.','rose'); return; }
+                // Oda kurucusunun kendi bağlantısını açması onu host olarak tutar; davet edilen cihaz guest olur.
+                if(mpRole==='guest'){
+                    mpWantsEnter=true;
+                    document.getElementById('mp-status').innerText='Odaya bağlandın. Senkronizasyon hazırlanıyor…';
+                    await enterMultiplayerRoom();
                 }
-                document.getElementById('modal-room-invite').classList.add('hidden');
-                mpWantsEnter=true;
-                await enterMultiplayerRoom();
-            } finally { btn.disabled=false; btn.innerText='BAŞLA'; }
+            }catch(e){
+                console.error('Davet bağlantısı hatası',e);
+                showToast('Çoklu oyuncu bağlantısı kurulamadı.','rose');
+            }
+        });
+        // Eski davet modalı geriye dönük uyumluluk için DOM'da kalır ama yeni akışta kullanılmaz.
+        document.getElementById('btn-invite-start').onclick=async()=>{
+            const code=pendingInviteCode; if(!code) return;
+            await joinRoom(code,false);
+            if(mpRole==='guest'){ mpWantsEnter=true; document.getElementById('modal-room-invite').classList.add('hidden'); await enterMultiplayerRoom(); }
         };
         document.getElementById('btn-invite-cancel').onclick=()=>{
             pendingInviteCode=null; document.getElementById('modal-room-invite').classList.add('hidden'); clearInviteFromUrl();
