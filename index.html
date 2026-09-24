@@ -437,6 +437,19 @@
             </div>
         </div>
 
+        <!-- ================= OYUN DAVETİ MODALI ================= -->
+        <div id="modal-room-invite" class="absolute inset-0 bg-slate-950/45 backdrop-blur-[2px] flex items-center justify-center z-[80] hidden">
+            <div class="relative w-11/12 max-w-sm bg-white/95 border border-indigo-100 p-7 rounded-[30px] shadow-2xl text-center">
+                <div class="mx-auto mb-4 w-16 h-16 rounded-full bg-indigo-50 border-2 border-indigo-100 flex items-center justify-center text-3xl">⚔️</div>
+                <div class="text-xl font-black text-slate-800">Oyuna davet edildiniz</div>
+                <div id="invite-room-code" class="mt-2 text-xs font-black tracking-[.18em] text-indigo-600"></div>
+                <div class="mt-5 grid grid-cols-2 gap-3">
+                    <button id="btn-invite-start" class="py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 text-white text-sm font-black shadow-md">BAŞLA</button>
+                    <button id="btn-invite-cancel" class="py-3 rounded-xl bg-slate-100 text-slate-600 text-sm font-black border border-slate-200">İPTAL</button>
+                </div>
+            </div>
+        </div>
+
         <!-- ================= ÇOKLU OYUNCU BEKLEME MODALI ================= -->
         <div id="modal-mp-waiting" class="absolute inset-0 bg-slate-950/45 backdrop-blur-[2px] flex items-center justify-center z-[60] hidden">
             <div class="relative w-11/12 max-w-sm bg-white/95 border border-sky-100 p-7 rounded-[30px] shadow-2xl text-center">
@@ -62191,16 +62204,39 @@ BLİK
             await enterMultiplayerRoom();
         };
         document.getElementById('btn-close-mp-waiting').onclick=()=>document.getElementById('modal-mp-waiting').classList.add('hidden');
+        let pendingInviteCode=null;
+        function clearInviteFromUrl(){
+            const u=new URL(location.href); u.searchParams.delete('room'); u.searchParams.delete('as'); history.replaceState(null,'',u.toString());
+        }
         window.addEventListener('load',()=>{
-            const u=new URL(location.href), code=(u.searchParams.get('room')||'').toUpperCase(), legacyHost=u.searchParams.get('as')==='host';
-            if(code){
-                document.getElementById('friend-invite-panel').classList.remove('hidden');
-                setMpPanelRoom(code,'Kalıcı oda bulundu. Odaya giriş yapabilirsin.');
-                document.getElementById('btn-enter-room').innerText='⚔️ ODAYA GİRİŞ';
-                // Rol URL'den değil, kalıcı oda sahipliği bilgisinden belirlenir.
-                joinRoom(code,legacyHost);
-            }
+            const u=new URL(location.href), code=(u.searchParams.get('room')||'').toUpperCase();
+            if(!code) return;
+            // Davet bağlantısı her zaman ana sayfada karşılanır. Firebase'e, oyuncu BAŞLA
+            // demeden bağlanmayız; böylece davet linki kullanıcıyı doğrudan oda paneline atmaz.
+            pendingInviteCode=code;
+            document.getElementById('screen-game')?.classList.add('hidden');
+            document.getElementById('screen-home')?.classList.remove('hidden');
+            document.getElementById('friend-invite-panel')?.classList.add('hidden');
+            document.getElementById('invite-room-code').innerText='ODA: '+code;
+            document.getElementById('modal-room-invite').classList.remove('hidden');
         });
+        document.getElementById('btn-invite-start').onclick=async()=>{
+            const code=pendingInviteCode; if(!code) return;
+            const btn=document.getElementById('btn-invite-start'); btn.disabled=true; btn.innerText='BAĞLANIYOR…';
+            try{
+                await joinRoom(code,false);
+                if(!mpRoomRef || mpRole!=='guest'){
+                    showToast('Odaya bağlanılamadı. Oda kodunu kontrol et.','rose'); return;
+                }
+                document.getElementById('modal-room-invite').classList.add('hidden');
+                mpWantsEnter=true;
+                await enterMultiplayerRoom();
+            } finally { btn.disabled=false; btn.innerText='BAŞLA'; }
+        };
+        document.getElementById('btn-invite-cancel').onclick=()=>{
+            pendingInviteCode=null; document.getElementById('modal-room-invite').classList.add('hidden'); clearInviteFromUrl();
+            document.getElementById('screen-game')?.classList.add('hidden'); document.getElementById('screen-home')?.classList.remove('hidden');
+        };
         document.getElementById('btn-close-room').onclick=async()=>{
             if(!mpRoomRef || mpRole!=='host') return;
             if(!confirm('Bu kalıcı oda tamamen kapatılsın mı? Oda kodu artık kullanılamaz.')) return;
