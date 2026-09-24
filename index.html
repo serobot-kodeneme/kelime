@@ -468,7 +468,7 @@
                     <span class="text-slate-400 font-bold">-</span>
                     <div class="w-[45%] text-center"><span id="final-p2-name" class="text-xs font-bold text-sky-600 block truncate">2. OYUNCU</span><span id="final-score-val-p2" class="text-2xl font-black text-slate-900">0</span></div>
                 </div>
-                <button onclick="location.reload()" class="w-full bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 text-amber-950 font-black text-xs py-3 rounded-xl uppercase shadow-md">Tekrar Oyna</button>
+                <button id="btn-play-again" onclick="handlePlayAgain()" class="w-full bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 text-amber-950 font-black text-xs py-3 rounded-xl uppercase shadow-md">Tekrar Oyna</button>
             </div>
         </div>
     </div>
@@ -61910,7 +61910,7 @@ BLİK
             appId: "1:968159872150:web:c80429010ec21363116eb7"
         };
         let mpDb=null, mpRoomRef=null, mpRoomCode=null, mpRole=null, mpRoomData=null;
-        let mpListener=null, mpWordsListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null, mpWantsEnter=false;
+        let mpListener=null, mpWordsListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null, mpWantsEnter=false, mpRound=0, mpRematchBusy=false;
         let mpSeenWordEvents=new Set();
         const mpFoundWords={host:new Set(),guest:new Set()};
         function ensureFirebase(){
@@ -61922,21 +61922,23 @@ BLİK
             return true;
         }
         function makeRoomCode(){ const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let x=''; crypto.getRandomValues(new Uint32Array(6)).forEach(n=>x+=a[n%a.length]); return x; }
-        function inviteUrl(code){ const u=new URL(location.href); u.searchParams.set('room',code); u.hash=''; return u.toString(); }
+        function inviteUrl(code){ const u=new URL(location.href); u.searchParams.set('room',code); u.searchParams.delete('as'); u.hash=''; return u.toString(); }
+        function setRoomUrl(code, role){ const u=new URL(location.href); u.searchParams.set('room',code); u.searchParams.set('as',role); u.hash=''; history.replaceState(null,'',u.toString()); }
         function setMpPanelRoom(code,status){ document.getElementById('mp-create-view').classList.add('hidden'); document.getElementById('mp-room-view').classList.remove('hidden'); document.getElementById('mp-room-code').innerText=code; document.getElementById('mp-status').innerText=status; }
         async function createRoom(){
             if(!ensureFirebase()) return;
             const code=makeRoomCode(); mpRoomCode=code; mpRole='host';
             const ready=prewarmedBoard || loadBoardCache() || generateOptimizedBoard(3); prewarmedBoard=null;
             const ref=mpDb.ref('rooms/'+code); mpRoomRef=ref;
-            await ref.set({createdAt:firebase.database.ServerValue.TIMESTAMP,status:'waiting',host:true,guest:false,ready:{host:false,guest:false},board:ready.board,scores:{host:0,guest:0},startAt:0,countdownAt:0,words:{},claimedWords:{}});
+            await ref.set({createdAt:firebase.database.ServerValue.TIMESTAMP,status:'waiting',host:true,guest:false,ready:{host:false,guest:false},rematch:{host:false,guest:false},round:1,board:ready.board,scores:{host:0,guest:0},startAt:0,countdownAt:0,words:{},claimedWords:{}});
+            mpRound=1; setRoomUrl(code,'host');
             setMpPanelRoom(code,'Oda hazır. Davet linkini arkadaşına gönder.'); attachRoomListener();
         }
         async function joinRoom(code){
             code=(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6); if(!code||!ensureFirebase()) return;
             const ref=mpDb.ref('rooms/'+code), snap=await ref.once('value');
             if(!snap.exists()){ document.getElementById('mp-status').innerText='Oda bulunamadı.'; return; }
-            mpRoomCode=code; mpRole='guest'; mpRoomRef=ref; await ref.update({guest:true});
+            mpRoomCode=code; mpRole='guest'; mpRoomRef=ref; await ref.update({guest:true}); setRoomUrl(code,'guest');
             const joinedSnap=await ref.once('value'); mpRoomData=joinedSnap.val();
             setMpPanelRoom(code,'Odaya katıldın. Ev sahibi bekleniyor…'); attachRoomListener();
         }
@@ -61944,6 +61946,18 @@ BLİK
             if(!mpRoomRef) return; if(mpListener) mpRoomRef.off('value',mpListener);
             mpListener=mpRoomRef.on('value',snap=>{
                 const d=snap.val(); if(!d) return; mpRoomData=d;
+                const incomingRound=Number(d.round||1);
+                if(mpRound && incomingRound!==mpRound){
+                    mpRound=incomingRound; mpStarted=false; mpSchedulingStart=false; mpLastBeepSecond=null;
+                    clearInterval(mpClock); clearInterval(timerInterval); isMatchActive=false;
+                    p1Score=0; p2Score=0; updateScores(); remainingSeconds=60;
+                    sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
+                    document.getElementById('words-ticker').innerHTML=''; document.getElementById('game-timer').innerText='60';
+                    document.getElementById('game-timer').classList.remove('timer-warning');
+                    document.getElementById('modal-gameover').classList.add('hidden');
+                    renderProvidedBoard(d.board);
+                    if(mpEntered) mpRoomRef.child('ready/'+mpRole).set(true);
+                } else if(!mpRound) mpRound=incomingRound;
                 if(d.scores){p1Score=d.scores.host||0;p2Score=d.scores.guest||0;updateScores();}
                 if(mpRole==='host' && d.guest && d.status==='waiting'){
                     document.getElementById('mp-status').innerText='Rakip bağlandı ✓ Senkronizasyon hazırlanıyor…';
@@ -61955,6 +61969,9 @@ BLİK
                 // Host, iki READY işaretini gördüğünde Firebase sunucu saatine göre tek bir ortak
                 // başlangıç anı belirler. Böylece iki telefonda ayrı sayaç başlatmak yerine
                 // aynı startAt zamanına kilitleniriz.
+                if(mpRole==='host' && d.status==='finished' && d.rematch?.host && d.rematch?.guest && !mpRematchBusy){
+                    createRematchRound(d);
+                }
                 if(mpRole==='host' && d.status==='waiting' && d.ready?.host && d.ready?.guest && !d.countdownAt){
                     scheduleSynchronizedStart();
                 }
@@ -61990,7 +62007,7 @@ BLİK
             container.appendChild(frag);
         }
         async function enterMultiplayerRoom(){
-            if(!mpRoomData||!mpRoomData.board) return; mpEntered=true; mpStarted=false;
+            if(!mpRoomData||!mpRoomData.board) return; mpEntered=true; mpStarted=false; mpRound=Number(mpRoomData.round||1);
             document.getElementById('screen-home').classList.add('hidden'); document.getElementById('screen-game').classList.remove('hidden');
             document.getElementById('p1-title').innerText='1. OYUNCU'; document.getElementById('p2-title').innerText='2. OYUNCU';
             p1Score=mpRoomData.scores?.host||0; p2Score=mpRoomData.scores?.guest||0; updateScores(); remainingSeconds=60; sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear(); document.getElementById('words-ticker').innerHTML='';
@@ -62087,7 +62104,7 @@ BLİK
             await enterMultiplayerRoom();
         };
         document.getElementById('btn-close-mp-waiting').onclick=()=>document.getElementById('modal-mp-waiting').classList.add('hidden');
-        window.addEventListener('load',()=>{ const code=new URL(location.href).searchParams.get('room'); if(code){ document.getElementById('friend-invite-panel').classList.remove('hidden'); setMpPanelRoom(code.toUpperCase(),'Davet bulundu. Odaya katılmak için aşağıdaki düğmeye bas.'); document.getElementById('btn-enter-room').innerText='⚔️ ODAYA GİRİŞ'; document.getElementById('btn-enter-room').onclick=async()=>{mpWantsEnter=true; await joinRoom(code); await enterMultiplayerRoom();}; } });
+        window.addEventListener('load',()=>{ const u=new URL(location.href), code=u.searchParams.get('room'), savedRole=u.searchParams.get('as'); if(code){ document.getElementById('friend-invite-panel').classList.remove('hidden'); setMpPanelRoom(code.toUpperCase(), savedRole==='host'?'Odan yeniden açıldı. Odaya giriş yapabilirsin.':'Davet bulundu. Odaya katılmak için aşağıdaki düğmeye bas.'); document.getElementById('btn-enter-room').innerText='⚔️ ODAYA GİRİŞ'; document.getElementById('btn-enter-room').onclick=async()=>{ mpWantsEnter=true; if(savedRole==='host' && ensureFirebase()){ const ref=mpDb.ref('rooms/'+code.toUpperCase()), snap=await ref.once('value'); if(snap.exists()){ mpRoomCode=code.toUpperCase(); mpRole='host'; mpRoomRef=ref; mpRoomData=snap.val(); setRoomUrl(mpRoomCode,'host'); attachRoomListener(); await enterMultiplayerRoom(); return; } } await joinRoom(code); await enterMultiplayerRoom(); }; } });
         document.querySelectorAll('.bot-diff-choice').forEach(btn => {
             btn.onclick = () => {
                 botDiffLevel = btn.dataset.diff;
@@ -62695,12 +62712,36 @@ BLİK
             setTimeout(() => confetti({ particleCount: 200, spread: 140, origin: { y: 0.6 }, zIndex: 999 }), 1600);
         }
 
+        async function handlePlayAgain(){
+            if(!mpRoomRef || !mpRole){ location.reload(); return; }
+            if(mpRoomData?.status!=='finished') return;
+            const btn=document.getElementById('btn-play-again');
+            btn.disabled=true; btn.innerText='RAKİP BEKLENİYOR…';
+            await mpRoomRef.child('rematch/'+mpRole).set(true);
+            showToast('Tekrar maç isteğin gönderildi. Rakip bekleniyor…','sky');
+        }
+
+        async function createRematchRound(d){
+            if(mpRematchBusy || mpRole!=='host' || !mpRoomRef) return;
+            mpRematchBusy=true;
+            try{
+                const fresh=generateOptimizedBoard(3);
+                const nextRound=Number(d.round||1)+1;
+                await mpRoomRef.update({
+                    status:'waiting', round:nextRound, board:fresh.board,
+                    scores:{host:0,guest:0}, ready:{host:false,guest:false}, rematch:{host:false,guest:false},
+                    startAt:0, countdownAt:0, words:null, claimedWords:null
+                });
+            } finally { mpRematchBusy=false; }
+        }
+
         function endGame() {
             isMatchActive = false;
             clearInterval(timerInterval);
             clearTimeout(botInterval);
             if (mpRole === 'host' && mpRoomRef) mpRoomRef.update({status:'finished'});
             document.getElementById('modal-gameover').classList.remove('hidden');
+            const replayBtn=document.getElementById('btn-play-again'); if(replayBtn){ replayBtn.disabled=false; replayBtn.innerText='TEKRAR OYNA'; }
 
             document.getElementById('final-score-val-p1').innerText = p1Score;
             document.getElementById('final-score-val-p2').innerText = p2Score;
