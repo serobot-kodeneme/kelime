@@ -328,6 +328,7 @@
                         <div id="mp-status" class="mt-2 rounded-xl bg-slate-100 p-2 text-xs font-bold text-slate-600">Oda hazırlanıyor…</div>
                         <button id="btn-copy-link" class="w-full mt-3 min-h-[44px] rounded-xl bg-sky-100 border-2 border-sky-300 text-sky-900 font-black text-xs">🔗 BAĞLANTIYI KOPYALA</button>
                         <button id="btn-enter-room" class="w-full mt-2 min-h-[46px] rounded-xl bg-indigo-700 text-white font-black">⚔️ ODAYA GİRİŞ</button>
+                        <button id="btn-close-room" class="hidden w-full mt-2 min-h-[40px] rounded-xl bg-rose-50 border-2 border-rose-200 text-rose-700 font-black text-xs">ODAYI KAPAT</button>
                     </div>
                 </div>
 
@@ -61925,6 +61926,26 @@ BLİK
         let mpListener=null, mpWordsListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null, mpWantsEnter=false, mpRound=0, mpRematchBusy=false;
         let mpSeenWordEvents=new Set();
         const mpFoundWords={host:new Set(),guest:new Set()};
+        let mpPresenceRef=null;
+        function getClientToken(){
+            let t=localStorage.getItem('kd_client_token');
+            if(!t){
+                const a=new Uint32Array(4); crypto.getRandomValues(a);
+                t=Array.from(a,n=>n.toString(36)).join('');
+                localStorage.setItem('kd_client_token',t);
+            }
+            return t;
+        }
+        function ownerKey(code){ return 'kd_room_owner_'+code; }
+        function rememberOwnedRoom(code,token){ localStorage.setItem(ownerKey(code),token); }
+        function ownsRoomLocally(code,ownerToken){ return !!ownerToken && localStorage.getItem(ownerKey(code))===ownerToken; }
+        async function markPresence(){
+            if(!mpRoomRef||!mpRole) return;
+            mpPresenceRef=mpRoomRef.child('presence/'+mpRole);
+            await mpPresenceRef.set(true);
+            mpPresenceRef.onDisconnect().set(false);
+            mpRoomRef.child('ready/'+mpRole).onDisconnect().set(false);
+        }
         function ensureFirebase(){
             if(mpDb) return true;
             if(!window.firebase){ showToast('İnternet bağlantısı/Firebase yüklenemedi','rose'); return false; }
@@ -61935,24 +61956,55 @@ BLİK
         }
         function makeRoomCode(){ const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let x=''; crypto.getRandomValues(new Uint32Array(6)).forEach(n=>x+=a[n%a.length]); return x; }
         function inviteUrl(code){ const u=new URL(location.href); u.searchParams.set('room',code); u.searchParams.delete('as'); u.hash=''; return u.toString(); }
-        function setRoomUrl(code, role){ const u=new URL(location.href); u.searchParams.set('room',code); u.searchParams.set('as',role); u.hash=''; history.replaceState(null,'',u.toString()); }
+        function setRoomUrl(code, role){ const u=new URL(location.href); u.searchParams.set('room',code); u.searchParams.delete('as'); u.hash=''; history.replaceState(null,'',u.toString()); }
         function setMpPanelRoom(code,status){ document.getElementById('mp-create-view').classList.add('hidden'); document.getElementById('mp-room-view').classList.remove('hidden'); document.getElementById('mp-room-code').innerText=code; document.getElementById('mp-status').innerText=status; }
         async function createRoom(){
             if(!ensureFirebase()) return;
-            const code=makeRoomCode(); mpRoomCode=code; mpRole='host';
+            let code, ref, exists=true;
+            // Kod çakışırsa mevcut kalıcı odayı ezme; yeni kod üret.
+            for(let i=0;i<8 && exists;i++){
+                code=makeRoomCode(); ref=mpDb.ref('rooms/'+code);
+                exists=(await ref.once('value')).exists();
+            }
+            if(exists){ showToast('Oda kodu oluşturulamadı. Tekrar dene.','rose'); return; }
+            const ownerToken=getClientToken();
+            mpRoomCode=code; mpRole='host'; mpRoomRef=ref;
             const ready=prewarmedBoard || loadBoardCache() || generateOptimizedBoard(3); prewarmedBoard=null;
-            const ref=mpDb.ref('rooms/'+code); mpRoomRef=ref;
-            await ref.set({createdAt:firebase.database.ServerValue.TIMESTAMP,status:'waiting',host:true,guest:false,ready:{host:false,guest:false},rematch:{host:false,guest:false},round:1,board:ready.board,scores:{host:0,guest:0},startAt:0,countdownAt:0,words:{},claimedWords:{}});
-            mpRound=1; setRoomUrl(code,'host');
-            setMpPanelRoom(code,'Oda hazır. Davet linkini arkadaşına gönder.'); attachRoomListener();
+            await ref.set({
+                schema:2, persistent:true, createdAt:firebase.database.ServerValue.TIMESTAMP,
+                ownerToken:ownerToken, status:'waiting', host:true, guest:false,
+                presence:{host:true,guest:false}, ready:{host:false,guest:false},
+                rematch:{host:false,guest:false}, round:1, board:ready.board,
+                scores:{host:0,guest:0}, startAt:0, countdownAt:0, words:{}, claimedWords:{}
+            });
+            rememberOwnedRoom(code,ownerToken); mpRound=1;
+            setRoomUrl(code,'host'); await markPresence();
+            setMpPanelRoom(code,'Kalıcı oda hazır. Bu kodu daha sonra da kullanabilirsiniz.');
+            document.getElementById('btn-close-room')?.classList.remove('hidden');
+            attachRoomListener();
         }
-        async function joinRoom(code){
+        async function joinRoom(code,legacyHost=false){
             code=(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6); if(!code||!ensureFirebase()) return;
             const ref=mpDb.ref('rooms/'+code), snap=await ref.once('value');
             if(!snap.exists()){ document.getElementById('mp-status').innerText='Oda bulunamadı.'; return; }
-            mpRoomCode=code; mpRole='guest'; mpRoomRef=ref; await ref.update({guest:true}); setRoomUrl(code,'guest');
+            let d=snap.val()||{};
+            // Eski sürümde oluşturulmuş odaları, yalnızca kurucunun eski ?as=host adresinden
+            // ilk açılışında yeni kalıcı sahiplik düzenine güvenli biçimde geçir.
+            if(!d.ownerToken && legacyHost){
+                const token=getClientToken();
+                await ref.update({schema:2,persistent:true,ownerToken:token});
+                rememberOwnedRoom(code,token); d={...d,ownerToken:token};
+            }
+            // Oda sahibi aynı cihaz/tarayıcıdan kodla tekrar girerse 1. oyuncu olarak geri döner.
+            // Diğer cihazlar aynı kalıcı kodla 2. oyuncu olarak bağlanır.
+            const localOwner=ownsRoomLocally(code,d.ownerToken);
+            mpRoomCode=code; mpRole=localOwner?'host':'guest'; mpRoomRef=ref;
+            if(mpRole==='guest') await ref.update({guest:true});
+            await markPresence(); setRoomUrl(code,mpRole);
             const joinedSnap=await ref.once('value'); mpRoomData=joinedSnap.val();
-            setMpPanelRoom(code,'Odaya katıldın. Ev sahibi bekleniyor…'); attachRoomListener();
+            setMpPanelRoom(code,mpRole==='host'?'Kalıcı odana yeniden bağlandın.':'Kalıcı odaya katıldın.');
+            document.getElementById('btn-close-room')?.classList.toggle('hidden',mpRole!=='host');
+            attachRoomListener();
         }
         function attachRoomListener(){
             if(!mpRoomRef) return; if(mpListener) mpRoomRef.off('value',mpListener);
@@ -61973,11 +62025,11 @@ BLİK
                     if(mpEntered) mpRoomRef.child('ready/'+mpRole).set(true);
                 } else if(!mpRound) mpRound=incomingRound;
                 if(d.scores){p1Score=d.scores.host||0;p2Score=d.scores.guest||0;updateScores();}
-                if(mpRole==='host' && d.guest && d.status==='waiting'){
+                if(mpRole==='host' && d.presence?.guest && d.status==='waiting'){
                     document.getElementById('mp-status').innerText='Rakip bağlandı ✓ Senkronizasyon hazırlanıyor…';
                     document.getElementById('modal-mp-waiting')?.classList.add('hidden');
                     if(mpWantsEnter && !mpEntered) enterMultiplayerRoom();
-                } else if(d.guest) document.getElementById('mp-status').innerText='İki oyuncu odada ✓';
+                } else if(d.presence?.host && d.presence?.guest) document.getElementById('mp-status').innerText='İki oyuncu odada ✓';
 
                 // Her iki cihaz oyun ekranına gerçekten girmeden maç başlatılmaz.
                 // Host, iki READY işaretini gördüğünde Firebase sunucu saatine göre tek bir ortak
@@ -61992,7 +62044,7 @@ BLİK
                 if(d.status==='finished' && d.rematch?.host && d.rematch?.guest && !mpRematchBusy){
                     launchPreparedRematch();
                 }
-                if(d.status==='waiting' && d.ready?.host && d.ready?.guest && !d.countdownAt){
+                if(d.status==='waiting' && d.presence?.host && d.presence?.guest && d.ready?.host && d.ready?.guest && !d.countdownAt){
                     scheduleSynchronizedStart();
                 }
                 if(mpEntered && d.status==='starting' && d.countdownAt && !mpStarted) startSyncedMatch(d);
@@ -62032,7 +62084,7 @@ BLİK
             document.getElementById('p1-title').innerText='1. OYUNCU'; document.getElementById('p2-title').innerText='2. OYUNCU';
             p1Score=mpRoomData.scores?.host||0; p2Score=mpRoomData.scores?.guest||0; updateScores(); remainingSeconds=60; sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear(); document.getElementById('words-ticker').innerHTML='';
             renderProvidedBoard(mpRoomData.board);
-            if(mpRole==='host' && !mpRoomData.guest){
+            if(mpRole==='host' && !mpRoomData.presence?.guest){
                 document.getElementById('screen-game').classList.add('hidden');
                 document.getElementById('screen-home').classList.remove('hidden');
                 document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
@@ -62049,7 +62101,7 @@ BLİK
             mpSchedulingStart=true;
             try{
                 const snap=await mpRoomRef.once('value'), d=snap.val();
-                if(!d || d.status!=='waiting' || !d.ready?.host || !d.ready?.guest || d.countdownAt) return;
+                if(!d || d.status!=='waiting' || !d.presence?.host || !d.presence?.guest || !d.ready?.host || !d.ready?.guest || d.countdownAt) return;
                 // Geri sayım başlangıcı doğrudan Firebase sunucu zaman damgasıdır. İki cihaz da
                 // aynı countdownAt + 5.000 ms hedefini kullanır; yerel ağ gecikmesi sayacı kaydırmaz.
                 const sharedStartAt = Date.now() + mpServerOffset + 5000;
@@ -62116,7 +62168,7 @@ BLİK
         document.getElementById('btn-copy-link').onclick = async()=>{ if(!mpRoomCode)return; await navigator.clipboard.writeText(inviteUrl(mpRoomCode)); document.getElementById('mp-status').innerText='Bağlantı kopyalandı ✓'; };
         document.getElementById('btn-enter-room').onclick = async()=>{
             mpWantsEnter=true;
-            if(mpRole==='host' && (!mpRoomData || !mpRoomData.guest)){
+            if(mpRole==='host' && (!mpRoomData || !mpRoomData.presence?.guest)){
                 document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
                 if(mpRoomRef) await mpRoomRef.child('ready/host').set(true);
                 return;
@@ -62124,7 +62176,31 @@ BLİK
             await enterMultiplayerRoom();
         };
         document.getElementById('btn-close-mp-waiting').onclick=()=>document.getElementById('modal-mp-waiting').classList.add('hidden');
-        window.addEventListener('load',()=>{ const u=new URL(location.href), code=u.searchParams.get('room'), savedRole=u.searchParams.get('as'); if(code){ document.getElementById('friend-invite-panel').classList.remove('hidden'); setMpPanelRoom(code.toUpperCase(), savedRole==='host'?'Odan yeniden açıldı. Odaya giriş yapabilirsin.':'Davet bulundu. Odaya katılmak için aşağıdaki düğmeye bas.'); document.getElementById('btn-enter-room').innerText='⚔️ ODAYA GİRİŞ'; document.getElementById('btn-enter-room').onclick=async()=>{ mpWantsEnter=true; if(savedRole==='host' && ensureFirebase()){ const ref=mpDb.ref('rooms/'+code.toUpperCase()), snap=await ref.once('value'); if(snap.exists()){ mpRoomCode=code.toUpperCase(); mpRole='host'; mpRoomRef=ref; mpRoomData=snap.val(); setRoomUrl(mpRoomCode,'host'); attachRoomListener(); await enterMultiplayerRoom(); return; } } await joinRoom(code); await enterMultiplayerRoom(); }; } });
+        window.addEventListener('load',()=>{
+            const u=new URL(location.href), code=(u.searchParams.get('room')||'').toUpperCase(), legacyHost=u.searchParams.get('as')==='host';
+            if(code){
+                document.getElementById('friend-invite-panel').classList.remove('hidden');
+                setMpPanelRoom(code,'Kalıcı oda bulundu. Odaya giriş yapabilirsin.');
+                document.getElementById('btn-enter-room').innerText='⚔️ ODAYA GİRİŞ';
+                // Rol URL'den değil, kalıcı oda sahipliği bilgisinden belirlenir.
+                joinRoom(code,legacyHost);
+            }
+        });
+        document.getElementById('btn-close-room').onclick=async()=>{
+            if(!mpRoomRef || mpRole!=='host') return;
+            if(!confirm('Bu kalıcı oda tamamen kapatılsın mı? Oda kodu artık kullanılamaz.')) return;
+            try{
+                const snap=await mpRoomRef.once('value'), d=snap.val();
+                if(!d || !ownsRoomLocally(mpRoomCode,d.ownerToken)){ showToast('Bu odayı yalnızca kurucusu kapatabilir.','rose'); return; }
+                await mpRoomRef.remove();
+                localStorage.removeItem(ownerKey(mpRoomCode));
+                mpRoomRef=null; mpRoomCode=null; mpRole=null; mpRoomData=null;
+                const u=new URL(location.href); u.searchParams.delete('room'); u.searchParams.delete('as'); history.replaceState(null,'',u.toString());
+                document.getElementById('mp-room-view').classList.add('hidden'); document.getElementById('mp-create-view').classList.remove('hidden');
+                document.getElementById('btn-close-room').classList.add('hidden');
+                showToast('Oda kapatıldı.','slate');
+            }catch(e){ showToast('Oda kapatılamadı.','rose'); }
+        };
         document.querySelectorAll('.bot-diff-choice').forEach(btn => {
             btn.onclick = () => {
                 botDiffLevel = btn.dataset.diff;
