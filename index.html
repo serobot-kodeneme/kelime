@@ -362,7 +362,7 @@
                         <div class="text-[10px] font-black text-slate-500 uppercase">ODA KODU</div><div id="mp-room-code" class="text-2xl font-black tracking-[.22em] text-indigo-800">------</div>
                         <div id="mp-status" class="mt-2 rounded-xl bg-slate-100 p-2 text-xs font-bold text-slate-600">Oda hazırlanıyor…</div>
                         <button id="btn-copy-link" class="w-full mt-3 min-h-[44px] rounded-xl bg-sky-100 border-2 border-sky-300 text-sky-900 font-black text-xs">🔗 BAĞLANTIYI KOPYALA</button>
-                        <button id="btn-enter-room" class="w-full mt-2 min-h-[46px] rounded-xl bg-indigo-700 text-white font-black">⚔️ ODAYA KATIL</button>
+                        <button id="btn-enter-room" class="w-full mt-2 min-h-[46px] rounded-xl bg-indigo-700 text-white font-black">⚔️ ODAYA GİT</button>
                         <button id="btn-close-room" class="hidden w-full mt-2 min-h-[40px] rounded-xl bg-rose-50 border-2 border-rose-200 text-rose-700 font-black text-xs">ODAYI KAPAT</button>
                     </div>
                 </div>
@@ -62069,7 +62069,7 @@ BLİK
             rememberOwnedRoom(code,ownerToken); setRoomUrl(code,'host'); await markPresence();
             setMpPanelRoom(code,'1. oyuncusun. Bağlantıyı arkadaşına gönder.');
             document.getElementById('btn-close-room')?.classList.remove('hidden');
-            document.getElementById('btn-enter-room')?.classList.add('hidden');
+            const enterBtn=document.getElementById('btn-enter-room'); if(enterBtn){enterBtn.classList.remove('hidden'); enterBtn.innerText='⚔️ ODAYA GİT';}
             document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
             setMpState(MP_STATES.WAITING);
             attachRoomListener();
@@ -62101,7 +62101,8 @@ BLİK
             await markPresence(); setRoomUrl(code,role);
             setMpPanelRoom(code,role==='host'?'1. oyuncu olarak odana bağlandın.':'2. oyuncu olarak odaya bağlandın.');
             document.getElementById('btn-close-room')?.classList.toggle('hidden',role!=='host');
-            document.getElementById('btn-enter-room')?.classList.add('hidden');
+            const enterBtn=document.getElementById('btn-enter-room');
+            if(enterBtn){ enterBtn.classList.toggle('hidden',role!=='host'); enterBtn.innerText='⚔️ ODAYA GİT'; }
             setMpState(role==='host'?MP_STATES.WAITING:MP_STATES.SYNCING);
             attachRoomListener();
             if(role==='guest') await enterMultiplayerRoom();
@@ -62163,7 +62164,7 @@ BLİK
                 if(d.status==='playing') setMpState(MP_STATES.PLAYING);
                 if(d.status==='finished'){
                     setMpState(MP_STATES.FINISHED);
-                    if(mpRole==='guest' && d.rematchRequest?.from==='host') showGuestRematchPrompt();
+                    if(d.rematchRequest?.from && d.rematchRequest.from!==mpRole) showIncomingRematchPrompt(d.rematchRequest.from);
                 }
             });
 
@@ -62260,12 +62261,12 @@ BLİK
             await mpRoomRef.child('scores/'+mpRole).set(mpRole==='host'?p1Score:p2Score);
         }
 
-        function showGuestRematchPrompt(){
-            if(mpRole!=='guest')return;
+        function showIncomingRematchPrompt(fromRole){
+            if(!mpRole || fromRole===mpRole) return;
             document.getElementById('modal-rematch-waiting')?.classList.remove('hidden');
             document.getElementById('rematch-request-actions')?.classList.remove('hidden');
             document.getElementById('rematch-wait-title').innerText='Arkadaşın tekrar oynamak istiyor';
-            document.getElementById('rematch-wait-sub').innerText='Onaylarsan aynı odada yeni 9×9 tahta ile maç başlayacak.';
+            document.getElementById('rematch-wait-sub').innerText='Onaylarsan aynı odada yeni 9×9 tahta hazırlanacak ve 5 saniyelik senkron geri sayımı başlayacak.';
         }
         function returnToHomeFromMultiplayer(){
             clearInterval(mpClock);clearInterval(timerInterval);isMatchActive=false;mpEntered=false;mpStarted=false;
@@ -62307,8 +62308,16 @@ BLİK
                 showToast('Oda bağlantısı kopyalandı.','emerald');
             }catch(e){ showToast('Bağlantı kopyalanamadı.','rose'); }
         };
-        // Yeni akışta host oda oluşturduğu anda beklemeye geçer; ayrıca "odaya gir" gerekmez.
-        document.getElementById('btn-enter-room').classList.add('hidden');
+        // Odayı kuran 1. oyuncu isterse ODAYA GİT ile oyun ekranına geçip arkadaşını burada bekleyebilir.
+        document.getElementById('btn-enter-room').onclick=async()=>{
+            if(!mpRoomRef || mpRole!=='host') return;
+            await enterMultiplayerRoom();
+            const snap=await mpRoomRef.once('value'); const d=snap.val()||{};
+            if(!isOnline(d.presence?.guest)){
+                document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
+                const st=document.getElementById('mp-status'); if(st) st.innerText='2. oyuncunun odaya katılması bekleniyor…';
+            }
+        };
         document.getElementById('btn-close-mp-waiting').onclick=()=>document.getElementById('modal-mp-waiting').classList.add('hidden');
 
         window.addEventListener('load',async()=>{
@@ -62967,21 +62976,33 @@ BLİK
 
         async function handlePlayAgain(){
             if(!mpRoomRef || !mpRole){ location.reload(); return; }
-            if(mpRole!=='host') return;
             const btn=document.getElementById('btn-play-again');
-            if(btn){btn.disabled=true;btn.innerText='ONAY BEKLENİYOR…';}
+            if(btn){btn.disabled=true;btn.innerText='İSTEK GÖNDERİLDİ…';}
             try{
                 const fresh=generateOptimizedBoard(3).board;
-                await mpRoomRef.transaction(d=>{
+                const res=await mpRoomRef.transaction(d=>{
                     if(!d || d.status!=='finished') return;
+                    // Rakibin zaten bir isteği varsa bu tıklamayı doğrudan kabul say.
+                    if(d.rematchRequest?.from && d.rematchRequest.from!==mpRole){
+                        const board=d.nextBoard || fresh;
+                        d.round=Number(d.round||1)+1;
+                        d.board=board; d.nextBoard=null; d.status='waiting'; d.startAt=0;
+                        d.ready={host:false,guest:false}; d.scores={host:0,guest:0}; d.claimedWords={};
+                        d.rematchRequest=null;
+                        return d;
+                    }
                     d.nextBoard=fresh;
-                    d.rematchRequest={from:'host',round:Number(d.round||1),at:Date.now()};
+                    d.rematchRequest={from:mpRole,round:Number(d.round||1),at:firebase.database.ServerValue.TIMESTAMP};
                     return d;
                 });
-                document.getElementById('modal-rematch-waiting')?.classList.remove('hidden');
-                document.getElementById('rematch-request-actions')?.classList.add('hidden');
-                document.getElementById('rematch-wait-title').innerText='Tekrar oynama isteği gönderildi';
-                document.getElementById('rematch-wait-sub').innerText='2. oyuncunun onayı bekleniyor.';
+                if(!res.committed) throw new Error('rematch-not-committed');
+                const d=res.snapshot.val()||{};
+                if(d.status==='finished'){
+                    document.getElementById('modal-rematch-waiting')?.classList.remove('hidden');
+                    document.getElementById('rematch-request-actions')?.classList.add('hidden');
+                    document.getElementById('rematch-wait-title').innerText='Tekrar oynama isteği gönderildi';
+                    document.getElementById('rematch-wait-sub').innerText='Arkadaşının onayı bekleniyor. Oda açık kalmaya devam ediyor.';
+                }
             }catch(e){
                 if(btn){btn.disabled=false;btn.innerText='TEKRAR OYNA';}
                 showToast('Tekrar oynama isteği gönderilemedi.','rose');
@@ -62989,11 +63010,11 @@ BLİK
         }
 
         async function acceptRematchRequest(){
-            if(!mpRoomRef||mpRole!=='guest') return;
+            if(!mpRoomRef||!mpRole) return;
             document.getElementById('rematch-request-actions')?.classList.add('hidden');
             document.getElementById('rematch-wait-title').innerText='Yeni oyun hazırlanıyor…';
-            await mpRoomRef.transaction(d=>{
-                if(!d || d.status!=='finished' || d.rematchRequest?.from!=='host') return;
+            const res=await mpRoomRef.transaction(d=>{
+                if(!d || d.status!=='finished' || !d.rematchRequest?.from || d.rematchRequest.from===mpRole) return;
                 const board=d.nextBoard || generateOptimizedBoard(3).board;
                 d.round=Number(d.round||1)+1;
                 d.board=board; d.nextBoard=null; d.status='waiting'; d.startAt=0;
@@ -63001,15 +63022,25 @@ BLİK
                 d.rematchRequest=null;
                 return d;
             });
+            if(!res.committed){
+                document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
+                showToast('Tekrar oynama isteği artık geçerli değil.','slate');
+                return;
+            }
             document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
         }
 
         async function declineRematchRequest(){
-            if(mpRoomRef && mpRole==='guest'){
-                await mpRoomRef.child('rematchRequest').remove().catch(()=>{});
-                await mpRoomRef.child('presence/guest').set({online:false,clientId:getClientToken(),at:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
-            }
-            returnToHomeFromMultiplayer();
+            if(!mpRoomRef||!mpRole) return;
+            await mpRoomRef.transaction(d=>{
+                if(!d || d.status!=='finished') return;
+                if(d.rematchRequest?.from && d.rematchRequest.from!==mpRole){
+                    d.rematchRequest=null; d.nextBoard=null;
+                }
+                return d;
+            }).catch(()=>{});
+            document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
+            const btn=document.getElementById('btn-play-again'); if(btn){btn.disabled=false;btn.innerText='TEKRAR OYNA';}
         }
 
         async function prepareNextRoundBoard(){ /* state-machine rematch akışında gerekli değil */ }
@@ -63030,7 +63061,7 @@ BLİK
             const replayBtn=document.getElementById('btn-play-again');
             if(replayBtn){
                 replayBtn.disabled=false; replayBtn.innerText='TEKRAR OYNA';
-                replayBtn.classList.toggle('hidden', !!mpRole && mpRole!=='host');
+                replayBtn.classList.remove('hidden');
             }
             document.getElementById('final-score-val-p1').innerText=p1Score;
             document.getElementById('final-score-val-p2').innerText=p2Score;
@@ -63096,7 +63127,7 @@ BLİK
         };
 
         document.getElementById('btn-close-rematch-waiting')?.addEventListener('click',async()=>{
-            if(mpRole==='guest' && mpRoomData?.status==='finished' && mpRoomData?.rematchRequest?.from==='host'){
+            if(mpRole && mpRoomData?.status==='finished' && mpRoomData?.rematchRequest?.from && mpRoomData.rematchRequest.from!==mpRole){
                 await declineRematchRequest();
             }else{
                 document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
