@@ -62148,6 +62148,7 @@ BLİK
                 hydrateMultiplayerBoardState(d);
             }
             if(d.status==='countdown' && d.startAt && !mpStarted) startSyncedMatch(d);
+            else if(d.status==='playing' && d.startAt) activateMultiplayerPlaying(d);
         }
 
         async function hostStartWaitingRound(){
@@ -62257,9 +62258,9 @@ BLİK
                     if(d.startAt && !mpStarted) startSyncedMatch(d);
                 }
                 if(d.status==='playing'){
-                    setMpState(MP_STATES.PLAYING);
-                    document.getElementById('modal-mp-waiting')?.classList.add('hidden');
                     if(!mpEntered) await enterMultiplayerRoom();
+                    // COUNTDOWN dinleyicisi gecikmiş/kaçmış olsa bile harf seçimini kesin aç.
+                    activateMultiplayerPlaying(d);
                 }
                 if(d.status==='finished'){
                     setMpState(MP_STATES.FINISHED);
@@ -62327,6 +62328,27 @@ BLİK
                 if(remainingSeconds<=0){clearInterval(timerInterval);endGame();}
             };
             tick(); timerInterval=setInterval(tick,200);
+        }
+
+        // Bir istemci COUNTDOWN event'ini kaçırsa bile PLAYING durumu tek başına
+        // tahtayı oynanabilir hale getirir. Multiplayer input kilidinin tek güvenli kapısı budur.
+        function activateMultiplayerPlaying(d){
+            if(!d || !d.startAt) return;
+            mpStarted=true;
+            isMatchActive=true;
+            setMpState(MP_STATES.PLAYING);
+            clearInterval(mpClock);
+            document.getElementById('modal-countdown')?.classList.add('hidden');
+            document.getElementById('modal-mp-waiting')?.classList.add('hidden');
+            document.getElementById('modal-gameover')?.classList.add('hidden');
+            const grid=document.getElementById('scrabble-grid');
+            if(grid){
+                grid.style.pointerEvents='auto';
+                grid.style.touchAction='none';
+            }
+            const game=document.getElementById('screen-game');
+            if(game) game.style.pointerEvents='auto';
+            startMultiplayerTimer(Number(d.startAt));
         }
         async function syncMpScore(){
             if(!mpRoomRef||!mpRole)return;
@@ -62746,6 +62768,8 @@ BLİK
         gridEl.addEventListener('pointerleave',()=>{lastHoverCell=-1;});
 
         gridEl.addEventListener('pointerdown', (e) => {
+            // Çoklu oyunda Firebase PLAYING durumundaysa yerel bayrak gecikmiş olsa bile input'u aç.
+            if (!isMatchActive && mpRole && mpState===MP_STATES.PLAYING) isMatchActive=true;
             if (!isMatchActive) return;
             e.preventDefault();
             isPointerDown = true;
