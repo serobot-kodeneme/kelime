@@ -326,8 +326,8 @@
                     <div id="mp-room-view" class="hidden mt-3 text-center">
                         <div class="text-[10px] font-black text-slate-500 uppercase">ODA KODU</div><div id="mp-room-code" class="text-2xl font-black tracking-[.22em] text-indigo-800">------</div>
                         <div id="mp-status" class="mt-2 rounded-xl bg-slate-100 p-2 text-xs font-bold text-slate-600">Oda hazırlanıyor…</div>
-                        <div class="grid grid-cols-2 gap-2 mt-3"><button id="btn-copy-link" class="min-h-[44px] rounded-xl bg-sky-100 border-2 border-sky-300 text-sky-900 font-black text-xs">🔗 LİNKİ KOPYALA</button><button id="btn-share-link" class="min-h-[44px] rounded-xl bg-emerald-100 border-2 border-emerald-300 text-emerald-900 font-black text-xs">📤 DAVET ET</button></div>
-                        <button id="btn-enter-room" class="w-full mt-2 min-h-[46px] rounded-xl bg-indigo-700 text-white font-black">⚔️ ODAYA GİT</button>
+                        <button id="btn-copy-link" class="w-full mt-3 min-h-[44px] rounded-xl bg-sky-100 border-2 border-sky-300 text-sky-900 font-black text-xs">🔗 BAĞLANTIYI KOPYALA</button>
+                        <button id="btn-enter-room" class="w-full mt-2 min-h-[46px] rounded-xl bg-indigo-700 text-white font-black">⚔️ ODAYA GİRİŞ</button>
                     </div>
                 </div>
 
@@ -436,10 +436,22 @@
             </div>
         </div>
 
+        <!-- ================= ÇOKLU OYUNCU BEKLEME MODALI ================= -->
+        <div id="modal-mp-waiting" class="absolute inset-0 bg-slate-950/45 backdrop-blur-[2px] flex items-center justify-center z-[60] hidden">
+            <div class="relative w-11/12 max-w-sm bg-white/95 border border-sky-100 p-7 rounded-[30px] shadow-2xl text-center">
+                <button id="btn-close-mp-waiting" aria-label="Kapat" class="absolute right-3 top-3 w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-black text-xl leading-none hover:bg-slate-200">×</button>
+                <div class="mx-auto mb-4 w-16 h-16 rounded-full bg-sky-50 border-2 border-sky-100 flex items-center justify-center">
+                    <div class="w-8 h-8 rounded-full border-4 border-sky-200 border-t-sky-600 animate-spin"></div>
+                </div>
+                <div class="text-lg font-black text-slate-800">2. oyuncunun bağlanması bekleniyor</div>
+                <div class="mt-2 text-xs font-bold text-slate-500">Arkadaşın bağlantıyı açtığında senkronizasyon otomatik başlayacak.</div>
+            </div>
+        </div>
+
         <!-- ================= SAYDAM & TAHTAYI GÖSTEREN GERİ SAYIM MODALI ================= -->
         <div id="modal-countdown" class="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px] flex items-center justify-center z-50 hidden">
             <div class="flex flex-col items-center justify-center bg-white/90 border border-slate-200/80 p-6 rounded-3xl shadow-2xl backdrop-blur-md">
-                <div id="countdown-number" class="text-7xl font-black text-amber-500 drop-shadow-sm" style="transition:transform .16s ease-out, filter .16s ease-out; will-change:transform;">5</div>
+                <div id="countdown-number" class="text-7xl font-black text-amber-500 drop-shadow-sm" style="transition:transform .18s ease-out, filter .16s ease-out, opacity .14s ease-out; will-change:transform;">5</div>
                 <div id="countdown-status" class="text-slate-800 font-black text-xs tracking-widest uppercase mt-3 bg-white px-4 py-1.5 rounded-full border border-slate-200 shadow-sm">
                     SENKRONİZE EDİLİYOR…
                 </div>
@@ -61898,7 +61910,7 @@ BLİK
             appId: "1:968159872150:web:c80429010ec21363116eb7"
         };
         let mpDb=null, mpRoomRef=null, mpRoomCode=null, mpRole=null, mpRoomData=null;
-        let mpListener=null, mpWordsListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null;
+        let mpListener=null, mpWordsListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null, mpWantsEnter=false;
         let mpSeenWordEvents=new Set();
         const mpFoundWords={host:new Set(),guest:new Set()};
         function ensureFirebase(){
@@ -61934,7 +61946,9 @@ BLİK
                 const d=snap.val(); if(!d) return; mpRoomData=d;
                 if(d.scores){p1Score=d.scores.host||0;p2Score=d.scores.guest||0;updateScores();}
                 if(mpRole==='host' && d.guest && d.status==='waiting'){
-                    document.getElementById('mp-status').innerText='Rakip bağlandı ✓ İkiniz de odaya girince 5 saniyelik senkron geri sayım başlayacak.';
+                    document.getElementById('mp-status').innerText='Rakip bağlandı ✓ Senkronizasyon hazırlanıyor…';
+                    document.getElementById('modal-mp-waiting')?.classList.add('hidden');
+                    if(mpWantsEnter && !mpEntered) enterMultiplayerRoom();
                 } else if(d.guest) document.getElementById('mp-status').innerText='İki oyuncu odada ✓';
 
                 // Her iki cihaz oyun ekranına gerçekten girmeden maç başlatılmaz.
@@ -61982,7 +61996,11 @@ BLİK
             p1Score=mpRoomData.scores?.host||0; p2Score=mpRoomData.scores?.guest||0; updateScores(); remainingSeconds=60; sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear(); document.getElementById('words-ticker').innerHTML='';
             renderProvidedBoard(mpRoomData.board);
             if(mpRole==='host' && !mpRoomData.guest){
-                document.getElementById('screen-game').classList.add('hidden'); document.getElementById('screen-home').classList.remove('hidden'); document.getElementById('mp-status').innerText='Rakip henüz bağlanmadı…'; mpEntered=false; return;
+                document.getElementById('screen-game').classList.add('hidden');
+                document.getElementById('screen-home').classList.remove('hidden');
+                document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
+                document.getElementById('mp-status').innerText='2. oyuncunun bağlanması bekleniyor…';
+                mpEntered=false; return;
             }
             // Bu cihaz hazır. Başlangıcı yalnızca iki cihaz da READY olduktan sonra host planlar.
             await mpRoomRef.child('ready/'+mpRole).set(true);
@@ -62001,8 +62019,19 @@ BLİK
                 await mpRoomRef.update({status:'starting', countdownAt:firebase.database.ServerValue.TIMESTAMP, startAt:sharedStartAt});
             } finally { mpSchedulingStart=false; }
         }
+        let mpAudioCtx=null, mpLastBeepSecond=null;
+        function playCountdownBeep(second){
+            try{
+                mpAudioCtx = mpAudioCtx || new (window.AudioContext||window.webkitAudioContext)();
+                if(mpAudioCtx.state==='suspended') mpAudioCtx.resume();
+                const o=mpAudioCtx.createOscillator(), g=mpAudioCtx.createGain();
+                o.type='sine'; o.frequency.value = second===1 ? 740 : 520 + (5-second)*38;
+                const t=mpAudioCtx.currentTime; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.075,t+0.012); g.gain.exponentialRampToValueAtTime(0.0001,t+0.11);
+                o.connect(g); g.connect(mpAudioCtx.destination); o.start(t); o.stop(t+0.12);
+            }catch(e){}
+        }
         function startSyncedMatch(d){
-            mpStarted=true; isMatchActive=false; clearInterval(mpClock);
+            mpStarted=true; isMatchActive=false; mpLastBeepSecond=null; clearInterval(mpClock);
             const modal=document.getElementById('modal-countdown'),num=document.getElementById('countdown-number'),status=document.getElementById('countdown-status');
             const startAt=Number(d.startAt)||Number(d.countdownAt)+5000;
             if(status) status.innerText='SENKRONİZE EDİLİYOR…';
@@ -62012,6 +62041,7 @@ BLİK
                 if(left>0){
                     const n=Math.min(5,Math.max(1,Math.ceil(left/1000)));
                     num.innerText=n;
+                    if(mpLastBeepSecond!==n){ mpLastBeepSecond=n; playCountdownBeep(n); }
                     const progress=(5-n)/4;
                     num.style.transform=`scale(${(1+progress*.34).toFixed(3)})`;
                     num.style.filter=`drop-shadow(0 0 ${Math.round(4+progress*12)}px rgba(245,158,11,.35))`;
@@ -62046,10 +62076,18 @@ BLİK
         document.getElementById('btn-close-friend').onclick = () => document.getElementById('friend-invite-panel').classList.add('hidden');
         document.getElementById('btn-create-room').onclick = createRoom;
         document.getElementById('btn-join-code').onclick = () => joinRoom(document.getElementById('room-code-input').value);
-        document.getElementById('btn-copy-link').onclick = async()=>{ if(!mpRoomCode)return; await navigator.clipboard.writeText(inviteUrl(mpRoomCode)); document.getElementById('mp-status').innerText='Davet bağlantısı kopyalandı ✓'; };
-        document.getElementById('btn-share-link').onclick = async()=>{ if(!mpRoomCode)return; const url=inviteUrl(mpRoomCode); if(navigator.share) await navigator.share({title:'Kelime Düellosu',text:'Kelime Düellosu odama katıl!',url}); else {await navigator.clipboard.writeText(url);document.getElementById('mp-status').innerText='Davet bağlantısı kopyalandı ✓';} };
-        document.getElementById('btn-enter-room').onclick = enterMultiplayerRoom;
-        window.addEventListener('load',()=>{ const code=new URL(location.href).searchParams.get('room'); if(code){ document.getElementById('friend-invite-panel').classList.remove('hidden'); setMpPanelRoom(code.toUpperCase(),'Davet bulundu. Odaya katılmak için aşağıdaki düğmeye bas.'); document.getElementById('btn-enter-room').innerText='⚔️ ODAYA KATIL'; document.getElementById('btn-enter-room').onclick=async()=>{await joinRoom(code); await enterMultiplayerRoom();}; } });
+        document.getElementById('btn-copy-link').onclick = async()=>{ if(!mpRoomCode)return; await navigator.clipboard.writeText(inviteUrl(mpRoomCode)); document.getElementById('mp-status').innerText='Bağlantı kopyalandı ✓'; };
+        document.getElementById('btn-enter-room').onclick = async()=>{
+            mpWantsEnter=true;
+            if(mpRole==='host' && (!mpRoomData || !mpRoomData.guest)){
+                document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
+                if(mpRoomRef) await mpRoomRef.child('ready/host').set(true);
+                return;
+            }
+            await enterMultiplayerRoom();
+        };
+        document.getElementById('btn-close-mp-waiting').onclick=()=>document.getElementById('modal-mp-waiting').classList.add('hidden');
+        window.addEventListener('load',()=>{ const code=new URL(location.href).searchParams.get('room'); if(code){ document.getElementById('friend-invite-panel').classList.remove('hidden'); setMpPanelRoom(code.toUpperCase(),'Davet bulundu. Odaya katılmak için aşağıdaki düğmeye bas.'); document.getElementById('btn-enter-room').innerText='⚔️ ODAYA GİRİŞ'; document.getElementById('btn-enter-room').onclick=async()=>{mpWantsEnter=true; await joinRoom(code); await enterMultiplayerRoom();}; } });
         document.querySelectorAll('.bot-diff-choice').forEach(btn => {
             btn.onclick = () => {
                 botDiffLevel = btn.dataset.diff;
@@ -62082,14 +62120,16 @@ BLİK
             const numEl = document.getElementById('countdown-number');
             modal.classList.remove('hidden');
 
-            // Tekli oyuncu: geri sayım yok; BAŞLA! 1,5 saniye görünür.
+            // Tekli oyuncu: yalnızca 1 saniyelik, yumuşak BAŞLA! geçişi.
+            const statusEl=document.getElementById('countdown-status');
+            if(statusEl){ statusEl.innerText='KELİMELERİ YAKALA!'; statusEl.classList.remove('hidden'); }
             numEl.innerText = 'BAŞLA!';
-            numEl.style.transform = 'scale(1.38)';
+            numEl.style.opacity='0'; numEl.style.transform='scale(.72)';
+            requestAnimationFrame(()=>requestAnimationFrame(()=>{ numEl.style.opacity='1'; numEl.style.transform='scale(1.28)'; }));
             setTimeout(() => {
-                numEl.style.transform = 'scale(1)';
-                modal.classList.add('hidden');
-                onComplete();
-            }, 1500);
+                numEl.style.opacity='0'; numEl.style.transform='scale(1.5)';
+                setTimeout(()=>{ numEl.style.opacity='1'; numEl.style.transform='scale(1)'; modal.classList.add('hidden'); onComplete(); },140);
+            }, 860);
         }
 
         // ================= OYUNLAŞTIRILMIŞ AKILLI TAHTA MOTORU =================
@@ -62387,7 +62427,8 @@ BLİK
 
         function addCellToPath(r, c, cell) {
             selectedPath.push({ r, c, char: gridBoard[r][c], el: cell });
-            const selectingAsP1 = mpRole ? (mpRole === 'host') : (chosenAvatarId === 'av_1');
+            const selectingAsP1 = mpRole === 'guest' ? false : (mpRole === 'host' ? true : (chosenAvatarId === 'av_1'));
+            cell.classList.remove('tile-dragging-p1','tile-dragging-p2');
             cell.classList.add('tile-dragging', selectingAsP1 ? 'tile-dragging-p1' : 'tile-dragging-p2');
             syncWordDisplay();
         }
