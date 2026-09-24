@@ -62816,8 +62816,16 @@ BLİK
             document.getElementById('rematch-wait-title').innerText='Diğer oyuncunun TEKRAR OYNA düğmesine basması gerekiyor';
             document.getElementById('rematch-wait-sub').innerText='Oda açık kalacak. Rakibin hazır olduğunda yeni maç otomatik hazırlanacak.';
             try{
-                // Durum dinleyicisinin gecikmesini beklemeden bu oyuncunun rövanş isteğini kalıcı odaya yaz.
-                await mpRoomRef.child('rematch/'+mpRole).set(true);
+                // Oyuncunun rövanş isteğini oda durumuyla birlikte atomik yaz. Böylece
+                // cihazlardan biri FINISHED güncellemesini geç görse bile iki oyuncu aynı raundda buluşur.
+                await mpRoomRef.transaction(d=>{
+                    if(!d) return;
+                    d.status='finished';
+                    if(!d.rematch) d.rematch={host:false,guest:false};
+                    d.rematch[mpRole]=true;
+                    return d;
+                });
+                await prepareNextRoundBoard();
             }catch(e){
                 btn.disabled=false; btn.innerText='TEKRAR OYNA';
                 document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
@@ -62826,12 +62834,17 @@ BLİK
         }
 
         async function prepareNextRoundBoard(){
-            if(!mpRoomRef || mpRole!=='host') return;
+            if(!mpRoomRef) return;
             try{
-                const snap=await mpRoomRef.once('value'), d=snap.val();
-                if(!d || d.status!=='finished' || d.nextBoard) return;
+                // Yeni tahta yalnızca bir kez yazılır. Host çevrimdışı olsa bile odadaki
+                // diğer oyuncu sonraki raundu hazırlayabilir; oda sahibinin kapanmasına bağlı değildir.
                 const fresh=generateOptimizedBoard(3);
-                await mpRoomRef.child('nextBoard').set(fresh.board);
+                await mpRoomRef.transaction(d=>{
+                    if(!d || d.status!=='finished') return;
+                    if(!d.nextBoard) d.nextBoard=fresh.board;
+                    if(!d.rematch) d.rematch={host:false,guest:false};
+                    return d;
+                });
             }catch(e){ console.warn('Yeni tahta hazırlanamadı',e); }
         }
 
@@ -62839,13 +62852,14 @@ BLİK
             if(mpRematchBusy || !mpRoomRef) return;
             mpRematchBusy=true;
             try{
-                // Hangi oyuncu ikinci olarak TEKRAR OYNA'ya basarsa bassın aynı transaction
-                // yeni raundu yalnızca bir kez açar. Böylece host/guest yarışması oluşmaz.
+                // İkinci TEKRAR OYNA isteği geldiğinde iki istemciden hangisi görürse görsün
+                // tek transaction yeni raundu açar. nextBoard eksikse aynı işlemde yeni tahta konur.
+                const fallback=generateOptimizedBoard(3).board;
                 await mpRoomRef.transaction(d=>{
-                    if(!d || d.status!=='finished' || !d.rematch?.host || !d.rematch?.guest || !d.nextBoard) return;
+                    if(!d || d.status!=='finished' || !d.rematch?.host || !d.rematch?.guest) return;
                     d.status='waiting';
                     d.round=Number(d.round||1)+1;
-                    d.board=d.nextBoard;
+                    d.board=d.nextBoard || fallback;
                     d.nextBoard=null;
                     d.scores={host:0,guest:0};
                     d.ready={host:false,guest:false};
@@ -62861,7 +62875,16 @@ BLİK
             isMatchActive = false;
             clearInterval(timerInterval);
             clearTimeout(botInterval);
-            if (mpRole === 'host' && mpRoomRef) mpRoomRef.update({status:'finished'}).then(()=>prepareNextRoundBoard());
+            if (mpRoomRef && mpRole) {
+                // Maçı bitiren cihaz hangisi olursa olsun oda FINISHED durumuna geçer.
+                // Oda silinmez; kurucu ODAYI KAPAT demediği sürece kod kalıcıdır.
+                mpRoomRef.transaction(d=>{
+                    if(!d) return;
+                    if(d.status!=='finished') d.status='finished';
+                    if(!d.rematch) d.rematch={host:false,guest:false};
+                    return d;
+                }).then(()=>prepareNextRoundBoard());
+            }
             document.getElementById('modal-gameover').classList.remove('hidden');
             const replayBtn=document.getElementById('btn-play-again'); if(replayBtn){ replayBtn.disabled=false; replayBtn.innerText='TEKRAR OYNA'; }
 
