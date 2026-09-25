@@ -8,8 +8,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Kelime Düellosu v129-stable - 9x9 Akıllı Tahta</title>
-    <meta name="game-version" content="v129-stable">
+    <title>Kelime Düellosu v132-stable - 9x9 Akıllı Tahta</title>
+    <meta name="game-version" content="v132-stable">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -392,7 +392,17 @@
         .countdown-round-label{font-size:14px;font-weight:1000;letter-spacing:.12em;color:#0f172a;background:linear-gradient(135deg,#cffafe,#dbeafe);border:1px solid #93c5fd;border-radius:9999px;padding:6px 12px;box-shadow:0 5px 14px rgba(14,116,144,.14)}
         .countdown-round-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;flex-wrap:nowrap}
         .countdown-side-dots{display:inline-flex;align-items:center;gap:5px}
-        .countdown-side-dots .round-dot{width:10px;height:10px;border-width:1.7px;background:rgba(255,255,255,.2)}
+        .countdown-side-dots .round-dot{width:16px;height:16px;border-width:2.2px;background:rgba(255,255,255,.24);box-shadow:0 2px 8px rgba(15,23,42,.18)}
+        .countdown-side-dots .round-dot.win{box-shadow:0 0 0 2px rgba(255,255,255,.55),0 0 14px rgba(34,197,94,.85),0 0 22px rgba(34,197,94,.42)}
+        .countdown-side-dots .round-dot.loss{box-shadow:0 0 0 2px rgba(255,255,255,.55),0 0 14px rgba(239,68,68,.8),0 0 22px rgba(239,68,68,.38)}
+        .countdown-versus{display:flex;align-items:center;justify-content:center;gap:18px;margin:0 0 12px}
+        .countdown-avatar-card{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:96px}
+        .countdown-avatar-lg{width:72px;height:72px;border-radius:9999px;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;border:3px solid rgba(255,255,255,.88);box-shadow:0 10px 24px rgba(15,23,42,.18), inset 0 1px 0 rgba(255,255,255,.7)}
+        .countdown-avatar-lg.host{background:linear-gradient(180deg,#fde68a,#facc15);color:#5b3b00;border-color:#fef3c7}
+        .countdown-avatar-lg.guest{background:linear-gradient(180deg,#7dd3fc,#2563eb);color:#fff;border-color:#dbeafe}
+        .countdown-avatar-lg.ai{background:linear-gradient(180deg,#c4b5fd,#7c3aed);color:#fff;border-color:#ede9fe}
+        .countdown-avatar-name{max-width:110px;text-align:center;font-size:11px;line-height:1.1;font-weight:1000;color:#0f172a;letter-spacing:.04em;text-transform:uppercase;text-shadow:0 1px 0 rgba(255,255,255,.45)}
+        .countdown-vs-badge{display:grid;place-items:center;width:52px;height:52px;border-radius:9999px;background:radial-gradient(circle at 30% 30%,#fef08a 0 20%,#fb923c 58%,#f97316 100%);color:#fff;font-size:20px;font-weight:1000;letter-spacing:.08em;border:3px solid rgba(255,255,255,.92);box-shadow:0 10px 24px rgba(249,115,22,.28), inset 0 1px 0 rgba(255,255,255,.55)}
         .countdown-sync-ok{font-size:10px;font-weight:1000;letter-spacing:.12em;color:#047857;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:9999px;padding:5px 10px;margin-top:8px}
         .longest-bonus{display:none;margin-top:4px;font-size:9px;font-weight:1000;color:#7c3aed;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:9999px;padding:3px 7px}
 
@@ -405,6 +415,7 @@
 .mp-round-banner{font-weight:900;letter-spacing:.02em;font-size:clamp(18px,4vw,30px);text-shadow:0 2px 8px rgba(0,0,0,.18)}
 .mp-sync-ok{display:flex;align-items:center;justify-content:center;gap:6px;font-weight:800;color:#16a34a;font-size:clamp(13px,2.8vw,17px)}
 .mp-sync-ok .sync-check{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#22c55e;color:#fff;font-size:13px;box-shadow:0 2px 8px rgba(34,197,94,.25)}
+        @media (max-width:420px){.countdown-versus{gap:12px}.countdown-avatar-card{min-width:84px}.countdown-avatar-lg{width:62px;height:62px;font-size:29px}.countdown-vs-badge{width:44px;height:44px;font-size:17px}.countdown-avatar-name{font-size:10px;max-width:88px}.countdown-side-dots .round-dot{width:14px;height:14px}}
 
 </style>
     <!-- Firebase: yalnızca çok oyunculu modda kullanılan hafif compat SDK -->
@@ -416,6 +427,12 @@
 
         <!-- ================= EKRAN 1: YENİ ANA MENÜ ================= -->
         <div id="screen-home" class="absolute inset-0 z-40 overflow-hidden bg-gradient-to-b from-sky-400 via-sky-200 to-emerald-200">
+            <div class="absolute left-2 top-[max(10px,env(safe-area-inset-top))] z-[70]" aria-live="polite">
+                <div class="inline-flex items-center gap-1.5 rounded-full bg-slate-950/78 border border-cyan-300/35 px-2.5 py-1 text-[9px] font-black text-cyan-50 shadow-md backdrop-blur-sm">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_7px_rgba(52,211,153,.85)]"></span>
+                    <span id="online-player-count">0</span><span>çevrimiçi</span>
+                </div>
+            </div>
             <button id="btn-fullscreen-home" type="button" class="fullscreen-btn" aria-label="Tam ekranı aç veya kapat" title="Tam ekran">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg>
                 <span id="fullscreen-label">TAM EKRAN</span>
@@ -483,12 +500,6 @@
                 </div>
 
                 <div class="mt-auto pt-3 w-full max-w-sm shrink-0">
-                    <div class="flex justify-end mb-1.5 pr-1" aria-live="polite">
-                        <div class="inline-flex items-center gap-1.5 rounded-full bg-slate-950/70 border border-cyan-300/30 px-2.5 py-1 text-[9px] font-black text-cyan-50 shadow-sm">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_7px_rgba(52,211,153,.85)]"></span>
-                            <span id="online-player-count">0</span><span>çevrimiçi</span>
-                        </div>
-                    </div>
                     <!-- LÖSEV destek alanı: harici görsel yok, hafif CSS kartı -->
                     <a href="https://www.losev.org.tr/tr/bagis" target="_blank" rel="noopener noreferrer" class="home-shortcut block w-full rounded-[20px] bg-gradient-to-r from-rose-50 via-white to-red-50 border-2 border-rose-200 shadow-[0_8px_20px_rgba(127,29,29,.14)] px-4 py-3.5 active:scale-[.99]" aria-label="LÖSEV resmi bağış sayfasını aç">
                         <div class="flex items-center gap-2.5">
@@ -739,6 +750,17 @@
         <div id="modal-countdown" class="absolute inset-0 bg-slate-950/45 backdrop-blur-[7px] flex items-center justify-center z-50 hidden">
             <div class="flex flex-col items-center justify-center bg-white/90 border border-slate-200/80 p-6 rounded-3xl shadow-2xl backdrop-blur-md">
                 <div id="countdown-invite-message" class="hidden mb-3 max-w-[260px] text-center text-[12px] leading-snug font-black text-indigo-950 bg-indigo-50 border border-indigo-200 px-4 py-2.5 rounded-2xl shadow-sm">KAPMACA oyununa davet edildiniz<br><span class="text-indigo-600">Şimdi başlıyor</span></div>
+                <div id="countdown-versus" class="countdown-versus hidden">
+                    <div class="countdown-avatar-card">
+                        <div id="countdown-avatar-host" class="countdown-avatar-lg host">👑</div>
+                        <div id="countdown-name-host" class="countdown-avatar-name">1. OYUNCU</div>
+                    </div>
+                    <div class="countdown-vs-badge">VS</div>
+                    <div class="countdown-avatar-card">
+                        <div id="countdown-avatar-guest" class="countdown-avatar-lg guest">⚔️</div>
+                        <div id="countdown-name-guest" class="countdown-avatar-name">2. OYUNCU</div>
+                    </div>
+                </div>
                 <div class="countdown-round-row">
                     <div id="countdown-host-round-dots" class="countdown-side-dots hidden" aria-label="1. oyuncu round ışıkları"><span class="round-dot"></span><span class="round-dot"></span><span class="round-dot"></span></div>
                     <div id="countdown-round-label" class="countdown-round-label hidden">KAPMACA BAŞLIYOR • ROUND 1</div>
@@ -62413,7 +62435,7 @@ BLİK
             appId: "1:968159872150:web:c80429010ec21363116eb7"
         };
 
-        const GAME_VERSION='v129-stable';
+        const GAME_VERSION='v132-stable';
         // Firebase tarafında yalnızca dört oyun durumu vardır.
         const MP_STATES = Object.freeze({
             IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', SUDDEN:'sudden', FINISHED:'finished'
@@ -62538,7 +62560,7 @@ BLİK
         // ================= RASTGELE RAKİP EŞLEŞTİRME =================
         // Eşleşme yalnızca giriş katmanıdır; gerçek oyuncu bulunduğunda mevcut oda motoru kullanılır.
         let randomQueueRef=null, randomQueueListener=null, randomSearchActive=false, randomSearchTicket=null;
-        const RANDOM_SEARCH_MS=6000;
+        const RANDOM_SEARCH_MS=5000;
         const RANDOM_QUEUE_TTL=14000;
         const RANDOM_AI_NAMES=['İsmail A.','Yavuz M.','Mert K.','Emre D.','Burak T.','Can E.'];
 
@@ -62648,6 +62670,28 @@ BLİK
             else if(last==='guest') setRoundStatusDots('loss','win');
             else setRoundStatusDots(null,null);
         }
+        function refreshCountdownVersus(){
+            const wrap=document.getElementById('countdown-versus');
+            if(!wrap) return;
+            const show=(activeGameMode==='multi')||!!randomAiRoundMode;
+            wrap.classList.toggle('hidden', !show);
+            if(!show) return;
+            const p1Name=(document.getElementById('p1-title')?.innerText||'1. OYUNCU').trim();
+            const p2Name=(document.getElementById('p2-title')?.innerText||'2. OYUNCU').trim();
+            const hName=document.getElementById('countdown-name-host');
+            const gName=document.getElementById('countdown-name-guest');
+            const hAvatar=document.getElementById('countdown-avatar-host');
+            const gAvatar=document.getElementById('countdown-avatar-guest');
+            if(hName) hName.textContent=p1Name;
+            if(gName) gName.textContent=p2Name;
+            if(hAvatar){ hAvatar.textContent='👑'; hAvatar.classList.remove('ai'); hAvatar.classList.add('host'); }
+            if(gAvatar){
+                const isAi=!!randomAiRoundMode || /AI|BOT|BİLGİSAYAR/i.test(p2Name);
+                gAvatar.textContent=isAi?'🤖':'⚔️';
+                gAvatar.classList.remove('guest','ai');
+                gAvatar.classList.add(isAi?'ai':'guest');
+            }
+        }
         function startRandomAiCountdown(){
             if(!randomAiRoundMode || !randomAiSeries) return;
             clearInterval(mpClock); mpClock=null;
@@ -62657,6 +62701,7 @@ BLİK
             const status=document.getElementById('countdown-status');
             const invite=document.getElementById('countdown-invite-message'); if(invite)invite.classList.add('hidden');
             updateRandomAiRoundVisuals();
+            refreshCountdownVersus();
             const label=document.getElementById('countdown-round-label');
             if(label){label.textContent=`KAPMACA BAŞLIYOR • ROUND ${Number(randomAiSeries.round||1)}`;label.classList.remove('hidden');}
             if(status){status.innerHTML='<span class="sync-check">✓</span> SENKRON';status.className='countdown-sync-ok';}
@@ -63528,7 +63573,8 @@ if(d.status==='countdown'){
             // Tekli oyuncu: yalnızca 1 saniyelik, yumuşak BAŞLA! geçişi.
             const statusEl=document.getElementById('countdown-status');
             const inviteMsg=document.getElementById('countdown-invite-message'); if(inviteMsg) inviteMsg.classList.add('hidden');
-            const roundLabel=document.getElementById('countdown-round-label'); if(roundLabel && activeGameMode!=='multi')roundLabel.classList.add('hidden');
+            const roundLabel=document.getElementById('countdown-round-label'); if(roundLabel && activeGameMode!=='multi' && !randomAiRoundMode)roundLabel.classList.add('hidden');
+            const versusWrap=document.getElementById('countdown-versus'); if(versusWrap && activeGameMode!=='multi' && !randomAiRoundMode) versusWrap.classList.add('hidden');
             if(statusEl){ statusEl.innerText='KELİMELERİ YAKALA!'; statusEl.className='text-slate-800 font-black text-xs tracking-widest uppercase mt-3 bg-white px-4 py-1.5 rounded-full border border-slate-200 shadow-sm'; statusEl.classList.remove('hidden'); }
             numEl.innerText = 'BAŞLA!';
             numEl.style.opacity='0'; numEl.style.transform='scale(.72)';
