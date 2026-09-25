@@ -62045,6 +62045,7 @@ BLİK
             appId: "1:968159872150:web:c80429010ec21363116eb7"
         };
 
+        const GAME_VERSION='v103';
         // Firebase tarafında yalnızca dört oyun durumu vardır.
         const MP_STATES = Object.freeze({
             IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
@@ -62080,11 +62081,11 @@ BLİK
             const first=await connectedRef.once('value');
             if(first.val()===true) return true;
             return await new Promise(resolve=>{
-                let done=false;
-                const finish=v=>{ if(done)return; done=true; clearTimeout(timer); connectedRef.off('value',listener); resolve(v); };
+                let done=false, timer=null;
+                const finish=v=>{ if(done)return; done=true; if(timer) clearTimeout(timer); connectedRef.off('value',listener); resolve(v); };
                 const listener=s=>{ if(s.val()===true) finish(true); };
                 connectedRef.on('value',listener);
-                const timer=setTimeout(()=>finish(false),timeoutMs);
+                timer=setTimeout(()=>finish(false),timeoutMs);
             });
         }
         function serverNow(){ return Date.now()+mpServerOffset; }
@@ -62389,8 +62390,7 @@ BLİK
             const replay=document.getElementById('btn-play-again');
             if(replay){ replay.disabled=false; replay.innerText='YENİ OYUN'; replay.classList.remove('hidden'); }
 
-            // Aynı oda, tamamen yeni tahta. Tekli moddaki render/input motoru kullanılır.
-            if(d.board && renderProvidedBoard(d.board)) hydrateMultiplayerBoardState(d);
+            // Tahta burada ikinci kez çizilmez. Yeni round'u enterMultiplayerRoom tek noktadan render eder.
         }
 
         async function enterMultiplayerRoom(){
@@ -62658,11 +62658,18 @@ BLİK
         }
         function returnToHomeFromMultiplayer(){
             resetMultiplayerClientState();
+            clearInviteFromUrl();
             document.getElementById('modal-countdown')?.classList.add('hidden');
             document.getElementById('modal-gameover')?.classList.add('hidden');
             document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
+            document.getElementById('modal-mp-waiting')?.classList.add('hidden');
             document.getElementById('screen-game')?.classList.add('hidden');
             document.getElementById('screen-home')?.classList.remove('hidden');
+            document.getElementById('mp-room-view')?.classList.add('hidden');
+            document.getElementById('mp-create-view')?.classList.remove('hidden');
+            document.getElementById('btn-close-room')?.classList.add('hidden');
+            document.getElementById('btn-enter-room')?.classList.add('hidden');
+            const st=document.getElementById('mp-status'); if(st) st.innerText='Oda hazırlanıyor…';
         }
 
         // Yeni ana menü akışı
@@ -62712,6 +62719,9 @@ BLİK
         document.getElementById('btn-close-mp-waiting').onclick=()=>{
             document.getElementById('modal-mp-waiting').classList.add('hidden');
             if(mpRole==='host' && mpRoomData?.status==='waiting'){
+                // Host ana sayfaya dönebilir ama oda açık kalır. Guest gelince oyun ekranı yeniden güvenle açılır.
+                mpEntered=false; mpStarted=false; isMatchActive=false;
+                try{ clearPath(); }catch(_){ selectedPath=[]; }
                 document.getElementById('screen-game')?.classList.add('hidden');
                 document.getElementById('screen-home')?.classList.remove('hidden');
             }
@@ -63455,7 +63465,15 @@ BLİK
         }
 
         async function handlePlayAgain(){
-            if(!mpRoomRef || !mpRole){ location.reload(); return; }
+            if(!mpRoomRef || !mpRole){
+                // Tekli oyun: aynı zorluk seviyesini koru, sayfayı yenilemeden yeni 9x9 tahta başlat.
+                clearInterval(timerInterval); timerInterval=null;
+                clearTimeout(botInterval); botInterval=null;
+                isMatchActive=false;
+                document.getElementById('modal-gameover')?.classList.add('hidden');
+                prepareGame();
+                return;
+            }
             const btn=document.getElementById('btn-play-again');
             if(btn){ btn.disabled=true; btn.innerText='HAZIRLANIYOR…'; }
             try{
@@ -63523,7 +63541,6 @@ BLİK
         document.getElementById('btn-game-exit')?.addEventListener('click', async()=>{
             if(mpPresenceRef) await mpPresenceRef.set({online:false,clientId:getClientToken(),at:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
             returnToHomeFromMultiplayer();
-            clearInviteFromUrl();
         });
         // Açık Tema Sözlük Arayüzü — düğme bazı arayüz sürümlerinde gizli/çıkarılmış olabilir.
         const btnOpenDictionary = document.getElementById('btn-open-dictionary');
