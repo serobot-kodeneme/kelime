@@ -62346,7 +62346,7 @@ BLİK
             appId: "1:968159872150:web:c80429010ec21363116eb7"
         };
 
-        const GAME_VERSION='v120';
+        const GAME_VERSION='v121';
         // Firebase tarafında yalnızca dört oyun durumu vardır.
         const MP_STATES = Object.freeze({
             IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
@@ -62354,7 +62354,7 @@ BLİK
         let mpState=MP_STATES.IDLE;
         let mpDb=null, mpRoomRef=null, mpRoomCode=null, mpRole=null, mpRoomData=null;
         let mpSessionJoinedAt=0, mpExitHandling=false, mpLastExitSignalId='';
-        let mpListener=null, mpWordsListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null;
+        let mpListener=null, mpWordsListener=null, mpScoresListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null;
         let mpRound=0, mpStartBusy=false, mpRematchBusy=false, mpPresenceRef=null, mpLastRoomMetaSig='';
         let mpSeenWordEvents=new Set(), mpLastBeepSecond=null;
         const mpFoundWords={host:new Set(),guest:new Set()};
@@ -62389,9 +62389,14 @@ BLİK
             });
             globalOnlineListRef=mpDb.ref('onlinePlayers');
             globalOnlineListListener=globalOnlineListRef.on('value',snap=>{
-                let count=0; snap.forEach(()=>{count++;});
+                // Aynı kullanıcının birden fazla sekmesi/yenilemesi oyuncu sayısını şişirmesin.
+                const clients=new Set();
+                snap.forEach(child=>{
+                    const v=child.val()||{};
+                    if(v.clientId) clients.add(String(v.clientId));
+                });
                 const el=document.getElementById('online-player-count');
-                if(el) el.textContent=String(count);
+                if(el) el.textContent=String(clients.size);
             });
         }
 
@@ -62863,15 +62868,14 @@ BLİK
                 // Oyun metası değişmediyse pahalı durum akışını tekrar çalıştırma.
                 const roomBoardSig=Array.isArray(d.board)?boardSignature(d.board):'';
                 const metaSig=[d.status,Number(d.round||1),Number(d.startAt||0),d.guestId||'',roomBoardSig,
-                    Number(d.scores?.host||0),Number(d.scores?.guest||0),isOnline(d.presence?.guest),
-                    !!d.rematch?.host,!!d.rematch?.guest,Number(d.rematch?.expiresAt||0),d.roomExit?.id||'',Number(d.roomExit?.at||0)].join('|');
+                    isOnline(d.presence?.guest),!!d.rematch?.host,!!d.rematch?.guest,
+                    Number(d.rematch?.expiresAt||0),d.roomExit?.id||'',Number(d.roomExit?.at||0)].join('|');
                 if(metaSig===mpLastRoomMetaSig) return;
                 mpLastRoomMetaSig=metaSig;
 
                 const newRound=Number(d.round||1);
                 if(mpRound && newRound!==mpRound){ resetLocalMultiplayerRound(d); await enterMultiplayerRoom(); }
                 mpRound=newRound;
-                if(d.scores){ p1Score=Number(d.scores.host||0); p2Score=Number(d.scores.guest||0); updateScores(); }
 
                 if(d.status==='waiting'){
                     setMpState(MP_STATES.WAITING);
@@ -62914,6 +62918,14 @@ BLİK
                     await hostExpireRematchIfNeeded(d);
                     if(mpRole==='host' && d.rematch?.host && d.rematch?.guest && Number(d.rematch?.expiresAt||0)>=serverNow()) await hostStartRematch();
                 }
+            });
+
+            // Skorlar oda state akışından ayrı dinlenir. Böylece her puanda countdown/playing
+            // mantığı ve timer gereksiz yere yeniden çalıştırılmaz.
+            if(mpScoresListener) mpRoomRef.child('scores').off('value',mpScoresListener);
+            mpScoresListener=mpRoomRef.child('scores').on('value',snap=>{
+                const sc=snap.val()||{};
+                p1Score=Number(sc.host||0); p2Score=Number(sc.guest||0); updateScores();
             });
 
             if(mpWordsListener) mpRoomRef.child('words').off('child_added',mpWordsListener);
@@ -62983,6 +62995,7 @@ BLİK
         // tahtayı oynanabilir hale getirir. Multiplayer input kilidinin tek güvenli kapısı budur.
         function activateMultiplayerPlaying(d){
             if(!d || !d.startAt) return;
+            const timerAlreadyRunning=mpStarted && isMatchActive && mpState===MP_STATES.PLAYING && !!timerInterval;
             mpStarted=true;
             isMatchActive=true;
             setMpState(MP_STATES.PLAYING);
@@ -62997,7 +63010,7 @@ BLİK
             }
             const game=document.getElementById('screen-game');
             if(game) game.style.pointerEvents='auto';
-            startMultiplayerTimer(Number(d.startAt));
+            if(!timerAlreadyRunning) startMultiplayerTimer(Number(d.startAt));
         }
         async function syncMpScore(){
             if(!mpRoomRef||!mpRole)return;
@@ -63006,6 +63019,7 @@ BLİK
 
         function detachMultiplayerListeners(){
             if(mpRoomRef && mpListener){ mpRoomRef.off('value',mpListener); mpListener=null; }
+            if(mpRoomRef && mpScoresListener){ mpRoomRef.child('scores').off('value',mpScoresListener); mpScoresListener=null; }
             if(mpRoomRef && mpWordsListener){ mpRoomRef.child('words').off('child_added',mpWordsListener); mpWordsListener=null; }
         }
         function resetMultiplayerClientState(){
