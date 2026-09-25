@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v155-optimum - 10x10 Akıllı Tahta</title>
-<meta name="game-version" content="v155-optimum">
+<title>Kelime Düellosu v160-core-optimum</title>
+<meta name="game-version" content="v160-core-optimum">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -390,6 +390,14 @@ background: radial-gradient(circle at 35% 35%, rgba(45,212,191,.58) 0 10%, rgba(
 @media (prefers-reduced-motion: reduce){.home-mode-btn{transition:none}.home-mode-btn:hover,.home-mode-btn:active{transform:none}}
 @media (prefers-reduced-motion: reduce){.home-shortcut{transition:none}.support-heart-icon{animation:supportHeartbeat 1.7s ease-in-out infinite}}
 
+/* v159: hafif ama belirgin etkileşim kontrastı */
+button:not(:disabled){transition-property:transform,filter,box-shadow,background-color,border-color;transition-duration:.12s;}
+@media (hover:hover) and (pointer:fine){
+button:not(:disabled):hover{filter:brightness(1.08) saturate(1.10);box-shadow:0 7px 18px rgba(15,23,42,.16);}
+}
+button:not(:disabled):active{filter:brightness(.96) saturate(1.12);}
+.letter-cell.tile-hover-p1:not(.tile-dragging){background-color:#fef3c7!important;color:#713f12!important;box-shadow:0 3px 9px rgba(245,158,11,.18)!important;}
+.letter-cell.tile-hover-p2:not(.tile-dragging){background-color:#e0f2fe!important;color:#0c4a6e!important;box-shadow:0 3px 9px rgba(14,165,233,.17)!important;}
 @keyframes winnerPulse {
 0%,100% { opacity:1; transform:scale(1); filter:brightness(1); }
 50% { opacity:.55; transform:scale(1.035); filter:brightness(1.12); }
@@ -433,6 +441,142 @@ body.graphics-high #gameover-heading{animation:highWinnerBounce .85s ease-in-out
 
 .copy-link-popup{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.94);z-index:10080;max-width:min(86vw,360px);padding:13px 18px;border-radius:18px;background:rgba(15,23,42,.96);color:#fff;font-size:13px;line-height:1.35;font-weight:900;text-align:center;box-shadow:0 18px 46px rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.14);opacity:0;pointer-events:none;transition:opacity .16s ease,transform .16s ease;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .copy-link-popup.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+
+/* v156-ui: ana sayfa görsel konsepti. Oyun/motor yerleşimine dokunmaz. */
+#screen-home.home-v156{
+  font-family:'Quicksand',Calibri,'Segoe UI',sans-serif;
+  background:
+    radial-gradient(ellipse at 14% 10%,rgba(255,255,255,.94) 0 7%,rgba(255,255,255,.42) 8% 15%,transparent 16%),
+    radial-gradient(ellipse at 88% 19%,rgba(255,255,255,.86) 0 6%,rgba(255,255,255,.34) 7% 14%,transparent 15%),
+    radial-gradient(ellipse at 42% 92%,rgba(255,245,228,.88) 0 17%,transparent 38%),
+    linear-gradient(180deg,#24adf5 0%,#84d8ff 34%,#dff5ff 68%,#fff7ea 100%) !important;
+  isolation:isolate;
+}
+#screen-home.home-v156::before,
+#screen-home.home-v156::after{
+  content:"";position:absolute;pointer-events:none;z-index:0;border-radius:999px;
+}
+#screen-home.home-v156::before{
+  width:230px;height:78px;left:-54px;bottom:6%;
+  background:radial-gradient(ellipse at 50% 45%,rgba(255,255,255,.72),rgba(255,255,255,.18) 63%,transparent 68%);
+  filter:blur(.2px);transform:rotate(-5deg);
+}
+#screen-home.home-v156::after{
+  width:210px;height:70px;right:-45px;bottom:13%;
+  background:radial-gradient(ellipse at 50% 45%,rgba(255,255,255,.64),rgba(255,255,255,.16) 63%,transparent 68%);
+  filter:blur(.2px);transform:rotate(7deg);
+}
+#screen-home.home-v156 .home-float-dot{opacity:.33;filter:none;border:2px solid rgba(255,255,255,.48);box-shadow:inset 0 0 12px rgba(255,255,255,.35)}
+#screen-home.home-v156 .home-content-layer{z-index:2}
+#screen-home.home-v156 .home-title-wrap{filter:drop-shadow(0 10px 16px rgba(2,80,150,.18))}
+#screen-home.home-v156 .home-crown{display:none}
+#screen-home.home-v156 .home-logo-card{
+  transform:none !important;
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+  padding:5px 4px 8px !important;
+}
+#screen-home.home-v156 .home-logo-tiles{
+  display:flex;align-items:flex-end;justify-content:center;gap:2px;margin:0 auto 3px;
+  color:#123b78;text-shadow:0 1px 0 #fff;
+}
+#screen-home.home-v156 .home-logo-tiles span{
+  display:grid;place-items:center;width:39px;height:42px;
+  background:linear-gradient(180deg,#fffaf0 0%,#ffedcf 72%,#f5d6a9 100%);
+  border:2px solid rgba(255,255,255,.92);border-bottom-color:#d6b68e;
+  border-radius:10px;box-shadow:0 5px 0 #d8b78d,0 8px 13px rgba(74,55,32,.18),inset 0 2px 1px rgba(255,255,255,.9);
+  font-size:26px;line-height:1;font-weight:900;
+}
+#screen-home.home-v156 .home-logo-tiles span:nth-child(1){transform:rotate(-6deg) translateY(2px)}
+#screen-home.home-v156 .home-logo-tiles span:nth-child(2){transform:rotate(-2deg)}
+#screen-home.home-v156 .home-logo-tiles span:nth-child(3){transform:rotate(1deg) translateY(-1px)}
+#screen-home.home-v156 .home-logo-tiles span:nth-child(4){transform:rotate(3deg)}
+#screen-home.home-v156 .home-logo-tiles span:nth-child(5){transform:rotate(5deg) translateY(1px)}
+#screen-home.home-v156 .home-logo-tiles span:nth-child(6){transform:rotate(7deg) translateY(3px)}
+#screen-home.home-v156 .home-logo-duel{
+  display:inline-block;position:relative;z-index:-1;margin-top:-5px;padding:7px 18px 8px;
+  min-width:246px;border-radius:17px;
+  background:linear-gradient(180deg,#159ef4,#096fe5 64%,#085bc2);
+  border:2px solid rgba(115,211,255,.9);border-bottom-color:#0649a5;
+  color:#fff3cf;text-shadow:0 3px 0 #cc7300,0 5px 8px rgba(0,72,155,.28);
+  box-shadow:0 6px 0 #0755ba,0 11px 18px rgba(0,87,170,.22),inset 0 2px 0 rgba(255,255,255,.42);
+}
+#screen-home.home-v156 .home-tagline{
+  margin-top:4px !important;background:rgba(255,255,255,.82) !important;color:#13518c !important;
+  border:1px solid rgba(255,255,255,.9) !important;box-shadow:0 5px 13px rgba(25,114,180,.13) !important;
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+}
+#screen-home.home-v156 #btn-solo-mode{
+  background:linear-gradient(180deg,#28b9fb 0%,#1197ed 48%,#0874db 100%) !important;
+  border-color:#87e2ff !important;box-shadow:0 7px 0 #075cb8,0 11px 18px rgba(0,111,198,.22),inset 0 2px 0 rgba(255,255,255,.35) !important;
+}
+#screen-home.home-v156 #btn-friend-mode{
+  background:linear-gradient(180deg,#31df65 0%,#17bf43 52%,#0b9d32 100%) !important;
+  border-color:#8bf1a6 !important;box-shadow:0 7px 0 #087728,0 11px 18px rgba(5,128,47,.20),inset 0 2px 0 rgba(255,255,255,.34) !important;
+}
+#screen-home.home-v156 #btn-solo-mode>span:first-child,
+#screen-home.home-v156 #btn-friend-mode>span:first-child{
+  width:46px;height:46px;display:grid;place-items:center;border-radius:15px;
+  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28);font-size:28px !important;
+}
+#screen-home.home-v156 #btn-solo-mode small,
+#screen-home.home-v156 #btn-friend-mode small{color:rgba(255,255,255,.88) !important}
+#screen-home.home-v156 #bot-settings-panel,
+#screen-home.home-v156 #friend-invite-panel{
+  background:rgba(255,252,246,.96) !important;border-color:rgba(255,255,255,.96) !important;
+  box-shadow:0 10px 26px rgba(18,92,145,.16),inset 0 1px 0 #fff !important;
+}
+#screen-home.home-v156 .home-shortcut{
+  background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,247,235,.96)) !important;
+  border-color:rgba(255,255,255,.95) !important;color:#123b78 !important;
+  box-shadow:0 5px 0 rgba(218,198,173,.70),0 8px 17px rgba(35,99,145,.13),inset 0 1px 0 #fff !important;
+}
+#screen-home.home-v156 .home-shortcut>span:first-child{
+  background:linear-gradient(180deg,#fffdf8,#fff1da) !important;border-color:#f2ddbd !important;color:#12467f !important;
+}
+#screen-home.home-v156 a.home-shortcut{
+  background:linear-gradient(90deg,rgba(255,236,240,.98),rgba(255,252,246,.98)) !important;
+  border-color:#ffc0ca !important;box-shadow:0 5px 0 #efb4bc,0 10px 20px rgba(150,54,77,.14) !important;
+}
+#screen-home.home-v156 .support-heart{
+  background:linear-gradient(145deg,#ff4661,#e51638) !important;border:2px solid #ff8395;
+  box-shadow:0 5px 0 #b80f29,0 8px 14px rgba(186,15,42,.22) !important;
+}
+#screen-home.home-v156 .fullscreen-btn{
+  background:linear-gradient(180deg,rgba(43,174,246,.92),rgba(15,125,224,.92));
+  border-color:rgba(173,230,255,.82);color:white;box-shadow:0 5px 12px rgba(0,101,181,.18);
+}
+#screen-home.home-v156>div:first-of-type>div{
+  background:rgba(17,48,89,.90) !important;border-color:rgba(255,255,255,.16) !important;
+}
+/* mevcut statik yan harf taşlarını yeni stile yaklaştır */
+#screen-home.home-v156>.absolute.-left-7,
+#screen-home.home-v156>.absolute.-right-5{
+  background:linear-gradient(180deg,#fffaf0,#ffe9c9) !important;border-color:#fff6e7 !important;color:#123b78 !important;
+  box-shadow:0 5px 0 #d8b78d,0 10px 17px rgba(58,85,116,.16) !important;
+}
+@media(max-width:380px){
+  #screen-home.home-v156 .home-logo-tiles span{width:34px;height:37px;font-size:23px;border-radius:9px}
+  #screen-home.home-v156 .home-logo-duel{min-width:218px;font-size:26px!important;line-height:26px!important}
+}
+
+/* v160 core-optimum: 10x10 tahta dokunma/okunabilirlik ayarı */
+#scrabble-grid{isolation:isolate;}
+.letter-cell{font-variant-numeric:tabular-nums;text-rendering:optimizeLegibility;}
+.selected-preview-tile[hidden]{display:none!important;}
+.tile-dragging{will-change:transform;}
+@media (pointer:coarse){
+  #scrabble-grid{gap:1.25px!important;padding:1.5px!important;}
+  .letter-cell{transition:transform .045s ease-out,background-color .045s linear,box-shadow .045s linear!important;}
+  .tile-dragging{transform:scale(1.07) translateY(-1px)!important;}
+}
+@media (max-width:380px) and (pointer:coarse){
+  .letter-cell{font-size:clamp(.98rem,5.1vw,1.18rem)!important;}
+  .letter-cell .tile-score{font-size:.40rem!important;right:1px!important;bottom:1px!important;}
+}
+
 </style>
 
 <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -441,7 +585,7 @@ body.graphics-high #gameover-heading{animation:highWinnerBounce .85s ease-in-out
 <body class="flex justify-center items-center w-screen h-screen">
 <div id="app-container">
 
-<div id="screen-home" class="absolute inset-0 z-40 overflow-hidden bg-gradient-to-b from-sky-400 via-sky-200 to-emerald-200">
+<div id="screen-home" class="home-v156 absolute inset-0 z-40 overflow-hidden bg-gradient-to-b from-sky-400 via-sky-200 to-emerald-200">
 <div class="absolute left-2 top-[max(10px,env(safe-area-inset-top))] z-[70]" aria-live="polite">
 <div class="inline-flex items-center gap-1.5 rounded-full bg-black border border-black px-2.5 py-1 text-[9px] font-black text-white shadow-md">
 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_7px_rgba(52,211,153,.85)]"></span>
@@ -459,13 +603,13 @@ body.graphics-high #gameover-heading{animation:highWinnerBounce .85s ease-in-out
 <div class="absolute -left-7 top-28 rotate-[-13deg] w-16 h-16 rounded-2xl bg-amber-100 border-4 border-amber-200 shadow-xl flex items-center justify-center text-3xl font-black text-slate-800">K<span class="absolute right-1 bottom-0 text-[9px]">5</span></div>
 <div class="absolute -right-5 top-40 rotate-[14deg] w-16 h-16 rounded-2xl bg-amber-100 border-4 border-amber-200 shadow-xl flex items-center justify-center text-3xl font-black text-slate-800">İ<span class="absolute right-1 bottom-0 text-[9px]">1</span></div>
 <div class="home-content-layer h-full flex flex-col items-center px-4 pt-5 pb-3 overflow-y-auto hide-scroll">
-<div class="shrink-0 text-center mt-1">
-<div class="text-3xl mb-[-10px] drop-shadow-lg">👑</div>
-<div class="bg-indigo-950/90 border-4 border-indigo-800 rounded-[28px] px-5 py-2 shadow-2xl -rotate-1">
-<h1 class="text-[32px] leading-[30px] font-black uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 via-amber-400 to-orange-500 drop-shadow">KELİME</h1>
-<h1 class="text-[30px] leading-[29px] font-black uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-white via-sky-100 to-sky-400">DÜELLOSU</h1>
+<div class="home-title-wrap shrink-0 text-center mt-1">
+<div class="home-crown text-3xl mb-[-10px] drop-shadow-lg">👑</div>
+<div class="home-logo-card bg-indigo-950/90 border-4 border-indigo-800 rounded-[28px] px-5 py-2 shadow-2xl -rotate-1">
+<h1 class="home-logo-word home-logo-tiles text-[32px] leading-[30px] font-black uppercase tracking-tight drop-shadow" aria-label="KELİME"><span>K</span><span>E</span><span>L</span><span>İ</span><span>M</span><span>E</span></h1>
+<h1 class="home-logo-duel text-[30px] leading-[29px] font-black uppercase tracking-tight">DÜELLOSU</h1>
 </div>
-<div class="-mt-1 mx-auto bg-gradient-to-r from-red-500 to-rose-600 text-white font-black text-[9px] tracking-wide px-4 py-1 rounded-full border-2 border-red-300 shadow-lg w-max">HARFLERLE DÜŞÜN • KELİMELERLE KAZAN</div>
+<div class="home-tagline -mt-1 mx-auto text-white font-black text-[9px] tracking-wide px-4 py-1 rounded-full shadow-lg w-max">HARFLERLE DÜŞÜN • KELİMELERLE KAZAN</div>
 </div>
 
 <div class="w-full max-w-sm mt-5 space-y-3 shrink-0">
@@ -62223,9 +62367,9 @@ const roundWordResults = { p1:new Map(), p2:new Map() };
 const seriesWordResults = { p1:new Map(), p2:new Map() };
 let singleLongestBonusApplied=false;
 let singleLongestBonus={p1:false,p2:false,maxLen:0};
-function resetRoundWordResults(){ roundWordResults.p1.clear(); roundWordResults.p2.clear(); }
+function resetMatchWordResults(){ roundWordResults.p1.clear(); roundWordResults.p2.clear(); }
 function resetSeriesWordResults(){ seriesWordResults.p1.clear(); seriesWordResults.p2.clear(); singleLongestBonusApplied=false; singleLongestBonus={p1:false,p2:false,maxLen:0}; }
-function recordRoundWord(word, pts, isP1){
+function recordMatchWord(word, pts, isP1){
 const w=String(word||'').toLocaleUpperCase('tr-TR');
 if(!w) return;
 const roundMap=isP1?roundWordResults.p1:roundWordResults.p2;
@@ -62411,6 +62555,7 @@ const n=Math.min(10,Math.max(1,step));
 const base=430 + (n-1)*28;
 playTone(base,.060,.065,'sine',base+115);
 }
+
 function playErrorBuzzer(){
 playTone(185,.14,.12,'square',95);
 playTone(145,.12,.08,'sawtooth',82,.055);
@@ -62476,7 +62621,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v155-optimum';
+const GAME_VERSION='v160-core-optimum';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -62484,7 +62629,7 @@ let mpState=MP_STATES.IDLE;
 let mpDb=null, mpRoomRef=null, mpRoomCode=null, mpRole=null, mpRoomData=null;
 let mpSessionJoinedAt=0, mpExitHandling=false, mpLastExitSignalId='';
 let mpListener=null, mpWordsListener=null, mpScoresListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null;
-let mpStartBusy=false, mpRematchBusy=false, mpPresenceRef=null, mpLastRoomMetaSig='';
+let mpStartBusy=false, mpRematchBusy=false, mpPresenceRef=null, mpLastRoomMetaSig='', mpEndResolveTimer=null;
 let mpSeenWordEvents=new Set(), mpLastBeepSecond=null;
 const mpFoundWords={host:new Set(),guest:new Set()};
 let globalOnlinePresenceRef=null, globalOnlineListRef=null, globalOnlineListListener=null, onlineSessionId=null;
@@ -62536,18 +62681,28 @@ mpDb=firebase.database();
 mpDb.ref('.info/serverTimeOffset').on('value',s=>{ mpServerOffset=Number(s.val()||0); });
 return true;
 }
+async function syncServerClock(){
+if(!ensureFirebase()) return false;
+try{
+const snap=await mpDb.ref('.info/serverTimeOffset').once('value');
+mpServerOffset=Number(snap.val()||0);
+return true;
+}catch(_){ return false; }
+}
 async function waitFirebaseConnected(timeoutMs=6000){
 if(!ensureFirebase()) return false;
 const connectedRef=mpDb.ref('.info/connected');
 const first=await connectedRef.once('value');
-if(first.val()===true) return true;
-return await new Promise(resolve=>{
+if(first.val()===true){ await syncServerClock(); return true; }
+const connected=await new Promise(resolve=>{
 let done=false, timer=null;
 const finish=v=>{ if(done)return; done=true; if(timer) clearTimeout(timer); connectedRef.off('value',listener); resolve(v); };
 const listener=s=>{ if(s.val()===true) finish(true); };
 connectedRef.on('value',listener);
 timer=setTimeout(()=>finish(false),timeoutMs);
 });
+if(connected) await syncServerClock();
+return connected;
 }
 function serverNow(){ return Date.now()+mpServerOffset; }
 function turkeyRoomDayInfo(ts=serverNow()){
@@ -62634,7 +62789,7 @@ if(btn){ btn.disabled=false; btn.textContent='🎲 RASTGELE RAKİP'; }
 async function createRandomMatchedRoom(hostId,guestId){
 const alloc=await allocateDailyRoomCode();
 const code=alloc.code, ref=mpDb.ref('rooms/'+code);
-const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board);
+const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board, readyBoard.words);
 await ref.set({
 schema:14, mode:'random-match-v2', createdAt:firebase.database.ServerValue.TIMESTAMP,
 dayKey:alloc.dayKey, expiresAt:alloc.expiresAt,
@@ -62682,7 +62837,7 @@ document.getElementById('p2-title').textContent=aiName;
 document.getElementById('screen-home').classList.add('hidden');
 document.getElementById('screen-game').classList.remove('hidden');
 p1Score=0; p2Score=0; updateScores(); remainingSeconds=60;
-resetRoundWordResults(); resetSeriesWordResults();
+resetMatchWordResults(); resetSeriesWordResults();
 sessionFoundWords.clear(); document.getElementById('words-ticker').innerHTML='';
 buildGrid();
 triggerCountdownSequence(()=>{isMatchActive=true;startTimer();planBot();});
@@ -62787,7 +62942,7 @@ catch(e){ showToast('Günlük oda kodu oluşturulamadı. Tekrar dene.','rose'); 
 const code=alloc.code, ref=mpDb.ref('rooms/'+code);
 
 const hostId=getClientToken();
-const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board);
+const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board, readyBoard.words);
 await ref.set({
 schema:14, mode:'invite-only-v2', createdAt:firebase.database.ServerValue.TIMESTAMP,
 dayKey:alloc.dayKey, expiresAt:alloc.expiresAt,
@@ -62858,7 +63013,7 @@ document.getElementById('screen-game')?.classList.remove('hidden');
 document.getElementById('p1-title').textContent='1. OYUNCU';
 document.getElementById('p2-title').textContent='2. OYUNCU';
 p1Score=Number(d.scores?.host||0); p2Score=Number(d.scores?.guest||0); updateScores();
-remainingSeconds=60; resetRoundWordResults(); resetSeriesWordResults(); sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
+remainingSeconds=60; resetMatchWordResults(); resetSeriesWordResults(); sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
 const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
 if (!renderProvidedBoard(d.board)) return;
 hydrateMultiplayerBoardState(d);
@@ -62886,7 +63041,7 @@ try{
 await new Promise(resolve=>requestAnimationFrame(()=>resolve()));
 const now=serverNow();
 const ready=prewarmedBoard || generateOptimizedBoard(2); prewarmedBoard=null;
-const fresh=ready.board; rememberBoard(fresh);
+const fresh=ready.board; rememberBoard(fresh, ready.words);
 const result=await mpRoomRef.transaction(d=>{
 if(!d||d.status!=='finished') return;
 const r=d.rematch||{},exp=Number(r.expiresAt||0);
@@ -62949,7 +63104,7 @@ if(guestGets)d.scores.guest=Number(d.scores.guest||0)+10;
 d.longestBonus={maxLen,host:hostGets,guest:guestGets};d.bonusApplied=true;return d;
 });
 }
-async function hostResolveRoundEnd(){
+async function hostResolveMatchEnd(){
 if(mpRole!=='host'||!mpRoomRef) return;
 await hostApplyLongestWordBonus();
 await mpRoomRef.transaction(d=>{
@@ -63026,7 +63181,7 @@ const localSig=Array.isArray(gridBoard)&&gridBoard.length?boardSignature(gridBoa
 if(roomBoardSig && localSig!==roomBoardSig){
 mpEntered=false; mpStarted=false; clearInterval(timerInterval); timerInterval=null; isMatchActive=false;
 p1Score=Number(d.scores?.host||0); p2Score=Number(d.scores?.guest||0); updateScores();
-resetRoundWordResults(); resetSeriesWordResults(); sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
+resetMatchWordResults(); resetSeriesWordResults(); sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
 const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
 }
 if(!mpEntered) await enterMultiplayerRoom();
@@ -63059,7 +63214,7 @@ const ev=snap.val(), key=snap.key;
 if(!ev||!key||mpSeenWordEvents.has(key)) return;
 mpSeenWordEvents.add(key);
 const w=String(ev.word||'').toLocaleUpperCase('tr-TR');
-if(w){ mpFoundWords.host.add(w); mpFoundWords.guest.add(w); sessionFoundWords.add(w); recordRoundWord(w,ev.pts,ev.role==='host'); }
+if(w){ mpFoundWords.host.add(w); mpFoundWords.guest.add(w); sessionFoundWords.add(w); recordMatchWord(w,ev.pts,ev.role==='host'); }
 if(ev.role!==mpRole) applyRemoteWordEvent(ev,key);
 });
 }
@@ -63139,9 +63294,11 @@ const game=document.getElementById('screen-game');
 if(game) game.style.pointerEvents='auto';
 if(!timerAlreadyRunning) startMultiplayerTimer(Number(d.startAt));
 }
-async function syncMpScore(){
-if(!mpRoomRef||!mpRole)return;
-await mpRoomRef.child('scores/'+mpRole).set(mpRole==='host'?p1Score:p2Score);
+async function syncMpScoreDelta(delta){
+if(!mpRoomRef||!mpRole||!delta)return;
+try{
+await mpRoomRef.child('scores/'+mpRole).transaction(v=>Math.max(0,Number(v||0)+Number(delta||0)));
+}catch(e){ console.warn('Score sync retry needed',e); }
 }
 
 function detachMultiplayerListeners(){
@@ -63154,8 +63311,9 @@ detachMultiplayerListeners();
 clearInterval(mpClock); mpClock=null;
 clearInterval(timerInterval); timerInterval=null;
 clearTimeout(botInterval); botInterval=null;
+clearTimeout(mpEndResolveTimer); mpEndResolveTimer=null;
 if(pointerFrame){ cancelAnimationFrame(pointerFrame); pointerFrame=0; }
-isPointerDown=false; pointerHoldStartedAt=0; clearTimeout(pointerHoldTimer); pointerHoldTimer=null; activePointerId=null; pendingPointer=null; activeGridRect=null; isMatchActive=false;
+isPointerDown=false; pointerHoldStartedAt=0; clearTimeout(pointerHoldTimer); pointerHoldTimer=null; activePointerId=null; pendingPointer=null; activeGridRect=null; activeGridMetrics=null; isMatchActive=false;
 try{ clearPath(); }catch(_){ selectedPath=[]; }
 mpEntered=false; mpStarted=false; mpStartBusy=false; mpRematchBusy=false;
 mpRoomRef=null; mpRoomCode=null; mpRole=null; mpRoomData=null; mpPresenceRef=null; mpLastRoomMetaSig='';
@@ -63308,7 +63466,7 @@ document.getElementById('p2-title').textContent = 'BİLGİSAYAR';
 document.getElementById('screen-home').classList.add('hidden');
 document.getElementById('screen-game').classList.remove('hidden');
 p1Score = 0; p2Score = 0; updateScores(); remainingSeconds = 60;
-resetRoundWordResults(); resetSeriesWordResults();
+resetMatchWordResults(); resetSeriesWordResults();
 sessionFoundWords.clear(); document.getElementById('words-ticker').innerHTML = '';
 buildGrid();
 triggerCountdownSequence(() => { isMatchActive = true; startTimer(); planBot(); });
@@ -63342,13 +63500,14 @@ bridge5: GAME_WORDS_BY_LENGTH.get(5) || [],
 hidden610: [...(GAME_WORDS_BY_LENGTH.get(6) || []), ...(GAME_WORDS_BY_LENGTH.get(7) || []), ...(GAME_WORDS_BY_LENGTH.get(8) || []), ...(GAME_WORDS_BY_LENGTH.get(9) || []), ...(GAME_WORDS_BY_LENGTH.get(10) || [])]
 });
 const BOARD_BALANCE = Object.freeze({
-easyMin: 38, easyIdeal: 66,
-mediumMin: 118, mediumIdeal: 205,
-bridgeMin: 20, bridgeIdeal: 48,
-hiddenMin: 9, hiddenIdeal: 19, hiddenMax: 38,
-totalMin: 260, totalIdeal: 430,
-coverageMin: 56, coverageIdeal: 82,
-longVarietyMin: 4
+easyMin: 28, easyIdeal: 54, easyMax: 92,
+mediumMin: 128, mediumIdeal: 215,
+bridgeMin: 24, bridgeIdeal: 54,
+coreMin: 165, coreIdeal: 270,
+hiddenMin: 10, hiddenIdeal: 22, hiddenMax: 42,
+totalMin: 270, totalIdeal: 455,
+coverageMin: 62, coverageIdeal: 88,
+longVarietyMin: 4, initialVarietyMin: 18
 });
 const FILL_LETTERS = "AAAAAAAABCCÇDDEEEEEEEFGĞHHIIIIIİİİİJKKKLLLMMMNNNOOÖPRRRRSSSŞTTTUUÜVYYZ";
 
@@ -63390,7 +63549,7 @@ const bridgeSeeds = shuffledSample(BOARD_POOLS.bridge5, 72);
 const mediumSeeds = shuffledSample(BOARD_POOLS.medium34, 330);
 const easySeeds = shuffledSample(BOARD_POOLS.easy2, 100);
 
-let placedLong = 0, placedOther = 0;
+let placedLong = 0;
 for (const len of [10,9,8,7,6]) {
 const candidates = shuffledSample(GAME_WORDS_BY_LENGTH.get(len) || [], 14);
 for (const word of candidates) {
@@ -63402,13 +63561,19 @@ for (const word of longSeeds) {
 if (placedLong >= 12) break;
 if (tryPlaceWord(board, word, placedLong >= 5)) placedLong++;
 }
-for (const word of [...bridgeSeeds, ...mediumSeeds]) {
-if (placedOther >= 64) break;
-if (tryPlaceWord(board, word, true) || tryPlaceWord(board, word, false)) placedOther++;
+let bridgePlaced=0;
+for (const word of bridgeSeeds) {
+if (bridgePlaced >= 16) break;
+if (tryPlaceWord(board, word, true) || tryPlaceWord(board, word, false)) bridgePlaced++;
+}
+let mediumPlaced=0;
+for (const word of mediumSeeds) {
+if (mediumPlaced >= 42) break;
+if (tryPlaceWord(board, word, true) || tryPlaceWord(board, word, false)) mediumPlaced++;
 }
 let easyPlaced = 0;
 for (const word of easySeeds) {
-if (easyPlaced >= 28) break;
+if (easyPlaced >= 10) break;
 if (tryPlaceWord(board, word, false)) easyPlaced++;
 }
 
@@ -63419,60 +63584,76 @@ return board;
 }
 
 function analyzeBoardWords(words) {
-const stats = { easy:0, medium:0, bridge:0, hidden:0, total:words.length, coverage:0, longVariety:0 };
+const stats = { easy:0, medium:0, bridge:0, core:0, hidden:0, total:words.length, coverage:0, longVariety:0, initialVariety:0 };
 const productiveCells = new Set();
 const longLengths = new Set();
+const initials = new Set();
 for (const item of words) {
 const n = item.word.length;
 if (n === 2) stats.easy++;
 else if (n <= 4) stats.medium++;
 else if (n === 5) stats.bridge++;
-else if (n <= 10) { stats.hidden++; longLengths.add(n); }
-
-if (n >= 2 && n <= 5 && Array.isArray(item.path)) {
+if (n >= 3 && n <= 6) stats.core++;
+if (n >= 6 && n <= 10) { stats.hidden++; longLengths.add(n); }
+if (n >= 3 && item.word) initials.add(item.word[0]);
+if (n >= 2 && n <= 6 && Array.isArray(item.path)) {
 for (const p of item.path) productiveCells.add(`${p.r},${p.c}`);
 }
 }
 stats.coverage = productiveCells.size;
 stats.longVariety = longLengths.size;
+stats.initialVariety = initials.size;
 
 const b = BOARD_BALANCE;
-const accepted = stats.easy >= b.easyMin && stats.medium >= b.mediumMin &&
-stats.bridge >= b.bridgeMin && stats.hidden >= b.hiddenMin && stats.total >= b.totalMin &&
-stats.coverage >= b.coverageMin && stats.longVariety >= b.longVarietyMin;
-const closeness = (v, ideal, weight) => Math.min(v, ideal) * weight - Math.max(0, v-ideal) * weight * 0.15;
-let score = closeness(stats.easy,b.easyIdeal,4) + closeness(stats.medium,b.mediumIdeal,2.2) +
-closeness(stats.bridge,b.bridgeIdeal,1.5) + closeness(stats.hidden,b.hiddenIdeal,3) +
-Math.min(stats.total,b.totalIdeal) * 0.35 +
-closeness(stats.coverage,b.coverageIdeal,2.2) + stats.longVariety * 10;
+const accepted = stats.easy >= b.easyMin && stats.easy <= b.easyMax &&
+stats.medium >= b.mediumMin && stats.bridge >= b.bridgeMin && stats.core >= b.coreMin &&
+stats.hidden >= b.hiddenMin && stats.hidden <= b.hiddenMax && stats.total >= b.totalMin && stats.coverage >= b.coverageMin &&
+stats.longVariety >= b.longVarietyMin && stats.initialVariety >= b.initialVarietyMin;
+const closeness = (v, ideal, weight) => Math.min(v, ideal) * weight - Math.max(0, v-ideal) * weight * 0.18;
+let score = closeness(stats.easy,b.easyIdeal,2.2) + closeness(stats.medium,b.mediumIdeal,2.5) +
+closeness(stats.bridge,b.bridgeIdeal,2.1) + closeness(stats.core,b.coreIdeal,2.4) +
+closeness(stats.hidden,b.hiddenIdeal,3.2) + Math.min(stats.total,b.totalIdeal) * 0.30 +
+closeness(stats.coverage,b.coverageIdeal,2.6) + stats.longVariety * 12 + stats.initialVariety * 2.5;
+if (stats.easy > b.easyMax) score -= (stats.easy-b.easyMax) * 8;
 if (stats.hidden > b.hiddenMax) score -= (stats.hidden-b.hiddenMax) * 5;
+const easyRatio = stats.total ? stats.easy / stats.total : 0;
+if (easyRatio > .28) score -= (easyRatio-.28) * 900;
 if (!accepted) {
-score -= Math.max(0,b.easyMin-stats.easy)*10 + Math.max(0,b.mediumMin-stats.medium)*5 +
-Math.max(0,b.bridgeMin-stats.bridge)*4 + Math.max(0,b.hiddenMin-stats.hidden)*12 +
-Math.max(0,b.totalMin-stats.total)*1.5 + Math.max(0,b.coverageMin-stats.coverage)*4 +
-Math.max(0,b.longVarietyMin-stats.longVariety)*15;
-} else score += 1000;
+score -= Math.max(0,b.easyMin-stats.easy)*6 + Math.max(0,stats.easy-b.easyMax)*8 +
+Math.max(0,b.mediumMin-stats.medium)*5 + Math.max(0,b.bridgeMin-stats.bridge)*5 +
+Math.max(0,b.coreMin-stats.core)*4 + Math.max(0,b.hiddenMin-stats.hidden)*12 +
+Math.max(0,b.totalMin-stats.total)*1.4 + Math.max(0,b.coverageMin-stats.coverage)*5 +
+Math.max(0,b.longVarietyMin-stats.longVariety)*16 + Math.max(0,b.initialVarietyMin-stats.initialVariety)*4;
+} else score += 1100;
 return {stats, accepted, score};
 }
 
 let prewarmedBoard = null;
-const RECENT_BOARD_KEY = 'kd_recent_board_signatures_v106';
+const RECENT_BOARD_KEY = 'kd_recent_board_profiles_v160';
 
 function boardSignature(board) {
 return board.map(row => row.join('')).join('|');
 }
-function getRecentBoardSignatures() {
+function boardWordProfile(words) {
+return words.filter(x=>x?.word?.length>=5).sort((a,b)=>b.word.length-a.word.length||a.word.localeCompare(b.word,'tr')).slice(0,28).map(x=>x.word);
+}
+function getRecentBoardProfiles() {
 try {
 const x = JSON.parse(sessionStorage.getItem(RECENT_BOARD_KEY) || '[]');
-return Array.isArray(x) ? x.slice(-8) : [];
+return Array.isArray(x) ? x.slice(-6) : [];
 } catch (_) { return []; }
 }
-function rememberBoard(board) {
+function boardProfileSimilarity(words, profile) {
+if(!Array.isArray(profile)||!profile.length) return 0;
+const now=new Set(boardWordProfile(words));
+let hit=0; for(const w of profile) if(now.has(w)) hit++;
+return hit / Math.max(1,Math.min(now.size,profile.length));
+}
+function rememberBoard(board, words=[]) {
 try {
-const sig = boardSignature(board);
-const list = getRecentBoardSignatures().filter(x => x !== sig);
-list.push(sig);
-sessionStorage.setItem(RECENT_BOARD_KEY, JSON.stringify(list.slice(-8)));
+const list = getRecentBoardProfiles();
+list.push(boardWordProfile(words));
+sessionStorage.setItem(RECENT_BOARD_KEY, JSON.stringify(list.slice(-6)));
 } catch (_) {}
 }
 function packBoardResult(board, words) {
@@ -63480,20 +63661,21 @@ return { board, words };
 }
 function generateOptimizedBoard(maxCandidates = 3) {
 let bestBoard = null, bestWords = [], bestEval = {score:-Infinity, accepted:false, stats:null};
-const recent = new Set(getRecentBoardSignatures());
+const recentProfiles = getRecentBoardProfiles();
 const tries = Math.max(maxCandidates, 2);
 for (let i=0; i<tries; i++) {
 const candidate = makeCandidateBoard();
-const sig = boardSignature(candidate);
-if (recent.has(sig)) continue;
 const solved = solveBoardWords(candidate);
 const evaluation = analyzeBoardWords(solved);
+let similarity=0; for(const profile of recentProfiles) similarity=Math.max(similarity,boardProfileSimilarity(solved,profile));
+if(similarity>.48) evaluation.score-=500; else if(similarity>.34) evaluation.score-=180;
 if (evaluation.score > bestEval.score) { bestBoard = candidate; bestWords = solved; bestEval = evaluation; }
 const st = evaluation.stats;
-if (evaluation.accepted && st.easy >= BOARD_BALANCE.easyIdeal &&
-st.medium >= BOARD_BALANCE.mediumIdeal && st.hidden >= BOARD_BALANCE.hiddenIdeal &&
-st.hidden <= BOARD_BALANCE.hiddenMax && st.total >= BOARD_BALANCE.totalIdeal &&
-st.coverage >= BOARD_BALANCE.coverageIdeal && st.longVariety >= 4) break;
+if (evaluation.accepted && st.easy <= BOARD_BALANCE.easyMax &&
+st.medium >= BOARD_BALANCE.mediumIdeal && st.core >= BOARD_BALANCE.coreIdeal &&
+st.hidden >= BOARD_BALANCE.hiddenIdeal && st.hidden <= BOARD_BALANCE.hiddenMax &&
+st.total >= BOARD_BALANCE.totalIdeal && st.coverage >= BOARD_BALANCE.coverageIdeal &&
+st.longVariety >= 4 && st.initialVariety >= BOARD_BALANCE.initialVarietyMin) break;
 }
 const board = bestBoard || makeCandidateBoard();
 const words = bestWords.length ? bestWords : solveBoardWords(board);
@@ -63518,14 +63700,13 @@ html+=`<div class="letter-cell" id="cell-${r}-${c}"><span>${char}</span><span cl
 }
 container.innerHTML=html;
 domCells=Array.from(container.children);
-hoverGridRect=null; activeGridRect=null;
+hoverGridRect=null; activeGridRect=null; hoverGridMetrics=null; activeGridMetrics=null;
 return true;
 }
 
 function prepareAndPreviewNextSingleBoard() {
 const ready = generateOptimizedBoard(3);
 prewarmedBoard = ready;
-rememberBoard(ready.board);
 gridBoard = ready.board;
 boardFoundWords = ready.words;
 paintBoardCells(gridBoard);
@@ -63536,7 +63717,7 @@ const ready = prewarmedBoard || generateOptimizedBoard(3);
 prewarmedBoard = null;
 gridBoard = ready.board;
 boardFoundWords = ready.words;
-rememberBoard(gridBoard);
+rememberBoard(gridBoard, boardFoundWords);
 paintBoardCells(gridBoard);
 }
 
@@ -63581,7 +63762,9 @@ addTickerBadge(word, ev.role === 'host');
 const gridEl = document.getElementById('scrabble-grid');
 
 let activeGridRect = null;
+let activeGridMetrics = null;
 let hoverGridRect = null;
+let hoverGridMetrics = null;
 let pendingPointer = null;
 let pointerFrame = 0;
 let hoverTrembleTimer = null;
@@ -63591,32 +63774,67 @@ const selectedFlags = new Uint8Array(BOARD_SIZE*BOARD_SIZE);
 const selectedWordPreviewEl=document.getElementById('selected-word-preview');
 const wordStatusDescEl=document.getElementById('word-status-desc');
 let wordStatusVisualState='';
+const previewTiles=[];
 
-const refreshGridRect=()=>{ hoverGridRect=gridEl.getBoundingClientRect(); };
+function ensurePreviewTiles(){
+if(!selectedWordPreviewEl || previewTiles.length) return;
+const frag=document.createDocumentFragment();
+for(let i=0;i<10;i++){
+const tile=document.createElement('div'); tile.className='letter-cell selected-preview-tile'; tile.hidden=true;
+const letter=document.createElement('span');
+const score=document.createElement('span'); score.className='tile-score';
+tile.append(letter,score); frag.appendChild(tile); previewTiles.push({tile,letter,score});
+}
+selectedWordPreviewEl.replaceChildren(frag);
+}
+ensurePreviewTiles();
+
+function measureGrid(){
+const rect=gridEl.getBoundingClientRect();
+const cs=getComputedStyle(gridEl);
+const px=v=>Number.parseFloat(v)||0;
+const padL=px(cs.paddingLeft), padR=px(cs.paddingRight), padT=px(cs.paddingTop), padB=px(cs.paddingBottom);
+const gapX=px(cs.columnGap), gapY=px(cs.rowGap);
+const innerW=Math.max(1,rect.width-padL-padR-gapX*(BOARD_SIZE-1));
+const innerH=Math.max(1,rect.height-padT-padB-gapY*(BOARD_SIZE-1));
+const cellW=innerW/BOARD_SIZE, cellH=innerH/BOARD_SIZE;
+return {rect,padL,padT,gapX,gapY,cellW,cellH,stepX:cellW+gapX,stepY:cellH+gapY};
+}
+function pointToCell(clientX,clientY,metrics){
+if(!metrics) metrics=measureGrid();
+const {rect,padL,padT,stepX,stepY}=metrics;
+if(clientX<rect.left||clientX>rect.right||clientY<rect.top||clientY>rect.bottom) return null;
+const x=clientX-rect.left-padL, y=clientY-rect.top-padT;
+const col=Math.max(0,Math.min(BOARD_SIZE-1,Math.round((x-metrics.cellW/2)/stepX)));
+const row=Math.max(0,Math.min(BOARD_SIZE-1,Math.round((y-metrics.cellH/2)/stepY)));
+return {row,col};
+}
+function invalidateGridMetrics(){ hoverGridRect=null; hoverGridMetrics=null; activeGridRect=null; activeGridMetrics=null; }
+const refreshGridRect=()=>{ hoverGridMetrics=measureGrid(); hoverGridRect=hoverGridMetrics.rect; };
 gridEl.addEventListener('pointerenter',refreshGridRect,{passive:true});
-window.addEventListener('resize',()=>{hoverGridRect=null;activeGridRect=null;},{passive:true});
-if('ResizeObserver' in window){ new ResizeObserver(()=>{hoverGridRect=null;activeGridRect=null;}).observe(gridEl); }
+window.addEventListener('resize',invalidateGridMetrics,{passive:true});
+if('ResizeObserver' in window){ new ResizeObserver(invalidateGridMetrics).observe(gridEl); }
 
 let lastHoverCell=-1;
 gridEl.addEventListener('pointermove', (e) => {
 if(e.pointerType==='touch' || isPointerDown) return;
-const rect=hoverGridRect || (hoverGridRect=gridEl.getBoundingClientRect());
-if(e.clientX<rect.left||e.clientX>rect.right||e.clientY<rect.top||e.clientY>rect.bottom) return;
-const col=Math.floor(((e.clientX-rect.left)/rect.width)*BOARD_SIZE);
-const row=Math.floor(((e.clientY-rect.top)/rect.height)*BOARD_SIZE);
-const idx=row*BOARD_SIZE+col;
+const metrics=hoverGridMetrics || (hoverGridMetrics=measureGrid()); hoverGridRect=metrics.rect;
+const pos=pointToCell(e.clientX,e.clientY,metrics); if(!pos) return;
+const idx=pos.row*BOARD_SIZE+pos.col;
 if(idx===lastHoverCell || !domCells[idx]) return;
 lastHoverCell=idx;
 const cell=domCells[idx];
-if(hoverTrembleCell && hoverTrembleCell!==cell) hoverTrembleCell.classList.remove('tile-hover-tremble');
+if(hoverTrembleCell && hoverTrembleCell!==cell) hoverTrembleCell.classList.remove('tile-hover-tremble','tile-hover-p1','tile-hover-p2');
 hoverTrembleCell=cell;
-cell.classList.add('tile-hover-tremble');
+const hoveringAsP1 = mpRole === 'guest' ? false : (mpRole === 'host' ? true : (chosenAvatarId === 'av_1'));
+cell.classList.remove('tile-hover-p1','tile-hover-p2');
+cell.classList.add('tile-hover-tremble', hoveringAsP1 ? 'tile-hover-p1' : 'tile-hover-p2');
 clearTimeout(hoverTrembleTimer);
-hoverTrembleTimer=setTimeout(()=>{ cell.classList.remove('tile-hover-tremble'); if(hoverTrembleCell===cell) hoverTrembleCell=null; },150);
+hoverTrembleTimer=setTimeout(()=>{ cell.classList.remove('tile-hover-tremble','tile-hover-p1','tile-hover-p2'); if(hoverTrembleCell===cell) hoverTrembleCell=null; },150);
 }, {passive:true});
 gridEl.addEventListener('pointerleave',()=>{
-lastHoverCell=-1; hoverGridRect=null; clearTimeout(hoverTrembleTimer); hoverTrembleTimer=null;
-if(hoverTrembleCell) hoverTrembleCell.classList.remove('tile-hover-tremble'); hoverTrembleCell=null;
+lastHoverCell=-1; hoverGridRect=null; hoverGridMetrics=null; clearTimeout(hoverTrembleTimer); hoverTrembleTimer=null;
+if(hoverTrembleCell) hoverTrembleCell.classList.remove('tile-hover-tremble','tile-hover-p1','tile-hover-p2'); hoverTrembleCell=null;
 }, {passive:true});
 
 gridEl.addEventListener('pointerdown', (e) => {
@@ -63630,23 +63848,19 @@ activePointerId = e.pointerId;
 clearTimeout(pointerHoldTimer);
 pointerHoldTimer = setTimeout(() => {
 if (!isPointerDown) return;
-isPointerDown = false;
-pointerHoldStartedAt = 0;
-pendingPointer = null;
-activeGridRect = null;
+isPointerDown = false; pointerHoldStartedAt = 0; pendingPointer = null; activeGridRect = null; activeGridMetrics=null;
 lastPointerX=null; lastPointerY=null;
 if (pointerFrame) { cancelAnimationFrame(pointerFrame); pointerFrame = 0; }
-gridEl.classList.remove('is-grabbing');
-clearPath();
+gridEl.classList.remove('is-grabbing'); clearPath();
 try { if (activePointerId !== null) gridEl.releasePointerCapture(activePointerId); } catch (_) {}
 activePointerId = null;
 }, HOLD_CANCEL_MS);
-activeGridRect = hoverGridRect || gridEl.getBoundingClientRect(); // sürükleme boyunca yalnızca bir kez ölç
-hoverGridRect = activeGridRect;
+activeGridMetrics = hoverGridMetrics || measureGrid();
+activeGridRect = activeGridMetrics.rect; hoverGridMetrics=activeGridMetrics; hoverGridRect=activeGridRect;
 gridEl.classList.add('is-grabbing');
 try { gridEl.setPointerCapture(e.pointerId); } catch (_) {}
 clearPath();
-processPointerAt(e.clientX, e.clientY, activeGridRect);
+processPointerAt(e.clientX, e.clientY, activeGridMetrics);
 lastPointerX=e.clientX; lastPointerY=e.clientY;
 }, {passive:false});
 
@@ -63654,19 +63868,15 @@ gridEl.addEventListener('pointermove', (e) => {
 if (!isMatchActive || !isPointerDown) return;
 const samples = typeof e.getCoalescedEvents === 'function' ? e.getCoalescedEvents() : null;
 if (samples && samples.length > 1) {
-const step=Math.max(1,Math.floor(samples.length/6));
-for (let i=0;i<samples.length;i+=step) {
-const sample=samples[i]; processPointerSegment(sample.clientX,sample.clientY,activeGridRect);
-}
-const last=samples[samples.length-1]; processPointerSegment(last.clientX,last.clientY,activeGridRect);
+const step=Math.max(1,Math.ceil(samples.length/5));
+for (let i=0;i<samples.length;i+=step) { const sample=samples[i]; processPointerSegment(sample.clientX,sample.clientY,activeGridMetrics); }
+const last=samples[samples.length-1]; processPointerSegment(last.clientX,last.clientY,activeGridMetrics);
 }
 pendingPointer = {x:e.clientX, y:e.clientY};
 if (pointerFrame) return;
 pointerFrame = requestAnimationFrame(() => {
-pointerFrame = 0;
-if (!pendingPointer || !isPointerDown) return;
-const p = pendingPointer; pendingPointer = null;
-processPointerSegment(p.x, p.y, activeGridRect);
+pointerFrame = 0; if (!pendingPointer || !isPointerDown) return;
+const p = pendingPointer; pendingPointer = null; processPointerSegment(p.x, p.y, activeGridMetrics);
 });
 }, {passive:true});
 
@@ -63675,60 +63885,40 @@ if (!isPointerDown) return;
 clearTimeout(pointerHoldTimer); pointerHoldTimer = null;
 const heldMs = pointerHoldStartedAt ? (performance.now() - pointerHoldStartedAt) : 0;
 const cancelForLongHold = shouldSubmit && heldMs >= HOLD_CANCEL_MS;
-if (shouldSubmit && !cancelForLongHold && activeGridRect) processPointerAt(e.clientX, e.clientY, activeGridRect);
-isPointerDown = false;
-pointerHoldStartedAt = 0;
-pendingPointer = null;
-activeGridRect = null;
+if (shouldSubmit && !cancelForLongHold && activeGridMetrics) processPointerAt(e.clientX, e.clientY, activeGridMetrics);
+isPointerDown = false; pointerHoldStartedAt = 0; pendingPointer = null; activeGridRect = null; activeGridMetrics=null;
 lastPointerX=null; lastPointerY=null;
 if (pointerFrame) { cancelAnimationFrame(pointerFrame); pointerFrame = 0; }
 gridEl.classList.remove('is-grabbing');
 try { gridEl.releasePointerCapture(e.pointerId); } catch(err) {}
 activePointerId = null;
-if (cancelForLongHold) {
-clearPath();
-return;
-}
-if (shouldSubmit && selectedPath.length) submitWord();
-else clearPath();
+if (cancelForLongHold) { clearPath(); return; }
+if (shouldSubmit && selectedPath.length) submitWord(); else clearPath();
 };
 
 gridEl.addEventListener('pointerup', (e) => finishPointer(e, true), {passive:true});
 gridEl.addEventListener('pointercancel', (e) => finishPointer(e, false), {passive:true});
 
-function processPointerSegment(clientX,clientY,rect=activeGridRect){
-if(lastPointerX===null||lastPointerY===null){processPointerAt(clientX,clientY,rect);lastPointerX=clientX;lastPointerY=clientY;return;}
+function processPointerSegment(clientX,clientY,metrics=activeGridMetrics){
+if(lastPointerX===null||lastPointerY===null){processPointerAt(clientX,clientY,metrics);lastPointerX=clientX;lastPointerY=clientY;return;}
 const dx=clientX-lastPointerX,dy=clientY-lastPointerY;
-const cellPx=rect?Math.min(rect.width,rect.height)/BOARD_SIZE:40;
-const steps=Math.min(10,Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/Math.max(7,cellPx*.40))));
-for(let i=1;i<=steps;i++) processPointerAt(lastPointerX+dx*i/steps,lastPointerY+dy*i/steps,rect);
+const cellPx=metrics?Math.min(metrics.cellW,metrics.cellH):40;
+const steps=Math.min(12,Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/Math.max(5.5,cellPx*.34))));
+for(let i=1;i<=steps;i++) processPointerAt(lastPointerX+dx*i/steps,lastPointerY+dy*i/steps,metrics);
 lastPointerX=clientX;lastPointerY=clientY;
 }
 
-function processPointerAt(clientX, clientY, rect = activeGridRect) {
-if (!rect) rect = hoverGridRect || (hoverGridRect=gridEl.getBoundingClientRect());
-if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) return;
-
-const col = Math.floor(((clientX - rect.left) / rect.width) * BOARD_SIZE);
-const row = Math.floor(((clientY - rect.top) / rect.height) * BOARD_SIZE);
-
-if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) return;
-
+function processPointerAt(clientX, clientY, metrics = activeGridMetrics) {
+const pos=pointToCell(clientX,clientY,metrics || hoverGridMetrics || measureGrid());
+if(!pos) return; const {row,col}=pos;
 if (selectedPath.length >= 2) {
 const prev = selectedPath[selectedPath.length - 2];
 if (prev.r === row && prev.c === col) {
-const removed = selectedPath.pop();
-selectedFlags[removed.r*BOARD_SIZE+removed.c]=0;
-removed.el.classList.remove('tile-dragging','tile-dragging-p1','tile-dragging-p2');
-syncWordDisplay();
-return;
+const removed = selectedPath.pop(); selectedFlags[removed.r*BOARD_SIZE+removed.c]=0;
+removed.el.classList.remove('tile-dragging','tile-dragging-p1','tile-dragging-p2'); syncWordDisplay(); return;
 }
 }
-
-if (isNeighbor(row, col)) {
-const cell = domCells[row * BOARD_SIZE + col];
-addCellToPath(row, col, cell);
-}
+if (isNeighbor(row, col)) { const cell = domCells[row * BOARD_SIZE + col]; addCellToPath(row, col, cell); }
 }
 
 function isNeighbor(r, c) {
@@ -63757,20 +63947,12 @@ syncWordDisplay();
 }
 
 function syncWordDisplay() {
-const word = selectedPath.map(p => p.char).join('');
-if(selectedWordPreviewEl){
-if(!selectedPath.length) selectedWordPreviewEl.replaceChildren();
-else {
-const frag=document.createDocumentFragment();
-for(const p of selectedPath){
-const tile=document.createElement('div'); tile.className='letter-cell selected-preview-tile';
-const letter=document.createElement('span'); letter.textContent=p.char;
-const score=document.createElement('span'); score.className='tile-score'; score.textContent=String(TILE_SCORES[p.char]||1);
-tile.append(letter,score); frag.appendChild(tile);
+let word='';
+for(let i=0;i<selectedPath.length;i++){
+const p=selectedPath[i]; word+=p.char;
+const pv=previewTiles[i]; if(pv){pv.letter.textContent=p.char;pv.score.textContent=String(TILE_SCORES[p.char]||1);pv.tile.hidden=false;}
 }
-selectedWordPreviewEl.replaceChildren(frag);
-}
-}
+for(let i=selectedPath.length;i<previewTiles.length;i++) previewTiles[i].tile.hidden=true;
 const desc = wordStatusDescEl;
 if(!desc) return;
 let state='neutral', message='Yatay veya dikey komşu harfleri sürükleyerek kelime oluştur!';
@@ -63778,7 +63960,7 @@ if(word.length===1){ state='short'; message=`"${word}" (En az 2 harfli olmalı)`
 else if(word.length>=2 && isArgoWord(word)){ state='argo'; message='ARGO -3 CEZA'; }
 else if(word.length>=2 && GAME_WORD_SET.has(word)){ state='valid'; message=`"${word}" (Sözlük Onaylı) ✨`; }
 else if(word.length>=2){ state='invalid'; message=`"${word}" (Sözlükte yok -3 puan)`; }
-desc.textContent=message;
+if(desc.textContent!==message) desc.textContent=message;
 if(state!==wordStatusVisualState){
 wordStatusVisualState=state;
 desc.className=state==='valid' ? 'text-[11px] font-bold text-emerald-400 italic truncate px-1'
@@ -63853,7 +64035,7 @@ if(mpRole) {
 mpFoundWords.host.add(word);
 mpFoundWords.guest.add(word);
 } else sessionFoundWords.add(word);
-recordRoundWord(word,pts,isP1);
+recordMatchWord(word,pts,isP1);
 playCorrectChime();
 showToast(`${word} (+${pts})`, isP1 ? 'amber' : 'sky');
 if (typeof confetti === 'function') confetti({ particleCount: mpRole ? (matchMedia('(pointer:coarse)').matches ? 14 : 20) : (matchMedia('(pointer:coarse)').matches ? 24 : 36), spread: 64, origin: { y: 0.6 } });
@@ -63904,7 +64086,10 @@ function adjustScore(p1Delta, p2Delta) {
 p1Score = Math.max(0, p1Score + p1Delta);
 p2Score = Math.max(0, p2Score + p2Delta);
 updateScores();
-if (mpRole) syncMpScore();
+if (mpRole) {
+const delta=mpRole==='host'?Number(p1Delta||0):Number(p2Delta||0);
+if(delta) syncMpScoreDelta(delta);
+}
 }
 
 function updateScores() {
@@ -64021,7 +64206,7 @@ const pts = word.split('').reduce((s, c) => s + (TILE_SCORES[c] || 1), 0);
 const botIsP2 = (chosenAvatarId === 'av_1');
 
 sessionFoundWords.add(word);
-recordRoundWord(word,pts,!botIsP2);
+recordMatchWord(word,pts,!botIsP2);
 
 matchObj.path.forEach(pt => {
 const cell = document.getElementById(`cell-${pt.r}-${pt.c}`);
@@ -64144,8 +64329,10 @@ function endGame(){
 if(!isMatchActive && mpRole && mpState===MP_STATES.FINISHED) return;
 isMatchActive=false; clearInterval(timerInterval); clearTimeout(botInterval);
 if(mpRoomRef && mpRole){
-if(mpRole==='host' && mpState===MP_STATES.PLAYING) hostResolveRoundEnd().catch(()=>{});
-else showToast('Maç sonucu senkronize ediliyor…','sky');
+if(mpRole==='host' && mpState===MP_STATES.PLAYING){
+clearTimeout(mpEndResolveTimer);
+mpEndResolveTimer=setTimeout(()=>{mpEndResolveTimer=null;hostResolveMatchEnd().catch(()=>{});},320);
+}else showToast('Maç sonucu senkronize ediliyor…','sky');
 return;
 }
 const longestBonus=applySingleLongestWordBonus();
@@ -64194,7 +64381,7 @@ clearInterval(timerInterval); timerInterval=null;
 clearInterval(mpClock); mpClock=null;
 clearTimeout(botInterval); botInterval=null;
 if(pointerFrame){ cancelAnimationFrame(pointerFrame); pointerFrame=0; }
-isPointerDown=false; pointerHoldStartedAt=0; clearTimeout(pointerHoldTimer); pointerHoldTimer=null; activePointerId=null; pendingPointer=null; activeGridRect=null;
+isPointerDown=false; pointerHoldStartedAt=0; clearTimeout(pointerHoldTimer); pointerHoldTimer=null; activePointerId=null; pendingPointer=null; activeGridRect=null; activeGridMetrics=null;
 try{ clearPath(); }catch(_){ selectedPath=[]; }
 const presence=mpPresenceRef;
 if(presence){
@@ -64234,7 +64421,7 @@ clearInterval(timerInterval); timerInterval=null;
 clearInterval(mpClock); mpClock=null;
 clearTimeout(botInterval); botInterval=null;
 if(pointerFrame){ cancelAnimationFrame(pointerFrame); pointerFrame=0; }
-isPointerDown=false; pointerHoldStartedAt=0; clearTimeout(pointerHoldTimer); pointerHoldTimer=null; activePointerId=null; pendingPointer=null; activeGridRect=null;
+isPointerDown=false; pointerHoldStartedAt=0; clearTimeout(pointerHoldTimer); pointerHoldTimer=null; activePointerId=null; pendingPointer=null; activeGridRect=null; activeGridMetrics=null;
 try{ clearPath(); }catch(_){ selectedPath=[]; }
 
 document.getElementById('modal-countdown')?.classList.add('hidden');
