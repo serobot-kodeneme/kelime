@@ -1,11 +1,14 @@
 <!DOCTYPE html>
-<!-- Kelime Duellosu v101 | Stable baseline -->
+<!-- Kelime Duellosu v115 | Fullscreen support -->
 
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Kelime Düellosu - 9x9 Akıllı Tahta</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Kelime Düellosu v115 - 9x9 Akıllı Tahta</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -315,6 +318,11 @@
         @keyframes homeFloat{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-10px,0)}}
         .home-shortcut{transition:transform .16s ease,box-shadow .16s ease}
         .home-shortcut:hover{transform:translateY(-2px)}
+        .fullscreen-btn{position:absolute;top:max(10px,env(safe-area-inset-top));right:10px;z-index:70;display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:9999px;background:rgba(255,255,255,.92);border:1px solid rgba(255,255,255,.95);box-shadow:0 5px 16px rgba(15,23,42,.14);font-size:10px;font-weight:900;color:#334155;letter-spacing:.04em;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:transform .14s ease,box-shadow .14s ease}
+        .fullscreen-btn:hover{transform:translateY(-1px);box-shadow:0 7px 18px rgba(15,23,42,.18)}
+        .fullscreen-btn:active{transform:scale(.97)}
+        .fullscreen-btn svg{width:15px;height:15px;stroke-width:2.2}
+        @supports (height:100dvh){#app-container{height:100dvh}}
         .dict-letter-active{background:#f59e0b!important;color:#0f172a!important;border-color:#f59e0b!important}
         @media (prefers-reduced-motion: reduce){.home-float-dot{animation:none}.home-shortcut{transition:none}}
 </style>
@@ -327,6 +335,10 @@
 
         <!-- ================= EKRAN 1: YENİ ANA MENÜ ================= -->
         <div id="screen-home" class="absolute inset-0 z-40 overflow-hidden bg-gradient-to-b from-sky-400 via-sky-200 to-emerald-200">
+            <button id="btn-fullscreen-home" type="button" class="fullscreen-btn" aria-label="Tam ekranı aç veya kapat" title="Tam ekran">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg>
+                <span id="fullscreen-label">TAM EKRAN</span>
+            </button>
             <span class="home-float-dot w-10 h-10 bg-yellow-200 left-[8%] top-[9%]"></span>
             <span class="home-float-dot w-7 h-7 bg-pink-200 right-[12%] top-[11%]"></span>
             <span class="home-float-dot w-12 h-12 bg-white right-[6%] bottom-[16%]"></span>
@@ -617,6 +629,7 @@
                 <div id="countdown-status" class="text-slate-800 font-black text-xs tracking-widest uppercase mt-3 bg-white px-4 py-1.5 rounded-full border border-slate-200 shadow-sm">
                     SENKRONİZE EDİLİYOR…
                 </div>
+                <button id="btn-countdown-fullscreen" type="button" class="hidden mt-3 px-3 py-1.5 rounded-full bg-slate-900 text-white text-[10px] font-black tracking-wide shadow" aria-label="Tam ekrana geç">⛶ TAM EKRAN</button>
             </div>
         </div>
 
@@ -62051,6 +62064,72 @@ BLİK
 
         let chosenAvatarId = 'av_1';
         let p1Score = 0, p2Score = 0;
+        // ================= TAM EKRAN YÖNETİMİ (v115) =================
+        let inviteFullscreenPending=false;
+        let inviteFullscreenGestureArmed=false;
+        function isFullscreenActive(){
+            return !!(document.fullscreenElement || document.webkitFullscreenElement);
+        }
+        function updateFullscreenUi(){
+            const active=isFullscreenActive();
+            const label=document.getElementById('fullscreen-label');
+            if(label) label.textContent=active?'TAM EKRANDAN ÇIK':'TAM EKRAN';
+            const cd=document.getElementById('btn-countdown-fullscreen');
+            if(cd) cd.classList.toggle('hidden',active || !inviteFullscreenPending);
+        }
+        async function requestGameFullscreen(silent=false){
+            if(isFullscreenActive()){ inviteFullscreenPending=false; disarmInviteFullscreenGesture(); updateFullscreenUi(); return true; }
+            const el=document.documentElement;
+            try{
+                if(el.requestFullscreen) await el.requestFullscreen({navigationUI:'hide'});
+                else if(el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+                else {
+                    // iPhone Safari gibi belge tam ekran API'sini sunmayan tarayıcılarda
+                    // uygulama yüksekliği yine viewport-fit/100dvh ile ekranı doldurur.
+                    window.scrollTo(0,1);
+                    if(!silent) showToast('Bu tarayıcı tam ekranı sınırlıyor. Ana ekrana ekleyerek tam ekran kullanabilirsin.','slate');
+                    return false;
+                }
+                inviteFullscreenPending=false; disarmInviteFullscreenGesture(); updateFullscreenUi();
+                return true;
+            }catch(e){
+                if(!silent) showToast('Tam ekran için düğmeye tekrar dokun.','slate');
+                updateFullscreenUi();
+                return false;
+            }
+        }
+        async function toggleGameFullscreen(){
+            if(isFullscreenActive()){
+                try{
+                    if(document.exitFullscreen) await document.exitFullscreen();
+                    else if(document.webkitExitFullscreen) await document.webkitExitFullscreen();
+                }catch(e){}
+                updateFullscreenUi();
+            }else await requestGameFullscreen(false);
+        }
+        function inviteFullscreenGestureHandler(){
+            if(!inviteFullscreenPending) return disarmInviteFullscreenGesture();
+            requestGameFullscreen(true);
+        }
+        function armInviteFullscreen(){
+            inviteFullscreenPending=true;
+            updateFullscreenUi();
+            // Otomatik deneme: bazı Android/WebView tarayıcıları kabul eder.
+            requestGameFullscreen(true);
+            if(inviteFullscreenGestureArmed) return;
+            inviteFullscreenGestureArmed=true;
+            window.addEventListener('pointerdown',inviteFullscreenGestureHandler,true);
+            window.addEventListener('keydown',inviteFullscreenGestureHandler,true);
+        }
+        function disarmInviteFullscreenGesture(){
+            if(!inviteFullscreenGestureArmed) return;
+            inviteFullscreenGestureArmed=false;
+            window.removeEventListener('pointerdown',inviteFullscreenGestureHandler,true);
+            window.removeEventListener('keydown',inviteFullscreenGestureHandler,true);
+        }
+        document.addEventListener('fullscreenchange',updateFullscreenUi);
+        document.addEventListener('webkitfullscreenchange',updateFullscreenUi);
+
         let remainingSeconds = 60;
         let isMatchActive = false;
         let botDiffLevel = 'easy';
@@ -62506,6 +62585,7 @@ BLİK
         async function enterMultiplayerRoom(){
             if(!mpRoomRef) return;
             activeGameMode = 'multi';
+            if(mpRole==='guest' && inviteFullscreenPending) requestGameFullscreen(true);
             const snap=await mpRoomRef.once('value'); const d=snap.val(); if(!d||!d.board) return;
             mpRoomData=d; mpRound=Number(d.round||1);
             if(!mpEntered){
@@ -62850,15 +62930,20 @@ BLİK
             }
         };
 
+        document.getElementById('btn-fullscreen-home')?.addEventListener('click',toggleGameFullscreen);
+        document.getElementById('btn-countdown-fullscreen')?.addEventListener('click',()=>requestGameFullscreen(false));
+
         window.addEventListener('load',async()=>{
             const u=new URL(location.href);
             const code=(u.searchParams.get('room')||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
             if(!code) return;
+            armInviteFullscreen();
             document.getElementById('screen-game')?.classList.add('hidden');
             document.getElementById('screen-home')?.classList.remove('hidden');
             document.getElementById('friend-invite-panel')?.classList.remove('hidden');
             const ok=await joinRoom(code);
             if(ok){
+                if(mpRole==='guest') armInviteFullscreen(); else { inviteFullscreenPending=false; disarmInviteFullscreenGesture(); updateFullscreenUi(); }
                 const st=document.getElementById('mp-status');
                 if(st) st.innerText=mpRole==='host'?'Odan yeniden açıldı. Arkadaşını bekliyorsun.':'Davet kabul edildi. 1. oyuncuyla senkronize ediliyor…';
             }
@@ -62907,6 +62992,8 @@ BLİK
         document.getElementById('sound-volume').addEventListener('change', () => playCorrectChime());
         document.getElementById('btn-sound-test').onclick = () => { ensureGameAudio(); playLetterPickSound(3); setTimeout(playCorrectChime,110); };
         setMasterSoundVolume(masterSoundVolume);
+
+        updateFullscreenUi();
 
         function prepareGame() {
             activeGameMode = 'single';
