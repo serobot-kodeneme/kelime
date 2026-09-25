@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v168-timer-confetti</title>
-<meta name="game-version" content="v168-timer-confetti">
+<title>Kelime Düellosu v169-tile-hover-lift</title>
+<meta name="game-version" content="v169-tile-hover-lift">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -129,13 +129,6 @@ box-shadow: 0 2px 0 #94a3b8 !important;
 }
 .tile-claimed-p1.tile-claimed-p2 .tile-score { color: #475569 !important; }
 
-@keyframes tileHoverTremble {
-0%,100% { transform: translate(0,0) rotate(0deg); }
-25% { transform: translate(-0.45px,0) rotate(-0.25deg); }
-50% { transform: translate(0.45px,-0.35px) rotate(0.25deg); }
-75% { transform: translate(0,0.35px) rotate(-0.15deg); }
-}
-.letter-cell.tile-hover-tremble { animation: tileHoverTremble .16s ease-in-out 1; }
 
 .tile-dragging {
 transform: scale(1.085) translateY(-2px) !important;
@@ -364,7 +357,7 @@ box-shadow: 0 2px 0 #cbd5e1;
 @media (pointer: coarse) {
 .scrabble-board { cursor: default; }
 .letter-cell { transition: transform .07s ease, background-color .07s ease, box-shadow .07s ease; }
-.tile-hover-tremble { animation: none !important; }
+
 }
 
 .home-float-dot{position:absolute;border-radius:9999px;pointer-events:none;filter:blur(.2px);opacity:.42}
@@ -601,10 +594,12 @@ body.graphics-high #gameover-heading{animation:highWinnerBounce .85s ease-in-out
 }
 
 
-/* v167 tile lift */
-.cell{transition:transform .11s ease,box-shadow .11s ease,background-color .1s ease,color .1s ease;}
-.cell.hovered,.cell:hover{transform:translateY(-2px);box-shadow:0 4px 8px rgba(0,0,0,.12);}
-.cell.selected{transform:translateY(-2px) scale(1.015);}
+/* v169 tile hover lift: no shake, only a light rise */
+.letter-cell{transition:transform .08s ease-out,box-shadow .08s ease-out,background-color .07s linear,color .07s linear;}
+@media (hover:hover) and (pointer:fine){
+  .letter-cell.tile-hover-p1:not(.tile-dragging),
+  .letter-cell.tile-hover-p2:not(.tile-dragging){transform:translateY(-2px);}
+}
 </style>
 
 <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -39784,7 +39779,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v168-timer-confetti';
+const GAME_VERSION='v169-tile-hover-lift';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -40930,8 +40925,7 @@ let hoverGridRect = null;
 let hoverGridMetrics = null;
 let pendingPointer = null;
 let pointerFrame = 0;
-let hoverTrembleTimer = null;
-let hoverTrembleCell = null;
+let hoverLiftCell = null;
 let lastPointerX = null, lastPointerY = null;
 const selectedFlags = new Uint8Array(BOARD_SIZE*BOARD_SIZE);
 const selectedWordPreviewEl=document.getElementById('selected-word-preview');
@@ -40996,17 +40990,15 @@ const idx=pos.row*BOARD_SIZE+pos.col;
 if(idx===lastHoverCell || !domCells[idx]) return;
 lastHoverCell=idx;
 const cell=domCells[idx];
-if(hoverTrembleCell && hoverTrembleCell!==cell) hoverTrembleCell.classList.remove('tile-hover-tremble','tile-hover-p1','tile-hover-p2');
-hoverTrembleCell=cell;
+if(hoverLiftCell && hoverLiftCell!==cell) hoverLiftCell.classList.remove('tile-hover-p1','tile-hover-p2');
+hoverLiftCell=cell;
 const hoveringAsP1 = mpRole === 'guest' ? false : (mpRole === 'host' ? true : (chosenAvatarId === 'av_1'));
 cell.classList.remove('tile-hover-p1','tile-hover-p2');
-cell.classList.add('tile-hover-tremble', hoveringAsP1 ? 'tile-hover-p1' : 'tile-hover-p2');
-clearTimeout(hoverTrembleTimer);
-hoverTrembleTimer=setTimeout(()=>{ cell.classList.remove('tile-hover-tremble','tile-hover-p1','tile-hover-p2'); if(hoverTrembleCell===cell) hoverTrembleCell=null; },150);
+cell.classList.add(hoveringAsP1 ? 'tile-hover-p1' : 'tile-hover-p2');
 }, {passive:true});
 gridEl.addEventListener('pointerleave',()=>{
-lastHoverCell=-1; hoverGridRect=null; hoverGridMetrics=null; clearTimeout(hoverTrembleTimer); hoverTrembleTimer=null;
-if(hoverTrembleCell) hoverTrembleCell.classList.remove('tile-hover-tremble','tile-hover-p1','tile-hover-p2'); hoverTrembleCell=null;
+lastHoverCell=-1; hoverGridRect=null; hoverGridMetrics=null;
+if(hoverLiftCell) hoverLiftCell.classList.remove('tile-hover-p1','tile-hover-p2'); hoverLiftCell=null;
 }, {passive:true});
 
 gridEl.addEventListener('pointerdown', (e) => {
