@@ -8,8 +8,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Kelime Düellosu v136-clean - 9x9 Akıllı Tahta</title>
-    <meta name="game-version" content="v136-clean">
+    <title>Kelime Düellosu v138-clean - 9x9 Akıllı Tahta</title>
+    <meta name="game-version" content="v138-clean">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -428,6 +428,31 @@
             #countdown-number{font-size:3.25rem!important;line-height:1!important}
             .countdown-sync-ok{font-size:9px;padding:4px 8px;margin-top:6px}
         }
+
+        @keyframes rematchPulse {
+            0%,100% { transform:scale(1); box-shadow:0 6px 16px rgba(245,158,11,.18); filter:brightness(1); }
+            50% { transform:scale(1.035); box-shadow:0 0 0 4px rgba(250,204,21,.18),0 8px 22px rgba(245,158,11,.34); filter:brightness(1.08); }
+        }
+        .rematch-pulse{animation:rematchPulse 1.15s ease-in-out infinite; transform-origin:center;}
+
+
+        /* v138: daha güçlü ses kontrolü ve grafik kalite seçenekleri */
+        #sound-volume{height:34px;cursor:pointer;}
+        #sound-volume::-webkit-slider-runnable-track{height:12px;border-radius:999px;background:#c7d2fe;}
+        #sound-volume::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;margin-top:-7px;background:#4f46e5;border:3px solid #fff;box-shadow:0 2px 8px rgba(79,70,229,.35);}
+        #sound-volume::-moz-range-track{height:12px;border-radius:999px;background:#c7d2fe;}
+        #sound-volume::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#4f46e5;border:3px solid #fff;box-shadow:0 2px 8px rgba(79,70,229,.35);}
+        .graphics-choice{transition:transform .14s ease,box-shadow .14s ease,filter .14s ease;}
+        .graphics-choice.active{box-shadow:0 0 0 3px rgba(79,70,229,.18),0 7px 16px rgba(15,23,42,.12);transform:translateY(-1px);filter:brightness(1.03);}
+        body.graphics-high .score-fly{font-size:23px;text-shadow:0 0 9px currentColor,0 3px 10px rgba(0,0,0,.35);}
+        body.graphics-high #modal-gameover>div{animation:highResultPop .55s cubic-bezier(.2,1.25,.4,1);box-shadow:0 0 0 4px rgba(255,255,255,.18),0 20px 65px rgba(79,70,229,.38);}
+        body.graphics-high #gameover-heading{animation:highWinnerBounce .85s ease-in-out infinite alternate;}
+        .result-party-fx{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2;}
+        .result-party-fx span{position:absolute;top:-12%;font-size:clamp(22px,6vw,38px);animation:resultPartyFall var(--dur,2.7s) linear forwards;filter:drop-shadow(0 3px 3px rgba(0,0,0,.18));}
+        @keyframes resultPartyFall{to{transform:translate3d(var(--drift,0),120vh,0) rotate(var(--rot,360deg));opacity:.15;}}
+        @keyframes highResultPop{0%{transform:scale(.78) rotate(-1.8deg);opacity:.45}70%{transform:scale(1.035) rotate(.5deg)}100%{transform:scale(1);opacity:1}}
+        @keyframes highWinnerBounce{from{transform:scale(1)}to{transform:scale(1.055) rotate(.4deg)}}
+
 </style>
     <!-- Firebase: yalnızca çok oyunculu modda kullanılan hafif compat SDK -->
     <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -658,6 +683,14 @@
                     <input id="sound-volume" type="range" min="0" max="100" step="1" value="80" class="w-full mt-5 accent-indigo-600" aria-label="Ses düzeyi">
                     <div class="flex items-center justify-between text-[10px] font-black text-slate-400 mt-1"><span>SESSİZ</span><span>YÜKSEK</span></div>
                     <button id="btn-sound-test" type="button" class="w-full mt-5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-[.99] text-white font-black text-xs py-3 shadow">SESİ DENE</button>
+                    <div class="mt-6 pt-5 border-t border-slate-200">
+                        <div class="font-black text-slate-900">Grafik Kalitesi</div>
+                        <div class="text-[11px] font-bold text-slate-500 mt-0.5">Yüksek mod; puan ve maç sonu efektlerini güçlendirir.</div>
+                        <div class="grid grid-cols-2 gap-3 mt-3">
+                            <button id="graphics-low" type="button" class="graphics-choice rounded-2xl bg-slate-100 border-2 border-slate-200 text-slate-700 font-black text-xs py-3">DÜŞÜK</button>
+                            <button id="graphics-high" type="button" class="graphics-choice rounded-2xl bg-gradient-to-r from-fuchsia-500 to-indigo-600 border-2 border-indigo-300 text-white font-black text-xs py-3">YÜKSEK ✨</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -747,10 +780,10 @@
                 <div class="mx-auto mb-4 w-16 h-16 rounded-full bg-amber-50 border-2 border-amber-100 flex items-center justify-center">
                     <div class="w-8 h-8 rounded-full border-4 border-amber-200 border-t-amber-500 animate-spin"></div>
                 </div>
-                <div id="rematch-wait-title" class="text-lg font-black text-slate-800">Diğer oyuncunun TEKRAR OYNA düğmesine basması gerekiyor</div>
+                <div id="rematch-wait-title" class="text-lg font-black text-slate-800">Diğer oyuncunun YENİDEN OYNA düğmesine basması gerekiyor</div>
                 <div id="rematch-wait-sub" class="mt-2 text-xs font-bold text-slate-500">Oda açık kalacak. Rakibin hazır olduğunda yeni maç otomatik hazırlanacak.</div>
                 <div id="rematch-request-actions" class="hidden mt-5 grid grid-cols-2 gap-3">
-                    <button id="btn-rematch-accept" class="py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 text-white text-xs font-black shadow-md">TEKRAR OYNA</button>
+                    <button id="btn-rematch-accept" class="py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 text-white text-xs font-black shadow-md">YENİDEN OYNA</button>
                     <button id="btn-rematch-decline" class="py-3 rounded-xl bg-slate-100 text-slate-600 text-xs font-black border border-slate-200">İPTAL</button>
                 </div>
             </div>
@@ -786,7 +819,7 @@
                         <div id="final-p2-words" class="space-y-1 overflow-hidden text-left"></div>
                     </div>
                 </div>
-                <button id="btn-play-again" onclick="handlePlayAgain()" class="w-full bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 text-amber-950 font-black text-xs py-2.5 rounded-xl uppercase shadow-md">YENİ OYUN</button>
+                <button id="btn-play-again" onclick="handlePlayAgain()" class="w-full bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 text-amber-950 font-black text-xs py-2.5 rounded-xl uppercase shadow-md">YENİDEN OYNA</button>
                 <div id="rematch-inline-status" class="hidden mt-2 w-full rounded-xl bg-slate-100 border border-slate-200 px-3 py-2 text-[11px] font-bold text-slate-600">Rakip bekleniyor…</div>
                 <button id="btn-game-exit" class="w-full mt-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs py-2.5 rounded-xl uppercase border border-slate-200">ÇIKIŞ</button>
             </div>
@@ -62344,6 +62377,15 @@ BLİK
         let lastHeartbeatSecond = null;
         const SOUND_VOLUME_KEY = 'kd_sound_volume_v2';
         let masterSoundVolume = Math.max(0, Math.min(1, Number(localStorage.getItem(SOUND_VOLUME_KEY) ?? 0.80)));
+        const GRAPHICS_QUALITY_KEY='kd_graphics_quality_v1';
+        let graphicsQuality=(localStorage.getItem(GRAPHICS_QUALITY_KEY)==='high')?'high':'low';
+        function applyGraphicsQuality(mode){
+            graphicsQuality=mode==='high'?'high':'low';
+            localStorage.setItem(GRAPHICS_QUALITY_KEY,graphicsQuality);
+            document.body.classList.toggle('graphics-high',graphicsQuality==='high');
+            document.getElementById('graphics-low')?.classList.toggle('active',graphicsQuality==='low');
+            document.getElementById('graphics-high')?.classList.toggle('active',graphicsQuality==='high');
+        }
 
         function setMasterSoundVolume(v){
             masterSoundVolume = Math.max(0, Math.min(1, Number(v)||0));
@@ -62372,7 +62414,7 @@ BLİK
                 const gain=ctx.createGain();
                 osc.type=type; osc.frequency.setValueAtTime(freq,now);
                 if(endFreq) osc.frequency.exponentialRampToValueAtTime(Math.max(1,endFreq),now+duration);
-                const out=Math.max(0.0002,Math.min(0.22,volume*masterSoundVolume*1.12));
+                const out=Math.max(0.0002,Math.min(0.245,volume*masterSoundVolume*1.232));
                 gain.gain.setValueAtTime(0.0001,now);
                 gain.gain.exponentialRampToValueAtTime(out,now+0.006);
                 gain.gain.exponentialRampToValueAtTime(0.0001,now+duration);
@@ -62403,7 +62445,7 @@ BLİK
                     osc.type='sine'; osc.frequency.setValueAtTime(freq,now);
                     osc.frequency.exponentialRampToValueAtTime(Math.max(35,freq*.62),now+dur);
                     gain.gain.setValueAtTime(0.0001,now);
-                    gain.gain.exponentialRampToValueAtTime(Math.min(0.22,vol*masterSoundVolume*1.12),now+.012);
+                    gain.gain.exponentialRampToValueAtTime(Math.min(0.245,vol*masterSoundVolume*1.232),now+.012);
                     gain.gain.exponentialRampToValueAtTime(0.0001,now+dur);
                     osc.connect(gain); gain.connect(ctx.destination); osc.start(now); osc.stop(now+dur+.02);
                 }catch(_){}
@@ -62428,7 +62470,7 @@ BLİK
             appId: "1:968159872150:web:c80429010ec21363116eb7"
         };
 
-        const GAME_VERSION='v136-clean';
+        const GAME_VERSION='v138-clean';
         // Firebase tarafında yalnızca dört oyun durumu vardır.
         const MP_STATES = Object.freeze({
             IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
@@ -62874,16 +62916,16 @@ BLİK
             if(!btn||!st) return;
             if(me && !other && exp>serverNow()){
                 const sec=Math.max(0,Math.ceil((exp-serverNow())/1000));
-                btn.disabled=true; btn.innerText='RAKİP BEKLENİYOR';
-                st.classList.remove('hidden'); st.innerText=`Rakibin YENİ OYUN'a basması bekleniyor • ${sec} sn`;
+                btn.disabled=true; btn.innerText='RAKİP BEKLENİYOR'; btn.classList.remove('rematch-pulse');
+                st.classList.remove('hidden'); st.innerText=`Rakibin YENİDEN OYNA'ya basması bekleniyor • ${sec} sn`;
             }else if(!me && other && exp>serverNow()){
-                btn.disabled=false; btn.innerText='YENİ OYUN';
-                st.classList.remove('hidden'); st.innerText=`Rakibin yeni oyun istiyor • ${Math.max(0,Math.ceil((exp-serverNow())/1000))} sn içinde katıl`;
+                btn.disabled=false; btn.innerText='YENİDEN OYNA'; btn.classList.add('rematch-pulse');
+                st.classList.remove('hidden'); st.innerText=`Rakibin yeniden oynamak istiyor • ${Math.max(0,Math.ceil((exp-serverNow())/1000))} sn içinde katıl`;
             }else if(me && other){
-                btn.disabled=true; btn.innerText='YENİ OYUN HAZIRLANIYOR…';
+                btn.disabled=true; btn.innerText='YENİ OYUN HAZIRLANIYOR…'; btn.classList.remove('rematch-pulse');
                 st.classList.remove('hidden'); st.innerText='İki oyuncu da hazır. Yeni tahta hazırlanıyor…';
             }else{
-                btn.disabled=false; btn.innerText='YENİ OYUN'; st.classList.add('hidden'); st.innerText='';
+                btn.disabled=false; btn.innerText='YENİDEN OYNA'; btn.classList.remove('rematch-pulse'); st.classList.add('hidden'); st.innerText='';
             }
         }
 
@@ -62929,8 +62971,8 @@ BLİK
             const c1=document.getElementById('final-p1-card'),c2=document.getElementById('final-p2-card');[c1,c2].forEach(c=>{if(c){c.style.transform='';c.style.filter='';c.style.background='';c.style.borderRadius='';c.style.padding='';}});
             if(d.finalWinner==='host'){if(c1){c1.style.transform='scale(1.05)';c1.style.background='rgba(254,243,199,.9)';c1.style.borderRadius='16px';c1.style.padding='6px';}if(c2)c2.style.filter='saturate(.7) opacity(.82)';heading.innerText=`${p1Name} KAZANDI! 🏆`;p1NameEl?.classList.add('winner-pulse','winner-name-big');p1ScoreEl?.classList.add('winner-pulse');launchGrandCelebration('p1');}
             else if(d.finalWinner==='guest'){if(c2){c2.style.transform='scale(1.05)';c2.style.background='rgba(224,242,254,.92)';c2.style.borderRadius='16px';c2.style.padding='6px';}if(c1)c1.style.filter='saturate(.7) opacity(.82)';heading.innerText=`${p2Name} KAZANDI! 🏆`;p2NameEl?.classList.add('winner-pulse','winner-name-big');p2ScoreEl?.classList.add('winner-pulse');launchGrandCelebration('p2');}
-            else heading.innerText='BERABERE! 🤝';
-            const replay=document.getElementById('btn-play-again');if(replay){replay.disabled=false;replay.innerText='YENİ OYUN';replay.classList.remove('hidden');}
+            else {heading.innerText='BERABERE! 🤝'; spawnHighResultPartyFx();}
+            const replay=document.getElementById('btn-play-again');if(replay){replay.disabled=false;replay.innerText='YENİDEN OYNA';replay.classList.remove('hidden');}
             renderRematchState(d);
         }
 
@@ -63261,7 +63303,10 @@ BLİK
         document.getElementById('sound-volume').addEventListener('input', e => setMasterSoundVolume(Number(e.target.value)/100));
         document.getElementById('sound-volume').addEventListener('change', () => playCorrectChime());
         document.getElementById('btn-sound-test').onclick = () => { ensureGameAudio(); playLetterPickSound(3); setTimeout(playCorrectChime,110); };
+        document.getElementById('graphics-low')?.addEventListener('click',()=>applyGraphicsQuality('low'));
+        document.getElementById('graphics-high')?.addEventListener('click',()=>applyGraphicsQuality('high'));
         setMasterSoundVolume(masterSoundVolume);
+        applyGraphicsQuality(graphicsQuality);
 
         updateFullscreenUi();
 
@@ -63498,7 +63543,7 @@ BLİK
         }
 
         // Maç biter bitmez bir sonraki tekli tahta hazırlanır ve oyun sonu penceresinin
-        // arkasına çizilir. YENİ OYUN aynı hazırlanmış tahtayı kullanır; yeniden üretmez.
+        // arkasına çizilir. YENİDEN OYNA aynı hazırlanmış tahtayı kullanır; yeniden üretmez.
         function prepareAndPreviewNextSingleBoard() {
             const ready = generateOptimizedBoard(3);
             prewarmedBoard = ready;
@@ -63868,6 +63913,16 @@ BLİK
             el.style.setProperty('--dy',(tr.top+tr.height/2-sy)+'px');
             document.body.appendChild(el); requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('go')));
             setTimeout(()=>el.remove(),780);
+            if(graphicsQuality==='high'){
+                for(let i=0;i<2;i++){
+                    const spark=el.cloneNode(true); spark.textContent=i===0?'✦':'+'+pts; spark.style.fontSize=i===0?'16px':'13px';
+                    spark.style.left=(sx+(i?18:-16))+'px'; spark.style.top=(sy+(i?8:-8))+'px';
+                    spark.style.setProperty('--dx',(tr.left+tr.width/2-sx+(i?8:-8))+'px');
+                    spark.style.setProperty('--dy',(tr.top+tr.height/2-sy+(i?-6:6))+'px');
+                    document.body.appendChild(spark); requestAnimationFrame(()=>requestAnimationFrame(()=>spark.classList.add('go')));
+                    setTimeout(()=>spark.remove(),820);
+                }
+            }
         }
 
         function adjustScore(p1Delta, p2Delta) {
@@ -64004,19 +64059,37 @@ BLİK
         }
 
         // ================= BÜYÜK ŞENLİKLİ KAZANMA KUTLAMASI =================
+        function spawnHighResultPartyFx(){
+            if(graphicsQuality!=='high') return;
+            const modal=document.getElementById('modal-gameover'); if(!modal) return;
+            modal.querySelector('.result-party-fx')?.remove();
+            const fx=document.createElement('div'); fx.className='result-party-fx';
+            const icons=['⭐','✨','🎉','🏆','💥','🎊'];
+            for(let i=0;i<18;i++){
+                const s=document.createElement('span'); s.textContent=icons[i%icons.length];
+                s.style.left=(3+Math.random()*94)+'%'; s.style.animationDelay=(Math.random()*.7)+'s';
+                s.style.setProperty('--dur',(2.0+Math.random()*1.8)+'s'); s.style.setProperty('--drift',((-60+Math.random()*120))+'px'); s.style.setProperty('--rot',((-360+Math.random()*720))+'deg');
+                fx.appendChild(s);
+            }
+            modal.appendChild(fx); setTimeout(()=>fx.remove(),4300);
+        }
+
         function launchGrandCelebration(winnerSide=null) {
+            spawnHighResultPartyFx();
             if (typeof confetti !== 'function') return;
-            const duration = (mpRole ? 2.6 : 3.6) * 1000;
+            const high=graphicsQuality==='high';
+            const duration = (mpRole ? (high?4.0:2.6) : (high?5.0:3.6)) * 1000;
             const animationEnd = Date.now() + duration;
             const baseX = winnerSide==='p1' ? 0.22 : winnerSide==='p2' ? 0.78 : 0.5;
             const interval = setInterval(function() {
                 const timeLeft = animationEnd - Date.now();
                 if (timeLeft <= 0) return clearInterval(interval);
-                const particleCount = (mpRole ? 24 : 38) * (timeLeft / duration);
-                confetti({particleCount,startVelocity:34,spread:72,origin:{x:Math.max(.08,Math.min(.92,baseX+(Math.random()-.5)*.12)),y:.68},zIndex:999});
-            },250);
-            setTimeout(()=>confetti({particleCount:mpRole?65:105,spread:95,origin:{x:baseX,y:.52},zIndex:999}),250);
-            setTimeout(()=>confetti({particleCount:mpRole?80:135,spread:115,origin:{x:baseX,y:.42},zIndex:999}),850);
+                const baseCount=(mpRole ? (high?42:24) : (high?58:38));
+                confetti({particleCount:baseCount*(timeLeft/duration),startVelocity:high?44:34,spread:high?100:72,origin:{x:Math.max(.08,Math.min(.92,baseX+(Math.random()-.5)*(high?.22:.12))),y:.68},zIndex:999});
+            },high?190:250);
+            setTimeout(()=>confetti({particleCount:mpRole?(high?120:65):(high?190:105),spread:high?130:95,startVelocity:high?48:34,origin:{x:baseX,y:.52},zIndex:999}),220);
+            setTimeout(()=>confetti({particleCount:mpRole?(high?150:80):(high?230:135),spread:high?155:115,startVelocity:high?52:34,origin:{x:baseX,y:.42},zIndex:999}),780);
+            if(high) setTimeout(()=>confetti({particleCount:170,spread:180,startVelocity:42,origin:{x:baseX,y:.35},zIndex:999}),1450);
         }
 
         async function waitUntilRoomFinished(timeoutMs=3500){
@@ -64069,8 +64142,8 @@ BLİK
                 if(mpRole==='host' && r.host && r.guest && Number(r.expiresAt||0)>=serverNow()) await hostStartRematch();
             }catch(e){
                 console.error('Rematch request error',e);
-                if(btn){ btn.disabled=false; btn.innerText='YENİ OYUN'; }
-                showToast('Yeni oyun isteği gönderilemedi. Tekrar deneyin.','rose');
+                if(btn){ btn.disabled=false; btn.innerText='YENİDEN OYNA'; }
+                showToast('Yeniden oynama isteği gönderilemedi. Tekrar deneyin.','rose');
             }
         }
 
@@ -64089,7 +64162,7 @@ BLİK
             prepareAndPreviewNextSingleBoard();
             document.getElementById('modal-gameover').classList.remove('hidden');
             const replayBtn=document.getElementById('btn-play-again');
-            if(replayBtn){ replayBtn.disabled=false; replayBtn.innerText='YENİ OYUN'; replayBtn.classList.remove('hidden'); }
+            if(replayBtn){ replayBtn.disabled=false; replayBtn.innerText='YENİDEN OYNA'; replayBtn.classList.remove('hidden'); }
             const rs=document.getElementById('final-round-score'); if(rs)rs.classList.add('hidden');
             document.getElementById('final-score-val-p1').innerText=p1Score;
             document.getElementById('final-score-val-p2').innerText=p2Score;
@@ -64104,7 +64177,7 @@ BLİK
             [c1,c2].forEach(c=>{if(c){c.style.transform='';c.style.filter='';c.style.background='';c.style.borderRadius='';c.style.padding='';}});
             if(p1Score>p2Score){if(c1){c1.style.transform='scale(1.05)';c1.style.background='rgba(254,243,199,.9)';c1.style.borderRadius='16px';c1.style.padding='6px';}if(c2)c2.style.filter='saturate(.7) opacity(.82)'; heading.innerText=`${p1Name} KAZANDI! 🏆`; p1NameEl?.classList.add('winner-pulse','winner-name-big'); p1ScoreEl?.classList.add('winner-pulse'); launchGrandCelebration('p1'); }
             else if(p2Score>p1Score){if(c2){c2.style.transform='scale(1.05)';c2.style.background='rgba(224,242,254,.92)';c2.style.borderRadius='16px';c2.style.padding='6px';}if(c1)c1.style.filter='saturate(.7) opacity(.82)'; heading.innerText=`${p2Name} KAZANDI! 🏆`; p2NameEl?.classList.add('winner-pulse','winner-name-big'); p2ScoreEl?.classList.add('winner-pulse'); launchGrandCelebration('p2'); }
-            else heading.innerText='BERABERE! 🤝';
+            else {heading.innerText='BERABERE! 🤝'; spawnHighResultPartyFx();}
         }
 
 
