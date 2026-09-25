@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+<!-- Kelime Duellosu v101 | Stable baseline -->
+
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
@@ -63500,8 +63502,9 @@ BLİK
             returnToHomeFromMultiplayer();
             clearInviteFromUrl();
         });
-        // Açık Tema Sözlük Arayüzü
-        document.getElementById('btn-open-dictionary').onclick = () => {
+        // Açık Tema Sözlük Arayüzü — düğme bazı arayüz sürümlerinde gizli/çıkarılmış olabilir.
+        const btnOpenDictionary = document.getElementById('btn-open-dictionary');
+        if (btnOpenDictionary) btnOpenDictionary.onclick = () => {
             ensureDictionaryIndex();
             if (!DICT_SORTED) { for (const l of TURKISH_ALPHABET) DICT_BY_LETTER[l].sort((a,b) => a.localeCompare(b, 'tr')); DICT_SORTED = true; }
             renderAlphabetButtons();
