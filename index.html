@@ -395,26 +395,38 @@
                     </div>
                 </div>
 
-                <div class="mt-auto pt-4 w-full max-w-sm shrink-0">
-                    <div class="grid grid-cols-3 gap-2.5">
-                        <button id="btn-settings" class="home-shortcut group min-h-[76px] rounded-[20px] bg-white/92 border border-white shadow-[0_7px_18px_rgba(15,23,42,.12)] flex flex-col items-center justify-center gap-1.5 text-slate-700 font-black text-[10px] active:scale-95">
-                            <span class="w-10 h-10 rounded-[14px] bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200 text-slate-700 flex items-center justify-center shadow-inner"><svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10"/><circle cx="17" cy="7" r="2"/><path d="M20 17H10"/><circle cx="7" cy="17" r="2"/><path d="M4 12h3M11 12h9"/><circle cx="9" cy="12" r="2"/></svg></span>
+                <div class="mt-auto pt-3 w-full max-w-sm shrink-0">
+                    <!-- LÖSEV destek alanı: harici görsel yok, hafif CSS kartı -->
+                    <a href="https://www.losev.org.tr/tr/bagis" target="_blank" rel="noopener noreferrer" class="home-shortcut block w-full rounded-[18px] bg-gradient-to-r from-rose-50 via-white to-red-50 border-2 border-rose-200 shadow-[0_7px_18px_rgba(127,29,29,.12)] px-3 py-2.5 active:scale-[.99]" aria-label="LÖSEV resmi bağış sayfasını aç">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-10 h-10 shrink-0 rounded-[13px] bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center text-xl shadow-sm">❤</div>
+                            <div class="min-w-0 flex-1 text-left">
+                                <div class="text-[8px] font-black tracking-[.16em] text-rose-500 uppercase">DESTEK ALANI</div>
+                                <div class="text-[13px] leading-tight font-black text-rose-950">LÖSEV’e Destek Ol</div>
+                                <div class="text-[9px] leading-tight font-bold text-rose-800/75 mt-0.5">Oyunu sevdiysen, lösemili çocuklara umut olmak için bağış yapabilirsin.</div>
+                            </div>
+                            <div class="shrink-0 rounded-xl bg-rose-600 text-white px-2.5 py-2 text-[9px] font-black shadow-sm">BAĞIŞ YAP ›</div>
+                        </div>
+                    </a>
+
+                    <div class="grid grid-cols-4 gap-1.5 mt-2">
+                        <button id="btn-settings" class="home-shortcut min-h-[54px] rounded-[15px] bg-white/92 border border-white shadow-[0_5px_13px_rgba(15,23,42,.10)] flex flex-col items-center justify-center gap-1 text-slate-700 font-black text-[9px] leading-tight active:scale-95">
+                            <span class="w-8 h-8 rounded-[11px] bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200 text-slate-700 flex items-center justify-center shadow-inner"><svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10"/><circle cx="17" cy="7" r="2"/><path d="M20 17H10"/><circle cx="7" cy="17" r="2"/><path d="M4 12h3M11 12h9"/><circle cx="9" cy="12" r="2"/></svg></span>
                             <span>Ayarlar</span>
                         </button>
-                        <button id="btn-howto" class="home-shortcut group min-h-[76px] rounded-[20px] bg-white/92 border border-white shadow-[0_7px_18px_rgba(15,23,42,.12)] flex flex-col items-center justify-center gap-1.5 text-slate-700 font-black text-[10px] active:scale-95">
-                            <span class="w-10 h-10 rounded-[14px] bg-gradient-to-br from-sky-50 to-blue-100 border border-sky-100 text-sky-700 flex items-center justify-center shadow-inner"><svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5a2.5 2.5 0 0 1 2.5 2.5z"/></svg></span>
-                            <span>Nasıl Oynanır?</span>
+                        <button id="btn-howto" class="home-shortcut min-h-[54px] rounded-[15px] bg-white/92 border border-white shadow-[0_5px_13px_rgba(15,23,42,.10)] flex flex-col items-center justify-center gap-1 text-slate-700 font-black text-[9px] leading-tight active:scale-95">
+                            <span class="w-8 h-8 rounded-[11px] bg-gradient-to-br from-sky-50 to-blue-100 border border-sky-100 text-sky-700 flex items-center justify-center shadow-inner"><svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5a2.5 2.5 0 0 1 2.5 2.5z"/></svg></span>
+                            <span>Nasıl<br>Oynanır?</span>
                         </button>
-                        <button id="btn-about" class="home-shortcut group min-h-[76px] rounded-[20px] bg-white/92 border border-white shadow-[0_7px_18px_rgba(15,23,42,.12)] flex flex-col items-center justify-center gap-1.5 text-slate-700 font-black text-[10px] active:scale-95">
-                            <span class="w-10 h-10 rounded-[14px] bg-gradient-to-br from-indigo-50 to-violet-100 border border-indigo-100 text-indigo-700 flex items-center justify-center shadow-inner"><svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 10.8v6"/><path d="M12 7.2h.01"/></svg></span>
+                        <button id="btn-about" class="home-shortcut min-h-[54px] rounded-[15px] bg-white/92 border border-white shadow-[0_5px_13px_rgba(15,23,42,.10)] flex flex-col items-center justify-center gap-1 text-slate-700 font-black text-[9px] leading-tight active:scale-95">
+                            <span class="w-8 h-8 rounded-[11px] bg-gradient-to-br from-indigo-50 to-violet-100 border border-indigo-100 text-indigo-700 flex items-center justify-center shadow-inner"><svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 10.8v6"/><path d="M12 7.2h.01"/></svg></span>
                             <span>Hakkında</span>
                         </button>
+                        <button id="btn-open-dictionary" class="home-shortcut min-h-[54px] rounded-[15px] bg-gradient-to-br from-amber-50 to-yellow-100 border border-amber-200 shadow-[0_5px_13px_rgba(120,53,15,.10)] flex flex-col items-center justify-center gap-1 text-amber-950 font-black text-[9px] leading-tight active:scale-95">
+                            <span class="w-8 h-8 rounded-[11px] bg-white/90 border border-amber-200 flex items-center justify-center text-base shadow-inner">📚</span>
+                            <span>Sözlük</span>
+                        </button>
                     </div>
-                    <button id="btn-open-dictionary" class="home-shortcut mt-2.5 w-full min-h-[54px] rounded-[20px] bg-gradient-to-r from-amber-100 via-yellow-50 to-orange-100 border-2 border-amber-200 shadow-[0_7px_18px_rgba(120,53,15,.12)] flex items-center gap-3 px-4 text-left active:scale-[.99]">
-                        <span class="w-10 h-10 rounded-[14px] bg-white/90 border border-amber-200 flex items-center justify-center text-xl shadow-sm">📚</span>
-                        <span class="flex-1"><b class="block text-[13px] font-black text-amber-950">SÖZLÜK</b><small class="block text-[10px] font-bold text-amber-800/80">A’dan Z’ye oyun kelimelerini incele</small></span>
-                        <span class="text-xl font-black text-amber-700">›</span>
-                    </button>
                 </div>
             </div>
         </div>
@@ -481,9 +493,37 @@
                 </div>
             </div>
         </div>
-        <!-- ================= HAKKINDA (ŞİMDİLİK BOŞ) ================= -->
+        <!-- ================= AYARLAR ================= -->
+        <div id="screen-settings" class="absolute inset-0 z-[80] hidden bg-gradient-to-b from-sky-100 to-white p-4">
+            <div class="max-w-sm mx-auto">
+                <div class="flex items-center justify-between">
+                    <button id="btn-settings-back" class="w-10 h-10 rounded-full bg-white shadow font-black text-xl">‹</button>
+                    <h2 class="font-black text-xl text-indigo-950">AYARLAR</h2>
+                    <div class="w-10"></div>
+                </div>
+                <div class="mt-8 bg-white/95 border-2 border-sky-200 rounded-3xl p-5 shadow-lg">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <div class="font-black text-slate-900">Ses Düzeyi</div>
+                            <div class="text-[11px] font-bold text-slate-500 mt-0.5">Harf, doğru kelime, hata ve geri sayım seslerini ayarlar.</div>
+                        </div>
+                        <div id="sound-volume-label" class="min-w-[48px] text-center rounded-xl bg-indigo-50 border border-indigo-100 px-2 py-1 text-sm font-black text-indigo-800">70%</div>
+                    </div>
+                    <input id="sound-volume" type="range" min="0" max="100" step="1" value="70" class="w-full mt-5 accent-indigo-600" aria-label="Ses düzeyi">
+                    <div class="flex items-center justify-between text-[10px] font-black text-slate-400 mt-1"><span>SESSİZ</span><span>YÜKSEK</span></div>
+                    <button id="btn-sound-test" type="button" class="w-full mt-5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-[.99] text-white font-black text-xs py-3 shadow">SESİ DENE</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= HAKKINDA ================= -->
         <div id="screen-about" class="absolute inset-0 z-[80] hidden bg-gradient-to-b from-sky-100 to-white p-4">
-            <div class="max-w-sm mx-auto"><div class="flex items-center justify-between"><button id="btn-about-back" class="w-10 h-10 rounded-full bg-white shadow font-black text-xl">‹</button><h2 class="font-black text-xl text-indigo-950">HAKKINDA</h2><div class="w-10"></div></div><div class="mt-8 bg-white/90 border-2 border-sky-200 rounded-3xl p-6 shadow-lg text-center"><div class="text-5xl mb-3">🎮</div><div class="font-black text-2xl text-indigo-950 mb-2">Kelime Düellosu</div><p class="text-sm font-bold text-slate-700">Serdar BAYRAKTAR tarafından yapılmıştır.</p></div></div>
+            <div class="max-w-sm mx-auto">
+                <div class="flex items-center justify-between"><button id="btn-about-back" class="w-10 h-10 rounded-full bg-white shadow font-black text-xl">‹</button><h2 class="font-black text-xl text-indigo-950">HAKKINDA</h2><div class="w-10"></div></div>
+                <div class="mt-8 bg-white/90 border-2 border-sky-200 rounded-3xl p-6 shadow-lg text-center">
+                    <p class="text-sm font-black text-slate-700">Bu oyun LÖSEV'e destek amaçlı hazırlanmıştır.</p>
+                </div>
+            </div>
         </div>
 
         <!-- ================= EKRAN 3: SÖZLÜK MODALI ================= -->
@@ -62013,9 +62053,20 @@ BLİK
         let botInterval = null;
         let isPointerDown = false;
 
-        // ================= HAFİF OYUN SESLERİ (Web Audio, harici dosya yok) =================
+        // ================= OYUN SESLERİ (Web Audio, harici dosya yok) =================
         let gameAudioCtx = null;
         let lastHeartbeatSecond = null;
+        const SOUND_VOLUME_KEY = 'kd_sound_volume_v1';
+        let masterSoundVolume = Math.max(0, Math.min(1, Number(localStorage.getItem(SOUND_VOLUME_KEY) ?? 0.70)));
+
+        function setMasterSoundVolume(v){
+            masterSoundVolume = Math.max(0, Math.min(1, Number(v)||0));
+            localStorage.setItem(SOUND_VOLUME_KEY, String(masterSoundVolume));
+            const slider=document.getElementById('sound-volume');
+            const label=document.getElementById('sound-volume-label');
+            if(slider) slider.value=String(Math.round(masterSoundVolume*100));
+            if(label) label.textContent=`${Math.round(masterSoundVolume*100)}%`;
+        }
         function ensureGameAudio(){
             try{
                 if(!gameAudioCtx){
@@ -62026,23 +62077,38 @@ BLİK
             }catch(_){}
             return gameAudioCtx;
         }
-        function playTone(freq=520,duration=.045,volume=.035,type='sine',endFreq=null){
+        function playTone(freq=520,duration=.045,volume=.08,type='sine',endFreq=null,delay=0){
+            if(masterSoundVolume<=0) return;
             const ctx=ensureGameAudio(); if(!ctx || ctx.state==='closed') return;
             try{
-                const now=ctx.currentTime;
+                const now=ctx.currentTime+Math.max(0,delay);
                 const osc=ctx.createOscillator();
                 const gain=ctx.createGain();
                 osc.type=type; osc.frequency.setValueAtTime(freq,now);
                 if(endFreq) osc.frequency.exponentialRampToValueAtTime(Math.max(1,endFreq),now+duration);
+                const out=Math.max(0.0002,volume*masterSoundVolume);
                 gain.gain.setValueAtTime(0.0001,now);
-                gain.gain.exponentialRampToValueAtTime(Math.max(0.0002,volume),now+0.006);
+                gain.gain.exponentialRampToValueAtTime(out,now+0.006);
                 gain.gain.exponentialRampToValueAtTime(0.0001,now+duration);
                 osc.connect(gain); gain.connect(ctx.destination);
-                osc.start(now); osc.stop(now+duration+0.01);
+                osc.start(now); osc.stop(now+duration+0.02);
             }catch(_){}
         }
-        function playLetterPickSound(){ playTone(470,.055,.028,'sine',690); }
+        function playLetterPickSound(step=1){
+            const n=Math.min(8,Math.max(1,step));
+            const base=430 + (n-1)*28;
+            playTone(base,.060,.065,'sine',base+115);
+        }
+        function playErrorBuzzer(){
+            playTone(185,.14,.12,'square',95);
+            playTone(145,.12,.08,'sawtooth',82,.055);
+        }
+        function playCorrectChime(){
+            playTone(760,.13,.095,'sine',980);
+            playTone(1120,.19,.075,'sine',1420,.075);
+        }
         function playHeartbeat(){
+            if(masterSoundVolume<=0) return;
             const ctx=ensureGameAudio(); if(!ctx) return;
             const thump=(delay,freq,vol,dur)=>{
                 try{
@@ -62051,12 +62117,12 @@ BLİK
                     osc.type='sine'; osc.frequency.setValueAtTime(freq,now);
                     osc.frequency.exponentialRampToValueAtTime(Math.max(35,freq*.62),now+dur);
                     gain.gain.setValueAtTime(0.0001,now);
-                    gain.gain.exponentialRampToValueAtTime(vol,now+.012);
+                    gain.gain.exponentialRampToValueAtTime(vol*masterSoundVolume,now+.012);
                     gain.gain.exponentialRampToValueAtTime(0.0001,now+dur);
                     osc.connect(gain); gain.connect(ctx.destination); osc.start(now); osc.stop(now+dur+.02);
                 }catch(_){}
             };
-            thump(0,92,.055,.11); thump(.16,72,.038,.09);
+            thump(0,92,.105,.11); thump(.16,72,.072,.09);
         }
         function maybeHeartbeat(sec){
             if(sec<=10 && sec>0 && sec!==lastHeartbeatSecond){
@@ -62076,13 +62142,14 @@ BLİK
             appId: "1:968159872150:web:c80429010ec21363116eb7"
         };
 
-        const GAME_VERSION='v103';
+        const GAME_VERSION='v111';
         // Firebase tarafında yalnızca dört oyun durumu vardır.
         const MP_STATES = Object.freeze({
             IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
         });
         let mpState=MP_STATES.IDLE;
         let mpDb=null, mpRoomRef=null, mpRoomCode=null, mpRole=null, mpRoomData=null;
+        let mpSessionJoinedAt=0, mpExitHandling=false, mpLastExitSignalId='';
         let mpListener=null, mpWordsListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null;
         let mpRound=0, mpStartBusy=false, mpRematchBusy=false, mpPresenceRef=null, mpLastRoomMetaSig='';
         let mpSeenWordEvents=new Set(), mpLastBeepSecond=null;
@@ -62358,7 +62425,7 @@ BLİK
                 presence:{host:{online:true,clientId:hostId},guest:{online:false}}
             });
 
-            mpRoomCode=code; mpRole='host'; mpRoomRef=ref; mpRoomData=null; mpRound=1; mpEntered=false; mpStarted=false;
+            mpRoomCode=code; mpRole='host'; mpRoomRef=ref; mpRoomData=null; mpRound=1; mpEntered=false; mpStarted=false; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId='';
             setRoomUrl(code); await markPresence();
             setMpPanelRoom(code,'1. oyuncusun. Davet bağlantısını arkadaşına gönder; 2. oyuncu gelince oyun otomatik başlayacak.');
             document.getElementById('btn-close-room')?.classList.remove('hidden');
@@ -62387,7 +62454,7 @@ BLİK
                 role='guest';
             }
 
-            mpRoomCode=code; mpRole=role; mpRoomRef=ref; mpRoomData=(await ref.once('value')).val()||{};
+            mpRoomCode=code; mpRole=role; mpRoomRef=ref; mpRoomData=(await ref.once('value')).val()||{}; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId='';
             mpRound=Number(mpRoomData.round||1); mpEntered=false; mpStarted=false;
             await markPresence(); setRoomUrl(code);
             setMpPanelRoom(code,role==='host'?'1. oyuncu olarak odana yeniden bağlandın.':'2. oyuncu olarak davet odasına bağlandın.');
@@ -62532,12 +62599,20 @@ BLİK
                 else if(d.guestId===clientId) mpRole='guest';
                 mpRoomData=d;
 
+                // Herhangi bir oyuncu çıkış yaptığında iki istemci de aynı sinyali işler.
+                const exitSignal=d.roomExit;
+                if(exitSignal?.id && exitSignal.id!==mpLastExitSignalId && Number(exitSignal.at||0)>=mpSessionJoinedAt-1000){
+                    mpLastExitSignalId=exitSignal.id;
+                    handleSynchronizedRoomExit();
+                    return;
+                }
+
                 // words altına her kelime yazıldığında kök value olayı da tetiklenir.
                 // Oyun metası değişmediyse pahalı durum akışını tekrar çalıştırma.
                 const roomBoardSig=Array.isArray(d.board)?boardSignature(d.board):'';
                 const metaSig=[d.status,Number(d.round||1),Number(d.startAt||0),d.guestId||'',roomBoardSig,
                     Number(d.scores?.host||0),Number(d.scores?.guest||0),isOnline(d.presence?.guest),
-                    !!d.rematch?.host,!!d.rematch?.guest,Number(d.rematch?.expiresAt||0)].join('|');
+                    !!d.rematch?.host,!!d.rematch?.guest,Number(d.rematch?.expiresAt||0),d.roomExit?.id||'',Number(d.roomExit?.at||0)].join('|');
                 if(metaSig===mpLastRoomMetaSig) return;
                 mpLastRoomMetaSig=metaSig;
 
@@ -62689,6 +62764,7 @@ BLİK
             try{ clearPath(); }catch(_){ selectedPath=[]; }
             mpEntered=false; mpStarted=false; mpStartBusy=false; mpRematchBusy=false;
             mpRoomRef=null; mpRoomCode=null; mpRole=null; mpRoomData=null; mpPresenceRef=null; mpRound=0; mpLastRoomMetaSig='';
+            mpSessionJoinedAt=0; mpExitHandling=false; mpLastExitSignalId='';
             mpSeenWordEvents.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear();
             setMpState(MP_STATES.IDLE);
         }
@@ -62811,7 +62887,15 @@ BLİK
         document.getElementById('btn-howto-back').onclick = () => document.getElementById('screen-howto').classList.add('hidden');
         document.getElementById('btn-about').onclick = () => document.getElementById('screen-about').classList.remove('hidden');
         document.getElementById('btn-about-back').onclick = () => document.getElementById('screen-about').classList.add('hidden');
-        document.getElementById('btn-settings').onclick = () => {};
+        document.getElementById('btn-settings').onclick = () => {
+            setMasterSoundVolume(masterSoundVolume);
+            document.getElementById('screen-settings').classList.remove('hidden');
+        };
+        document.getElementById('btn-settings-back').onclick = () => document.getElementById('screen-settings').classList.add('hidden');
+        document.getElementById('sound-volume').addEventListener('input', e => setMasterSoundVolume(Number(e.target.value)/100));
+        document.getElementById('sound-volume').addEventListener('change', () => playCorrectChime());
+        document.getElementById('btn-sound-test').onclick = () => { ensureGameAudio(); playLetterPickSound(3); setTimeout(playCorrectChime,110); };
+        setMasterSoundVolume(masterSoundVolume);
 
         function prepareGame() {
             activeGameMode = 'single';
@@ -63276,7 +63360,7 @@ BLİK
 
         function addCellToPath(r, c, cell) {
             selectedPath.push({ r, c, char: gridBoard[r][c], el: cell });
-            playLetterPickSound();
+            playLetterPickSound(selectedPath.length);
             const selectingAsP1 = mpRole === 'guest' ? false : (mpRole === 'host' ? true : (chosenAvatarId === 'av_1'));
             cell.classList.remove('tile-dragging-p1','tile-dragging-p2');
             cell.classList.add('tile-dragging', selectingAsP1 ? 'tile-dragging-p1' : 'tile-dragging-p2');
@@ -63323,6 +63407,7 @@ BLİK
             }
 
             if (!WORD_SET.has(word)) {
+                playErrorBuzzer();
                 showToast(`${word} (-${pts}) Geçersiz!`, 'rose');
                 adjustScore(isP1 ? -pts : 0, !isP1 ? -pts : 0);
                 clearPath();
@@ -63344,6 +63429,7 @@ BLİK
                         };
                     });
                     if (!tx.committed) {
+                        playErrorBuzzer();
                         showToast(`${word} daha önce bulundu!`, 'rose');
                         clearPath();
                         return;
@@ -63354,6 +63440,7 @@ BLİK
                     return;
                 }
             } else if (sessionFoundWords.has(word)) {
+                playErrorBuzzer();
                 showToast(`${word} daha önce bulundu!`, 'rose');
                 clearPath();
                 return;
@@ -63363,6 +63450,7 @@ BLİK
                 mpFoundWords.host.add(word);
                 mpFoundWords.guest.add(word);
             } else sessionFoundWords.add(word);
+            playCorrectChime();
             showToast(`${word} (+${pts})`, isP1 ? 'amber' : 'sky');
             if (typeof confetti === 'function') confetti({ particleCount: mpRole ? (matchMedia('(pointer:coarse)').matches ? 14 : 20) : (matchMedia('(pointer:coarse)').matches ? 24 : 36), spread: 64, origin: { y: 0.6 } });
 
@@ -63648,6 +63736,67 @@ BLİK
 
 
 
+        function showRoomExitNotice(){
+            let el=document.getElementById('mp-room-exit-notice');
+            if(!el){
+                el=document.createElement('div');
+                el.id='mp-room-exit-notice';
+                el.style.cssText='position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.52);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);pointer-events:auto;';
+                el.innerHTML='<div style="background:#7f1d1d;color:#fff;font-weight:900;font-size:18px;letter-spacing:.06em;padding:16px 24px;border-radius:18px;box-shadow:0 16px 40px rgba(0,0,0,.28)">ÇIKIŞ YAPILDI</div>';
+                document.body.appendChild(el);
+            }
+            el.style.display='flex';
+        }
+
+        function hideRoomExitNotice(){
+            const el=document.getElementById('mp-room-exit-notice');
+            if(el) el.style.display='none';
+        }
+
+        async function handleSynchronizedRoomExit(){
+            if(mpExitHandling) return;
+            mpExitHandling=true;
+            isMatchActive=false;
+            clearInterval(timerInterval); timerInterval=null;
+            clearInterval(mpClock); mpClock=null;
+            clearTimeout(botInterval); botInterval=null;
+            if(pointerFrame){ cancelAnimationFrame(pointerFrame); pointerFrame=0; }
+            isPointerDown=false; pendingPointer=null; activeGridRect=null;
+            try{ clearPath(); }catch(_){ selectedPath=[]; }
+            const presence=mpPresenceRef;
+            if(presence){
+                await presence.set({online:false,clientId:getClientToken(),at:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
+            }
+            showRoomExitNotice();
+            await new Promise(r=>setTimeout(r,1000));
+            returnToHomeFromMultiplayer();
+            hideRoomExitNotice();
+        }
+
+        async function requestSynchronizedRoomExit(){
+            if(!mpRoomRef || !mpRole){
+                return exitCurrentGameToHome();
+            }
+            if(mpExitHandling) return;
+            const ref=mpRoomRef;
+            const signal={
+                id:`${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`,
+                at:serverNow(),
+                by:mpRole
+            };
+            try{
+                await ref.child('roomExit').set(signal);
+                // Sinyal kısa ömürlüdür; eski bir davetle daha sonra giren oyuncuyu etkilemez.
+                setTimeout(()=>ref.child('roomExit').transaction(cur=>cur?.id===signal.id?null:cur).catch(()=>{}),2200);
+                // Firebase value olayı gecikirse gönderen cihaz da aynı UX'i garanti eder.
+                mpLastExitSignalId=signal.id;
+                await handleSynchronizedRoomExit();
+            }catch(e){
+                console.error('Synchronized room exit error',e);
+                await handleSynchronizedRoomExit();
+            }
+        }
+
         async function exitCurrentGameToHome(){
             isMatchActive=false;
             clearInterval(timerInterval); timerInterval=null;
@@ -63678,11 +63827,14 @@ BLİK
             }
         }
 
-        document.getElementById('btn-quick-exit')?.addEventListener('click', exitCurrentGameToHome);
+        document.getElementById('btn-quick-exit')?.addEventListener('click', ()=>{
+            if(activeGameMode==='multi' && mpRoomRef && mpRole) requestSynchronizedRoomExit();
+            else exitCurrentGameToHome();
+        });
 
-        document.getElementById('btn-game-exit')?.addEventListener('click', async()=>{
-            if(mpPresenceRef) await mpPresenceRef.set({online:false,clientId:getClientToken(),at:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
-            returnToHomeFromMultiplayer();
+        document.getElementById('btn-game-exit')?.addEventListener('click', ()=>{
+            if(mpRoomRef && mpRole) requestSynchronizedRoomExit();
+            else returnToHomeFromMultiplayer();
         });
         // v107 — Hafif sözlük: indeks ilk açılışta, harf bazlı sıralama ve kademeli DOM çizimi.
         const btnOpenDictionary = document.getElementById('btn-open-dictionary');
