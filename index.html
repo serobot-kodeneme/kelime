@@ -425,22 +425,16 @@
                     <div class="flex justify-between items-center"><b class="text-sm text-slate-800">👥 ÇOKLU OYUNCU</b><button id="btn-close-friend" class="w-7 h-7 rounded-full bg-slate-100 text-lg font-black text-slate-500 leading-none">×</button></div>
                     <div id="mp-create-view" class="mt-2 space-y-1.5">
                         <button id="btn-create-room" class="w-full min-h-[40px] rounded-xl bg-gradient-to-b from-sky-400 to-blue-600 text-white text-xs font-black shadow-md border border-sky-200">ODA OLUŞTUR</button>
-                        <div class="rounded-lg bg-sky-50 border border-sky-100 px-2.5 py-1.5 text-[10px] font-bold text-sky-900">Odayı kur, bağlantıyı arkadaşına gönder.</div>
+                        <div class="rounded-lg bg-sky-50 border border-sky-100 px-2.5 py-1.5 text-[10px] font-bold text-sky-900">Odayı kur, 6 haneli oda kodunu paylaş.</div>
                         <div class="flex items-center gap-2 py-0.5"><span class="h-px flex-1 bg-slate-200"></span><span class="text-[9px] font-black text-slate-400">VEYA</span><span class="h-px flex-1 bg-slate-200"></span></div>
                         <button id="btn-random-match" class="home-mode-btn w-full min-h-[40px] rounded-xl bg-gradient-to-b from-violet-400 to-indigo-600 text-white text-xs font-black shadow-md border border-violet-200">🎲 RASTGELE RAKİP</button>
                         <div id="mp-random-status" class="hidden rounded-lg bg-violet-50 border border-violet-100 px-2.5 py-1.5 text-[10px] font-bold text-violet-900">Çevrimiçi rakip aranıyor…</div>
                         <div class="rounded-lg bg-slate-50 border border-slate-200 px-2.5 py-1.5 text-[9px] font-bold text-slate-500">Önce gerçek rakip aranır; bulunamazsa AI rakip devreye girer.</div>
                     </div>
                     <div id="mp-room-view" class="hidden mt-2 text-center">
-                        <div class="grid grid-cols-[90px_1fr] gap-2 items-center text-left">
-                            <div>
-                                <div class="text-[9px] font-black text-slate-500 uppercase">ODA KODU</div>
-                                <input id="mp-room-code" readonly value="------" class="mt-0.5 w-full text-center text-base font-black tracking-[.14em] text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-lg py-1.5 select-all cursor-text" />
-                            </div>
-                            <div>
-                                <div class="text-[9px] font-black text-slate-500 uppercase">DAVET BAĞLANTISI</div>
-                                <input id="mp-room-url" readonly value="" class="mt-0.5 w-full text-[9px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 select-all cursor-text" />
-                            </div>
+                        <div class="text-left">
+                            <div class="text-[9px] font-black text-slate-500 uppercase text-center">ODA KODU</div>
+                            <input id="mp-room-code" readonly inputmode="numeric" value="------" class="mt-0.5 w-full text-center text-xl font-black tracking-[.28em] text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-xl py-2 select-all cursor-text" />
                         </div>
                         <div id="mp-status" class="mt-2 rounded-lg bg-slate-100 px-2.5 py-1.5 text-[10px] font-bold text-slate-600">Oda hazırlanıyor…</div>
                         <div class="mt-2 grid grid-cols-3 gap-1.5">
@@ -453,6 +447,12 @@
                 </div>
 
                 <div class="mt-auto pt-3 w-full max-w-sm shrink-0">
+                    <div class="flex justify-end mb-1.5 pr-1" aria-live="polite">
+                        <div class="inline-flex items-center gap-1.5 rounded-full bg-slate-950/70 border border-cyan-300/30 px-2.5 py-1 text-[9px] font-black text-cyan-50 shadow-sm">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_7px_rgba(52,211,153,.85)]"></span>
+                            <span id="online-player-count">0</span><span>çevrimiçi</span>
+                        </div>
+                    </div>
                     <!-- LÖSEV destek alanı: harici görsel yok, hafif CSS kartı -->
                     <a href="https://www.losev.org.tr/tr/bagis" target="_blank" rel="noopener noreferrer" class="home-shortcut block w-full rounded-[20px] bg-gradient-to-r from-rose-50 via-white to-red-50 border-2 border-rose-200 shadow-[0_8px_20px_rgba(127,29,29,.14)] px-4 py-3.5 active:scale-[.99]" aria-label="LÖSEV resmi bağış sayfasını aç">
                         <div class="flex items-center gap-2.5">
@@ -564,7 +564,7 @@
                     </div>
                     <div class="bg-gradient-to-br from-sky-50 to-cyan-100 rounded-3xl p-4 shadow-lg border border-sky-200">
                         <div class="font-black text-sky-950 mb-2">👥 Çoklu Oyun — KAPMACA</div>
-                        <p class="text-xs text-sky-950/80 leading-relaxed">Odayı kuran kişi 1. oyuncu/host olur ve davet bağlantısını arkadaşına gönderir. Bağlantıyla gelen kişi 2. oyuncu/guest olur. İki oyuncu bağlanınca oyun senkronize edilir, 5 saniyelik geri sayımdan sonra aynı tahta üzerinde kapışma başlar.</p>
+                        <p class="text-xs text-sky-950/80 leading-relaxed">Odayı kuran kişi 1. oyuncu/host olur. Sistem o gün için 6 haneli sayısal bir oda kodu verir. Kodu veya davet seçeneğini arkadaşınla paylaşabilirsin. Odaya gelen kişi 2. oyuncu/guest olur. İki oyuncu bağlanınca oyun senkronize edilir, 5 saniyelik geri sayımdan sonra aynı tahta üzerinde kapışma başlar.</p>
                         <div class="mt-2 rounded-2xl bg-white/75 border border-sky-200 p-3 text-[11px] font-bold text-sky-900 leading-relaxed">Kapmaca kuralı: Bir sözcüğü ilk bulan puanı alır. Rakip aynı sözcükten tekrar puan alamaz; fakat o harfleri kullanarak farklı bir sözcük oluşturabilir.</div>
                     </div>
                     <div class="bg-white rounded-3xl p-4 shadow-lg border border-emerald-100">
@@ -62346,7 +62346,7 @@ BLİK
             appId: "1:968159872150:web:c80429010ec21363116eb7"
         };
 
-        const GAME_VERSION='v118';
+        const GAME_VERSION='v120';
         // Firebase tarafında yalnızca dört oyun durumu vardır.
         const MP_STATES = Object.freeze({
             IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
@@ -62358,6 +62358,7 @@ BLİK
         let mpRound=0, mpStartBusy=false, mpRematchBusy=false, mpPresenceRef=null, mpLastRoomMetaSig='';
         let mpSeenWordEvents=new Set(), mpLastBeepSecond=null;
         const mpFoundWords={host:new Set(),guest:new Set()};
+        let globalOnlinePresenceRef=null, globalOnlineListRef=null, globalOnlineListListener=null, onlineSessionId=null;
 
         function setMpState(next){ mpState=next; document.documentElement.dataset.mpState=next; }
         function getClientToken(){
@@ -62369,6 +62370,31 @@ BLİK
             }
             return t;
         }
+        function getOnlineSessionId(){
+            if(onlineSessionId) return onlineSessionId;
+            const a=new Uint32Array(2); crypto.getRandomValues(a);
+            onlineSessionId=getClientToken()+'_'+Array.from(a,n=>n.toString(36)).join('');
+            return onlineSessionId;
+        }
+        function initGlobalOnlinePresence(){
+            if(!mpDb || globalOnlineListListener) return;
+            const connectedRef=mpDb.ref('.info/connected');
+            connectedRef.on('value',async snap=>{
+                if(snap.val()!==true) return;
+                globalOnlinePresenceRef=mpDb.ref('onlinePlayers/'+getOnlineSessionId());
+                try{
+                    await globalOnlinePresenceRef.set({clientId:getClientToken(),at:firebase.database.ServerValue.TIMESTAMP});
+                    await globalOnlinePresenceRef.onDisconnect().remove();
+                }catch(e){}
+            });
+            globalOnlineListRef=mpDb.ref('onlinePlayers');
+            globalOnlineListListener=globalOnlineListRef.on('value',snap=>{
+                let count=0; snap.forEach(()=>{count++;});
+                const el=document.getElementById('online-player-count');
+                if(el) el.textContent=String(count);
+            });
+        }
+
         function ensureFirebase(){
             if(mpDb) return true;
             if(!window.firebase){ showToast('Firebase yüklenemedi. İnternet bağlantını kontrol et.','rose'); return false; }
@@ -62391,10 +62417,27 @@ BLİK
             });
         }
         function serverNow(){ return Date.now()+mpServerOffset; }
-        function makeRoomCode(){
-            const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-            const r=new Uint32Array(6); crypto.getRandomValues(r);
-            return Array.from(r,n=>chars[n%chars.length]).join('');
+        function turkeyRoomDayInfo(ts=serverNow()){
+            // Türkiye sabit UTC+3 kullanır. Oda kodları her gün 00:00'da yeniden 111111'den başlar.
+            const shifted=new Date(ts+3*60*60*1000);
+            const y=shifted.getUTCFullYear(), m=shifted.getUTCMonth(), d=shifted.getUTCDate();
+            const dayKey=String(y)+String(m+1).padStart(2,'0')+String(d).padStart(2,'0');
+            const expiresAt=Date.UTC(y,m,d+1,0,0,0)-3*60*60*1000;
+            return {dayKey,expiresAt};
+        }
+        async function allocateDailyRoomCode(){
+            if(!mpDb) throw new Error('firebase-not-ready');
+            const {dayKey,expiresAt}=turkeyRoomDayInfo();
+            const counterRef=mpDb.ref('meta/dailyRoomCounters/'+dayKey);
+            const tx=await counterRef.transaction(current=>{
+                let n=Number(current);
+                if(!Number.isInteger(n) || n<111110) n=111110;
+                if(n>=999999) return;
+                return n+1;
+            });
+            if(!tx.committed) throw new Error('daily-room-code-limit');
+            const code=String(Number(tx.snapshot.val())).padStart(6,'0');
+            return {code,dayKey,expiresAt};
         }
         function inviteUrl(code){
             const u=new URL(location.href); u.searchParams.set('room',code); u.searchParams.delete('join'); u.searchParams.delete('as'); u.hash=''; return u.toString();
@@ -62409,7 +62452,6 @@ BLİK
             document.getElementById('mp-create-view')?.classList.add('hidden');
             document.getElementById('mp-room-view')?.classList.remove('hidden');
             const c=document.getElementById('mp-room-code'); if(c)c.value=code;
-            const url=document.getElementById('mp-room-url'); if(url)url.value=inviteUrl(code);
             const st=document.getElementById('mp-status'); if(st)st.innerText=status;
         }
         async function markPresence(){
@@ -62460,15 +62502,12 @@ BLİK
             if(btn){ btn.disabled=false; btn.innerText='🎲 RASTGELE RAKİP'; }
         }
         async function createRandomMatchedRoom(hostId,guestId){
-            let code='',ref=null;
-            for(let i=0;i<12;i++){
-                const candidate=makeRoomCode(), candidateRef=mpDb.ref('rooms/'+candidate);
-                if(!(await candidateRef.once('value')).exists()){ code=candidate; ref=candidateRef; break; }
-            }
-            if(!code) throw new Error('random-room-create-failed');
+            const alloc=await allocateDailyRoomCode();
+            const code=alloc.code, ref=mpDb.ref('rooms/'+code);
             const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board);
             await ref.set({
-                schema:13, mode:'random-match-v1', createdAt:firebase.database.ServerValue.TIMESTAMP,
+                schema:14, mode:'random-match-v2', createdAt:firebase.database.ServerValue.TIMESTAMP,
+                dayKey:alloc.dayKey, expiresAt:alloc.expiresAt,
                 hostId, guestId, status:'waiting', round:1,
                 board:readyBoard.board, startAt:0,
                 scores:{host:0,guest:0}, words:{},
@@ -62612,17 +62651,16 @@ BLİK
 
         async function createRoom(){
             if(!await waitFirebaseConnected()){ showToast('Sunucuya bağlanılamadı. İnternet bağlantını kontrol et.','rose'); return; }
-            let code='',ref=null;
-            for(let i=0;i<12;i++){
-                const candidate=makeRoomCode(); const candidateRef=mpDb.ref('rooms/'+candidate);
-                if(!(await candidateRef.once('value')).exists()){ code=candidate; ref=candidateRef; break; }
-            }
-            if(!code){ showToast('Oda oluşturulamadı. Tekrar dene.','rose'); return; }
+            let alloc;
+            try{ alloc=await allocateDailyRoomCode(); }
+            catch(e){ showToast('Günlük oda kodu oluşturulamadı. Tekrar dene.','rose'); return; }
+            const code=alloc.code, ref=mpDb.ref('rooms/'+code);
 
             const hostId=getClientToken();
             const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board);
             await ref.set({
-                schema:12, mode:'invite-only-v1', createdAt:firebase.database.ServerValue.TIMESTAMP,
+                schema:14, mode:'invite-only-v2', createdAt:firebase.database.ServerValue.TIMESTAMP,
+                dayKey:alloc.dayKey, expiresAt:alloc.expiresAt,
                 hostId, guestId:null, status:'waiting', round:1,
                 board:readyBoard.board, startAt:0,
                 scores:{host:0,guest:0}, words:{},
@@ -62632,7 +62670,7 @@ BLİK
 
             mpRoomCode=code; mpRole='host'; mpRoomRef=ref; mpRoomData=null; mpRound=1; mpEntered=false; mpStarted=false; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId='';
             setRoomUrl(code); await markPresence();
-            setMpPanelRoom(code,'1. oyuncusun. Davet bağlantısını arkadaşına gönder; 2. oyuncu gelince oyun otomatik başlayacak.');
+            setMpPanelRoom(code,'1. oyuncusun. 6 haneli oda kodunu paylaş; 2. oyuncu gelince oyun otomatik başlayacak.');
             document.getElementById('btn-close-room')?.classList.remove('hidden');
             document.getElementById('btn-enter-room')?.classList.remove('hidden');
             setMpState(MP_STATES.WAITING);
@@ -62640,12 +62678,19 @@ BLİK
         }
 
         async function joinRoom(code){
-            code=(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
+            code=String(code||'').replace(/\D/g,'').slice(0,6);
+            if(!/^\d{6}$/.test(code)) return false;
             if(!code) return false;
             if(!await waitFirebaseConnected()){ showToast('Sunucuya bağlanılamadı.','rose'); return false; }
             const ref=mpDb.ref('rooms/'+code); const snap=await ref.once('value');
             if(!snap.exists()){ showToast('Davet odası bulunamadı veya kapatılmış.','rose'); clearInviteFromUrl(); return false; }
             const d=snap.val()||{}; const clientId=getClientToken();
+            const today=turkeyRoomDayInfo();
+            if(d.dayKey!==today.dayKey || Number(d.expiresAt||0)<=serverNow()){
+                showToast('Bu oda kodunun süresi dolmuş. Yeni bir oda oluştur.','rose');
+                clearInviteFromUrl();
+                return false;
+            }
             let role=null;
             if(d.hostId===clientId){
                 role='host';
@@ -62834,7 +62879,7 @@ BLİK
                         if(!d.guestId || !isOnline(d.presence?.guest)){
                             if(mpEntered) document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
                             else document.getElementById('modal-mp-waiting')?.classList.add('hidden');
-                            const st=document.getElementById('mp-status'); if(st)st.innerText='2. oyuncunun davet bağlantısıyla bağlanması bekleniyor…';
+                            const st=document.getElementById('mp-status'); if(st)st.innerText='2. oyuncunun odaya katılması bekleniyor…';
                         }else{
                             document.getElementById('modal-mp-waiting')?.classList.add('hidden');
                             const st=document.getElementById('mp-status'); if(st)st.innerText='2. oyuncu bağlandı ✓ Oyun hazırlanıyor…';
@@ -63019,7 +63064,7 @@ BLİK
             if(!mpRoomCode)return;
             try{
                 await navigator.clipboard.writeText(inviteUrl(mpRoomCode));
-                document.getElementById('mp-status').innerText='Bağlantı kopyalandı ✓ Arkadaşını bekliyorsun.';
+                document.getElementById('mp-status').innerText='Davet bağlantısı kopyalandı ✓ Arkadaşını bekliyorsun.';
                 showToast('Oda bağlantısı kopyalandı.','emerald');
             }catch(e){ showToast('Bağlantı kopyalanamadı.','rose'); }
         };
@@ -63053,8 +63098,9 @@ BLİK
         document.getElementById('btn-countdown-fullscreen')?.addEventListener('click',()=>requestGameFullscreen(false));
 
         window.addEventListener('load',async()=>{
+            if(window.firebase && ensureFirebase()) initGlobalOnlinePresence();
             const u=new URL(location.href);
-            const code=(u.searchParams.get('room')||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
+            const code=String(u.searchParams.get('room')||'').replace(/\D/g,'').slice(0,6);
             if(!code) return;
             armInviteFullscreen();
             document.getElementById('screen-game')?.classList.add('hidden');
@@ -63078,7 +63124,7 @@ BLİK
 
         document.getElementById('btn-close-room').onclick=async()=>{
             if(!mpRoomRef || mpRole!=='host') return;
-            if(!confirm('Bu oda kapatılsın mı? Davet bağlantısı artık çalışmayacak.')) return;
+            if(!confirm('Bu oda kapatılsın mı? Oda kodu ve davet bağlantısı artık çalışmayacak.')) return;
             try{
                 const snap=await mpRoomRef.once('value'),d=snap.val();
                 if(!d || d.hostId!==getClientToken()){ showToast('Bu odayı yalnızca kurucusu kapatabilir.','rose'); return; }
