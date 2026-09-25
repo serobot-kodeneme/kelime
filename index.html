@@ -8,8 +8,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Kelime Düellosu v134-stable - 9x9 Akıllı Tahta</title>
-    <meta name="game-version" content="v134-stable">
+    <title>Kelime Düellosu v135-stable - 9x9 Akıllı Tahta</title>
+    <meta name="game-version" content="v135-stable">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -62368,6 +62368,8 @@ BLİK
         let timerInterval = null;
         let botInterval = null;
         let isPointerDown = false;
+        let pointerHoldStartedAt = 0;
+        const HOLD_CANCEL_MS = 4000;
 
         // ================= OYUN SESLERİ (Web Audio, harici dosya yok) =================
         let gameAudioCtx = null;
@@ -62458,7 +62460,7 @@ BLİK
             appId: "1:968159872150:web:c80429010ec21363116eb7"
         };
 
-        const GAME_VERSION='v134-stable';
+        const GAME_VERSION='v135-stable';
         // Firebase tarafında yalnızca dört oyun durumu vardır.
         const MP_STATES = Object.freeze({
             IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', SUDDEN:'sudden', FINISHED:'finished'
@@ -63416,7 +63418,7 @@ if(d.status==='countdown'){
             clearInterval(timerInterval); timerInterval=null;
             clearTimeout(botInterval); botInterval=null;
             if(pointerFrame){ cancelAnimationFrame(pointerFrame); pointerFrame=0; }
-            isPointerDown=false; pendingPointer=null; activeGridRect=null; isMatchActive=false;
+            isPointerDown=false; pointerHoldStartedAt=0; pendingPointer=null; activeGridRect=null; isMatchActive=false;
             try{ clearPath(); }catch(_){ selectedPath=[]; }
             mpEntered=false; mpStarted=false; mpStartBusy=false; mpRematchBusy=false;
             mpRoomRef=null; mpRoomCode=null; mpRole=null; mpRoomData=null; mpPresenceRef=null; mpRound=0; mpLastRoomMetaSig='';
@@ -63957,6 +63959,7 @@ if(d.status==='countdown'){
             e.preventDefault();
             ensureGameAudio();
             isPointerDown = true;
+            pointerHoldStartedAt = performance.now();
             activeGridRect = gridEl.getBoundingClientRect(); // sürükleme boyunca yalnızca bir kez ölç
             gridEl.classList.add('is-grabbing');
             try { gridEl.setPointerCapture(e.pointerId); } catch (_) {}
@@ -63984,14 +63987,22 @@ if(d.status==='countdown'){
 
         const finishPointer = (e, shouldSubmit = true) => {
             if (!isPointerDown) return;
-            // Son hareket karesi henüz işlenmediyse parmağın/farenin bırakıldığı noktayı da hesaba kat.
-            if (shouldSubmit && activeGridRect) processPointerAt(e.clientX, e.clientY, activeGridRect);
+            const heldMs = pointerHoldStartedAt ? (performance.now() - pointerHoldStartedAt) : 0;
+            const cancelForLongHold = shouldSubmit && heldMs >= HOLD_CANCEL_MS;
+            // 4 saniye veya daha uzun basılı tutulduysa seçim cezasız iptal edilir.
+            // Normal bırakışta son temas noktası da seçime dahil edilmeye devam eder.
+            if (shouldSubmit && !cancelForLongHold && activeGridRect) processPointerAt(e.clientX, e.clientY, activeGridRect);
             isPointerDown = false;
+            pointerHoldStartedAt = 0;
             pendingPointer = null;
             activeGridRect = null;
             if (pointerFrame) { cancelAnimationFrame(pointerFrame); pointerFrame = 0; }
             gridEl.classList.remove('is-grabbing');
             try { gridEl.releasePointerCapture(e.pointerId); } catch(err) {}
+            if (cancelForLongHold) {
+                clearPath();
+                return;
+            }
             if (shouldSubmit && selectedPath.length) submitWord();
             else clearPath();
         };
@@ -64441,7 +64452,7 @@ if(d.status==='countdown'){
             clearInterval(mpClock); mpClock=null;
             clearTimeout(botInterval); botInterval=null;
             if(pointerFrame){ cancelAnimationFrame(pointerFrame); pointerFrame=0; }
-            isPointerDown=false; pendingPointer=null; activeGridRect=null;
+            isPointerDown=false; pointerHoldStartedAt=0; pendingPointer=null; activeGridRect=null;
             try{ clearPath(); }catch(_){ selectedPath=[]; }
             const presence=mpPresenceRef;
             if(presence){
@@ -64483,7 +64494,7 @@ if(d.status==='countdown'){
             clearInterval(mpClock); mpClock=null;
             clearTimeout(botInterval); botInterval=null;
             if(pointerFrame){ cancelAnimationFrame(pointerFrame); pointerFrame=0; }
-            isPointerDown=false; pendingPointer=null; activeGridRect=null;
+            isPointerDown=false; pointerHoldStartedAt=0; pendingPointer=null; activeGridRect=null;
             try{ clearPath(); }catch(_){ selectedPath=[]; }
 
             document.getElementById('modal-countdown')?.classList.add('hidden');
