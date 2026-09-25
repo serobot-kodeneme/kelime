@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v167-tile-lift</title>
-<meta name="game-version" content="v167-tile-lift">
+<title>Kelime Düellosu v168-timer-confetti</title>
+<meta name="game-version" content="v168-timer-confetti">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -287,11 +287,10 @@ border-radius: 11px !important;
 .score-orb { width:50px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex:none; font-size:17px; line-height:1; font-weight:1000; box-shadow:0 3px 9px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.22); border:2px solid rgba(255,255,255,.18); }
 .score-orb-p1 { background:#facc15; color:#4a2b12; border-color:#fde68a; }
 .score-orb-p2 { background:#0b3a67; color:#ffffff; border-color:#60a5fa; }
-.compact-timer { display:flex; flex-direction:column; align-items:center; justify-content:center; width:52px; height:52px; min-width:52px; border-radius:9px; background:#16a34a; border:2px solid rgba(255,255,255,.65); box-shadow:0 4px 12px rgba(15,23,42,.22),inset 0 1px 0 rgba(255,255,255,.22); transition:background-color .22s ease,border-color .22s ease,box-shadow .22s ease; }
-.compact-timer.timer-orange{background:#f97316;border-color:#fed7aa;box-shadow:0 4px 12px rgba(154,52,18,.28),inset 0 1px 0 rgba(255,255,255,.22);}
-.compact-timer.timer-red{background:#dc2626;border-color:#fecaca;box-shadow:0 4px 12px rgba(127,29,29,.34),inset 0 1px 0 rgba(255,255,255,.22);}
-.timer-label { color:#fff; font-size:7px; line-height:8px; font-weight:900; letter-spacing:.12em; opacity:.92; }
-#compact-game-header #game-timer { color:#fff; font-size:27px; line-height:27px; font-weight:1000; text-shadow:0 1px 2px rgba(0,0,0,.22); }
+.compact-timer { display:flex; flex-direction:column; align-items:center; justify-content:center; width:56px; height:56px; min-width:56px; border-radius:10px; background:#ef4444; border:2px solid #fecaca; box-shadow:0 5px 14px rgba(127,29,29,.28),inset 0 1px 0 rgba(255,255,255,.28); }
+.compact-timer.timer-orange,.compact-timer.timer-red{background:#ef4444;border-color:#fecaca;box-shadow:0 5px 14px rgba(127,29,29,.28),inset 0 1px 0 rgba(255,255,255,.28);}
+.timer-label { color:#fff; font-size:7px; line-height:8px; font-weight:900; letter-spacing:.12em; opacity:.95; }
+#compact-game-header #game-timer { color:#fff !important; font-size:29px; line-height:29px; font-weight:1000; text-shadow:0 1px 2px rgba(127,29,29,.36); }
 #p1-score-chip{margin-left:0;margin-right:1px;}
 #p2-score-chip{margin-right:0;margin-left:1px;}
 #compact-game-header .compact-player:nth-of-type(1){padding-right:2px;}
@@ -307,7 +306,7 @@ border-radius: 11px !important;
 .compact-score { font-size:14px !important; line-height:14px !important; }
 .score-orb { width:46px; height:32px; border-radius:8px; font-size:16px; }
 #compact-game-header #game-timer { font-size:24px !important; line-height:24px !important; }
-.compact-timer{width:47px;height:47px;min-width:47px;border-radius:8px;}
+.compact-timer{width:51px;height:51px;min-width:51px;border-radius:9px;}
 #words-ticker { min-height:18px; }
 #scrabble-grid { width:min(calc(100vw - 6px), calc(100dvh - 190px), 440px) !important; max-width:none !important; }
 #mobile-word-status { min-height:24px !important; margin-top:0 !important; margin-bottom:4px !important; padding-top:2px !important; padding-bottom:2px !important; }
@@ -317,7 +316,7 @@ border-radius: 11px !important;
 #compact-game-header { min-height:43px; }
 .compact-avatar { width:19px !important; height:19px !important; font-size:9px !important; }
 #compact-game-header #game-timer { font-size:22px !important; line-height:22px !important; }
-.compact-timer{width:43px;height:43px;min-width:43px;border-radius:7px;}
+.compact-timer{width:47px;height:47px;min-width:47px;border-radius:8px;}
 .score-orb { width:42px; height:29px; border-radius:7px; font-size:14px; }
 #scrabble-grid { width:min(calc(100vw - 6px), calc(100dvh - 170px), 440px) !important; }
 }
@@ -39647,11 +39646,6 @@ if(!el)return;
 const sec=Math.max(0,Math.ceil(Number(seconds)||0));
 el.textContent=sec;
 el.classList.toggle('timer-warning',sec<=10);
-const box=el.closest('.compact-timer');
-if(box){
-box.classList.toggle('timer-orange',sec<=20&&sec>10);
-box.classList.toggle('timer-red',sec<=10);
-}
 }
 
 let timerInterval = null;
@@ -39790,7 +39784,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v167-tile-lift';
+const GAME_VERSION='v168-timer-confetti';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -40296,7 +40290,7 @@ const heading=document.getElementById('gameover-heading'),p1NameEl=document.getE
 const c1=document.getElementById('final-p1-card'),c2=document.getElementById('final-p2-card');[c1,c2].forEach(c=>{if(c){c.style.transform='';c.style.filter='';c.style.background='';c.style.borderRadius='';c.style.padding='';}});
 if(d.finalWinner==='host'){if(c1){c1.style.transform='scale(1.05)';c1.style.background='rgba(254,243,199,.9)';c1.style.borderRadius='16px';c1.style.padding='6px';}if(c2)c2.style.filter='saturate(.7) opacity(.82)';heading.textContent=`${p1Name} KAZANDI! 🏆`;p1NameEl?.classList.add('winner-pulse','winner-name-big');p1ScoreEl?.classList.add('winner-pulse');launchGrandCelebration('p1');}
 else if(d.finalWinner==='guest'){if(c2){c2.style.transform='scale(1.05)';c2.style.background='rgba(224,242,254,.92)';c2.style.borderRadius='16px';c2.style.padding='6px';}if(c1)c1.style.filter='saturate(.7) opacity(.82)';heading.textContent=`${p2Name} KAZANDI! 🏆`;p2NameEl?.classList.add('winner-pulse','winner-name-big');p2ScoreEl?.classList.add('winner-pulse');launchGrandCelebration('p2');}
-else {heading.textContent='BERABERE! 🤝'; spawnHighResultPartyFx();}
+else {heading.textContent='BERABERE! 🤝'; spawnHighResultPartyFx(); launchLightResultConfetti(0.5);}
 const replay=document.getElementById('btn-play-again');if(replay){replay.disabled=false;replay.textContent='YENİDEN OYNA';replay.classList.remove('hidden');}
 renderRematchState(d);
 scheduleBoardPrewarm();
@@ -41420,13 +41414,20 @@ fx.appendChild(s);
 modal.appendChild(fx); setTimeout(()=>fx.remove(),4300);
 }
 
+function launchLightResultConfetti(originX=0.5){
+if(typeof confetti!=='function') return;
+const coarse=matchMedia('(pointer:coarse)').matches;
+confetti({particleCount:coarse?18:26,spread:64,startVelocity:25,gravity:0.9,scalar:0.78,origin:{x:originX,y:0.58},zIndex:999});
+}
+
 function launchGrandCelebration(winnerSide=null) {
 spawnHighResultPartyFx();
+const baseX = winnerSide==='p1' ? 0.22 : winnerSide==='p2' ? 0.78 : 0.5;
+launchLightResultConfetti(baseX);
 if (typeof confetti !== 'function') return;
 const high=graphicsQuality==='high';
 const duration = (mpRole ? (high?4.0:2.6) : (high?5.0:3.6)) * 1000;
 const animationEnd = Date.now() + duration;
-const baseX = winnerSide==='p1' ? 0.22 : winnerSide==='p2' ? 0.78 : 0.5;
 const interval = setInterval(function() {
 const timeLeft = animationEnd - Date.now();
 if (timeLeft <= 0) return clearInterval(interval);
@@ -41532,7 +41533,7 @@ const c1=document.getElementById('final-p1-card'),c2=document.getElementById('fi
 [c1,c2].forEach(c=>{if(c){c.style.transform='';c.style.filter='';c.style.background='';c.style.borderRadius='';c.style.padding='';}});
 if(p1Score>p2Score){if(c1){c1.style.transform='scale(1.05)';c1.style.background='rgba(254,243,199,.9)';c1.style.borderRadius='16px';c1.style.padding='6px';}if(c2)c2.style.filter='saturate(.7) opacity(.82)'; heading.textContent=`${p1Name} KAZANDI! 🏆`; p1NameEl?.classList.add('winner-pulse','winner-name-big'); p1ScoreEl?.classList.add('winner-pulse'); launchGrandCelebration('p1'); }
 else if(p2Score>p1Score){if(c2){c2.style.transform='scale(1.05)';c2.style.background='rgba(224,242,254,.92)';c2.style.borderRadius='16px';c2.style.padding='6px';}if(c1)c1.style.filter='saturate(.7) opacity(.82)'; heading.textContent=`${p2Name} KAZANDI! 🏆`; p2NameEl?.classList.add('winner-pulse','winner-name-big'); p2ScoreEl?.classList.add('winner-pulse'); launchGrandCelebration('p2'); }
-else {heading.textContent='BERABERE! 🤝'; spawnHighResultPartyFx();}
+else {heading.textContent='BERABERE! 🤝'; spawnHighResultPartyFx(); launchLightResultConfetti(0.5);}
 scheduleBoardPrewarm();
 }
 
