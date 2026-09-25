@@ -63577,7 +63577,8 @@ BLİK
         // ================= AYNI TAHTADAKİ HARFLERİ KULLANAN BOT =================
         function planBot() {
             if (!isMatchActive) return;
-            const delay = botDiffLevel === 'expert' ? 2600 : botDiffLevel === 'hard' ? 4500 : botDiffLevel === 'medium' ? 7000 : 10000;
+            // v114: bot biraz daha seri; özellikle Orta/Zor/Uzman maçları daha çekişmeli.
+            const delay = botDiffLevel === 'expert' ? 2200 : botDiffLevel === 'hard' ? 3800 : botDiffLevel === 'medium' ? 6000 : 9000;
             
             botInterval = setTimeout(() => {
                 if (!isMatchActive) return;
@@ -63587,13 +63588,25 @@ BLİK
                 if (available.length > 0) {
                     let targetPool = available;
                     if (botDiffLevel === 'easy') targetPool = available.filter(w => w.word.length <= 3);
-                    else if (botDiffLevel === 'medium') targetPool = available.filter(w => w.word.length <= 4);
-                    else if (botDiffLevel === 'hard') targetPool = available.filter(w => w.word.length >= 3 && w.word.length <= 5);
+                    else if (botDiffLevel === 'medium') targetPool = available.filter(w => w.word.length >= 2 && w.word.length <= 5);
+                    else if (botDiffLevel === 'hard') targetPool = available.filter(w => w.word.length >= 3 && w.word.length <= 6);
                     else if (botDiffLevel === 'expert') targetPool = available.filter(w => w.word.length >= 4);
 
                     if (targetPool.length === 0) targetPool = available;
 
-                    const matchObj = targetPool[Math.floor(Math.random() * targetPool.length)];
+                    // Tamamen rastgele oynamak yerine zorluk arttıkça daha iyi kelime seçme ihtimali yükselir.
+                    const ranked = targetPool.map(item => ({
+                        item,
+                        score: item.word.split('').reduce((sum, ch) => sum + (TILE_SCORES[ch] || 1), 0)
+                    })).sort((a,b) => b.score - a.score || b.item.word.length - a.item.word.length);
+                    const focusChance = botDiffLevel === 'expert' ? 0.78 : botDiffLevel === 'hard' ? 0.62 : botDiffLevel === 'medium' ? 0.38 : 0.12;
+                    let matchObj;
+                    if (Math.random() < focusChance) {
+                        const topCount = Math.max(1, Math.min(ranked.length, botDiffLevel === 'expert' ? 5 : botDiffLevel === 'hard' ? 7 : 9));
+                        matchObj = ranked[Math.floor(Math.random() * topCount)].item;
+                    } else {
+                        matchObj = targetPool[Math.floor(Math.random() * targetPool.length)];
+                    }
                     const word = matchObj.word;
                     const pts = word.split('').reduce((s, c) => s + (TILE_SCORES[c] || 1), 0);
                     const botIsP2 = (chosenAvatarId === 'av_1');
