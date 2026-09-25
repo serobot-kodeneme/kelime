@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v161-core-clean</title>
-<meta name="game-version" content="v161-core-clean">
+<title>Kelime Düellosu v163-header-fix</title>
+<meta name="game-version" content="v163-header-fix">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -185,6 +185,7 @@ white-space: nowrap;
 #selected-word-preview{
   min-width:0;
   width:100%;
+  min-height:27px;
   display:flex;
   flex-direction:row;
   flex-wrap:nowrap;
@@ -223,6 +224,10 @@ white-space: nowrap;
   .letter-cell.selected-preview-tile{width:22px!important;height:22px!important;min-width:22px!important;min-height:22px!important;flex-basis:22px!important;font-size:12px!important}
 }
 
+
+#selected-preview-bar{position:relative;}
+#selected-preview-bar::before{content:"SEÇİLEN";position:absolute;left:7px;top:50%;transform:translateY(-50%);font-size:6px;font-weight:900;letter-spacing:.12em;color:#64748b;pointer-events:none;}
+@media(max-width:360px){#selected-preview-bar::before{display:none;}}
 @media (max-width: 600px), (max-height: 760px) {
 #screen-game > header {
 padding: 4px 8px 3px !important;
@@ -272,7 +277,7 @@ border-radius: 11px !important;
 #scrabble-grid { width: min(100%, calc(100dvh - 184px)) !important; }
 }
 
-#compact-game-header { min-height: 52px; grid-template-columns:minmax(0,1fr) auto auto auto minmax(0,1fr) !important; }
+#compact-game-header { min-height:52px; grid-template-columns:auto minmax(0,1fr) auto minmax(0,1fr) auto !important; column-gap:5px !important; }
 .compact-player { display:flex; flex-direction:column; min-width:0; max-width:132px; }
 .compact-identity { display:flex; align-items:center; gap:5px; min-width:0; }
 .compact-avatar { width:27px; height:27px; border-width:2px; border-style:solid; border-radius:9999px; display:flex; align-items:center; justify-content:center; overflow:hidden; flex:none; font-size:13px; box-shadow:0 2px 7px rgba(0,0,0,.28); }
@@ -282,9 +287,13 @@ border-radius: 11px !important;
 .score-orb { width:42px; height:42px; border-radius:9999px; display:flex; align-items:center; justify-content:center; flex:none; font-size:17px; line-height:1; font-weight:1000; box-shadow:0 4px 12px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.24); border:2px solid rgba(255,255,255,.18); }
 .score-orb-p1 { background:#facc15; color:#4a2b12; border-color:#fde68a; }
 .score-orb-p2 { background:#0b3a67; color:#ffffff; border-color:#60a5fa; }
-.compact-timer { display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:54px; }
-.timer-label { color:#94a3b8; font-size:7px; line-height:8px; font-weight:900; letter-spacing:.14em; }
-#compact-game-header #game-timer { color:white; font-size:23px; line-height:23px; font-weight:1000; }
+.compact-timer { display:flex; flex-direction:column; align-items:center; justify-content:center; width:44px; height:44px; min-width:44px; border-radius:8px; background:#dc2626; border:2px solid #fca5a5; box-shadow:0 4px 12px rgba(127,29,29,.35),inset 0 1px 0 rgba(255,255,255,.22); }
+.timer-label { color:#fee2e2; font-size:6px; line-height:7px; font-weight:900; letter-spacing:.12em; }
+#compact-game-header #game-timer { color:#fff; font-size:22px; line-height:22px; font-weight:1000; text-shadow:0 1px 2px rgba(0,0,0,.22); }
+#p1-score-chip{margin-left:0;margin-right:1px;}
+#p2-score-chip{margin-right:0;margin-left:1px;}
+#compact-game-header .compact-player:nth-of-type(1){padding-right:2px;}
+#compact-game-header .compact-player:nth-of-type(2){padding-left:2px;}
 #screen-game > div:last-child { align-items:center; }
 #scrabble-grid { aspect-ratio:1 / 1 !important; height:auto !important; }
 #mobile-word-status { max-width:430px; margin-left:auto; margin-right:auto; flex:none; }
@@ -295,7 +304,8 @@ border-radius: 11px !important;
 .compact-name { font-size:8px !important; line-height:9px !important; max-width:82px; }
 .compact-score { font-size:14px !important; line-height:14px !important; }
 .score-orb { width:38px; height:38px; font-size:16px; }
-#compact-game-header #game-timer { font-size:21px !important; line-height:21px !important; }
+#compact-game-header #game-timer { font-size:20px !important; line-height:20px !important; }
+.compact-timer{width:40px;height:40px;min-width:40px;border-radius:7px;}
 #words-ticker { min-height:18px; }
 #scrabble-grid { width:min(calc(100vw - 6px), calc(100dvh - 190px), 440px) !important; max-width:none !important; }
 #mobile-word-status { min-height:24px !important; margin-top:0 !important; margin-bottom:4px !important; padding-top:2px !important; padding-bottom:2px !important; }
@@ -304,7 +314,8 @@ border-radius: 11px !important;
 @media (max-height:680px) {
 #compact-game-header { min-height:43px; }
 .compact-avatar { width:22px !important; height:22px !important; font-size:11px !important; }
-#compact-game-header #game-timer { font-size:19px !important; line-height:19px !important; }
+#compact-game-header #game-timer { font-size:18px !important; line-height:18px !important; }
+.compact-timer{width:36px;height:36px;min-width:36px;border-radius:6px;}
 .score-orb { width:34px; height:34px; font-size:14px; }
 #scrabble-grid { width:min(calc(100vw - 6px), calc(100dvh - 170px), 440px) !important; }
 }
@@ -314,9 +325,19 @@ border-radius: 11px !important;
 #screen-game { overscroll-behavior: none; }
 
 .score-fly { position: fixed; z-index: 90; pointer-events:none; font-weight:900; font-size:18px;
-transform: translate3d(0,0,0) scale(.9); opacity:1; transition: transform .72s cubic-bezier(.2,.8,.2,1), opacity .72s ease;
+transform: translate3d(0,0,0) scale(.9); opacity:.76; transition: transform .72s cubic-bezier(.2,.8,.2,1), opacity .72s ease;
 text-shadow:0 2px 8px rgba(0,0,0,.28); will-change:transform,opacity; }
 .score-fly.go { transform: translate3d(var(--dx),var(--dy),0) scale(1.22); opacity:0; }
+
+
+.game-bottom-controls{width:min(100%,580px);max-width:580px;margin:12px auto 6px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none}
+.game-bottom-controls button{width:auto;min-width:120px;margin:0!important;padding:8px 14px!important;border-radius:12px!important;font-size:10px!important;line-height:14px;font-weight:1000;letter-spacing:.10em;box-shadow:0 4px 10px rgba(0,0,0,.18)}
+#btn-quick-exit{background:#dc2626!important;border-color:#ef4444!important;color:#fff!important}
+#btn-quick-exit:hover{background:#b91c1c!important}
+#btn-fullscreen-game{background:#2563eb!important;border-color:#60a5fa!important;color:#fff!important}
+#btn-fullscreen-game:hover{background:#1d4ed8!important}
+@media (max-width:520px){.game-bottom-controls{width:min(calc(100vw - 10px),440px);margin-top:10px;gap:8px}.game-bottom-controls button{min-width:108px;padding:7px 11px!important;font-size:9px!important}}
+#toast-layer .floating-toast{opacity:.78;backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px)}
 
 #scrabble-grid {
 width: min(100%, 580px);
@@ -697,28 +718,28 @@ body.graphics-high #gameover-heading{animation:highWinnerBounce .85s ease-in-out
 <div id="toast-layer" class="absolute inset-0 pointer-events-none z-50 overflow-hidden"></div>
 
 <header id="compact-game-header" class="grid items-center bg-slate-950 w-full px-2 py-1 shrink-0 shadow-lg border-b border-slate-800 z-10 gap-1.5">
-<div class="compact-player justify-self-start">
+<div id="p1-score-chip" class="score-orb score-orb-p1 justify-self-start" aria-label="1. oyuncu puanı"><span id="p1-score-val">0</span></div>
+
+<div class="compact-player justify-self-end items-end">
 <div class="compact-identity">
 <div id="p1-avatar-box" class="compact-avatar bg-yellow-200 border-yellow-400">👑</div>
-<div id="p1-title" class="compact-name text-amber-200">1. OYUNCU</div>
+<div id="p1-title" class="compact-name text-amber-200 text-right">1. OYUNCU</div>
 </div>
 </div>
-
-<div id="p1-score-chip" class="score-orb score-orb-p1 justify-self-end" aria-label="1. oyuncu puanı"><span id="p1-score-val">0</span></div>
 
 <div class="compact-timer justify-self-center">
 <span class="timer-label">SÜRE</span>
 <div id="game-timer">60</div>
 </div>
 
-<div id="p2-score-chip" class="score-orb score-orb-p2 justify-self-start" aria-label="2. oyuncu puanı"><span id="p2-score-val">0</span></div>
-
-<div class="compact-player justify-self-end items-end">
+<div class="compact-player justify-self-start">
 <div class="compact-identity flex-row-reverse">
 <div id="p2-avatar-box" class="compact-avatar bg-sky-200 border-sky-400">⚔️</div>
-<div id="p2-title" class="compact-name text-sky-200 text-right">2. OYUNCU</div>
+<div id="p2-title" class="compact-name text-sky-200">2. OYUNCU</div>
 </div>
 </div>
+
+<div id="p2-score-chip" class="score-orb score-orb-p2 justify-self-end" aria-label="2. oyuncu puanı"><span id="p2-score-val">0</span></div>
 </header>
 
 <div class="w-full bg-slate-900 flex items-center h-6 px-2 shrink-0 border-b border-slate-800">
@@ -726,7 +747,7 @@ body.graphics-high #gameover-heading{animation:highWinnerBounce .85s ease-in-out
 <div id="words-ticker" class="flex flex-row flex-nowrap items-center gap-1 overflow-x-auto w-full hide-scroll whitespace-nowrap"></div>
 </div>
 
-<div class="w-full h-7 flex items-center justify-center bg-slate-950 shrink-0 border-b border-slate-800 px-3">
+<div id="selected-preview-bar" class="w-full h-8 flex items-center justify-center bg-slate-950/95 shrink-0 border-b border-slate-700 px-3 shadow-inner">
 <div id="selected-word-preview" class="selected-preview-tiles" aria-label="Seçilen harfler"></div>
 </div>
 
@@ -740,10 +761,12 @@ Bir harfe basılı tutup sürükle; bıraktığında sözcük otomatik kontrol e
 
 <div id="scrabble-grid" class="scrabble-board touch-none select-none w-full max-w-md mx-auto"></div>
 
-<button id="btn-quick-exit" type="button" class="w-full max-w-md mx-auto mt-1.5 bg-rose-950 hover:bg-rose-900 active:scale-[0.99] text-white border border-rose-900 font-black text-[10px] tracking-[0.14em] py-2 rounded-xl uppercase transition">ÇIKIŞ YAP</button>
-<button id="btn-fullscreen-game" type="button" class="w-full max-w-md mx-auto mt-1 mb-1.5 bg-slate-800 hover:bg-slate-700 active:scale-[0.99] text-white border border-slate-700 font-black text-[10px] tracking-[0.12em] py-2 rounded-xl uppercase transition flex items-center justify-center gap-2" aria-label="Tam ekranı aç veya kapat">
+<div class="game-bottom-controls">
+<button id="btn-quick-exit" type="button" class="active:scale-[0.98] uppercase transition flex items-center justify-center gap-1.5"><span aria-hidden="true">✕</span><span>ÇIKIŞ YAP</span></button>
+<button id="btn-fullscreen-game" type="button" class="active:scale-[0.98] uppercase transition flex items-center justify-center gap-1.5" aria-label="Tam ekranı aç veya kapat">
 <span aria-hidden="true">⛶</span><span id="fullscreen-game-label">TAM EKRAN</span>
 </button>
+</div>
 </div>
 </div>
 
@@ -62628,7 +62651,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v161-core-clean';
+const GAME_VERSION='v163-header-fix';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -63784,7 +63807,8 @@ let wordStatusVisualState='';
 const previewTiles=[];
 
 function ensurePreviewTiles(){
-if(!selectedWordPreviewEl || previewTiles.length) return;
+if(!selectedWordPreviewEl) return;
+if(!previewTiles.length){
 const frag=document.createDocumentFragment();
 for(let i=0;i<10;i++){
 const tile=document.createElement('div'); tile.className='letter-cell selected-preview-tile'; tile.hidden=true;
@@ -63793,6 +63817,14 @@ const score=document.createElement('span'); score.className='tile-score';
 tile.append(letter,score); frag.appendChild(tile); previewTiles.push({tile,letter,score});
 }
 selectedWordPreviewEl.replaceChildren(frag);
+return;
+}
+// Oyun ekranı yeniden açıldığında taşlar DOM'dan kopmuşsa aynı hafif taşları yeniden bağla.
+if(previewTiles[0]?.tile?.parentNode!==selectedWordPreviewEl){
+const frag=document.createDocumentFragment();
+for(const pv of previewTiles) frag.appendChild(pv.tile);
+selectedWordPreviewEl.replaceChildren(frag);
+}
 }
 ensurePreviewTiles();
 
@@ -63954,6 +63986,7 @@ syncWordDisplay();
 }
 
 function syncWordDisplay() {
+ensurePreviewTiles();
 let word='';
 for(let i=0;i<selectedPath.length;i++){
 const p=selectedPath[i]; word+=p.char;
@@ -64447,7 +64480,7 @@ returnToHomeFromMultiplayer();
 activeGameMode='single';
 sessionFoundWords.clear();
 const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
-const preview=document.getElementById('selected-word-preview'); if(preview)preview.replaceChildren();
+ensurePreviewTiles(); for(const pv of previewTiles){ pv.tile.hidden=true; pv.letter.textContent=''; pv.score.textContent=''; }
 const desc=document.getElementById('word-status-desc'); if(desc)desc.textContent='Bir harfe basılı tutup sürükle; bıraktığında sözcük otomatik kontrol edilir.'; wordStatusVisualState='';
 document.getElementById('screen-game')?.classList.add('hidden');
 document.getElementById('screen-home')?.classList.remove('hidden');
