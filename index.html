@@ -352,26 +352,34 @@
                     </button>
                 </div>
 
-                <div id="friend-invite-panel" class="hidden w-full max-w-sm mt-3 bg-white/95 p-4 rounded-[26px] border-4 border-sky-100 shadow-2xl shrink-0">
-                    <div class="flex justify-between items-center"><b class="text-slate-800">👥 ÇOKLU OYUNCU</b><button id="btn-close-friend" class="text-2xl font-black text-slate-500">×</button></div>
-                    <div id="mp-create-view" class="mt-3 space-y-2">
-                        <button id="btn-create-room" class="w-full min-h-[48px] rounded-2xl bg-gradient-to-b from-sky-400 to-blue-600 text-white font-black shadow-lg border-2 border-sky-200">ODA OLUŞTUR</button>
-                        <div class="rounded-xl bg-sky-50 border border-sky-100 px-3 py-2 text-[11px] font-bold text-sky-900">Oda oluştur, bağlantıyı arkadaşına gönder. Davet odaları iki kişiliktir.</div>
-                        <div class="flex items-center gap-2 py-1"><span class="h-px flex-1 bg-slate-200"></span><span class="text-[10px] font-black text-slate-400">VEYA</span><span class="h-px flex-1 bg-slate-200"></span></div>
-                        <button id="btn-random-match" class="w-full min-h-[48px] rounded-2xl bg-gradient-to-b from-violet-400 to-indigo-600 text-white font-black shadow-lg border-2 border-violet-200">🎲 RASTGELE RAKİP</button>
-                        <div id="mp-random-status" class="hidden rounded-xl bg-violet-50 border border-violet-100 px-3 py-2 text-[11px] font-bold text-violet-900">Çevrimiçi rakip aranıyor…</div>
-                        <div class="rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-[10px] font-bold text-slate-600">Önce çevrimiçi gerçek oyuncu aranır. Kısa sürede eşleşme bulunamazsa zor seviyede <b>AI Rakip</b> ile oyun başlar.</div>
+                <div id="friend-invite-panel" class="hidden w-full max-w-sm mt-2 bg-white/95 p-3 rounded-[20px] border-2 border-sky-100 shadow-xl shrink-0">
+                    <div class="flex justify-between items-center"><b class="text-sm text-slate-800">👥 ÇOKLU OYUNCU</b><button id="btn-close-friend" class="w-7 h-7 rounded-full bg-slate-100 text-lg font-black text-slate-500 leading-none">×</button></div>
+                    <div id="mp-create-view" class="mt-2 space-y-1.5">
+                        <button id="btn-create-room" class="w-full min-h-[40px] rounded-xl bg-gradient-to-b from-sky-400 to-blue-600 text-white text-xs font-black shadow-md border border-sky-200">ODA OLUŞTUR</button>
+                        <div class="rounded-lg bg-sky-50 border border-sky-100 px-2.5 py-1.5 text-[10px] font-bold text-sky-900">Odayı kur, bağlantıyı arkadaşına gönder.</div>
+                        <div class="flex items-center gap-2 py-0.5"><span class="h-px flex-1 bg-slate-200"></span><span class="text-[9px] font-black text-slate-400">VEYA</span><span class="h-px flex-1 bg-slate-200"></span></div>
+                        <button id="btn-random-match" class="w-full min-h-[40px] rounded-xl bg-gradient-to-b from-violet-400 to-indigo-600 text-white text-xs font-black shadow-md border border-violet-200">🎲 RASTGELE RAKİP</button>
+                        <div id="mp-random-status" class="hidden rounded-lg bg-violet-50 border border-violet-100 px-2.5 py-1.5 text-[10px] font-bold text-violet-900">Çevrimiçi rakip aranıyor…</div>
+                        <div class="rounded-lg bg-slate-50 border border-slate-200 px-2.5 py-1.5 text-[9px] font-bold text-slate-500">Önce gerçek rakip aranır; bulunamazsa AI rakip devreye girer.</div>
                     </div>
-                    <div id="mp-room-view" class="hidden mt-3 text-center">
-                        <div class="text-[10px] font-black text-slate-500 uppercase">ODA KODU</div>
-                        <input id="mp-room-code" readonly value="------" class="mt-1 w-full text-center text-2xl font-black tracking-[.22em] text-indigo-800 bg-indigo-50 border-2 border-indigo-100 rounded-xl py-2 select-all cursor-text" />
-                        <div id="mp-status" class="mt-2 rounded-xl bg-slate-100 p-2 text-xs font-bold text-slate-600">Oda hazırlanıyor…</div>
-                        <div class="mt-2 text-[10px] font-black text-slate-500 uppercase">DAVET BAĞLANTISI</div>
-                        <input id="mp-room-url" readonly value="" class="mt-1 w-full text-[11px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 select-all cursor-text" />
-                        <button id="btn-copy-link" class="w-full mt-3 min-h-[44px] rounded-xl bg-sky-100 border-2 border-sky-300 text-sky-900 font-black text-xs">🔗 BAĞLANTIYI KOPYALA</button>
-                        <button id="btn-share-link" class="w-full mt-2 min-h-[44px] rounded-xl bg-emerald-100 border-2 border-emerald-300 text-emerald-900 font-black text-xs">📨 DAVET ET</button>
-                        <button id="btn-enter-room" class="hidden">ODAYA GİT</button>
-                        <button id="btn-close-room" class="hidden w-full mt-2 min-h-[40px] rounded-xl bg-rose-50 border-2 border-rose-200 text-rose-700 font-black text-xs">ODAYI KAPAT</button>
+                    <div id="mp-room-view" class="hidden mt-2 text-center">
+                        <div class="grid grid-cols-[90px_1fr] gap-2 items-center text-left">
+                            <div>
+                                <div class="text-[9px] font-black text-slate-500 uppercase">ODA KODU</div>
+                                <input id="mp-room-code" readonly value="------" class="mt-0.5 w-full text-center text-base font-black tracking-[.14em] text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-lg py-1.5 select-all cursor-text" />
+                            </div>
+                            <div>
+                                <div class="text-[9px] font-black text-slate-500 uppercase">DAVET BAĞLANTISI</div>
+                                <input id="mp-room-url" readonly value="" class="mt-0.5 w-full text-[9px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 select-all cursor-text" />
+                            </div>
+                        </div>
+                        <div id="mp-status" class="mt-2 rounded-lg bg-slate-100 px-2.5 py-1.5 text-[10px] font-bold text-slate-600">Oda hazırlanıyor…</div>
+                        <div class="mt-2 grid grid-cols-3 gap-1.5">
+                            <button id="btn-copy-link" class="min-h-[38px] rounded-lg bg-sky-100 border border-sky-300 text-sky-900 font-black text-[10px]">🔗 KOPYALA</button>
+                            <button id="btn-share-link" class="min-h-[38px] rounded-lg bg-emerald-100 border border-emerald-300 text-emerald-900 font-black text-[10px]">📨 DAVET ET</button>
+                            <button id="btn-enter-room" class="hidden min-h-[38px] rounded-lg bg-indigo-100 border border-indigo-300 text-indigo-900 font-black text-[10px]">⏳ ODADA BEKLE</button>
+                        </div>
+                        <button id="btn-close-room" class="hidden w-full mt-1.5 min-h-[34px] rounded-lg bg-rose-50 border border-rose-200 text-rose-700 font-black text-[10px]">ODAYI KAPAT</button>
                     </div>
                 </div>
 
@@ -494,7 +502,7 @@
         </div>
 
         <!-- ================= ÇOKLU OYUNCU BEKLEME MODALI ================= -->
-        <div id="modal-mp-waiting" class="absolute inset-0 bg-slate-950/45 backdrop-blur-[2px] flex items-center justify-center z-[60] hidden">
+        <div id="modal-mp-waiting" class="absolute inset-0 bg-slate-950/55 backdrop-blur-[5px] flex items-center justify-center z-[60] hidden">
             <div class="relative w-11/12 max-w-sm bg-white/95 border border-sky-100 p-7 rounded-[30px] shadow-2xl text-center">
                 <button id="btn-close-mp-waiting" aria-label="Kapat" class="absolute right-3 top-3 w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-black text-xl leading-none hover:bg-slate-200">×</button>
                 <div class="mx-auto mb-4 w-16 h-16 rounded-full bg-sky-50 border-2 border-sky-100 flex items-center justify-center">
@@ -522,7 +530,7 @@
         </div>
 
         <!-- ================= SAYDAM & TAHTAYI GÖSTEREN GERİ SAYIM MODALI ================= -->
-        <div id="modal-countdown" class="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px] flex items-center justify-center z-50 hidden">
+        <div id="modal-countdown" class="absolute inset-0 bg-slate-950/45 backdrop-blur-[7px] flex items-center justify-center z-50 hidden">
             <div class="flex flex-col items-center justify-center bg-white/90 border border-slate-200/80 p-6 rounded-3xl shadow-2xl backdrop-blur-md">
                 <div id="countdown-number" class="text-7xl font-black text-amber-500 drop-shadow-sm" style="transition:transform .18s ease-out, filter .16s ease-out, opacity .14s ease-out; will-change:transform;">5</div>
                 <div id="countdown-status" class="text-slate-800 font-black text-xs tracking-widest uppercase mt-3 bg-white px-4 py-1.5 rounded-full border border-slate-200 shadow-sm">
@@ -62321,6 +62329,7 @@ BLİK
             setRoomUrl(code); await markPresence();
             setMpPanelRoom(code,'1. oyuncusun. Davet bağlantısını arkadaşına gönder; 2. oyuncu gelince oyun otomatik başlayacak.');
             document.getElementById('btn-close-room')?.classList.remove('hidden');
+            document.getElementById('btn-enter-room')?.classList.remove('hidden');
             setMpState(MP_STATES.WAITING);
             attachRoomListener();
         }
@@ -62350,6 +62359,7 @@ BLİK
             await markPresence(); setRoomUrl(code);
             setMpPanelRoom(code,role==='host'?'1. oyuncu olarak odana yeniden bağlandın.':'2. oyuncu olarak davet odasına bağlandın.');
             document.getElementById('btn-close-room')?.classList.toggle('hidden',role!=='host');
+            document.getElementById('btn-enter-room')?.classList.toggle('hidden',role!=='host');
             setMpState(mpRoomData.status||MP_STATES.WAITING);
             attachRoomListener();
             if(role==='guest') await enterMultiplayerRoom();
@@ -62509,7 +62519,8 @@ BLİK
                     setMpState(MP_STATES.WAITING);
                     if(mpRole==='host'){
                         if(!d.guestId || !isOnline(d.presence?.guest)){
-                            document.getElementById('modal-mp-waiting')?.classList.add('hidden');
+                            if(mpEntered) document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
+                            else document.getElementById('modal-mp-waiting')?.classList.add('hidden');
                             const st=document.getElementById('mp-status'); if(st)st.innerText='2. oyuncunun davet bağlantısıyla bağlanması bekleniyor…';
                         }else{
                             document.getElementById('modal-mp-waiting')?.classList.add('hidden');
@@ -62692,7 +62703,19 @@ BLİK
                 else { await navigator.clipboard.writeText(url); showToast('Davet bağlantısı kopyalandı.','emerald'); }
             }catch(e){}
         };
-        document.getElementById('btn-close-mp-waiting').onclick=()=>document.getElementById('modal-mp-waiting').classList.add('hidden');
+        document.getElementById('btn-enter-room').onclick=async()=>{
+            if(mpRole!=='host' || !mpRoomRef) return;
+            await enterMultiplayerRoom();
+            isMatchActive=false;
+            document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
+        };
+        document.getElementById('btn-close-mp-waiting').onclick=()=>{
+            document.getElementById('modal-mp-waiting').classList.add('hidden');
+            if(mpRole==='host' && mpRoomData?.status==='waiting'){
+                document.getElementById('screen-game')?.classList.add('hidden');
+                document.getElementById('screen-home')?.classList.remove('hidden');
+            }
+        };
 
         window.addEventListener('load',async()=>{
             const u=new URL(location.href);
