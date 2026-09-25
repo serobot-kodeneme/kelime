@@ -507,9 +507,9 @@
                             <div class="font-black text-slate-900">Ses Düzeyi</div>
                             <div class="text-[11px] font-bold text-slate-500 mt-0.5">Harf, doğru kelime, hata ve geri sayım seslerini ayarlar.</div>
                         </div>
-                        <div id="sound-volume-label" class="min-w-[48px] text-center rounded-xl bg-indigo-50 border border-indigo-100 px-2 py-1 text-sm font-black text-indigo-800">70%</div>
+                        <div id="sound-volume-label" class="min-w-[48px] text-center rounded-xl bg-indigo-50 border border-indigo-100 px-2 py-1 text-sm font-black text-indigo-800">80%</div>
                     </div>
-                    <input id="sound-volume" type="range" min="0" max="100" step="1" value="70" class="w-full mt-5 accent-indigo-600" aria-label="Ses düzeyi">
+                    <input id="sound-volume" type="range" min="0" max="100" step="1" value="80" class="w-full mt-5 accent-indigo-600" aria-label="Ses düzeyi">
                     <div class="flex items-center justify-between text-[10px] font-black text-slate-400 mt-1"><span>SESSİZ</span><span>YÜKSEK</span></div>
                     <button id="btn-sound-test" type="button" class="w-full mt-5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-[.99] text-white font-black text-xs py-3 shadow">SESİ DENE</button>
                 </div>
@@ -520,8 +520,19 @@
         <div id="screen-about" class="absolute inset-0 z-[80] hidden bg-gradient-to-b from-sky-100 to-white p-4">
             <div class="max-w-sm mx-auto">
                 <div class="flex items-center justify-between"><button id="btn-about-back" class="w-10 h-10 rounded-full bg-white shadow font-black text-xl">‹</button><h2 class="font-black text-xl text-indigo-950">HAKKINDA</h2><div class="w-10"></div></div>
-                <div class="mt-8 bg-white/90 border-2 border-sky-200 rounded-3xl p-6 shadow-lg text-center">
-                    <p class="text-sm font-black text-slate-700">Bu oyun LÖSEV'e destek amaçlı hazırlanmıştır.</p>
+                <div class="mt-8 bg-white/90 border-2 border-sky-200 rounded-3xl p-5 shadow-lg text-center">
+                    <p class="text-sm font-black text-slate-700 mb-4">Bu oyun LÖSEV'e destek amaçlı hazırlanmıştır.</p>
+                    <a href="https://www.losev.org.tr/tr/bagis" target="_blank" rel="noopener noreferrer" class="home-shortcut block w-full rounded-[18px] bg-gradient-to-r from-rose-50 via-white to-red-50 border-2 border-rose-200 shadow-[0_7px_18px_rgba(127,29,29,.12)] px-3 py-2.5 active:scale-[.99]" aria-label="LÖSEV resmi bağış sayfasını aç">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-10 h-10 shrink-0 rounded-[13px] bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center text-xl shadow-sm">❤</div>
+                            <div class="min-w-0 flex-1 text-left">
+                                <div class="text-[8px] font-black tracking-[.16em] text-rose-500 uppercase">DESTEK ALANI</div>
+                                <div class="text-[13px] leading-tight font-black text-rose-950">LÖSEV’e Destek Ol</div>
+                                <div class="text-[9px] leading-tight font-bold text-rose-800/75 mt-0.5">Oyunu sevdiysen, lösemili çocuklara umut olmak için bağış yapabilirsin.</div>
+                            </div>
+                            <div class="shrink-0 rounded-xl bg-rose-600 text-white px-2.5 py-2 text-[9px] font-black shadow-sm">BAĞIŞ YAP ›</div>
+                        </div>
+                    </a>
                 </div>
             </div>
         </div>
@@ -62056,8 +62067,8 @@ BLİK
         // ================= OYUN SESLERİ (Web Audio, harici dosya yok) =================
         let gameAudioCtx = null;
         let lastHeartbeatSecond = null;
-        const SOUND_VOLUME_KEY = 'kd_sound_volume_v1';
-        let masterSoundVolume = Math.max(0, Math.min(1, Number(localStorage.getItem(SOUND_VOLUME_KEY) ?? 0.70)));
+        const SOUND_VOLUME_KEY = 'kd_sound_volume_v2';
+        let masterSoundVolume = Math.max(0, Math.min(1, Number(localStorage.getItem(SOUND_VOLUME_KEY) ?? 0.80)));
 
         function setMasterSoundVolume(v){
             masterSoundVolume = Math.max(0, Math.min(1, Number(v)||0));
@@ -62086,7 +62097,7 @@ BLİK
                 const gain=ctx.createGain();
                 osc.type=type; osc.frequency.setValueAtTime(freq,now);
                 if(endFreq) osc.frequency.exponentialRampToValueAtTime(Math.max(1,endFreq),now+duration);
-                const out=Math.max(0.0002,volume*masterSoundVolume);
+                const out=Math.max(0.0002,Math.min(0.22,volume*masterSoundVolume*1.12));
                 gain.gain.setValueAtTime(0.0001,now);
                 gain.gain.exponentialRampToValueAtTime(out,now+0.006);
                 gain.gain.exponentialRampToValueAtTime(0.0001,now+duration);
@@ -62117,7 +62128,7 @@ BLİK
                     osc.type='sine'; osc.frequency.setValueAtTime(freq,now);
                     osc.frequency.exponentialRampToValueAtTime(Math.max(35,freq*.62),now+dur);
                     gain.gain.setValueAtTime(0.0001,now);
-                    gain.gain.exponentialRampToValueAtTime(vol*masterSoundVolume,now+.012);
+                    gain.gain.exponentialRampToValueAtTime(Math.min(0.22,vol*masterSoundVolume*1.12),now+.012);
                     gain.gain.exponentialRampToValueAtTime(0.0001,now+dur);
                     osc.connect(gain); gain.connect(ctx.destination); osc.start(now); osc.stop(now+dur+.02);
                 }catch(_){}
