@@ -308,6 +308,15 @@
             .letter-cell { transition: transform .07s ease, background-color .07s ease, box-shadow .07s ease; }
             .tile-hover-tremble { animation: none !important; }
         }
+
+        /* v107 — hafif, neşeli ana sayfa dokunuşları */
+        .home-float-dot{position:absolute;border-radius:9999px;pointer-events:none;filter:blur(.2px);opacity:.55;animation:homeFloat 7s ease-in-out infinite}
+        .home-float-dot:nth-child(2){animation-delay:-2s}.home-float-dot:nth-child(3){animation-delay:-4s}
+        @keyframes homeFloat{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-10px,0)}}
+        .home-shortcut{transition:transform .16s ease,box-shadow .16s ease}
+        .home-shortcut:hover{transform:translateY(-2px)}
+        .dict-letter-active{background:#f59e0b!important;color:#0f172a!important;border-color:#f59e0b!important}
+        @media (prefers-reduced-motion: reduce){.home-float-dot{animation:none}.home-shortcut{transition:none}}
 </style>
     <!-- Firebase: yalnızca çok oyunculu modda kullanılan hafif compat SDK -->
     <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -318,6 +327,9 @@
 
         <!-- ================= EKRAN 1: YENİ ANA MENÜ ================= -->
         <div id="screen-home" class="absolute inset-0 z-40 overflow-hidden bg-gradient-to-b from-sky-400 via-sky-200 to-emerald-200">
+            <span class="home-float-dot w-10 h-10 bg-yellow-200 left-[8%] top-[9%]"></span>
+            <span class="home-float-dot w-7 h-7 bg-pink-200 right-[12%] top-[11%]"></span>
+            <span class="home-float-dot w-12 h-12 bg-white right-[6%] bottom-[16%]"></span>
             <div class="absolute inset-0 pointer-events-none opacity-80" style="background:radial-gradient(circle at 18% 15%,rgba(255,255,255,.75),transparent 18%),radial-gradient(circle at 84% 22%,rgba(255,255,255,.6),transparent 16%),linear-gradient(to top,rgba(22,101,52,.30),transparent 34%);"></div>
             <div class="absolute -left-7 top-28 rotate-[-13deg] w-16 h-16 rounded-2xl bg-amber-100 border-4 border-amber-200 shadow-xl flex items-center justify-center text-3xl font-black text-slate-800">K<span class="absolute right-1 bottom-0 text-[9px]">5</span></div>
             <div class="absolute -right-5 top-40 rotate-[14deg] w-16 h-16 rounded-2xl bg-amber-100 border-4 border-amber-200 shadow-xl flex items-center justify-center text-3xl font-black text-slate-800">İ<span class="absolute right-1 bottom-0 text-[9px]">1</span></div>
@@ -383,10 +395,26 @@
                     </div>
                 </div>
 
-                <div class="mt-auto pt-5 w-full max-w-sm grid grid-cols-3 gap-3 shrink-0">
-                    <button id="btn-settings" class="group min-h-[86px] rounded-[22px] bg-white/95 border border-white shadow-[0_8px_22px_rgba(15,23,42,.14)] flex flex-col items-center justify-center gap-2 text-slate-700 font-black text-[10px] active:scale-95 transition-all hover:-translate-y-1 hover:shadow-xl"><span class="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200 text-slate-700 flex items-center justify-center shadow-inner group-hover:rotate-6 transition-transform"><svg viewBox="0 0 24 24" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10"/><circle cx="17" cy="7" r="2"/><path d="M20 17H10"/><circle cx="7" cy="17" r="2"/><path d="M4 12h3M11 12h9"/><circle cx="9" cy="12" r="2"/></svg></span><span>Ayarlar</span></button>
-                    <button id="btn-howto" class="group min-h-[86px] rounded-[22px] bg-white/95 border border-white shadow-[0_8px_22px_rgba(15,23,42,.14)] flex flex-col items-center justify-center gap-2 text-slate-700 font-black text-[10px] active:scale-95 transition-all hover:-translate-y-1 hover:shadow-xl"><span class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-50 to-blue-100 border border-sky-100 text-sky-700 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform"><svg viewBox="0 0 24 24" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5a2.5 2.5 0 0 1 2.5 2.5z"/><path d="M7 7h2M7 10h2M15 7h2M15 10h2"/></svg></span><span>Nasıl Oynanır?</span></button>
-                    <button id="btn-about" class="group min-h-[86px] rounded-[22px] bg-white/95 border border-white shadow-[0_8px_22px_rgba(15,23,42,.14)] flex flex-col items-center justify-center gap-2 text-slate-700 font-black text-[10px] active:scale-95 transition-all hover:-translate-y-1 hover:shadow-xl"><span class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-50 to-violet-100 border border-indigo-100 text-indigo-700 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform"><svg viewBox="0 0 24 24" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 10.8v6"/><path d="M12 7.2h.01"/></svg></span><span>Hakkında</span></button>
+                <div class="mt-auto pt-4 w-full max-w-sm shrink-0">
+                    <div class="grid grid-cols-3 gap-2.5">
+                        <button id="btn-settings" class="home-shortcut group min-h-[76px] rounded-[20px] bg-white/92 border border-white shadow-[0_7px_18px_rgba(15,23,42,.12)] flex flex-col items-center justify-center gap-1.5 text-slate-700 font-black text-[10px] active:scale-95">
+                            <span class="w-10 h-10 rounded-[14px] bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200 text-slate-700 flex items-center justify-center shadow-inner"><svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10"/><circle cx="17" cy="7" r="2"/><path d="M20 17H10"/><circle cx="7" cy="17" r="2"/><path d="M4 12h3M11 12h9"/><circle cx="9" cy="12" r="2"/></svg></span>
+                            <span>Ayarlar</span>
+                        </button>
+                        <button id="btn-howto" class="home-shortcut group min-h-[76px] rounded-[20px] bg-white/92 border border-white shadow-[0_7px_18px_rgba(15,23,42,.12)] flex flex-col items-center justify-center gap-1.5 text-slate-700 font-black text-[10px] active:scale-95">
+                            <span class="w-10 h-10 rounded-[14px] bg-gradient-to-br from-sky-50 to-blue-100 border border-sky-100 text-sky-700 flex items-center justify-center shadow-inner"><svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5a2.5 2.5 0 0 1 2.5 2.5z"/></svg></span>
+                            <span>Nasıl Oynanır?</span>
+                        </button>
+                        <button id="btn-about" class="home-shortcut group min-h-[76px] rounded-[20px] bg-white/92 border border-white shadow-[0_7px_18px_rgba(15,23,42,.12)] flex flex-col items-center justify-center gap-1.5 text-slate-700 font-black text-[10px] active:scale-95">
+                            <span class="w-10 h-10 rounded-[14px] bg-gradient-to-br from-indigo-50 to-violet-100 border border-indigo-100 text-indigo-700 flex items-center justify-center shadow-inner"><svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 10.8v6"/><path d="M12 7.2h.01"/></svg></span>
+                            <span>Hakkında</span>
+                        </button>
+                    </div>
+                    <button id="btn-open-dictionary" class="home-shortcut mt-2.5 w-full min-h-[54px] rounded-[20px] bg-gradient-to-r from-amber-100 via-yellow-50 to-orange-100 border-2 border-amber-200 shadow-[0_7px_18px_rgba(120,53,15,.12)] flex items-center gap-3 px-4 text-left active:scale-[.99]">
+                        <span class="w-10 h-10 rounded-[14px] bg-white/90 border border-amber-200 flex items-center justify-center text-xl shadow-sm">📚</span>
+                        <span class="flex-1"><b class="block text-[13px] font-black text-amber-950">SÖZLÜK</b><small class="block text-[10px] font-bold text-amber-800/80">A’dan Z’ye oyun kelimelerini incele</small></span>
+                        <span class="text-xl font-black text-amber-700">›</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -431,11 +459,12 @@
                 <!-- Basılı tutup sürükleyerek oynanan 9x9 Izgara -->
                 <div id="scrabble-grid" class="scrabble-board touch-none select-none w-full max-w-md mx-auto"></div>
 
-                <div id="mobile-word-status" class="w-full bg-slate-950 px-3 py-1.5 text-center min-h-[30px] flex items-center justify-center border border-slate-800 mt-1.5 rounded-xl" style="margin-bottom:max(5px, env(safe-area-inset-bottom));">
+                <div id="mobile-word-status" class="w-full bg-slate-950 px-3 py-1.5 text-center min-h-[30px] flex items-center justify-center border border-slate-800 mt-1.5 rounded-xl">
                     <span id="word-status-desc" class="text-[11px] font-bold text-slate-300 italic truncate px-1">
                         Bir harfe basılı tutup sürükle; bıraktığında sözcük otomatik kontrol edilir.
                     </span>
                 </div>
+                <button id="btn-quick-exit" type="button" class="w-full max-w-md mx-auto mt-1.5 mb-1.5 bg-rose-950 hover:bg-rose-900 active:scale-[0.99] text-white border border-rose-900 font-black text-[10px] tracking-[0.14em] py-2 rounded-xl uppercase transition">ÇIKIŞ YAP</button>
             </div>
         </div>
 
@@ -465,7 +494,7 @@
                         <span class="text-xl">📖</span>
                         <div>
                             <h3 class="text-sm font-black text-slate-900 uppercase">TÜRKÇE KELİME SÖZLÜĞÜ</h3>
-                            <p class="text-[10px] text-slate-500 font-bold">A'dan Z'ye kelimeler ve puanları</p>
+                            <p class="text-[10px] text-slate-500 font-bold">Alfabetik oyun sözlüğü • harfe dokun, kelimeleri gör</p>
                         </div>
                     </div>
                     <button id="btn-close-dict" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-black">✕</button>
@@ -485,6 +514,7 @@
                 </div>
 
                 <div id="dict-words-list" class="flex-grow overflow-y-auto hide-scroll p-2 bg-slate-50 rounded-2xl border border-slate-200 flex flex-wrap gap-1.5 content-start"></div>
+                <button id="dict-load-more" class="hidden mt-2 shrink-0 py-2 rounded-xl bg-amber-100 border border-amber-200 text-amber-900 text-[11px] font-black">DAHA FAZLA GÖSTER</button>
             </div>
         </div>
 
@@ -61973,6 +62003,7 @@ BLİK
         let remainingSeconds = 60;
         let isMatchActive = false;
         let botDiffLevel = 'easy';
+        let activeGameMode = null; // 'single' | 'multi' — replay akışının tek güvenilir kaynağı
         let selectedPath = [];
         let sessionFoundWords = new Set();
         let gridBoard = [];
@@ -62164,7 +62195,7 @@ BLİK
                 if(!(await candidateRef.once('value')).exists()){ code=candidate; ref=candidateRef; break; }
             }
             if(!code) throw new Error('random-room-create-failed');
-            const readyBoard=prewarmedBoard || loadBoardCache() || generateOptimizedBoard(3); prewarmedBoard=null;
+            const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board);
             await ref.set({
                 schema:13, mode:'random-match-v1', createdAt:firebase.database.ServerValue.TIMESTAMP,
                 hostId, guestId, status:'waiting', round:1,
@@ -62198,6 +62229,7 @@ BLİK
             });
         }
         async function startRandomAiFallback(){
+            activeGameMode = 'single';
             await cleanupRandomQueue(true);
             mpRole=null; mpRoomRef=null; mpRoomCode=null; mpRoomData=null; mpEntered=false; mpStarted=false;
             setMpState(MP_STATES.IDLE); clearInviteFromUrl();
@@ -62316,7 +62348,7 @@ BLİK
             if(!code){ showToast('Oda oluşturulamadı. Tekrar dene.','rose'); return; }
 
             const hostId=getClientToken();
-            const readyBoard=prewarmedBoard || loadBoardCache() || generateOptimizedBoard(3); prewarmedBoard=null;
+            const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board);
             await ref.set({
                 schema:12, mode:'invite-only-v1', createdAt:firebase.database.ServerValue.TIMESTAMP,
                 hostId, guestId:null, status:'waiting', round:1,
@@ -62395,6 +62427,7 @@ BLİK
 
         async function enterMultiplayerRoom(){
             if(!mpRoomRef) return;
+            activeGameMode = 'multi';
             const snap=await mpRoomRef.once('value'); const d=snap.val(); if(!d||!d.board) return;
             mpRoomData=d; mpRound=Number(d.round||1);
             if(!mpEntered){
@@ -62430,9 +62463,10 @@ BLİK
             if(mpRole!=='host'||mpRematchBusy||!mpRoomRef) return;
             mpRematchBusy=true;
             try{
-                const ready=prewarmedBoard || loadBoardCache() || generateOptimizedBoard(2);
+                const ready=prewarmedBoard || generateOptimizedBoard(2);
                 prewarmedBoard=null;
                 const fresh=ready.board;
+                rememberBoard(fresh);
                 const now=serverNow();
                 const result=await mpRoomRef.transaction(d=>{
                     if(!d || d.status!=='finished') return;
@@ -62778,6 +62812,7 @@ BLİK
         document.getElementById('btn-settings').onclick = () => {};
 
         function prepareGame() {
+            activeGameMode = 'single';
             document.getElementById('p1-title').innerText = 'OYUNCU';
             document.getElementById('p2-title').innerText = 'BİLGİSAYAR';
             document.getElementById('screen-home').classList.add('hidden');
@@ -62825,7 +62860,11 @@ BLİK
             mediumMin: 105, mediumIdeal: 180,
             bridgeMin: 18, bridgeIdeal: 42,
             hiddenMin: 7, hiddenIdeal: 15, hiddenMax: 30,
-            totalMin: 230, totalIdeal: 370
+            totalMin: 230, totalIdeal: 370,
+            // 2-5 harfli gerçek sözcüklerin tahtaya yayılması: oyuncu tek bir bölgede tıkanmasın.
+            coverageMin: 48, coverageIdeal: 68,
+            // 6/7/8/9 harf gruplarından en az üç farklı uzunluk bulunmasını hedefle.
+            longVarietyMin: 3
         });
         const FILL_LETTERS = "AAAAAAAABCCÇDDEEEEEEEFGĞHHIIIIIİİİİJKKKLLLMMMNNNOOÖPRRRRSSSŞTTTUUÜVYYZ";
 
@@ -62866,13 +62905,21 @@ BLİK
             // KOLAY OYNANABİLİRLİK: Tahtanın omurgası doğrudan gerçek sözcüklerden kurulur.
             // Uzun sözcükler düz çizgide saklanır; kısa/orta sözcükler bunların çevresine serpiştirilir.
             // Böylece oyuncu ilk bakışta kısa kelimeler bulabilirken 6-9 harflik ödüllü kelimeler de vardır.
-            const longSeeds = shuffledSample(BOARD_POOLS.hidden69, 22);
             const bridgeSeeds = shuffledSample(BOARD_POOLS.bridge5, 72);
             const mediumSeeds = shuffledSample(BOARD_POOLS.medium34, 330);
             const easySeeds = shuffledSample(BOARD_POOLS.easy2, 100);
 
             let placedLong = 0, placedOther = 0;
-            // Her tahtada 6, 7, 8 ve 9 harfli sözcüklerin görünür düz hatlar oluşturma ihtimalini yükselt.
+            // Önce 9,8,7,6 harfli grupların her birinden bir gerçek sözcük yerleştirmeyi dene.
+            // Böylece uzun sözcükler tek bir uzunlukta yığılmaz; her yeni tahta daha dengeli olur.
+            for (const len of [9,8,7,6]) {
+                const candidates = shuffledSample(WORDS_BY_LENGTH.get(len) || [], 14);
+                for (const word of candidates) {
+                    if (tryPlaceWord(board, word, placedLong >= 3)) { placedLong++; break; }
+                }
+            }
+            // Sonra farklı uzunluklardan ek gizli kelimelerle tahtayı zenginleştir.
+            const longSeeds = shuffledSample(BOARD_POOLS.hidden69, 30);
             for (const word of longSeeds) {
                 if (placedLong >= 10) break;
                 if (tryPlaceWord(board, word, placedLong >= 5)) placedLong++;
@@ -62898,62 +62945,89 @@ BLİK
         }
 
         function analyzeBoardWords(words) {
-            const stats = { easy:0, medium:0, bridge:0, hidden:0, total:words.length };
+            const stats = { easy:0, medium:0, bridge:0, hidden:0, total:words.length, coverage:0, longVariety:0 };
+            const productiveCells = new Set();
+            const longLengths = new Set();
             for (const item of words) {
                 const n = item.word.length;
                 if (n === 2) stats.easy++;
                 else if (n <= 4) stats.medium++;
                 else if (n === 5) stats.bridge++;
-                else if (n <= 9) stats.hidden++;
+                else if (n <= 9) { stats.hidden++; longLengths.add(n); }
+
+                // Kolay erişilebilir sözcüklerin tahtaya ne kadar yayıldığını ölç.
+                if (n >= 2 && n <= 5 && Array.isArray(item.path)) {
+                    for (const p of item.path) productiveCells.add(`${p.r},${p.c}`);
+                }
             }
+            stats.coverage = productiveCells.size;
+            stats.longVariety = longLengths.size;
+
             const b = BOARD_BALANCE;
             const accepted = stats.easy >= b.easyMin && stats.medium >= b.mediumMin &&
-                stats.bridge >= b.bridgeMin && stats.hidden >= b.hiddenMin && stats.total >= b.totalMin;
+                stats.bridge >= b.bridgeMin && stats.hidden >= b.hiddenMin && stats.total >= b.totalMin &&
+                stats.coverage >= b.coverageMin && stats.longVariety >= b.longVarietyMin;
             // İdeale yaklaşmayı ödüllendir; uzun kelimelerin aşırı çoğalmasını ayrıca cezalandır.
             const closeness = (v, ideal, weight) => Math.min(v, ideal) * weight - Math.max(0, v-ideal) * weight * 0.15;
             let score = closeness(stats.easy,b.easyIdeal,4) + closeness(stats.medium,b.mediumIdeal,2.2) +
                         closeness(stats.bridge,b.bridgeIdeal,1.5) + closeness(stats.hidden,b.hiddenIdeal,3) +
-                        Math.min(stats.total,b.totalIdeal) * 0.35;
+                        Math.min(stats.total,b.totalIdeal) * 0.35 +
+                        closeness(stats.coverage,b.coverageIdeal,2.2) + stats.longVariety * 10;
             if (stats.hidden > b.hiddenMax) score -= (stats.hidden-b.hiddenMax) * 5;
             if (!accepted) {
                 score -= Math.max(0,b.easyMin-stats.easy)*10 + Math.max(0,b.mediumMin-stats.medium)*5 +
                          Math.max(0,b.bridgeMin-stats.bridge)*4 + Math.max(0,b.hiddenMin-stats.hidden)*12 +
-                         Math.max(0,b.totalMin-stats.total)*1.5;
+                         Math.max(0,b.totalMin-stats.total)*1.5 + Math.max(0,b.coverageMin-stats.coverage)*4 +
+                         Math.max(0,b.longVarietyMin-stats.longVariety)*15;
             } else score += 1000;
             return {stats, accepted, score};
         }
 
-        const BOARD_CACHE_KEY = 'kd_board_cache_v5_9x9';
-        let prewarmedBoard = null;
 
+        // Tahtalar yalnızca RAM'de önceden hazırlanır. Kalıcı cache kullanılmaz:
+        // böylece yeni maçta eski tahtanın yanlışlıkla tekrar gelmesi engellenir.
+        let prewarmedBoard = null;
+        const RECENT_BOARD_KEY = 'kd_recent_board_signatures_v106';
+
+        function boardSignature(board) {
+            return board.map(row => row.join('')).join('|');
+        }
+        function getRecentBoardSignatures() {
+            try {
+                const x = JSON.parse(sessionStorage.getItem(RECENT_BOARD_KEY) || '[]');
+                return Array.isArray(x) ? x.slice(-8) : [];
+            } catch (_) { return []; }
+        }
+        function rememberBoard(board) {
+            try {
+                const sig = boardSignature(board);
+                const list = getRecentBoardSignatures().filter(x => x !== sig);
+                list.push(sig);
+                sessionStorage.setItem(RECENT_BOARD_KEY, JSON.stringify(list.slice(-8)));
+            } catch (_) {}
+        }
         function packBoardResult(board, words) {
             return { board, words };
         }
-        function saveBoardCache(result) {
-            try { localStorage.setItem(BOARD_CACHE_KEY, JSON.stringify(result)); } catch (_) {}
-        }
-        function loadBoardCache() {
-            try {
-                const raw = localStorage.getItem(BOARD_CACHE_KEY);
-                if (!raw) return null;
-                localStorage.removeItem(BOARD_CACHE_KEY); // her maçta yeni tahta
-                const x = JSON.parse(raw);
-                if (x && Array.isArray(x.board) && x.board.length === BOARD_SIZE && Array.isArray(x.words)) return x;
-            } catch (_) {}
-            return null;
-        }
         function generateOptimizedBoard(maxCandidates = 3) {
             let bestBoard = null, bestWords = [], bestEval = {score:-Infinity, accepted:false, stats:null};
-            for (let i=0; i<maxCandidates; i++) {
+            const recent = new Set(getRecentBoardSignatures());
+            const tries = Math.max(maxCandidates, 2);
+            for (let i=0; i<tries; i++) {
                 const candidate = makeCandidateBoard();
+                const sig = boardSignature(candidate);
+                // Son sekiz maçtan biriyle birebir aynı tahta ise değerlendirmeye bile alma.
+                if (recent.has(sig)) continue;
                 const solved = solveBoardWords(candidate);
                 const evaluation = analyzeBoardWords(solved);
                 if (evaluation.score > bestEval.score) { bestBoard = candidate; bestWords = solved; bestEval = evaluation; }
                 const st = evaluation.stats;
                 if (evaluation.accepted && st.easy >= BOARD_BALANCE.easyIdeal &&
                     st.medium >= BOARD_BALANCE.mediumIdeal && st.hidden >= BOARD_BALANCE.hiddenIdeal &&
-                    st.hidden <= BOARD_BALANCE.hiddenMax && st.total >= BOARD_BALANCE.totalIdeal) break;
+                    st.hidden <= BOARD_BALANCE.hiddenMax && st.total >= BOARD_BALANCE.totalIdeal &&
+                    st.coverage >= BOARD_BALANCE.coverageIdeal && st.longVariety >= 4) break;
             }
+            // Çok düşük ihtimalle tüm adaylar yakın geçmişle çakışırsa taze bir aday daha üret.
             const board = bestBoard || makeCandidateBoard();
             const words = bestWords.length ? bestWords : solveBoardWords(board);
             return packBoardResult(board, words);
@@ -62961,13 +63035,12 @@ BLİK
         function scheduleBoardPrewarm() {
             const work = () => {
                 if (prewarmedBoard) return;
-                prewarmedBoard = loadBoardCache() || generateOptimizedBoard(2);
-                // Sonraki sayfa açılışı/maç için küçük bir hazır tahta önbelleği.
-                saveBoardCache(prewarmedBoard);
+                prewarmedBoard = generateOptimizedBoard(2);
             };
             if ('requestIdleCallback' in window) requestIdleCallback(work, {timeout:1200});
             else setTimeout(work, 80);
         }
+
 
         function buildGrid() {
             const container = document.getElementById('scrabble-grid');
@@ -62976,10 +63049,11 @@ BLİK
 
             // Önceden boş zamanda hazırlanmış tahta varsa oyun ekranı beklemeden açılır.
             // Yoksa kaliteyi koruyan 3 adaylık hızlı üretim yapılır (eski sürüm: 6 tam çözüm).
-            const ready = prewarmedBoard || loadBoardCache() || generateOptimizedBoard(3);
+            const ready = prewarmedBoard || generateOptimizedBoard(3);
             prewarmedBoard = null;
             gridBoard = ready.board;
             boardFoundWords = ready.words;
+            rememberBoard(gridBoard);
             // Maç başladıktan sonra bir sonraki tahta cihaz boşken hazırlanır.
             setTimeout(scheduleBoardPrewarm, 250);
 
@@ -62994,7 +63068,7 @@ BLİK
             }
             container.appendChild(frag);
             const finalStats = analyzeBoardWords(boardFoundWords).stats;
-            console.info(`Dengeli tahta: ${finalStats.total} kelime | 2H:${finalStats.easy} | 3-4H:${finalStats.medium} | 5H:${finalStats.bridge} | 6-9H:${finalStats.hidden}`);
+            console.info(`Dengeli tahta: ${finalStats.total} kelime | 2H:${finalStats.easy} | 3-4H:${finalStats.medium} | 5H:${finalStats.bridge} | 6-9H:${finalStats.hidden} | kapsama:${finalStats.coverage}/81 | uzun çeşit:${finalStats.longVariety}`);
         }
 
 
@@ -63465,7 +63539,7 @@ BLİK
         }
 
         async function handlePlayAgain(){
-            if(!mpRoomRef || !mpRole){
+            if(activeGameMode !== 'multi'){
                 // Tekli oyun: aynı zorluk seviyesini koru, sayfayı yenilemeden yeni 9x9 tahta başlat.
                 clearInterval(timerInterval); timerInterval=null;
                 clearTimeout(botInterval); botInterval=null;
@@ -63538,64 +63612,142 @@ BLİK
 
 
 
+        async function exitCurrentGameToHome(){
+            isMatchActive=false;
+            clearInterval(timerInterval); timerInterval=null;
+            clearInterval(mpClock); mpClock=null;
+            clearTimeout(botInterval); botInterval=null;
+            if(pointerFrame){ cancelAnimationFrame(pointerFrame); pointerFrame=0; }
+            isPointerDown=false; pendingPointer=null; activeGridRect=null;
+            try{ clearPath(); }catch(_){ selectedPath=[]; }
+
+            document.getElementById('modal-countdown')?.classList.add('hidden');
+            document.getElementById('modal-gameover')?.classList.add('hidden');
+            document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
+            document.getElementById('modal-mp-waiting')?.classList.add('hidden');
+
+            if(activeGameMode==='multi' || mpRole || mpRoomRef){
+                if(mpPresenceRef){
+                    await mpPresenceRef.set({online:false,clientId:getClientToken(),at:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
+                }
+                returnToHomeFromMultiplayer();
+            }else{
+                activeGameMode='single';
+                sessionFoundWords.clear();
+                const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
+                const preview=document.getElementById('selected-word-preview'); if(preview)preview.innerText='';
+                const desc=document.getElementById('word-status-desc'); if(desc)desc.innerText='Bir harfe basılı tutup sürükle; bıraktığında sözcük otomatik kontrol edilir.';
+                document.getElementById('screen-game')?.classList.add('hidden');
+                document.getElementById('screen-home')?.classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('btn-quick-exit')?.addEventListener('click', exitCurrentGameToHome);
+
         document.getElementById('btn-game-exit')?.addEventListener('click', async()=>{
             if(mpPresenceRef) await mpPresenceRef.set({online:false,clientId:getClientToken(),at:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
             returnToHomeFromMultiplayer();
         });
-        // Açık Tema Sözlük Arayüzü — düğme bazı arayüz sürümlerinde gizli/çıkarılmış olabilir.
+        // v107 — Hafif sözlük: indeks ilk açılışta, harf bazlı sıralama ve kademeli DOM çizimi.
         const btnOpenDictionary = document.getElementById('btn-open-dictionary');
-        if (btnOpenDictionary) btnOpenDictionary.onclick = () => {
+        const DICT_PAGE_SIZE = 140;
+        const dictSortedLetters = new Set();
+        let dictCurrentLetter = 'A';
+        let dictCurrentQuery = '';
+        let dictVisibleCount = DICT_PAGE_SIZE;
+        let dictCurrentWords = [];
+
+        function openDictionary(){
             ensureDictionaryIndex();
-            if (!DICT_SORTED) { for (const l of TURKISH_ALPHABET) DICT_BY_LETTER[l].sort((a,b) => a.localeCompare(b, 'tr')); DICT_SORTED = true; }
             renderAlphabetButtons();
-            renderWordsForLetter('A');
+            dictVisibleCount = DICT_PAGE_SIZE;
+            renderWordsForLetter(dictCurrentLetter || 'A');
             document.getElementById('modal-dictionary').classList.remove('hidden');
-        };
+        }
+        if (btnOpenDictionary) btnOpenDictionary.onclick = openDictionary;
         document.getElementById('btn-close-dict').onclick = () => {
             document.getElementById('modal-dictionary').classList.add('hidden');
         };
 
+        function ensureLetterSorted(letter){
+            if(!letter || dictSortedLetters.has(letter)) return;
+            const bucket = DICT_BY_LETTER?.[letter];
+            if(bucket) bucket.sort((a,b)=>a.localeCompare(b,'tr'));
+            dictSortedLetters.add(letter);
+        }
+
         function renderAlphabetButtons() {
             const bar = document.getElementById('alphabet-bar');
-            bar.innerHTML = '';
+            if(bar.dataset.ready==='1') { updateAlphabetActive(); return; }
+            const frag=document.createDocumentFragment();
             TURKISH_ALPHABET.forEach(l => {
                 const btn = document.createElement('button');
-                btn.className = "w-7 h-7 bg-white hover:bg-amber-400 hover:text-slate-950 text-slate-700 border border-slate-200 rounded-lg text-xs font-bold shadow-sm transition";
+                btn.className = "dict-letter-btn w-7 h-7 bg-white text-slate-700 border border-slate-200 rounded-lg text-xs font-bold shadow-sm";
                 btn.innerText = l;
+                btn.dataset.letter=l;
                 btn.onclick = () => {
                     document.getElementById('dict-search-input').value = '';
+                    dictCurrentQuery=''; dictCurrentLetter=l; dictVisibleCount=DICT_PAGE_SIZE;
                     renderWordsForLetter(l);
                 };
-                bar.appendChild(btn);
+                frag.appendChild(btn);
             });
+            bar.appendChild(frag); bar.dataset.ready='1'; updateAlphabetActive();
+        }
+        function updateAlphabetActive(){
+            document.querySelectorAll('.dict-letter-btn').forEach(b=>b.classList.toggle('dict-letter-active', !dictCurrentQuery && b.dataset.letter===dictCurrentLetter));
+        }
+
+        function getDictionaryWords(letter, query=''){
+            if(query){
+                const q=query.toLocaleUpperCase('tr-TR');
+                // Önce harf kovalarını dolaş; tek dev filter yerine küçük diziler üzerinde çalışır.
+                const out=[];
+                for(const l of TURKISH_ALPHABET){
+                    const bucket=DICT_BY_LETTER[l]||[];
+                    for(const w of bucket) if(w.includes(q)) out.push(w);
+                }
+                out.sort((a,b)=>a.localeCompare(b,'tr'));
+                return out;
+            }
+            ensureLetterSorted(letter);
+            return DICT_BY_LETTER[letter] || [];
+        }
+
+        function paintDictionaryWords(){
+            const list=document.getElementById('dict-words-list');
+            list.innerHTML='';
+            const frag=document.createDocumentFragment();
+            const limit=Math.min(dictVisibleCount,dictCurrentWords.length);
+            for(let i=0;i<limit;i++){
+                const w=dictCurrentWords[i];
+                const pts=w.split('').reduce((sum,c)=>sum+(TILE_SCORES[c]||1),0);
+                const tag=document.createElement('div');
+                tag.className='px-2.5 py-1 bg-white border border-slate-200 shadow-sm rounded-xl text-slate-800 text-xs font-bold flex items-center gap-1.5';
+                const wordSpan=document.createElement('span'); wordSpan.textContent=w;
+                const pointSpan=document.createElement('span'); pointSpan.className='text-[9px] text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full'; pointSpan.textContent=`${pts}p`;
+                tag.append(wordSpan,pointSpan); frag.appendChild(tag);
+            }
+            list.appendChild(frag);
+            const more=document.getElementById('dict-load-more');
+            more.classList.toggle('hidden', limit>=dictCurrentWords.length);
+            more.textContent=`DAHA FAZLA GÖSTER (${dictCurrentWords.length-limit})`;
         }
 
         function renderWordsForLetter(letter, query = '') {
-            const list = document.getElementById('dict-words-list');
-            list.innerHTML = '';
-            let words = DICT_BY_LETTER[letter] || [];
-            if (query) {
-                words = WORD_LIST.filter(w => w.includes(query.toLocaleUpperCase('tr-TR')));
-                document.getElementById('dict-letter-heading').innerText = `"${query}" ARAMA SONUÇLARI`;
-            } else {
-                document.getElementById('dict-letter-heading').innerText = `"${letter}" HARFİ KELİMELERİ`;
-            }
-            document.getElementById('dict-word-count').innerText = `${words.length} Kelime`;
-
-            words.slice(0, 500).forEach(w => {
-                const pts = w.split('').reduce((s, c) => s + (TILE_SCORES[c] || 1), 0);
-                const tag = document.createElement('div');
-                tag.className = 'px-2.5 py-1 bg-white border border-slate-200 shadow-sm rounded-xl text-slate-800 text-xs font-bold flex items-center gap-1.5';
-                tag.innerHTML = `<span>${w}</span><span class="text-[9px] text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full">${pts}p</span>`;
-                list.appendChild(tag);
-            });
+            dictCurrentLetter=letter || dictCurrentLetter || 'A';
+            dictCurrentQuery=query;
+            dictCurrentWords=getDictionaryWords(dictCurrentLetter,query);
+            document.getElementById('dict-letter-heading').innerText = query ? `"${query}" ARAMA SONUÇLARI` : `"${dictCurrentLetter}" HARFİ KELİMELERİ`;
+            document.getElementById('dict-word-count').innerText = `${dictCurrentWords.length} Kelime`;
+            updateAlphabetActive(); paintDictionaryWords();
         }
 
+        document.getElementById('dict-load-more').onclick=()=>{ dictVisibleCount += DICT_PAGE_SIZE; paintDictionaryWords(); };
         let dictSearchTimer=null;
         document.getElementById('dict-search-input').oninput = (e) => {
-            const q=e.target.value.trim();
-            clearTimeout(dictSearchTimer);
-            dictSearchTimer=setTimeout(()=>renderWordsForLetter(null,q),120);
+            const q=e.target.value.trim(); clearTimeout(dictSearchTimer);
+            dictSearchTimer=setTimeout(()=>{ dictVisibleCount=DICT_PAGE_SIZE; renderWordsForLetter(dictCurrentLetter,q); },140);
         };
 
         document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
