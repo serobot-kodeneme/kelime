@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Kelime Duellosu v121 | Stable + Daily Rooms + Online Presence + Performance Cleanup -->
+<!-- Kelime Duellosu v124 | Multiplayer best-of-3 rounds + winner-side celebration -->
 
 <html lang="tr">
 <head>
@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Kelime Düellosu v121 - 9x9 Akıllı Tahta</title>
+    <title>Kelime Düellosu v124 - 9x9 Akıllı Tahta</title>
     <meta name="game-version" content="v121">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -371,6 +371,15 @@
         @media (hover:none){.home-mode-btn:active{transform:scale(1.018);filter:brightness(1.04)}}
         @media (prefers-reduced-motion: reduce){.home-mode-btn{transition:none}.home-mode-btn:hover,.home-mode-btn:active{transform:none}}
         @media (prefers-reduced-motion: reduce){.home-float-dot{animation:none}.home-shortcut{transition:none}}
+
+        @keyframes winnerPulse {
+            0%,100% { opacity:1; transform:scale(1); filter:brightness(1); }
+            50% { opacity:.55; transform:scale(1.035); filter:brightness(1.12); }
+        }
+        .winner-pulse { animation:winnerPulse .9s ease-in-out infinite; transform-origin:center; }
+        .winner-name-big{font-size:1.25rem!important;line-height:1.1!important;letter-spacing:.02em;}
+        .round-transition-toast{position:fixed;left:50%;top:14%;transform:translateX(-50%);z-index:1001;background:rgba(15,23,42,.94);color:#fff;border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:10px 16px;font-weight:900;font-size:13px;box-shadow:0 12px 32px rgba(0,0,0,.28);pointer-events:none;text-align:center;max-width:90vw;}
+
 </style>
     <!-- Firebase: yalnızca çok oyunculu modda kullanılan hafif compat SDK -->
     <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -505,6 +514,7 @@
                 <div class="compact-timer justify-self-center">
                     <span class="timer-label">SÜRE</span>
                     <div id="game-timer">60</div>
+                    <div id="mp-round-badge" class="hidden mt-0.5 text-[8px] font-black tracking-wide text-cyan-200 whitespace-nowrap">ROUND 1/3 • 0-0</div>
                 </div>
 
                 <div class="compact-player justify-self-end items-end">
@@ -713,19 +723,20 @@
         <div id="modal-gameover" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex items-start justify-center z-50 hidden pt-3 sm:pt-5">
             <div class="bg-white border border-slate-200 px-4 pt-3 pb-4 rounded-3xl text-center w-[94%] max-w-md flex flex-col items-center text-slate-900 shadow-2xl max-h-[96%] overflow-hidden">
                 <div class="text-3xl leading-none mb-1">🏆</div>
-                <h2 id="gameover-heading" class="text-xl font-black mb-1 uppercase text-amber-600 leading-tight">1. OYUNCU KAZANDI!</h2>
+                <h2 id="gameover-heading" class="text-2xl font-black mb-1 uppercase text-amber-600 leading-tight">1. OYUNCU KAZANDI!</h2>
+                <div id="final-round-score" class="hidden mb-1 text-[12px] font-black text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1">ROUND SKORU 0 - 0</div>
                 <div class="flex justify-between items-center w-full mt-1 mb-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-2xl">
-                    <div class="w-[45%] text-center"><span id="final-p1-name" class="text-[11px] font-bold text-amber-600 block truncate">1. OYUNCU</span><span id="final-score-val-p1" class="text-xl font-black text-slate-900">0</span></div>
+                    <div class="w-[45%] text-center"><span id="final-p1-name" class="text-sm font-black text-amber-600 block truncate">1. OYUNCU</span><span id="final-score-val-p1" class="text-2xl font-black text-slate-900">0</span></div>
                     <span class="text-slate-400 font-bold">-</span>
-                    <div class="w-[45%] text-center"><span id="final-p2-name" class="text-[11px] font-bold text-sky-600 block truncate">2. OYUNCU</span><span id="final-score-val-p2" class="text-xl font-black text-slate-900">0</span></div>
+                    <div class="w-[45%] text-center"><span id="final-p2-name" class="text-sm font-black text-sky-600 block truncate">2. OYUNCU</span><span id="final-score-val-p2" class="text-2xl font-black text-slate-900">0</span></div>
                 </div>
                 <div class="grid grid-cols-2 gap-2 w-full mb-2 min-h-0">
                     <div class="rounded-xl border border-amber-200 bg-amber-50/80 p-2 min-w-0">
-                        <div class="text-[9px] font-black text-amber-700 uppercase tracking-wide mb-1">Bulunan Sözcükler</div>
+                        <div class="text-[11px] font-black text-amber-700 uppercase tracking-wide mb-1">Bulunan Sözcükler</div>
                         <div id="final-p1-words" class="space-y-1 overflow-hidden text-left"></div>
                     </div>
                     <div class="rounded-xl border border-sky-200 bg-sky-50/80 p-2 min-w-0">
-                        <div class="text-[9px] font-black text-sky-700 uppercase tracking-wide mb-1">Bulunan Sözcükler</div>
+                        <div class="text-[11px] font-black text-sky-700 uppercase tracking-wide mb-1">Bulunan Sözcükler</div>
                         <div id="final-p2-words" class="space-y-1 overflow-hidden text-left"></div>
                     </div>
                 </div>
@@ -62168,7 +62179,7 @@ BLİK
             const draw=(id,items,tone)=>{
                 const el=document.getElementById(id); if(!el) return;
                 const shown=items.slice(0,maxItems);
-                el.innerHTML=shown.length?shown.map(x=>`<div class="flex items-center justify-between gap-1 rounded-lg px-2 py-1 ${tone==='amber'?'bg-white/70 text-amber-950':'bg-white/70 text-sky-950'}"><span class="truncate text-[10px] font-black">${x.word}</span><span class="shrink-0 text-[9px] font-black opacity-70">+${x.pts}</span></div>`).join(''):'<div class="text-center text-[9px] font-bold text-slate-400 py-2">—</div>';
+                el.innerHTML=shown.length?shown.map(x=>`<div class="flex items-center justify-between gap-1 rounded-lg px-2 py-1 ${tone==='amber'?'bg-white/70 text-amber-950':'bg-white/70 text-sky-950'}"><span class="truncate text-[12px] font-black">${x.word}</span><span class="shrink-0 text-[11px] font-black opacity-80">+${x.pts}</span></div>`).join(''):'<div class="text-center text-[9px] font-bold text-slate-400 py-2">—</div>';
             };
             draw('final-p1-words',sortedRoundWords(true),'amber');
             draw('final-p2-words',sortedRoundWords(false),'sky');
@@ -62347,16 +62358,16 @@ BLİK
             appId: "1:968159872150:web:c80429010ec21363116eb7"
         };
 
-        const GAME_VERSION='v121';
+        const GAME_VERSION='v124';
         // Firebase tarafında yalnızca dört oyun durumu vardır.
         const MP_STATES = Object.freeze({
-            IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
+            IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', SUDDEN:'sudden', FINISHED:'finished'
         });
         let mpState=MP_STATES.IDLE;
         let mpDb=null, mpRoomRef=null, mpRoomCode=null, mpRole=null, mpRoomData=null;
         let mpSessionJoinedAt=0, mpExitHandling=false, mpLastExitSignalId='';
         let mpListener=null, mpWordsListener=null, mpScoresListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null;
-        let mpRound=0, mpStartBusy=false, mpRematchBusy=false, mpPresenceRef=null, mpLastRoomMetaSig='';
+        let mpRound=0, mpStartBusy=false, mpRematchBusy=false, mpPresenceRef=null, mpLastRoomMetaSig='', mpSeriesResultShownRound=0;
         let mpSeenWordEvents=new Set(), mpLastBeepSecond=null;
         const mpFoundWords={host:new Set(),guest:new Set()};
         let globalOnlinePresenceRef=null, globalOnlineListRef=null, globalOnlineListListener=null, onlineSessionId=null;
@@ -62517,6 +62528,8 @@ BLİK
                 hostId, guestId, status:'waiting', round:1,
                 board:readyBoard.board, startAt:0,
                 scores:{host:0,guest:0}, words:{},
+                matchWins:{host:0,guest:0}, seriesScores:{host:0,guest:0}, targetWins:2, maxRounds:3,
+                suddenWinner:null, suddenEndsAt:0, lastRoundWinner:null, lastRoundScores:{host:0,guest:0},
                 rematch:{host:false,guest:false,expiresAt:0},
                 presence:{host:{online:false,clientId:hostId},guest:{online:false,clientId:guestId}}
             });
@@ -62670,6 +62683,8 @@ BLİK
                 hostId, guestId:null, status:'waiting', round:1,
                 board:readyBoard.board, startAt:0,
                 scores:{host:0,guest:0}, words:{},
+                matchWins:{host:0,guest:0}, seriesScores:{host:0,guest:0}, targetWins:2, maxRounds:3,
+                suddenWinner:null, suddenEndsAt:0, lastRoundWinner:null, lastRoundScores:{host:0,guest:0},
                 rematch:{host:false,guest:false,expiresAt:0},
                 presence:{host:{online:true,clientId:hostId},guest:{online:false}}
             });
@@ -62754,7 +62769,7 @@ BLİK
             activeGameMode = 'multi';
             if(mpRole==='guest' && inviteFullscreenPending) requestGameFullscreen(true);
             const snap=await mpRoomRef.once('value'); const d=snap.val(); if(!d||!d.board) return;
-            mpRoomData=d; mpRound=Number(d.round||1);
+            mpRoomData=d; mpRound=Number(d.round||1); updateMultiplayerRoundBadge(d);
             if(!mpEntered){
                 mpEntered=true; mpStarted=false;
                 document.getElementById('screen-home')?.classList.add('hidden');
@@ -62777,39 +62792,32 @@ BLİK
             try{
                 await mpRoomRef.transaction(d=>{
                     if(!d || d.status!=='waiting' || !d.guestId || Number(d.startAt||0)>0) return;
-                    d.status='countdown'; d.startAt=serverNow()+5200;
+                    d.matchWins=d.matchWins||{host:0,guest:0}; d.seriesScores=d.seriesScores||{host:0,guest:0}; d.targetWins=2; d.maxRounds=3; d.status='countdown'; d.startAt=serverNow()+5200;
                     return d;
                 });
             }finally{ mpStartBusy=false; }
         }
 
         async function hostStartRematch(){
-            // Yeni round'u yalnızca host kurar. Tahta maç bittiği anda zaten yenilenmiştir;
-            // burada aynı hazırlanmış tahta korunur ve yalnızca yeni round verileri sıfırlanır.
+            // Seri tamamen bittikten sonra aynı odada yepyeni 3-roundluk seri başlar.
             if(mpRole!=='host'||mpRematchBusy||!mpRoomRef) return;
             mpRematchBusy=true;
             try{
-                const now=serverNow();
+                const now=serverNow(); const fresh=generateOptimizedBoard(3).board; rememberBoard(fresh);
                 const result=await mpRoomRef.transaction(d=>{
-                    if(!d || d.status!=='finished' || !Array.isArray(d.board)) return;
-                    const r=d.rematch||{};
-                    const expiresAt=Number(r.expiresAt||0);
+                    if(!d || d.status!=='finished') return;
+                    const r=d.rematch||{}; const expiresAt=Number(r.expiresAt||0);
                     if(!r.host || !r.guest || !expiresAt || expiresAt<now) return;
-
-                    d.round=Number(d.round||1)+1;
-                    d.scores={host:0,guest:0};
-                    d.words={};
-                    d.rematch={host:false,guest:false,expiresAt:0};
-                    d.status='countdown';
-                    d.startAt=now+5200;
+                    d.round=1; d.board=fresh; d.scores={host:0,guest:0}; d.words={};
+                    d.matchWins={host:0,guest:0}; d.seriesScores={host:0,guest:0}; d.finalWinner=null;
+                    d.lastRoundWinner=null; d.lastRoundScores={host:0,guest:0}; d.suddenWinner=null; d.suddenEndsAt=0;
+                    d.rematch={host:false,guest:false,expiresAt:0}; d.status='countdown'; d.startAt=now+5200;
                     return d;
                 });
                 if(!result.committed) return;
-                setTimeout(scheduleBoardPrewarm,250);
-            }catch(e){
-                console.error('Rematch start error',e);
-                showToast('Yeni oyun başlatılamadı. Tekrar deneyin.','rose');
-            }finally{ mpRematchBusy=false; }
+                mpSeriesResultShownRound=0; setTimeout(scheduleBoardPrewarm,250);
+            }catch(e){ console.error('Rematch start error',e); showToast('Yeni oyun başlatılamadı. Tekrar deneyin.','rose'); }
+            finally{ mpRematchBusy=false; }
         }
 
         async function hostExpireRematchIfNeeded(d){
@@ -62845,6 +62853,98 @@ BLİK
             }
         }
 
+
+        function updateMultiplayerRoundBadge(d){
+            const el=document.getElementById('mp-round-badge'); if(!el) return;
+            if(activeGameMode!=='multi' || !d){ el.classList.add('hidden'); return; }
+            const w=d.matchWins||{host:0,guest:0};
+            const round=Math.max(1,Math.min(3,Number(d.round||1)));
+            el.textContent=`ROUND ${round}/3 • ${Number(w.host||0)}-${Number(w.guest||0)}`;
+            el.classList.remove('hidden');
+        }
+        function showRoundTransitionNotice(text,ms=1800){
+            let el=document.getElementById('round-transition-toast');
+            if(!el){ el=document.createElement('div'); el.id='round-transition-toast'; el.className='round-transition-toast'; document.body.appendChild(el); }
+            el.textContent=text; el.style.display='block'; clearTimeout(el._t); el._t=setTimeout(()=>{el.style.display='none';},ms);
+        }
+        async function hostResolveRoundEnd(){
+            if(mpRole!=='host'||!mpRoomRef) return;
+            const snap=await mpRoomRef.once('value'); const d=snap.val();
+            if(!d || d.status!=='playing') return;
+            const hs=Number(d.scores?.host||0), gs=Number(d.scores?.guest||0);
+            if(hs===gs){
+                await mpRoomRef.transaction(cur=>{
+                    if(!cur||cur.status!=='playing') return;
+                    cur.status='sudden'; cur.suddenWinner=null; cur.suddenEndsAt=serverNow()+20000;
+                    return cur;
+                });
+                return;
+            }
+            await hostFinalizeRound(hs>gs?'host':'guest');
+        }
+        async function hostFinalizeRound(winnerRole){
+            if(mpRole!=='host'||!mpRoomRef||!winnerRole) return;
+            const fresh=generateOptimizedBoard(3).board; rememberBoard(fresh);
+            const now=serverNow();
+            await mpRoomRef.transaction(d=>{
+                if(!d || !['playing','sudden'].includes(d.status)) return;
+                const scores=d.scores||{host:0,guest:0};
+                const wins=d.matchWins||{host:0,guest:0};
+                const series=d.seriesScores||{host:0,guest:0};
+                series.host=Number(series.host||0)+Number(scores.host||0);
+                series.guest=Number(series.guest||0)+Number(scores.guest||0);
+                wins[winnerRole]=Number(wins[winnerRole]||0)+1;
+                d.matchWins=wins; d.seriesScores=series;
+                d.lastRoundWinner=winnerRole; d.lastRoundScores={host:Number(scores.host||0),guest:Number(scores.guest||0)};
+                d.suddenWinner=null; d.suddenEndsAt=0;
+                if(Number(wins[winnerRole]||0)>=Number(d.targetWins||2)){
+                    d.status='finished'; d.finalWinner=winnerRole; d.startAt=0;
+                    return d;
+                }
+                d.round=Math.min(Number(d.maxRounds||3),Number(d.round||1)+1);
+                d.board=fresh; d.scores={host:0,guest:0}; d.words={};
+                d.status='countdown'; d.startAt=now+5200;
+                return d;
+            });
+        }
+        function startSuddenDeath(d){
+            setMpState(MP_STATES.SUDDEN); isMatchActive=true; mpStarted=true;
+            const badge=document.getElementById('mp-round-badge');
+            if(badge){ const w=d.matchWins||{host:0,guest:0}; badge.textContent=`ANİ ÖLÜM • ROUND ${Number(d.round||1)}/3 • ${Number(w.host||0)}-${Number(w.guest||0)}`; badge.classList.remove('hidden'); }
+            showRoundTransitionNotice('BERABERE • 20 SANİYELİK ANİ ÖLÜM',2200);
+            clearInterval(timerInterval); lastHeartbeatSecond=null;
+            const tick=()=>{
+                const left=Math.max(0,Math.ceil((Number(d.suddenEndsAt||0)-serverNow())/1000));
+                remainingSeconds=left; const el=document.getElementById('game-timer'); if(el){el.innerText=left; el.classList.toggle('timer-warning',left<=10);} maybeHeartbeat(left);
+                if(left<=0){ clearInterval(timerInterval); if(mpRole==='host'&&mpRoomRef){ mpRoomRef.transaction(cur=>{ if(!cur||cur.status!=='sudden'||cur.suddenWinner) return; cur.suddenEndsAt=serverNow()+20000; return cur; }).catch(()=>{}); } }
+            };
+            tick(); timerInterval=setInterval(tick,200);
+        }
+        function showMultiplayerSeriesResult(d){
+            if(!d || d.status!=='finished') return;
+            isMatchActive=false; clearInterval(timerInterval); clearInterval(mpClock); clearTimeout(botInterval);
+            const modal=document.getElementById('modal-gameover'); modal?.classList.remove('hidden');
+            const wins=d.matchWins||{host:0,guest:0}; const series=d.seriesScores||{host:0,guest:0};
+            const p1Name=document.getElementById('p1-title').innerText, p2Name=document.getElementById('p2-title').innerText;
+            document.getElementById('final-p1-name').innerText=p1Name; document.getElementById('final-p2-name').innerText=p2Name;
+            document.getElementById('final-score-val-p1').innerText=Number(series.host||0);
+            document.getElementById('final-score-val-p2').innerText=Number(series.guest||0);
+            const rs=document.getElementById('final-round-score'); if(rs){rs.textContent=`ROUND SKORU ${Number(wins.host||0)} - ${Number(wins.guest||0)}`;rs.classList.remove('hidden');}
+            renderGameoverWordLists();
+            const heading=document.getElementById('gameover-heading'), p1NameEl=document.getElementById('final-p1-name'),p2NameEl=document.getElementById('final-p2-name'),p1ScoreEl=document.getElementById('final-score-val-p1'),p2ScoreEl=document.getElementById('final-score-val-p2');
+            [p1NameEl,p2NameEl,p1ScoreEl,p2ScoreEl].forEach(el=>el?.classList.remove('winner-pulse','winner-name-big'));
+            const winner=d.finalWinner || (Number(wins.host||0)>Number(wins.guest||0)?'host':'guest');
+            if(winner==='host'){
+                heading.innerText=`${p1Name} KAZANDI! 🏆`; p1NameEl?.classList.add('winner-pulse','winner-name-big'); p1ScoreEl?.classList.add('winner-pulse');
+                if(mpSeriesResultShownRound!==Number(d.round||0)){mpSeriesResultShownRound=Number(d.round||0);launchGrandCelebration('p1');}
+            }else{
+                heading.innerText=`${p2Name} KAZANDI! 🏆`; p2NameEl?.classList.add('winner-pulse','winner-name-big'); p2ScoreEl?.classList.add('winner-pulse');
+                if(mpSeriesResultShownRound!==Number(d.round||0)){mpSeriesResultShownRound=Number(d.round||0);launchGrandCelebration('p2');}
+            }
+            const replay=document.getElementById('btn-play-again'); if(replay){replay.disabled=false;replay.innerText='YENİ OYUN';replay.classList.remove('hidden');}
+            renderRematchState(d);
+        }
+
         function attachRoomListener(){
             if(!mpRoomRef) return;
             if(mpListener) mpRoomRef.off('value',mpListener);
@@ -62856,6 +62956,7 @@ BLİK
                 if(d.hostId===clientId) mpRole='host';
                 else if(d.guestId===clientId) mpRole='guest';
                 mpRoomData=d;
+                updateMultiplayerRoundBadge(d);
 
                 // Herhangi bir oyuncu çıkış yaptığında iki istemci de aynı sinyali işler.
                 const exitSignal=d.roomExit;
@@ -62870,12 +62971,12 @@ BLİK
                 const roomBoardSig=Array.isArray(d.board)?boardSignature(d.board):'';
                 const metaSig=[d.status,Number(d.round||1),Number(d.startAt||0),d.guestId||'',roomBoardSig,
                     isOnline(d.presence?.guest),!!d.rematch?.host,!!d.rematch?.guest,
-                    Number(d.rematch?.expiresAt||0),d.roomExit?.id||'',Number(d.roomExit?.at||0)].join('|');
+                    Number(d.rematch?.expiresAt||0),Number(d.matchWins?.host||0),Number(d.matchWins?.guest||0),d.suddenWinner||'',Number(d.suddenEndsAt||0),d.finalWinner||'',d.roomExit?.id||'',Number(d.roomExit?.at||0)].join('|');
                 if(metaSig===mpLastRoomMetaSig) return;
                 mpLastRoomMetaSig=metaSig;
 
                 const newRound=Number(d.round||1);
-                if(mpRound && newRound!==mpRound){ resetLocalMultiplayerRound(d); await enterMultiplayerRoom(); }
+                if(mpRound && newRound!==mpRound){ const prevWinner=d.lastRoundWinner; resetLocalMultiplayerRound(d); if(prevWinner) showRoundTransitionNotice(`${prevWinner==='host'?'1. OYUNCU':'2. OYUNCU'} ROUND'U KAZANDI • ROUND ${newRound}/3`); await enterMultiplayerRoom(); }
                 mpRound=newRound;
 
                 if(d.status==='waiting'){
@@ -62907,15 +63008,15 @@ BLİK
                     // COUNTDOWN dinleyicisi gecikmiş/kaçmış olsa bile harf seçimini kesin aç.
                     activateMultiplayerPlaying(d);
                 }
+                if(d.status==='sudden'){
+                    if(!mpEntered) await enterMultiplayerRoom();
+                    if(d.suddenWinner && mpRole==='host'){ await hostFinalizeRound(d.suddenWinner); return; }
+                    startSuddenDeath(d);
+                }
                 if(d.status==='finished'){
                     setMpState(MP_STATES.FINISHED);
                     document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
-                    // Host maç biter bitmez yeni tahtayı odaya yazar. Her iki istemci de oyun sonu
-                    // penceresinin arkasında bu yeni tahtayı görür ve rövanş aynı tahta ile başlar.
-                    if(Array.isArray(d.board) && boardSignature(d.board)!==boardSignature(gridBoard)) {
-                        renderProvidedBoard(d.board);
-                    }
-                    renderRematchState(d);
+                    showMultiplayerSeriesResult(d);
                     await hostExpireRematchIfNeeded(d);
                     if(mpRole==='host' && d.rematch?.host && d.rematch?.guest && Number(d.rematch?.expiresAt||0)>=serverNow()) await hostStartRematch();
                 }
@@ -62964,7 +63065,7 @@ BLİK
             const inviteMsg=document.getElementById('countdown-invite-message');
             if(inviteMsg) inviteMsg.classList.toggle('hidden', mpRole!=='guest');
             const startAt=Number(d.startAt||0);
-            if(status)status.innerText='SENKRONİZE EDİLİYOR…'; modal?.classList.remove('hidden');
+            if(status)status.innerText=`ROUND ${Number(d.round||1)}/3 • SENKRONİZE EDİLİYOR…`; modal?.classList.remove('hidden');
             const tick=()=>{
                 const left=startAt-serverNow();
                 if(left>0){
@@ -63182,6 +63283,7 @@ BLİK
 
         function prepareGame() {
             activeGameMode = 'single';
+            document.getElementById('mp-round-badge')?.classList.add('hidden');
             document.getElementById('p1-title').innerText = 'OYUNCU';
             document.getElementById('p2-title').innerText = 'BİLGİSAYAR';
             document.getElementById('screen-home').classList.add('hidden');
@@ -63673,7 +63775,7 @@ BLİK
                 desc.innerText = `"${word}" (Sözlük Onaylı) ✨`;
                 desc.className = "text-[11px] font-bold text-emerald-400 italic truncate px-1";
             } else {
-                desc.innerText = `"${word}" (Sözlükte yok - Puan cezası var)`;
+                desc.innerText = `"${word}" (Sözlükte yok -5 puan)`;
                 desc.className = "text-[11px] font-bold text-rose-400 italic truncate px-1";
             }
         }
@@ -63693,8 +63795,8 @@ BLİK
 
             if (!WORD_SET.has(word)) {
                 playErrorBuzzer();
-                showToast(`${word} (-${pts}) Geçersiz!`, 'rose');
-                adjustScore(isP1 ? -pts : 0, !isP1 ? -pts : 0);
+                showToast(`${word} (-5) Geçersiz!`, 'rose');
+                adjustScore(isP1 ? -5 : 0, !isP1 ? -5 : 0);
                 clearPath();
                 return;
             }
@@ -63715,7 +63817,8 @@ BLİK
                     });
                     if (!tx.committed) {
                         playErrorBuzzer();
-                        showToast(`${word} daha önce bulundu!`, 'rose');
+                        showToast(`${word} daha önce bulundu! (-5)`, 'rose');
+                        adjustScore(isP1 ? -5 : 0, !isP1 ? -5 : 0);
                         clearPath();
                         return;
                     }
@@ -63726,7 +63829,8 @@ BLİK
                 }
             } else if (sessionFoundWords.has(word)) {
                 playErrorBuzzer();
-                showToast(`${word} daha önce bulundu!`, 'rose');
+                showToast(`${word} daha önce bulundu! (-5)`, 'rose');
+                adjustScore(isP1 ? -5 : 0, !isP1 ? -5 : 0);
                 clearPath();
                 return;
             }
@@ -63747,6 +63851,10 @@ BLİK
             addTickerBadge(word, isP1);
             flyScore(pts, isP1);
             adjustScore(isP1 ? pts : 0, !isP1 ? pts : 0);
+            if(mpRole && mpState===MP_STATES.SUDDEN && mpRoomRef){
+                await syncMpScore().catch(()=>{});
+                await mpRoomRef.child('suddenWinner').transaction(cur=>cur||mpRole).catch(()=>{});
+            }
             // Çoklu oyunda kelime olayı words transaction'ı ile atomik olarak yayımlandı.
             clearPath();
         }
@@ -63907,36 +64015,19 @@ BLİK
         }
 
         // ================= BÜYÜK ŞENLİKLİ KAZANMA KUTLAMASI =================
-        function launchGrandCelebration() {
+        function launchGrandCelebration(winnerSide=null) {
             if (typeof confetti !== 'function') return;
-            const duration = (mpRole ? 3.2 : 4.5) * 1000;
+            const duration = (mpRole ? 2.6 : 3.6) * 1000;
             const animationEnd = Date.now() + duration;
-
+            const baseX = winnerSide==='p1' ? 0.22 : winnerSide==='p2' ? 0.78 : 0.5;
             const interval = setInterval(function() {
                 const timeLeft = animationEnd - Date.now();
                 if (timeLeft <= 0) return clearInterval(interval);
-
-                const particleCount = (mpRole ? 26 : 45) * (timeLeft / duration);
-                confetti({
-                    particleCount,
-                    startVelocity: 35,
-                    spread: 75,
-                    origin: { x: Math.random() * 0.2 + 0.1, y: 0.7 },
-                    zIndex: 999
-                });
-                confetti({
-                    particleCount,
-                    startVelocity: 35,
-                    spread: 75,
-                    origin: { x: Math.random() * 0.2 + 0.7, y: 0.7 },
-                    zIndex: 999
-                });
-            }, 250);
-
-            // Merkezden büyük şenlik patlamaları
-            setTimeout(() => confetti({ particleCount: mpRole ? 70 : 120, spread: 100, origin: { y: 0.5 }, zIndex: 999 }), 300);
-            setTimeout(() => confetti({ particleCount: mpRole ? 90 : 160, spread: 120, origin: { y: 0.4 }, zIndex: 999 }), 900);
-            setTimeout(() => confetti({ particleCount: mpRole ? 110 : 200, spread: 140, origin: { y: 0.6 }, zIndex: 999 }), 1600);
+                const particleCount = (mpRole ? 24 : 38) * (timeLeft / duration);
+                confetti({particleCount,startVelocity:34,spread:72,origin:{x:Math.max(.08,Math.min(.92,baseX+(Math.random()-.5)*.12)),y:.68},zIndex:999});
+            },250);
+            setTimeout(()=>confetti({particleCount:mpRole?65:105,spread:95,origin:{x:baseX,y:.52},zIndex:999}),250);
+            setTimeout(()=>confetti({particleCount:mpRole?80:135,spread:115,origin:{x:baseX,y:.42},zIndex:999}),850);
         }
 
         async function waitUntilRoomFinished(timeoutMs=3500){
@@ -63996,42 +64087,30 @@ BLİK
 
 
         function endGame(){
-            if(!isMatchActive && mpRole && mpState===MP_STATES.FINISHED) return;
+            if(!isMatchActive && mpRole && [MP_STATES.FINISHED,MP_STATES.SUDDEN].includes(mpState)) return;
             isMatchActive=false; clearInterval(timerInterval); clearTimeout(botInterval);
             if(mpRoomRef && mpRole){
-                setMpState(MP_STATES.FINISHED);
-                if(mpRole==='host'){
-                    // Yeni çoklu tahta maç bittiği anda hazırlanır. Böylece YENİ OYUN eski
-                    // harf dizilimini asla tekrar kullanmaz ve iki oyuncu aynı yeni tahtayı alır.
-                    const ready = generateOptimizedBoard(3);
-                    const freshBoard = ready.board;
-                    rememberBoard(freshBoard);
-                    mpRoomRef.transaction(d=>{
-                        if(!d) return;
-                        if(d.status!=='finished'){
-                            d.status='finished'; d.startAt=0;
-                            d.board=freshBoard;
-                            d.rematch={host:false,guest:false,expiresAt:0};
-                        }
-                        return d;
-                    }).catch(()=>{});
-                    renderProvidedBoard(freshBoard);
-                }
-            } else {
-                // Tekli ve AI rakip modlarında da bitiş anında bir sonraki tahta hazırlanır.
-                prepareAndPreviewNextSingleBoard();
+                // Çoklu oyunda round sonucunu yalnızca host belirler. Final modalı yalnız seri bittiğinde açılır.
+                if(mpRole==='host' && mpState===MP_STATES.PLAYING) hostResolveRoundEnd().catch(()=>{});
+                else showRoundTransitionNotice('ROUND SONU • Sonuç senkronize ediliyor…',1200);
+                return;
             }
+            // Tekli/AI: mevcut tek-maç davranışı korunur.
+            prepareAndPreviewNextSingleBoard();
             document.getElementById('modal-gameover').classList.remove('hidden');
             const replayBtn=document.getElementById('btn-play-again');
             if(replayBtn){ replayBtn.disabled=false; replayBtn.innerText='YENİ OYUN'; replayBtn.classList.remove('hidden'); }
+            const rs=document.getElementById('final-round-score'); if(rs)rs.classList.add('hidden');
             document.getElementById('final-score-val-p1').innerText=p1Score;
             document.getElementById('final-score-val-p2').innerText=p2Score;
             const p1Name=document.getElementById('p1-title').innerText, p2Name=document.getElementById('p2-title').innerText;
             document.getElementById('final-p1-name').innerText=p1Name; document.getElementById('final-p2-name').innerText=p2Name;
             renderGameoverWordLists();
             const heading=document.getElementById('gameover-heading');
-            if(p1Score>p2Score){heading.innerText=`${p1Name} KAZANDI! 🏆`;launchGrandCelebration();}
-            else if(p2Score>p1Score){heading.innerText=`${p2Name} KAZANDI! 🏆`;launchGrandCelebration();}
+            const p1NameEl=document.getElementById('final-p1-name'),p2NameEl=document.getElementById('final-p2-name'),p1ScoreEl=document.getElementById('final-score-val-p1'),p2ScoreEl=document.getElementById('final-score-val-p2');
+            [p1NameEl,p2NameEl,p1ScoreEl,p2ScoreEl].forEach(el=>el?.classList.remove('winner-pulse','winner-name-big'));
+            if(p1Score>p2Score){ heading.innerText=`${p1Name} KAZANDI! 🏆`; p1NameEl?.classList.add('winner-pulse','winner-name-big'); p1ScoreEl?.classList.add('winner-pulse'); launchGrandCelebration('p1'); }
+            else if(p2Score>p1Score){ heading.innerText=`${p2Name} KAZANDI! 🏆`; p2NameEl?.classList.add('winner-pulse','winner-name-big'); p2ScoreEl?.classList.add('winner-pulse'); launchGrandCelebration('p2'); }
             else heading.innerText='BERABERE! 🤝';
         }
 
