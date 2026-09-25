@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v148-optimum - 9x9 Akıllı Tahta</title>
-<meta name="game-version" content="v148-optimum">
+<title>Kelime Düellosu v155-optimum - 10x10 Akıllı Tahta</title>
+<meta name="game-version" content="v155-optimum">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -58,11 +58,11 @@ flex-direction: column;
 width: 100%;
 aspect-ratio: 1 / 1;
 display: grid;
-grid-template-columns: repeat(9, minmax(0, 1fr));
-grid-template-rows: repeat(9, minmax(0, 1fr));
+grid-template-columns: repeat(10, minmax(0, 1fr));
+grid-template-rows: repeat(10, minmax(0, 1fr));
 background-color: #94a3b8;
-gap: clamp(2px, 0.55vw, 4px);
-padding: clamp(3px, 0.75vw, 5px);
+gap: clamp(1.5px, 0.42vw, 3px);
+padding: clamp(2px, 0.55vw, 4px);
 border-radius: 16px;
 box-sizing: border-box;
 overscroll-behavior: contain;
@@ -84,7 +84,7 @@ display: flex;
 align-items: center;
 justify-content: center;
 font-family: 'Quicksand', sans-serif;
-font-size: clamp(1.42rem, 6.3vw, 1.92rem);
+font-size: clamp(1.28rem, 5.5vw, 1.78rem);
 font-weight: 900;
 position: relative;
 border-radius: clamp(7px, 1.8vw, 10px);
@@ -101,7 +101,7 @@ pointer-events: none;
 position: absolute;
 bottom: 2px;
 right: 3px;
-font-size: clamp(0.55rem, 2.2vw, 0.72rem);
+font-size: clamp(0.48rem, 1.9vw, 0.66rem);
 font-weight: 800;
 color: #64748b;
 line-height: 1;
@@ -181,6 +181,48 @@ white-space: nowrap;
 #screen-game > header { min-height: 0; }
 #screen-game > div:last-child { min-height: 0; overflow: hidden; }
 
+/* Seçilen harf önizlemesi: her ekran ve tam ekran modunda daima yatay */
+#selected-word-preview{
+  min-width:0;
+  width:100%;
+  display:flex;
+  flex-direction:row;
+  flex-wrap:nowrap;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+.selected-preview-tiles{
+  display:flex !important;
+  flex-direction:row !important;
+  flex-wrap:nowrap !important;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+  min-height:27px;
+  max-width:100%;
+  white-space:nowrap;
+  overflow:hidden;
+}
+.letter-cell.selected-preview-tile{
+  width:25px!important;
+  height:25px!important;
+  min-width:25px!important;
+  min-height:25px!important;
+  flex:0 0 25px!important;
+  font-size:14px!important;
+  border-radius:5px!important;
+  box-shadow:0 2px 0 #cbd5e1!important;
+  transform:none!important;
+  pointer-events:none!important;
+  background:#fff!important;
+  color:#0f172a!important;
+}
+@media(max-width:360px){
+  .selected-preview-tiles{gap:2px}
+  .letter-cell.selected-preview-tile{width:22px!important;height:22px!important;min-width:22px!important;min-height:22px!important;flex-basis:22px!important;font-size:12px!important}
+}
+
 @media (max-width: 600px), (max-height: 760px) {
 #screen-game > header {
 padding: 4px 8px 3px !important;
@@ -206,18 +248,18 @@ border-radius: 9px !important;
 
 #words-ticker { min-height: 20px; }
 #words-ticker > * { transform: scale(.92); transform-origin: left center; }
-#selected-word-preview { font-size: 15px !important; letter-spacing: .12em !important; }
+.letter-cell.selected-preview-tile .tile-score{font-size:6px!important;right:2px!important;bottom:1px!important;color:#64748b!important}
 
 #scrabble-grid {
 width: min(100%, calc(100dvh - 202px)) !important;
-max-width: 430px !important;
+max-width: 440px !important;
 margin: 0 auto !important;
-gap: 2px !important;
-padding: 3px !important;
+gap: 1.5px !important;
+padding: 2px !important;
 border-radius: 11px !important;
 }
-.letter-cell { font-size: clamp(1rem, 5.1vw, 1.32rem) !important; border-radius: 5px !important; }
-.letter-cell .tile-score { font-size: .48rem !important; bottom: 1px !important; right: 2px !important; }
+.letter-cell { font-size: clamp(.96rem, 4.9vw, 1.26rem) !important; border-radius: 5px !important; }
+.letter-cell .tile-score { font-size: .43rem !important; bottom: 1px !important; right: 2px !important; }
 
 #word-status-desc { font-size: 9px !important; }
 
@@ -255,7 +297,7 @@ border-radius: 11px !important;
 .score-orb { width:38px; height:38px; font-size:16px; }
 #compact-game-header #game-timer { font-size:21px !important; line-height:21px !important; }
 #words-ticker { min-height:18px; }
-#scrabble-grid { width:min(calc(100vw - 12px), calc(100dvh - 190px), 430px) !important; max-width:none !important; }
+#scrabble-grid { width:min(calc(100vw - 6px), calc(100dvh - 190px), 440px) !important; max-width:none !important; }
 #mobile-word-status { min-height:24px !important; margin-top:0 !important; margin-bottom:4px !important; padding-top:2px !important; padding-bottom:2px !important; }
 #word-status-desc { font-size:9px !important; }
 }
@@ -264,7 +306,7 @@ border-radius: 11px !important;
 .compact-avatar { width:22px !important; height:22px !important; font-size:11px !important; }
 #compact-game-header #game-timer { font-size:19px !important; line-height:19px !important; }
 .score-orb { width:34px; height:34px; font-size:14px; }
-#scrabble-grid { width:min(calc(100vw - 12px), calc(100dvh - 170px), 430px) !important; }
+#scrabble-grid { width:min(calc(100vw - 6px), calc(100dvh - 170px), 440px) !important; }
 }
 
 #scrabble-grid { contain: layout paint; -webkit-tap-highlight-color: transparent; }
@@ -277,25 +319,25 @@ text-shadow:0 2px 8px rgba(0,0,0,.28); will-change:transform,opacity; }
 .score-fly.go { transform: translate3d(var(--dx),var(--dy),0) scale(1.22); opacity:0; }
 
 #scrabble-grid {
-width: min(100%, 560px);
-max-width: 560px;
+width: min(100%, 580px);
+max-width: 580px;
 margin-inline: auto;
 }
 @media (max-width: 520px) {
 #scrabble-grid {
-width: min(calc(100vw - 12px), calc(100dvh - 148px)) !important;
+width: min(calc(100vw - 6px), calc(100dvh - 148px)) !important;
 max-width: none !important;
 }
 .letter-cell {
-font-size: clamp(1.35rem, 6.9vw, 1.72rem);
+font-size: clamp(1.05rem, 5.0vw, 1.42rem);
 box-shadow: 0 2px 0 #cbd5e1;
 }
 .letter-cell .tile-score { bottom: 2px; right: 3px; }
 }
 @media (min-width: 700px) {
 #app-container { max-width: 620px; }
-#scrabble-grid { width: min(72vh, 560px) !important; }
-.letter-cell { font-size: 1.82rem; }
+#scrabble-grid { width: min(74vh, 580px) !important; }
+.letter-cell { font-size: 1.62rem; }
 }
 @media (pointer: coarse) {
 .scrabble-board { cursor: default; }
@@ -303,9 +345,11 @@ box-shadow: 0 2px 0 #cbd5e1;
 .tile-hover-tremble { animation: none !important; }
 }
 
-.home-float-dot{position:absolute;border-radius:9999px;pointer-events:none;filter:blur(.2px);opacity:.55;animation:homeFloat 7s ease-in-out infinite}
-.home-float-dot:nth-child(2){animation-delay:-2s}.home-float-dot:nth-child(3){animation-delay:-4s}
-@keyframes homeFloat{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-10px,0)}}
+.home-float-dot{position:absolute;border-radius:9999px;pointer-events:none;filter:blur(.2px);opacity:.42}
+.home-content-layer{position:relative;z-index:2}
+@keyframes supportHeartbeat{0%,100%{transform:scale(1)}10%{transform:scale(1.24)}20%{transform:scale(1)}30%{transform:scale(1.15)}42%{transform:scale(1)} }
+.support-heart{transform:none}
+.support-heart-icon{display:inline-block;animation:supportHeartbeat 1.3s cubic-bezier(.4,0,.2,1) infinite;transform-origin:50% 55%;will-change:transform}
 .home-shortcut{transition:transform .16s ease,box-shadow .16s ease}
 .home-shortcut:hover{transform:translateY(-2px)}
 
@@ -344,7 +388,7 @@ background: radial-gradient(circle at 35% 35%, rgba(45,212,191,.58) 0 10%, rgba(
 .home-mode-btn:active{transform:scale(.985)}
 @media (hover:none){.home-mode-btn:active{transform:scale(1.018);filter:brightness(1.04)}}
 @media (prefers-reduced-motion: reduce){.home-mode-btn{transition:none}.home-mode-btn:hover,.home-mode-btn:active{transform:none}}
-@media (prefers-reduced-motion: reduce){.home-float-dot{animation:none}.home-shortcut{transition:none}}
+@media (prefers-reduced-motion: reduce){.home-shortcut{transition:none}.support-heart-icon{animation:supportHeartbeat 1.7s ease-in-out infinite}}
 
 @keyframes winnerPulse {
 0%,100% { opacity:1; transform:scale(1); filter:brightness(1); }
@@ -370,11 +414,12 @@ background: radial-gradient(circle at 35% 35%, rgba(45,212,191,.58) 0 10%, rgba(
 }
 .rematch-pulse{animation:rematchPulse 1.15s ease-in-out infinite; transform-origin:center;}
 
-#sound-volume{height:34px;cursor:pointer;}
-#sound-volume::-webkit-slider-runnable-track{height:12px;border-radius:999px;background:#c7d2fe;}
-#sound-volume::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;margin-top:-7px;background:#4f46e5;border:3px solid #fff;box-shadow:0 2px 8px rgba(79,70,229,.35);}
-#sound-volume::-moz-range-track{height:12px;border-radius:999px;background:#c7d2fe;}
-#sound-volume::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#4f46e5;border:3px solid #fff;box-shadow:0 2px 8px rgba(79,70,229,.35);}
+#sound-volume-levels{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:18px;}
+.sound-level-dot{width:24px;height:24px;border-radius:9999px;border:2px solid #94a3b8;background:transparent;box-shadow:inset 0 0 0 3px #fff,0 2px 7px rgba(15,23,42,.08);transition:transform .12s ease,background .12s ease,border-color .12s ease,box-shadow .12s ease;cursor:pointer;}
+.sound-level-dot:hover{transform:scale(1.08);}
+.sound-level-dot.active{background:#22c55e;border-color:#16a34a;box-shadow:inset 0 0 0 3px rgba(255,255,255,.88),0 0 10px rgba(34,197,94,.72);}
+.sound-level-dot:active{transform:scale(.94);}
+@media (max-width:380px){#sound-volume-levels{gap:11px}.sound-level-dot{width:22px;height:22px}}
 .graphics-choice{transition:transform .14s ease,box-shadow .14s ease,filter .14s ease;}
 .graphics-choice.active{box-shadow:0 0 0 3px rgba(79,70,229,.18),0 7px 16px rgba(15,23,42,.12);transform:translateY(-1px);filter:brightness(1.03);}
 body.graphics-high .score-fly{font-size:23px;text-shadow:0 0 9px currentColor,0 3px 10px rgba(0,0,0,.35);}
@@ -413,7 +458,7 @@ body.graphics-high #gameover-heading{animation:highWinnerBounce .85s ease-in-out
 <div class="absolute inset-0 pointer-events-none opacity-80" style="background:radial-gradient(circle at 18% 15%,rgba(255,255,255,.75),transparent 18%),radial-gradient(circle at 84% 22%,rgba(255,255,255,.6),transparent 16%),linear-gradient(to top,rgba(22,101,52,.30),transparent 34%);"></div>
 <div class="absolute -left-7 top-28 rotate-[-13deg] w-16 h-16 rounded-2xl bg-amber-100 border-4 border-amber-200 shadow-xl flex items-center justify-center text-3xl font-black text-slate-800">K<span class="absolute right-1 bottom-0 text-[9px]">5</span></div>
 <div class="absolute -right-5 top-40 rotate-[14deg] w-16 h-16 rounded-2xl bg-amber-100 border-4 border-amber-200 shadow-xl flex items-center justify-center text-3xl font-black text-slate-800">İ<span class="absolute right-1 bottom-0 text-[9px]">1</span></div>
-<div class="relative h-full flex flex-col items-center px-4 pt-5 pb-3 overflow-y-auto hide-scroll">
+<div class="home-content-layer h-full flex flex-col items-center px-4 pt-5 pb-3 overflow-y-auto hide-scroll">
 <div class="shrink-0 text-center mt-1">
 <div class="text-3xl mb-[-10px] drop-shadow-lg">👑</div>
 <div class="bg-indigo-950/90 border-4 border-indigo-800 rounded-[28px] px-5 py-2 shadow-2xl -rotate-1">
@@ -439,7 +484,7 @@ body.graphics-high #gameover-heading{animation:highWinnerBounce .85s ease-in-out
 </div>
 
 <button id="btn-friend-mode" class="home-mode-btn w-full min-h-[76px] flex items-center gap-4 px-5 bg-gradient-to-b from-sky-400 to-blue-600 text-white rounded-[24px] border-4 border-sky-200/70 shadow-[0_8px_0_#1e40af] active:translate-y-1 active:shadow-[0_4px_0_#1e40af] transition-all duration-200">
-<span class="text-4xl">👥</span><span class="text-left flex-1"><b class="block text-xl leading-5 font-black">ÇOK OYUNCULU</b><small class="font-bold text-sky-50">Arkadaşınla karşılıklı oyna</small></span><span class="text-3xl font-black">›</span>
+<span class="text-4xl">👥</span><span class="text-left flex-1"><b class="block text-xl leading-5 font-black">ÇOK OYUNCULU</b><small class="font-bold text-sky-50">Karşılıklı oyna</small></span><span class="text-3xl font-black">›</span>
 </button>
 </div>
 
@@ -472,7 +517,7 @@ body.graphics-high #gameover-heading{animation:highWinnerBounce .85s ease-in-out
 
 <a href="https://www.losev.org.tr/tr/bagis" target="_blank" rel="noopener noreferrer" class="home-shortcut block w-full rounded-[20px] bg-gradient-to-r from-rose-50 via-white to-red-50 border-2 border-rose-200 shadow-[0_8px_20px_rgba(127,29,29,.14)] px-4 py-3.5 active:scale-[.99]" aria-label="LÖSEV resmi bağış sayfasını aç">
 <div class="flex items-center gap-2.5">
-<div class="w-12 h-12 shrink-0 rounded-[14px] bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center text-2xl shadow-sm">❤</div>
+<div class="support-heart w-12 h-12 shrink-0 rounded-[14px] bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center text-2xl shadow-sm"><span class="support-heart-icon" aria-hidden="true">❤</span></div>
 <div class="min-w-0 flex-1 text-left">
 <div class="text-[9px] font-black tracking-[.14em] text-rose-500 uppercase">DESTEK ALANI</div>
 <div class="text-[15px] leading-tight font-black text-rose-950">LÖSEV’e Destek Ol</div>
@@ -538,7 +583,7 @@ body.graphics-high #gameover-heading{animation:highWinnerBounce .85s ease-in-out
 </div>
 
 <div class="w-full h-7 flex items-center justify-center bg-slate-950 shrink-0 border-b border-slate-800 px-3">
-<span id="selected-word-preview" class="text-lg font-black text-amber-300 tracking-[0.2em] uppercase"></span>
+<div id="selected-word-preview" class="selected-preview-tiles" aria-label="Seçilen harfler"></div>
 </div>
 
 <div class="w-full relative flex-1 min-h-0 bg-slate-900 flex flex-col justify-start px-2 pt-1 pb-0 overflow-hidden">
@@ -563,7 +608,7 @@ Bir harfe basılı tutup sürükle; bıraktığında sözcük otomatik kontrol e
 <div class="flex items-center justify-between mb-4"><button id="btn-howto-back" class="w-10 h-10 rounded-full bg-white shadow font-black text-xl">‹</button><h2 class="font-black text-xl text-indigo-950">YARDIM</h2><div class="w-10"></div></div>
 <div class="rounded-3xl bg-indigo-950 text-white p-4 shadow-lg mb-3">
 <div class="text-lg font-black">Kelime Düellosu nasıl oynanır?</div>
-<p class="text-xs text-indigo-100 mt-1 leading-relaxed">9×9 tahtada komşu harfleri birleştir, geçerli Türkçe sözcükleri bul ve 60 saniyelik kapışmada en yüksek puanı toplamaya çalış.</p>
+<p class="text-xs text-indigo-100 mt-1 leading-relaxed">10×10 tahtada komşu harfleri birleştir, geçerli Türkçe sözcükleri bul ve 60 saniyelik kapışmada en yüksek puanı toplamaya çalış.</p>
 </div>
 <div class="space-y-3">
 <div class="bg-white rounded-3xl p-4 shadow-lg border border-sky-100">
@@ -571,13 +616,13 @@ Bir harfe basılı tutup sürükle; bıraktığında sözcük otomatik kontrol e
 <div class="space-y-2 text-xs text-slate-650 leading-relaxed">
 <p><b>Harf seçimi:</b> Bir harfe basılı tut, yalnızca sağ-sol-yukarı-aşağı komşu harflere sürükle ve bırak.</p>
 <p><b>Çapraz geçiş yoktur.</b> Tek bir harfe dokunup bırakmak ceza vermez. Seçim 3 saniyeyi aşarsa oyun harfleri otomatik bırakır ve ceza uygulamaz.</p>
-<p><b>Sözlük kontrolü:</b> En az 2 harfli seçim bırakıldığı anda otomatik kontrol edilir. Geçerli sözcük puan kazandırır; geçersiz sözcük -3 puandır.</p>
+<p><b>Sözlük kontrolü:</b> 2–10 harfli seçim bırakıldığı anda otomatik kontrol edilir. Geçerli sözcük puan kazandırır; geçersiz veya argo/küfürlü sözcük -3 puandır.</p>
 <p><b>Aynı sözcük:</b> Bir maçta daha önce bulunmuş sözcüğü tekrar yazmak -3 puandır. Aynı harfler farklı sözcükler için tekrar kullanılabilir.</p>
 </div>
 </div>
 <div class="bg-gradient-to-br from-amber-50 to-yellow-100 rounded-3xl p-4 shadow-lg border border-amber-200">
 <div class="font-black text-amber-950 mb-2">👤 Tek Oyuncu</div>
-<p class="text-xs text-amber-950/80 leading-relaxed">Bilgisayara karşı oynarsın. Kolay, Orta, Zor veya Uzman seviyesini seçersin. Sen ve bilgisayar aynı 9×9 tahtayı kullanırsınız; 60 saniye sonunda yüksek puan kazanan maçı alır. YENİDEN OYNA ile aynı zorlukta yeni bir tahta hazırlanır.</p>
+<p class="text-xs text-amber-950/80 leading-relaxed">Bilgisayara karşı oynarsın. Kolay, Orta, Zor veya Uzman seviyesini seçersin. Sen ve bilgisayar aynı 10×10 tahtayı kullanırsınız; 60 saniye sonunda yüksek puan kazanan maçı alır. YENİDEN OYNA ile aynı zorlukta yeni bir tahta hazırlanır.</p>
 </div>
 <div class="bg-gradient-to-br from-sky-50 to-cyan-100 rounded-3xl p-4 shadow-lg border border-sky-200">
 <div class="font-black text-sky-950 mb-2">👥 Çok Oyunculu — KAPMACA</div>
@@ -607,12 +652,17 @@ Bir harfe basılı tutup sürükle; bıraktığında sözcük otomatik kontrol e
 <div class="flex items-center justify-between gap-3">
 <div>
 <div class="font-black text-slate-900">Ses Düzeyi</div>
-<div class="text-[11px] font-bold text-slate-500 mt-0.5">Harf, doğru kelime, hata ve geri sayım seslerini ayarlar.</div>
+<div class="text-[11px] font-bold text-slate-500 mt-0.5">5 kademeli ses ayarı.</div>
 </div>
-<div id="sound-volume-label" class="min-w-[64px] text-center rounded-xl bg-indigo-50 border border-indigo-100 px-2 py-1 text-sm font-black text-indigo-800">8 / 10</div>
+<div id="sound-volume-label" class="min-w-[58px] text-center rounded-xl bg-emerald-50 border border-emerald-100 px-2 py-1 text-sm font-black text-emerald-800">4 / 5</div>
 </div>
-<input id="sound-volume" type="range" min="1" max="10" step="1" value="8" class="w-full mt-5 accent-indigo-600" aria-label="Ses düzeyi 1 ile 10 arası">
-<div class="flex items-center justify-between text-[10px] font-black text-slate-400 mt-1"><span>1</span><span>10</span></div>
+<div id="sound-volume-levels" role="group" aria-label="Ses düzeyi 1 ile 5 arası">
+<button type="button" class="sound-level-dot" data-sound-level="1" aria-label="Ses 1"></button>
+<button type="button" class="sound-level-dot" data-sound-level="2" aria-label="Ses 2"></button>
+<button type="button" class="sound-level-dot" data-sound-level="3" aria-label="Ses 3"></button>
+<button type="button" class="sound-level-dot" data-sound-level="4" aria-label="Ses 4"></button>
+<button type="button" class="sound-level-dot" data-sound-level="5" aria-label="Ses 5"></button>
+</div>
 <button id="btn-sound-test" type="button" class="w-full mt-5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-[.99] text-white font-black text-xs py-3 shadow">SESİ DENE</button>
 <div class="mt-6 pt-5 border-t border-slate-200">
 <div class="font-black text-slate-900">Grafik Kalitesi</div>
@@ -633,7 +683,7 @@ Bir harfe basılı tutup sürükle; bıraktığında sözcük otomatik kontrol e
 <p class="text-sm font-black text-slate-700 mb-4">Bu oyun Serdar B. tarafından LÖSEV'e destek amaçlı hazırlanmıştır.</p>
 <a href="https://www.losev.org.tr/tr/bagis" target="_blank" rel="noopener noreferrer" class="home-shortcut block w-full rounded-[20px] bg-gradient-to-r from-rose-50 via-white to-red-50 border-2 border-rose-200 shadow-[0_8px_20px_rgba(127,29,29,.14)] px-4 py-3.5 active:scale-[.99]" aria-label="LÖSEV resmi bağış sayfasını aç">
 <div class="flex items-center gap-2.5">
-<div class="w-12 h-12 shrink-0 rounded-[14px] bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center text-2xl shadow-sm">❤</div>
+<div class="support-heart w-12 h-12 shrink-0 rounded-[14px] bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center text-2xl shadow-sm"><span class="support-heart-icon" aria-hidden="true">❤</span></div>
 <div class="min-w-0 flex-1 text-left">
 <div class="text-[9px] font-black tracking-[.14em] text-rose-500 uppercase">DESTEK ALANI</div>
 <div class="text-[15px] leading-tight font-black text-rose-950">LÖSEV’e Destek Ol</div>
@@ -62125,8 +62175,18 @@ prev = word;
 }
 return out;
 })();
-// Tam sözlük Sözlük ekranında korunur; oyun motoru yalnız 2–9 harfli kelimeleri kullanır.
-const GAME_WORD_LIST = WORD_LIST.filter(w => w.length >= 2 && w.length <= 9);
+// Küfür/argo filtresi: bu sözcükler Sözlük ekranında gösterilmez ve oyun için geçerli sayılmaz.
+// Kökler özellikle dar tutulur; "götürmek", "bisiklet", "amaç" gibi masum sözcükler yanlış eşleşmez.
+const ARGO_EXACT = new Set(['AM','GÖT','YARAK','TAŞAK','TAŞAKLI','ÇÜK','SİK','SİKME','SİKMEK']);
+const ARGO_PREFIXES = ['OROSPU','PEZEVENK','KAHPE','İBNE','PUŞT','SÜRTÜK','KALTAK','DALYARAK','PİÇ','SİKTİR','AMCIK','AMINA','YARRAK','GÖTVEREN','SIÇMA','SIÇTIR'];
+function isArgoWord(word){
+const w=String(word||'').toLocaleUpperCase('tr-TR');
+if(ARGO_EXACT.has(w)) return true;
+for(const root of ARGO_PREFIXES) if(w.startsWith(root)) return true;
+return w.startsWith('BOK') && !w.startsWith('BOKS') && !w.startsWith('BOKSİT');
+}
+// Tam sözlük verisi yerinde kalır; Sözlük ekranı argo sözcükleri filtreler, oyun motoru yalnız temiz 2–10 harfli kelimeleri kullanır.
+const GAME_WORD_LIST = WORD_LIST.filter(w => w.length >= 2 && w.length <= 10 && !isArgoWord(w)).sort();
 const GAME_WORD_SET = new Set(GAME_WORD_LIST);
 const GAME_WORDS_BY_LENGTH = new Map();
 for (const w of GAME_WORD_LIST) {
@@ -62149,7 +62209,7 @@ let DICT_SORTED = false;
 function ensureDictionaryIndex() {
 if (DICT_BY_LETTER) return;
 DICT_BY_LETTER = Object.fromEntries(TURKISH_ALPHABET.map(l => [l, []]));
-for (const w of WORD_LIST) if (DICT_BY_LETTER[w[0]]) DICT_BY_LETTER[w[0]].push(w);
+for (const w of WORD_LIST) if (!isArgoWord(w) && DICT_BY_LETTER[w[0]]) DICT_BY_LETTER[w[0]].push(w);
 }
 
 const AVATARS = [
@@ -62307,13 +62367,17 @@ document.getElementById('graphics-high')?.classList.toggle('active',graphicsQual
 }
 
 function setMasterSoundVolume(v){
-masterSoundVolume = Math.max(0.1, Math.min(1, Number(v)||0.1));
+masterSoundVolume = Math.max(0.2, Math.min(1, Number(v)||0.2));
+const level=Math.max(1,Math.min(5,Math.round(masterSoundVolume*5)));
+masterSoundVolume=level/5;
 localStorage.setItem(SOUND_VOLUME_KEY, String(masterSoundVolume));
-const slider=document.getElementById('sound-volume');
 const label=document.getElementById('sound-volume-label');
-const level=Math.max(1,Math.min(10,Math.round(masterSoundVolume*10)));
-if(slider) slider.value=String(level);
-if(label) label.textContent=`${level} / 10`;
+if(label) label.textContent=`${level} / 5`;
+document.querySelectorAll('.sound-level-dot').forEach(dot=>{
+const dotLevel=Number(dot.dataset.soundLevel||0);
+dot.classList.toggle('active',dotLevel<=level);
+dot.setAttribute('aria-pressed',dotLevel===level?'true':'false');
+});
 }
 function ensureGameAudio(){
 try{
@@ -62343,7 +62407,7 @@ osc.start(now); osc.stop(now+duration+0.02);
 }catch(_){}
 }
 function playLetterPickSound(step=1){
-const n=Math.min(8,Math.max(1,step));
+const n=Math.min(10,Math.max(1,step));
 const base=430 + (n-1)*28;
 playTone(base,.060,.065,'sine',base+115);
 }
@@ -62412,7 +62476,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v148-optimum';
+const GAME_VERSION='v155-optimum';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -63196,7 +63260,6 @@ document.getElementById('modal-room-invite')?.classList.add('hidden');
 
 document.getElementById('btn-close-room').onclick=async()=>{
 if(!mpRoomRef || mpRole!=='host') return;
-if(!confirm('Bu oda kapatılsın mı? Oda kodu ve davet bağlantısı artık çalışmayacak.')) return;
 try{
 const snap=await mpRoomRef.once('value'),d=snap.val();
 if(!d || d.hostId!==getClientToken()){ showToast('Bu odayı yalnızca kurucusu kapatabilir.','rose'); return; }
@@ -63229,8 +63292,7 @@ setMasterSoundVolume(masterSoundVolume);
 document.getElementById('screen-settings').classList.remove('hidden');
 };
 document.getElementById('btn-settings-back').onclick = () => document.getElementById('screen-settings').classList.add('hidden');
-document.getElementById('sound-volume').addEventListener('input', e => setMasterSoundVolume(Number(e.target.value)/10));
-document.getElementById('sound-volume').addEventListener('change', () => playCorrectChime());
+document.querySelectorAll('.sound-level-dot').forEach(dot=>dot.addEventListener('click',()=>{setMasterSoundVolume(Number(dot.dataset.soundLevel)/5);playCorrectChime();}));
 document.getElementById('btn-sound-test').onclick = () => { ensureGameAudio(); playLetterPickSound(3); setTimeout(playCorrectChime,110); };
 document.getElementById('graphics-low')?.addEventListener('click',()=>applyGraphicsQuality('low'));
 document.getElementById('graphics-high')?.addEventListener('click',()=>applyGraphicsQuality('high'));
@@ -63269,7 +63331,7 @@ setTimeout(()=>{ numEl.style.opacity='1'; numEl.style.transform='scale(1)'; moda
 }, 860);
 }
 
-const BOARD_SIZE = 9;
+const BOARD_SIZE = 10;
 const BOARD_DIRS = [
 {dr:0,dc:1},{dr:0,dc:-1},{dr:1,dc:0},{dr:-1,dc:0}
 ];
@@ -63277,16 +63339,16 @@ const BOARD_POOLS = Object.freeze({
 easy2: GAME_WORDS_BY_LENGTH.get(2) || [],
 medium34: [...(GAME_WORDS_BY_LENGTH.get(3) || []), ...(GAME_WORDS_BY_LENGTH.get(4) || [])],
 bridge5: GAME_WORDS_BY_LENGTH.get(5) || [],
-hidden69: [...(GAME_WORDS_BY_LENGTH.get(6) || []), ...(GAME_WORDS_BY_LENGTH.get(7) || []), ...(GAME_WORDS_BY_LENGTH.get(8) || []), ...(GAME_WORDS_BY_LENGTH.get(9) || [])]
+hidden610: [...(GAME_WORDS_BY_LENGTH.get(6) || []), ...(GAME_WORDS_BY_LENGTH.get(7) || []), ...(GAME_WORDS_BY_LENGTH.get(8) || []), ...(GAME_WORDS_BY_LENGTH.get(9) || []), ...(GAME_WORDS_BY_LENGTH.get(10) || [])]
 });
 const BOARD_BALANCE = Object.freeze({
-easyMin: 34, easyIdeal: 58,
-mediumMin: 105, mediumIdeal: 180,
-bridgeMin: 18, bridgeIdeal: 42,
-hiddenMin: 7, hiddenIdeal: 15, hiddenMax: 30,
-totalMin: 230, totalIdeal: 370,
-coverageMin: 48, coverageIdeal: 68,
-longVarietyMin: 3
+easyMin: 38, easyIdeal: 66,
+mediumMin: 118, mediumIdeal: 205,
+bridgeMin: 20, bridgeIdeal: 48,
+hiddenMin: 9, hiddenIdeal: 19, hiddenMax: 38,
+totalMin: 260, totalIdeal: 430,
+coverageMin: 56, coverageIdeal: 82,
+longVarietyMin: 4
 });
 const FILL_LETTERS = "AAAAAAAABCCÇDDEEEEEEEFGĞHHIIIIIİİİİJKKKLLLMMMNNNOOÖPRRRRSSSŞTTTUUÜVYYZ";
 
@@ -63329,24 +63391,24 @@ const mediumSeeds = shuffledSample(BOARD_POOLS.medium34, 330);
 const easySeeds = shuffledSample(BOARD_POOLS.easy2, 100);
 
 let placedLong = 0, placedOther = 0;
-for (const len of [9,8,7,6]) {
+for (const len of [10,9,8,7,6]) {
 const candidates = shuffledSample(GAME_WORDS_BY_LENGTH.get(len) || [], 14);
 for (const word of candidates) {
 if (tryPlaceWord(board, word, placedLong >= 3)) { placedLong++; break; }
 }
 }
-const longSeeds = shuffledSample(BOARD_POOLS.hidden69, 30);
+const longSeeds = shuffledSample(BOARD_POOLS.hidden610, 36);
 for (const word of longSeeds) {
-if (placedLong >= 10) break;
+if (placedLong >= 12) break;
 if (tryPlaceWord(board, word, placedLong >= 5)) placedLong++;
 }
 for (const word of [...bridgeSeeds, ...mediumSeeds]) {
-if (placedOther >= 54) break;
+if (placedOther >= 64) break;
 if (tryPlaceWord(board, word, true) || tryPlaceWord(board, word, false)) placedOther++;
 }
 let easyPlaced = 0;
 for (const word of easySeeds) {
-if (easyPlaced >= 24) break;
+if (easyPlaced >= 28) break;
 if (tryPlaceWord(board, word, false)) easyPlaced++;
 }
 
@@ -63365,7 +63427,7 @@ const n = item.word.length;
 if (n === 2) stats.easy++;
 else if (n <= 4) stats.medium++;
 else if (n === 5) stats.bridge++;
-else if (n <= 9) { stats.hidden++; longLengths.add(n); }
+else if (n <= 10) { stats.hidden++; longLengths.add(n); }
 
 if (n >= 2 && n <= 5 && Array.isArray(item.path)) {
 for (const p of item.path) productiveCells.add(`${p.r},${p.c}`);
@@ -63594,10 +63656,9 @@ const samples = typeof e.getCoalescedEvents === 'function' ? e.getCoalescedEvent
 if (samples && samples.length > 1) {
 const step=Math.max(1,Math.floor(samples.length/6));
 for (let i=0;i<samples.length;i+=step) {
-const sample=samples[i]; processPointerAt(sample.clientX,sample.clientY,activeGridRect);
+const sample=samples[i]; processPointerSegment(sample.clientX,sample.clientY,activeGridRect);
 }
-const last=samples[samples.length-1]; processPointerAt(last.clientX,last.clientY,activeGridRect);
-lastPointerX=last.clientX; lastPointerY=last.clientY;
+const last=samples[samples.length-1]; processPointerSegment(last.clientX,last.clientY,activeGridRect);
 }
 pendingPointer = {x:e.clientX, y:e.clientY};
 if (pointerFrame) return;
@@ -63639,7 +63700,7 @@ function processPointerSegment(clientX,clientY,rect=activeGridRect){
 if(lastPointerX===null||lastPointerY===null){processPointerAt(clientX,clientY,rect);lastPointerX=clientX;lastPointerY=clientY;return;}
 const dx=clientX-lastPointerX,dy=clientY-lastPointerY;
 const cellPx=rect?Math.min(rect.width,rect.height)/BOARD_SIZE:40;
-const steps=Math.min(6,Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/Math.max(8,cellPx*.48))));
+const steps=Math.min(10,Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/Math.max(7,cellPx*.40))));
 for(let i=1;i<=steps;i++) processPointerAt(lastPointerX+dx*i/steps,lastPointerY+dy*i/steps,rect);
 lastPointerX=clientX;lastPointerY=clientY;
 }
@@ -63697,17 +63758,31 @@ syncWordDisplay();
 
 function syncWordDisplay() {
 const word = selectedPath.map(p => p.char).join('');
-if(selectedWordPreviewEl) selectedWordPreviewEl.textContent = word;
+if(selectedWordPreviewEl){
+if(!selectedPath.length) selectedWordPreviewEl.replaceChildren();
+else {
+const frag=document.createDocumentFragment();
+for(const p of selectedPath){
+const tile=document.createElement('div'); tile.className='letter-cell selected-preview-tile';
+const letter=document.createElement('span'); letter.textContent=p.char;
+const score=document.createElement('span'); score.className='tile-score'; score.textContent=String(TILE_SCORES[p.char]||1);
+tile.append(letter,score); frag.appendChild(tile);
+}
+selectedWordPreviewEl.replaceChildren(frag);
+}
+}
 const desc = wordStatusDescEl;
 if(!desc) return;
 let state='neutral', message='Yatay veya dikey komşu harfleri sürükleyerek kelime oluştur!';
 if(word.length===1){ state='short'; message=`"${word}" (En az 2 harfli olmalı)`; }
+else if(word.length>=2 && isArgoWord(word)){ state='argo'; message='ARGO -3 CEZA'; }
 else if(word.length>=2 && GAME_WORD_SET.has(word)){ state='valid'; message=`"${word}" (Sözlük Onaylı) ✨`; }
 else if(word.length>=2){ state='invalid'; message=`"${word}" (Sözlükte yok -3 puan)`; }
 desc.textContent=message;
 if(state!==wordStatusVisualState){
 wordStatusVisualState=state;
 desc.className=state==='valid' ? 'text-[11px] font-bold text-emerald-400 italic truncate px-1'
+: state==='argo' ? 'text-[11px] font-black text-orange-400 italic truncate px-1'
 : state==='invalid' ? 'text-[11px] font-bold text-rose-400 italic truncate px-1'
 : state==='short' ? 'text-[11px] font-bold text-amber-400 italic truncate px-1'
 : 'text-[11px] font-bold text-slate-300 italic truncate px-1';
@@ -63721,6 +63796,14 @@ const pts = word.split('').reduce((sum, ch) => sum + (TILE_SCORES[ch] || 1), 0);
 const isP1 = mpRole ? (mpRole === 'host') : (chosenAvatarId === 'av_1');
 
 if (word.length < 2) {
+clearPath();
+return;
+}
+
+if (isArgoWord(word)) {
+playErrorBuzzer();
+showToast('ARGO -3 CEZA', 'rose');
+adjustScore(isP1 ? -3 : 0, !isP1 ? -3 : 0);
 clearPath();
 return;
 }
@@ -63875,7 +63958,7 @@ function solveBoardWords(board = gridBoard) {
 const found = new Map();
 const visited = Array.from({length:BOARD_SIZE}, () => Array(BOARD_SIZE).fill(false));
 const deltas = [[-1,0],[0,-1],[0,1],[1,0]];
-const MAX_SOLVE_LEN = 9; // 6-9 harfli gizli sözcükleri de tahta analizine ve bota dahil eder.
+const MAX_SOLVE_LEN = 10; // 6-10 harfli uzun sözcükleri tahta analizine ve bota dahil eder.
 const prefixMemo = new Map();
 const prefixExists = str => {
 if(prefixMemo.has(str)) return prefixMemo.get(str);
@@ -64168,7 +64251,7 @@ returnToHomeFromMultiplayer();
 activeGameMode='single';
 sessionFoundWords.clear();
 const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
-const preview=document.getElementById('selected-word-preview'); if(preview)preview.textContent='';
+const preview=document.getElementById('selected-word-preview'); if(preview)preview.replaceChildren();
 const desc=document.getElementById('word-status-desc'); if(desc)desc.textContent='Bir harfe basılı tutup sürükle; bıraktığında sözcük otomatik kontrol edilir.'; wordStatusVisualState='';
 document.getElementById('screen-game')?.classList.add('hidden');
 document.getElementById('screen-home')?.classList.remove('hidden');
