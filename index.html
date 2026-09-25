@@ -8,8 +8,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Kelime Düellosu v139-clean - 9x9 Akıllı Tahta</title>
-    <meta name="game-version" content="v139-clean">
+    <title>Kelime Düellosu v142-clean - 9x9 Akıllı Tahta</title>
+    <meta name="game-version" content="v142-clean">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -491,7 +491,7 @@
 
                 <div class="w-full max-w-sm mt-5 space-y-3 shrink-0">
                     <button id="btn-solo-mode" class="home-mode-btn w-full min-h-[76px] flex items-center gap-4 px-5 bg-gradient-to-b from-emerald-400 to-green-600 text-white rounded-[24px] border-4 border-emerald-200/70 shadow-[0_8px_0_#166534] active:translate-y-1 active:shadow-[0_4px_0_#166534] transition">
-                        <span class="text-4xl">🤖</span><span class="text-left flex-1"><b class="block text-xl leading-5 font-black">TEKLİ OYUN</b><small class="font-bold text-green-50">Zorluk seç ve hemen başla</small></span><span id="solo-arrow" class="text-3xl font-black transition-transform">›</span>
+                        <span class="text-4xl">🤖</span><span class="text-left flex-1"><b class="block text-xl leading-5 font-black">TEK OYUNCU</b><small class="font-bold text-green-50">Zorluk seç ve hemen başla</small></span><span id="solo-arrow" class="text-3xl font-black transition-transform">›</span>
                     </button>
 
                     <!-- Tekli Oyuncu açıldığında seçenekler iki ana düğmenin arasına girer. -->
@@ -506,30 +506,30 @@
                     </div>
 
                     <button id="btn-friend-mode" class="home-mode-btn w-full min-h-[76px] flex items-center gap-4 px-5 bg-gradient-to-b from-sky-400 to-blue-600 text-white rounded-[24px] border-4 border-sky-200/70 shadow-[0_8px_0_#1e40af] active:translate-y-1 active:shadow-[0_4px_0_#1e40af] transition-all duration-200">
-                        <span class="text-4xl">👥</span><span class="text-left flex-1"><b class="block text-xl leading-5 font-black">ÇOKLU OYUNCU</b><small class="font-bold text-sky-50">Arkadaşınla karşılıklı oyna</small></span><span class="text-3xl font-black">›</span>
+                        <span class="text-4xl">👥</span><span class="text-left flex-1"><b class="block text-xl leading-5 font-black">ÇOK OYUNCULU</b><small class="font-bold text-sky-50">Arkadaşınla karşılıklı oyna</small></span><span class="text-3xl font-black">›</span>
                     </button>
                 </div>
 
                 <div id="friend-invite-panel" class="hidden w-full max-w-sm mt-2 bg-white/95 p-3 rounded-[20px] border-2 border-sky-100 shadow-xl shrink-0">
-                    <div class="flex justify-between items-center"><b class="text-sm text-slate-800">👥 ÇOKLU OYUNCU</b><button id="btn-close-friend" class="w-7 h-7 rounded-full bg-slate-100 text-lg font-black text-slate-500 leading-none">×</button></div>
+                    <div class="flex justify-between items-center"><b class="text-sm text-slate-800">👥 ÇOK OYUNCULU</b><button id="btn-close-friend" class="w-7 h-7 rounded-full bg-slate-100 text-lg font-black text-slate-500 leading-none">×</button></div>
                     <div id="mp-create-view" class="mt-2 space-y-1.5">
-                        <button id="btn-create-room" class="w-full min-h-[40px] rounded-xl bg-gradient-to-b from-sky-400 to-blue-600 text-white text-xs font-black shadow-md border border-sky-200">ODA OLUŞTUR</button>
-                        <div class="rounded-lg bg-sky-50 border border-sky-100 px-2.5 py-1.5 text-[10px] font-bold text-sky-900">Odayı kur, 6 haneli oda kodunu paylaş.</div>
+                        <button id="btn-create-room" class="w-full min-h-[40px] rounded-xl bg-gradient-to-b from-sky-400 to-blue-600 text-white text-xs font-black shadow-md border border-sky-200">ÖZEL ODA OLUŞTUR</button>
+                        <div class="rounded-lg bg-sky-50 border border-sky-100 px-2.5 py-1.5 text-[10px] font-bold text-sky-900">Odanı kur, bağlantını paylaş ve odada bekle.</div>
                         <div class="flex items-center gap-2 py-0.5"><span class="h-px flex-1 bg-slate-200"></span><span class="text-[9px] font-black text-slate-400">VEYA</span><span class="h-px flex-1 bg-slate-200"></span></div>
                         <button id="btn-random-match" class="home-mode-btn w-full min-h-[40px] rounded-xl bg-gradient-to-b from-violet-400 to-indigo-600 text-white text-xs font-black shadow-md border border-violet-200">🎲 RASTGELE RAKİP</button>
                         <div id="mp-random-status" class="hidden rounded-lg bg-violet-50 border border-violet-100 px-2.5 py-1.5 text-[10px] font-bold text-violet-900">Çevrimiçi rakip aranıyor…</div>
-                        <div class="rounded-lg bg-slate-50 border border-slate-200 px-2.5 py-1.5 text-[9px] font-bold text-slate-500">Önce gerçek rakip aranır; bulunamazsa AI rakip devreye girer.</div>
+                        <div class="rounded-lg bg-slate-50 border border-slate-200 px-2.5 py-1.5 text-[9px] font-bold text-slate-500">Çevrimiçi kapışma arayan rakip aranır, rakip bulunamazsa AI rakiple kapışılır.</div>
                     </div>
                     <div id="mp-room-view" class="hidden mt-2 text-center">
-                        <div class="text-left">
-                            <div class="text-[9px] font-black text-slate-500 uppercase text-center">ODA KODU</div>
-                            <input id="mp-room-code" readonly inputmode="numeric" value="------" class="mt-0.5 w-full text-center text-xl font-black tracking-[.28em] text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-xl py-2 select-all cursor-text" />
+                        <div class="text-[9px] font-black text-slate-500 uppercase text-left mb-1">ODA KODU</div>
+                        <div class="flex items-stretch gap-1.5">
+                            <input id="mp-room-code" readonly inputmode="numeric" value="------" class="w-[118px] shrink-0 text-center text-lg font-black tracking-[.18em] text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-xl px-2 py-2 select-all cursor-text" />
+                            <button id="btn-copy-link" class="flex-1 min-w-0 px-2 min-h-[40px] rounded-xl bg-sky-100 border border-sky-300 text-sky-900 font-black text-[10px] leading-tight">🔗 BAĞLANTIYI KOPYALA</button>
                         </div>
                         <div id="mp-status" class="mt-2 rounded-lg bg-slate-100 px-2.5 py-1.5 text-[10px] font-bold text-slate-600">Oda hazırlanıyor…</div>
-                        <div class="mt-2 grid grid-cols-3 gap-1.5">
-                            <button id="btn-copy-link" class="min-h-[38px] rounded-lg bg-sky-100 border border-sky-300 text-sky-900 font-black text-[10px]">🔗 KOPYALA</button>
-                            <button id="btn-share-link" class="min-h-[38px] rounded-lg bg-emerald-100 border border-emerald-300 text-emerald-900 font-black text-[10px]">📨 DAVET ET</button>
-                            <button id="btn-enter-room" class="hidden min-h-[38px] rounded-lg bg-indigo-100 border border-indigo-300 text-indigo-900 font-black text-[10px]">⏳ ODADA BEKLE</button>
+                        <div class="mt-2 grid grid-cols-2 gap-1.5">
+                            <button id="btn-enter-room" class="hidden min-h-[40px] rounded-lg bg-indigo-100 border border-indigo-300 text-indigo-900 font-black text-[10px]">⏳ LOBİDE BEKLE</button>
+                            <button id="btn-share-link" class="min-h-[40px] rounded-lg bg-emerald-100 border border-emerald-300 text-emerald-900 font-black text-[10px]">📨 DAVET ET</button>
                         </div>
                         <button id="btn-close-room" class="hidden w-full mt-1.5 min-h-[34px] rounded-lg bg-rose-50 border border-rose-200 text-rose-700 font-black text-[10px]">ODAYI KAPAT</button>
                     </div>
@@ -62472,7 +62472,7 @@ BLİK
             appId: "1:968159872150:web:c80429010ec21363116eb7"
         };
 
-        const GAME_VERSION='v139-clean';
+        const GAME_VERSION='v142-clean';
         // Firebase tarafında yalnızca dört oyun durumu vardır.
         const MP_STATES = Object.freeze({
             IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
@@ -63206,10 +63206,10 @@ BLİK
         document.getElementById('btn-random-match')?.addEventListener('click',searchRandomOpponent);
         document.getElementById('btn-copy-link').onclick = async()=>{
             if(!mpRoomCode)return;
+            const url=inviteUrl(mpRoomCode);
             try{
-                await navigator.clipboard.writeText(inviteUrl(mpRoomCode));
-                document.getElementById('mp-status').innerText='Davet bağlantısı kopyalandı ✓ Arkadaşını bekliyorsun.';
-                showToast('Oda bağlantısı kopyalandı.','emerald');
+                await navigator.clipboard.writeText(url);
+                showToast('Bu linki kapışmak istediğiniz kişiye iletiniz','emerald',2000);
             }catch(e){ showToast('Bağlantı kopyalanamadı.','rose'); }
         };
         document.getElementById('btn-share-link').onclick = async()=>{
@@ -63963,7 +63963,7 @@ BLİK
             document.getElementById('words-ticker').appendChild(badge);
         }
 
-        function showToast(msg, color) {
+        function showToast(msg, color, duration=1600) {
             const toast = document.createElement('div');
             toast.className = `floating-toast px-3 py-1 rounded-full text-xs font-black shadow-lg ${
                 color === 'rose' ? 'bg-rose-600 text-white' : color === 'amber' ? 'bg-amber-400 text-slate-950' : 'bg-sky-400 text-slate-950'
