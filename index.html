@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Kelime Duellosu v126 | Round HUD + round dots + top words + longest-word bonus -->
+<!-- Kelime Duellosu v127 | Score orbs + flying points + -3 penalties -->
 
 <html lang="tr">
 <head>
@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Kelime Düellosu v126 - 9x9 Akıllı Tahta</title>
+    <title>Kelime Düellosu v127 - 9x9 Akıllı Tahta</title>
     <meta name="game-version" content="v121">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -252,13 +252,16 @@
         }
 
         /* 9x9 mobil oyun ekranı: büyük harfler, geniş dokunma alanı */
-        #compact-game-header { min-height: 52px; }
+        #compact-game-header { min-height: 52px; grid-template-columns:minmax(0,1fr) auto auto auto minmax(0,1fr) !important; }
         .compact-player { display:flex; flex-direction:column; min-width:0; max-width:132px; }
         .compact-identity { display:flex; align-items:center; gap:5px; min-width:0; }
         .compact-avatar { width:27px; height:27px; border-width:2px; border-style:solid; border-radius:9999px; display:flex; align-items:center; justify-content:center; overflow:hidden; flex:none; font-size:13px; box-shadow:0 2px 7px rgba(0,0,0,.28); }
         .compact-name { font-size:9px; line-height:10px; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:94px; }
         .compact-score { font-size:15px; line-height:16px; font-weight:1000; margin-top:1px; }
         .score-label { font-size:7px; letter-spacing:.08em; opacity:.72; vertical-align:2px; }
+        .score-orb { width:42px; height:42px; border-radius:9999px; display:flex; align-items:center; justify-content:center; flex:none; font-size:17px; line-height:1; font-weight:1000; box-shadow:0 4px 12px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.24); border:2px solid rgba(255,255,255,.18); }
+        .score-orb-p1 { background:#facc15; color:#4a2b12; border-color:#fde68a; }
+        .score-orb-p2 { background:#0b3a67; color:#ffffff; border-color:#60a5fa; }
         .compact-timer { display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:54px; }
         .timer-label { color:#94a3b8; font-size:7px; line-height:8px; font-weight:900; letter-spacing:.14em; }
         #compact-game-header #game-timer { color:white; font-size:23px; line-height:23px; font-weight:1000; }
@@ -272,6 +275,7 @@
             .compact-avatar { width:25px !important; height:25px !important; font-size:12px !important; margin:0 !important; }
             .compact-name { font-size:8px !important; line-height:9px !important; max-width:82px; }
             .compact-score { font-size:14px !important; line-height:14px !important; }
+            .score-orb { width:38px; height:38px; font-size:16px; }
             #compact-game-header #game-timer { font-size:21px !important; line-height:21px !important; }
             #words-ticker { min-height:18px; }
             #scrabble-grid { width:min(calc(100vw - 12px), calc(100dvh - 190px), 430px) !important; max-width:none !important; }
@@ -284,6 +288,7 @@
             #compact-game-header { min-height:43px; }
             .compact-avatar { width:22px !important; height:22px !important; font-size:11px !important; }
             #compact-game-header #game-timer { font-size:19px !important; line-height:19px !important; }
+            .score-orb { width:34px; height:34px; font-size:14px; }
             #scrabble-grid { width:min(calc(100vw - 12px), calc(100dvh - 170px), 430px) !important; }
             #btn-action-clear, #btn-action-submit { min-height:42px; padding-top:7px !important; padding-bottom:7px !important; }
         }
@@ -520,14 +525,15 @@
         <div id="screen-game" class="absolute inset-0 flex flex-col bg-slate-900 z-30 hidden">
             <div id="toast-layer" class="absolute inset-0 pointer-events-none z-50 overflow-hidden"></div>
 
-            <header id="compact-game-header" class="grid grid-cols-[1fr_auto_1fr] items-center bg-slate-950 w-full px-2 py-1 shrink-0 shadow-lg border-b border-slate-800 z-10 gap-2">
+            <header id="compact-game-header" class="grid items-center bg-slate-950 w-full px-2 py-1 shrink-0 shadow-lg border-b border-slate-800 z-10 gap-1.5">
                 <div class="compact-player justify-self-start">
                     <div class="compact-identity">
                         <div id="p1-avatar-box" class="compact-avatar bg-yellow-200 border-yellow-400">👑</div>
                         <div id="p1-title" class="compact-name text-amber-200">1. OYUNCU</div><div id="p1-round-dots" class="round-dots hidden" aria-label="1. oyuncu round sonuçları"><span class="round-dot"></span><span class="round-dot"></span><span class="round-dot"></span></div>
                     </div>
-                    <div class="compact-score text-amber-300"><span class="score-label">PUAN</span> <span id="p1-score-val">0</span></div>
                 </div>
+
+                <div id="p1-score-chip" class="score-orb score-orb-p1 justify-self-end" aria-label="1. oyuncu puanı"><span id="p1-score-val">0</span></div>
 
                 <div class="compact-timer justify-self-center">
                     <div id="mp-round-badge" class="hidden mb-0.5 round-hud-badge whitespace-nowrap">KAPMACA BAŞLIYOR • ROUND 1</div>
@@ -535,12 +541,13 @@
                     <div id="game-timer">60</div>
                 </div>
 
+                <div id="p2-score-chip" class="score-orb score-orb-p2 justify-self-start" aria-label="2. oyuncu puanı"><span id="p2-score-val">0</span></div>
+
                 <div class="compact-player justify-self-end items-end">
                     <div class="compact-identity flex-row-reverse">
                         <div id="p2-avatar-box" class="compact-avatar bg-sky-200 border-sky-400">⚔️</div>
                         <div id="p2-title" class="compact-name text-sky-200 text-right">2. OYUNCU</div><div id="p2-round-dots" class="round-dots hidden" aria-label="2. oyuncu round sonuçları"><span class="round-dot"></span><span class="round-dot"></span><span class="round-dot"></span></div>
                     </div>
-                    <div class="compact-score text-sky-300"><span class="score-label">PUAN</span> <span id="p2-score-val">0</span></div>
                 </div>
             </header>
 
@@ -62397,7 +62404,7 @@ BLİK
             appId: "1:968159872150:web:c80429010ec21363116eb7"
         };
 
-        const GAME_VERSION='v126';
+        const GAME_VERSION='v127';
         // Firebase tarafında yalnızca dört oyun durumu vardır.
         const MP_STATES = Object.freeze({
             IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', SUDDEN:'sudden', FINISHED:'finished'
@@ -63141,6 +63148,7 @@ if(d.status==='countdown'){
             const path=Array.isArray(ev.path)?ev.path:[];
             if(path.length) applyClaimedPath(path,ev.role==='host');
             addTickerBadge(String(ev.word).toLocaleUpperCase('tr-TR'),ev.role==='host');
+            flyScore(Number(ev.pts||0), ev.role==='host');
             showToast(`${ev.role==='host'?'1. Oyuncu':'2. Oyuncu'}: ${ev.word} (+${ev.pts||0})`,ev.role==='host'?'amber':'sky');
         }
 
@@ -63893,8 +63901,8 @@ if(d.status==='countdown'){
 
             if (!WORD_SET.has(word)) {
                 playErrorBuzzer();
-                showToast(`${word} (-5) Geçersiz!`, 'rose');
-                adjustScore(isP1 ? -5 : 0, !isP1 ? -5 : 0);
+                showToast(`${word} (-3) Geçersiz!`, 'rose');
+                adjustScore(isP1 ? -3 : 0, !isP1 ? -3 : 0);
                 clearPath();
                 return;
             }
@@ -63915,8 +63923,8 @@ if(d.status==='countdown'){
                     });
                     if (!tx.committed) {
                         playErrorBuzzer();
-                        showToast(`${word} daha önce bulundu! (-5)`, 'rose');
-                        adjustScore(isP1 ? -5 : 0, !isP1 ? -5 : 0);
+                        showToast(`${word} daha önce bulundu! (-3)`, 'rose');
+                        adjustScore(isP1 ? -3 : 0, !isP1 ? -3 : 0);
                         clearPath();
                         return;
                     }
@@ -63927,8 +63935,8 @@ if(d.status==='countdown'){
                 }
             } else if (sessionFoundWords.has(word)) {
                 playErrorBuzzer();
-                showToast(`${word} daha önce bulundu! (-5)`, 'rose');
-                adjustScore(isP1 ? -5 : 0, !isP1 ? -5 : 0);
+                showToast(`${word} daha önce bulundu! (-3)`, 'rose');
+                adjustScore(isP1 ? -3 : 0, !isP1 ? -3 : 0);
                 clearPath();
                 return;
             }
@@ -63967,7 +63975,7 @@ if(d.status==='countdown'){
         }
 
         function flyScore(pts, isP1) {
-            const target=document.getElementById(isP1?'p1-score-val':'p2-score-val');
+            const target=document.getElementById(isP1?'p1-score-chip':'p2-score-chip') || document.getElementById(isP1?'p1-score-val':'p2-score-val');
             if(!target) return;
             const tr=target.getBoundingClientRect();
             const el=document.createElement('div'); el.className='score-fly'; el.textContent=`+${pts}`;
@@ -64104,6 +64112,7 @@ if(d.status==='countdown'){
                         }
                     });
 
+                    flyScore(pts, !botIsP2);
                     adjustScore(botIsP2 ? 0 : pts, botIsP2 ? pts : 0);
                     addTickerBadge(word, !botIsP2);
                     showToast(`2. OYUNCU: ${word} (+${pts})`, botIsP2 ? 'sky' : 'amber');
