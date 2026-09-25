@@ -8,8 +8,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Kelime Düellosu v143-clean - 9x9 Akıllı Tahta</title>
-    <meta name="game-version" content="v143-clean">
+    <title>Kelime Düellosu v144-performance - 9x9 Akıllı Tahta</title>
+    <meta name="game-version" content="v144-performance">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -72,6 +72,7 @@
             box-shadow: inset 0 2px 8px rgba(0,0,0,0.15), 0 8px 20px rgba(0,0,0,0.15);
             touch-action: none;
             cursor: grab;
+            contain: layout paint;
         }
 
         .scrabble-board.is-grabbing {
@@ -62478,7 +62479,7 @@ BLİK
             appId: "1:968159872150:web:c80429010ec21363116eb7"
         };
 
-        const GAME_VERSION='v143-clean';
+        const GAME_VERSION='v144-performance';
         // Firebase tarafında yalnızca dört oyun durumu vardır.
         const MP_STATES = Object.freeze({
             IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
@@ -62890,7 +62891,11 @@ BLİK
             if(mpRole!=='host'||mpRematchBusy||!mpRoomRef) return;
             mpRematchBusy=true;
             try{
-                const now=serverNow(),fresh=generateOptimizedBoard(3).board;rememberBoard(fresh);
+                // Senkron ekranının özellikle mobilde tahta üretiminden önce gerçekten boyanmasına izin ver.
+                await new Promise(resolve=>requestAnimationFrame(()=>resolve()));
+                const now=serverNow();
+                const ready=prewarmedBoard || generateOptimizedBoard(2); prewarmedBoard=null;
+                const fresh=ready.board; rememberBoard(fresh);
                 const result=await mpRoomRef.transaction(d=>{
                     if(!d||d.status!=='finished') return;
                     const r=d.rematch||{},exp=Number(r.expiresAt||0);
@@ -63049,9 +63054,11 @@ BLİK
                 if(d.status==='finished'){
                     setMpState(MP_STATES.FINISHED);
                     document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
-                    showMultiplayerSeriesResult(d);
+                    const bothReady=!!d.rematch?.host && !!d.rematch?.guest && Number(d.rematch?.expiresAt||0)>=serverNow();
+                    if(bothReady) showImmediateRematchSync();
+                    else showMultiplayerSeriesResult(d);
                     await hostExpireRematchIfNeeded(d);
-                    if(mpRole==='host' && d.rematch?.host && d.rematch?.guest && Number(d.rematch?.expiresAt||0)>=serverNow()) await hostStartRematch();
+                    if(mpRole==='host' && bothReady) await hostStartRematch();
                 }
             });
 
@@ -63668,15 +63675,21 @@ BLİK
         // Dokunmatik optimizasyonu: pointermove olayları ekran yenileme hızına (rAF) birleştirilir.
         // Böylece 120/240 Hz dokunmatik örneklemede gereksiz DOM işi yapılmaz.
         let activeGridRect = null;
+        let hoverGridRect = null;
         let pendingPointer = null;
         let pointerFrame = 0;
         let hoverTrembleTimer = null;
         let hoverTrembleCell = null;
 
+        const refreshGridRect=()=>{ hoverGridRect=gridEl.getBoundingClientRect(); };
+        gridEl.addEventListener('pointerenter',refreshGridRect,{passive:true});
+        window.addEventListener('resize',()=>{hoverGridRect=null;activeGridRect=null;},{passive:true});
+        if('ResizeObserver' in window){ new ResizeObserver(()=>{hoverGridRect=null;activeGridRect=null;}).observe(gridEl); }
+
         let lastHoverCell=-1;
         gridEl.addEventListener('pointermove', (e) => {
             if(e.pointerType==='touch' || isPointerDown) return;
-            const rect=gridEl.getBoundingClientRect();
+            const rect=hoverGridRect || (hoverGridRect=gridEl.getBoundingClientRect());
             if(e.clientX<rect.left||e.clientX>rect.right||e.clientY<rect.top||e.clientY>rect.bottom) return;
             const col=Math.floor(((e.clientX-rect.left)/rect.width)*BOARD_SIZE);
             const row=Math.floor(((e.clientY-rect.top)/rect.height)*BOARD_SIZE);
@@ -63686,14 +63699,12 @@ BLİK
             const cell=domCells[idx];
             if(hoverTrembleCell && hoverTrembleCell!==cell) hoverTrembleCell.classList.remove('tile-hover-tremble');
             hoverTrembleCell=cell;
-            cell.classList.remove('tile-hover-tremble');
-            void cell.offsetWidth;
             cell.classList.add('tile-hover-tremble');
             clearTimeout(hoverTrembleTimer);
-            hoverTrembleTimer=setTimeout(()=>{ cell.classList.remove('tile-hover-tremble'); if(hoverTrembleCell===cell) hoverTrembleCell=null; },170);
+            hoverTrembleTimer=setTimeout(()=>{ cell.classList.remove('tile-hover-tremble'); if(hoverTrembleCell===cell) hoverTrembleCell=null; },150);
         }, {passive:true});
         gridEl.addEventListener('pointerleave',()=>{
-            lastHoverCell=-1; clearTimeout(hoverTrembleTimer); hoverTrembleTimer=null;
+            lastHoverCell=-1; hoverGridRect=null; clearTimeout(hoverTrembleTimer); hoverTrembleTimer=null;
             if(hoverTrembleCell) hoverTrembleCell.classList.remove('tile-hover-tremble'); hoverTrembleCell=null;
         });
 
@@ -63721,7 +63732,8 @@ BLİK
                 try { if (activePointerId !== null) gridEl.releasePointerCapture(activePointerId); } catch (_) {}
                 activePointerId = null;
             }, HOLD_CANCEL_MS);
-            activeGridRect = gridEl.getBoundingClientRect(); // sürükleme boyunca yalnızca bir kez ölç
+            activeGridRect = hoverGridRect || gridEl.getBoundingClientRect(); // sürükleme boyunca yalnızca bir kez ölç
+            hoverGridRect = activeGridRect;
             gridEl.classList.add('is-grabbing');
             try { gridEl.setPointerCapture(e.pointerId); } catch (_) {}
             clearPath();
@@ -63730,11 +63742,15 @@ BLİK
 
         gridEl.addEventListener('pointermove', (e) => {
             if (!isMatchActive || !isPointerDown) return;
-            e.preventDefault();
+            // Tahta touch-action:none kullandığı için burada preventDefault gerekmez; passive dinleyici input gecikmesini azaltır.
             // Tarayıcı destekliyorsa aradaki örnekleri de işle; hızlı parmak hareketinde hücre atlamasını azaltır.
             const samples = typeof e.getCoalescedEvents === 'function' ? e.getCoalescedEvents() : null;
             if (samples && samples.length > 1) {
-                for (const sample of samples) processPointerAt(sample.clientX, sample.clientY, activeGridRect);
+                const step=Math.max(1,Math.floor(samples.length/8));
+                for (let i=0;i<samples.length;i+=step) {
+                    const sample=samples[i]; processPointerAt(sample.clientX,sample.clientY,activeGridRect);
+                }
+                const last=samples[samples.length-1]; processPointerAt(last.clientX,last.clientY,activeGridRect);
             }
             pendingPointer = {x:e.clientX, y:e.clientY};
             if (pointerFrame) return;
@@ -63744,7 +63760,7 @@ BLİK
                 const p = pendingPointer; pendingPointer = null;
                 processPointerAt(p.x, p.y, activeGridRect);
             });
-        }, {passive:false});
+        }, {passive:true});
 
         const finishPointer = (e, shouldSubmit = true) => {
             if (!isPointerDown) return;
@@ -63773,7 +63789,7 @@ BLİK
         gridEl.addEventListener('pointercancel', (e) => finishPointer(e, false));
 
         function processPointerAt(clientX, clientY, rect = activeGridRect) {
-            if (!rect) rect = gridEl.getBoundingClientRect();
+            if (!rect) rect = hoverGridRect || (hoverGridRect=gridEl.getBoundingClientRect());
             if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) return;
 
             const col = Math.floor(((clientX - rect.left) / rect.width) * BOARD_SIZE);
@@ -64141,6 +64157,19 @@ BLİK
             return false;
         }
 
+        function showImmediateRematchSync(){
+            const modal=document.getElementById('modal-countdown');
+            const num=document.getElementById('countdown-number');
+            const status=document.getElementById('countdown-status');
+            const inviteMsg=document.getElementById('countdown-invite-message');
+            document.getElementById('modal-gameover')?.classList.add('hidden');
+            document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
+            if(inviteMsg) inviteMsg.classList.add('hidden');
+            if(num){ num.innerText='5'; num.style.opacity='1'; num.style.transform='scale(1)'; }
+            if(status){ status.innerHTML='<span class="sync-check">✓</span> SENKRON HAZIRLANIYOR'; status.className='countdown-sync-ok'; }
+            modal?.classList.remove('hidden');
+        }
+
         async function handlePlayAgain(){
             if(activeGameMode !== 'multi'){
                 clearInterval(timerInterval); timerInterval=null;
@@ -64174,7 +64203,9 @@ BLİK
                 const d={...(mpRoomData||{}),status:'finished',rematch:r};
                 renderRematchState(d);
 
-                // Host ikinci onayı da görürse yeni round'u tek başına oluşturur.
+                // İki taraf da hazır olduğunda Firebase'in sonraki value olayını beklemeden
+                // senkron ekranını anında göster. Gerçek 5 saniyelik sayaç startAt gelince devralır.
+                if(r.host && r.guest && Number(r.expiresAt||0)>=serverNow()) showImmediateRematchSync();
                 if(mpRole==='host' && r.host && r.guest && Number(r.expiresAt||0)>=serverNow()) await hostStartRematch();
             }catch(e){
                 console.error('Rematch request error',e);
