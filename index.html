@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Kelime Duellosu v124 | Multiplayer best-of-3 rounds + winner-side celebration -->
+<!-- Kelime Duellosu v125 | Round HUD + round dots + top words + longest-word bonus -->
 
 <html lang="tr">
 <head>
@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Kelime Düellosu v124 - 9x9 Akıllı Tahta</title>
+    <title>Kelime Düellosu v125 - 9x9 Akıllı Tahta</title>
     <meta name="game-version" content="v121">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -379,6 +379,14 @@
         .winner-pulse { animation:winnerPulse .9s ease-in-out infinite; transform-origin:center; }
         .winner-name-big{font-size:1.25rem!important;line-height:1.1!important;letter-spacing:.02em;}
         .round-transition-toast{position:fixed;left:50%;top:14%;transform:translateX(-50%);z-index:1001;background:rgba(15,23,42,.94);color:#fff;border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:10px 16px;font-weight:900;font-size:13px;box-shadow:0 12px 32px rgba(0,0,0,.28);pointer-events:none;text-align:center;max-width:90vw;}
+        .round-dots{display:inline-flex;align-items:center;gap:3px;margin-left:5px;vertical-align:middle;flex:none}
+        .round-dot{width:7px;height:7px;border-radius:9999px;border:1.5px solid rgba(255,255,255,.72);background:rgba(255,255,255,.10);box-shadow:0 1px 2px rgba(0,0,0,.2)}
+        .round-dot.win{background:#22c55e;border-color:#86efac;box-shadow:0 0 7px rgba(34,197,94,.7)}
+        .round-dot.loss{background:#ef4444;border-color:#fca5a5;box-shadow:0 0 7px rgba(239,68,68,.62)}
+        .round-hud-badge{display:inline-flex;align-items:center;justify-content:center;min-width:92px;padding:4px 10px;border-radius:9999px;background:linear-gradient(135deg,#0e7490,#1d4ed8);color:white;border:1px solid rgba(255,255,255,.32);box-shadow:0 6px 16px rgba(2,132,199,.28);font-size:10px;font-weight:1000;letter-spacing:.08em}
+        .countdown-round-label{font-size:14px;font-weight:1000;letter-spacing:.12em;color:#0f172a;background:linear-gradient(135deg,#cffafe,#dbeafe);border:1px solid #93c5fd;border-radius:9999px;padding:6px 12px;margin-bottom:8px;box-shadow:0 5px 14px rgba(14,116,144,.14)}
+        .countdown-sync-ok{font-size:10px;font-weight:1000;letter-spacing:.12em;color:#047857;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:9999px;padding:5px 10px;margin-top:8px}
+        .longest-bonus{display:none;margin-top:4px;font-size:9px;font-weight:1000;color:#7c3aed;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:9999px;padding:3px 7px}
 
 </style>
     <!-- Firebase: yalnızca çok oyunculu modda kullanılan hafif compat SDK -->
@@ -506,21 +514,21 @@
                 <div class="compact-player justify-self-start">
                     <div class="compact-identity">
                         <div id="p1-avatar-box" class="compact-avatar bg-yellow-200 border-yellow-400">👑</div>
-                        <div id="p1-title" class="compact-name text-amber-200">1. OYUNCU</div>
+                        <div id="p1-title" class="compact-name text-amber-200">1. OYUNCU</div><div id="p1-round-dots" class="round-dots hidden" aria-label="1. oyuncu round sonuçları"><span class="round-dot"></span><span class="round-dot"></span><span class="round-dot"></span></div>
                     </div>
                     <div class="compact-score text-amber-300"><span class="score-label">PUAN</span> <span id="p1-score-val">0</span></div>
                 </div>
 
                 <div class="compact-timer justify-self-center">
+                    <div id="mp-round-badge" class="hidden mb-0.5 round-hud-badge whitespace-nowrap">ROUND 1/3</div>
                     <span class="timer-label">SÜRE</span>
                     <div id="game-timer">60</div>
-                    <div id="mp-round-badge" class="hidden mt-0.5 text-[8px] font-black tracking-wide text-cyan-200 whitespace-nowrap">ROUND 1/3 • 0-0</div>
                 </div>
 
                 <div class="compact-player justify-self-end items-end">
                     <div class="compact-identity flex-row-reverse">
                         <div id="p2-avatar-box" class="compact-avatar bg-sky-200 border-sky-400">⚔️</div>
-                        <div id="p2-title" class="compact-name text-sky-200 text-right">2. OYUNCU</div>
+                        <div id="p2-title" class="compact-name text-sky-200 text-right">2. OYUNCU</div><div id="p2-round-dots" class="round-dots hidden" aria-label="2. oyuncu round sonuçları"><span class="round-dot"></span><span class="round-dot"></span><span class="round-dot"></span></div>
                     </div>
                     <div class="compact-score text-sky-300"><span class="score-label">PUAN</span> <span id="p2-score-val">0</span></div>
                 </div>
@@ -576,7 +584,7 @@
                     <div class="bg-gradient-to-br from-sky-50 to-cyan-100 rounded-3xl p-4 shadow-lg border border-sky-200">
                         <div class="font-black text-sky-950 mb-2">👥 Çoklu Oyun — KAPMACA</div>
                         <p class="text-xs text-sky-950/80 leading-relaxed">Odayı kuran kişi 1. oyuncu/host olur. Sistem o gün için 6 haneli sayısal bir oda kodu verir. Kodu veya davet seçeneğini arkadaşınla paylaşabilirsin. Odaya gelen kişi 2. oyuncu/guest olur. İki oyuncu bağlanınca oyun senkronize edilir, 5 saniyelik geri sayımdan sonra aynı tahta üzerinde kapışma başlar.</p>
-                        <div class="mt-2 rounded-2xl bg-white/75 border border-sky-200 p-3 text-[11px] font-bold text-sky-900 leading-relaxed">Kapmaca kuralı: Bir sözcüğü ilk bulan puanı alır. Rakip aynı sözcükten tekrar puan alamaz; fakat o harfleri kullanarak farklı bir sözcük oluşturabilir.</div>
+                        <div class="mt-2 rounded-2xl bg-white/75 border border-sky-200 p-3 text-[11px] font-bold text-sky-900 leading-relaxed">Kapmaca kuralı: Bir sözcüğü ilk bulan puanı alır. Rakip aynı sözcükten tekrar puan alamaz; fakat o harfleri kullanarak farklı bir sözcük oluşturabilir. Maçta/roundda en uzun geçerli sözcüğü bulan oyuncu +10 bonus alır. Eşit uzunlukta en uzun sözcük bulunursa iki oyuncu da +10 alır.</div>
                     </div>
                     <div class="bg-white rounded-3xl p-4 shadow-lg border border-emerald-100">
                         <div class="font-black text-emerald-900 mb-2">🏆 Puan ve süre</div>
@@ -711,10 +719,9 @@
         <div id="modal-countdown" class="absolute inset-0 bg-slate-950/45 backdrop-blur-[7px] flex items-center justify-center z-50 hidden">
             <div class="flex flex-col items-center justify-center bg-white/90 border border-slate-200/80 p-6 rounded-3xl shadow-2xl backdrop-blur-md">
                 <div id="countdown-invite-message" class="hidden mb-3 max-w-[260px] text-center text-[12px] leading-snug font-black text-indigo-950 bg-indigo-50 border border-indigo-200 px-4 py-2.5 rounded-2xl shadow-sm">KAPMACA oyununa davet edildiniz<br><span class="text-indigo-600">Şimdi başlıyor</span></div>
+                <div id="countdown-round-label" class="countdown-round-label hidden">ROUND 1/3</div>
                 <div id="countdown-number" class="text-7xl font-black text-amber-500 drop-shadow-sm" style="transition:transform .18s ease-out, filter .16s ease-out, opacity .14s ease-out; will-change:transform;">5</div>
-                <div id="countdown-status" class="text-slate-800 font-black text-xs tracking-widest uppercase mt-3 bg-white px-4 py-1.5 rounded-full border border-slate-200 shadow-sm">
-                    SENKRONİZE EDİLİYOR…
-                </div>
+                <div id="countdown-status" class="countdown-sync-ok">SENKRONİZE EDİLDİ</div>
                 <button id="btn-countdown-fullscreen" type="button" class="hidden mt-3 px-3 py-1.5 rounded-full bg-slate-900 text-white text-[10px] font-black tracking-wide shadow" aria-label="Tam ekrana geç">⛶ TAM EKRAN</button>
             </div>
         </div>
@@ -726,17 +733,17 @@
                 <h2 id="gameover-heading" class="text-2xl font-black mb-1 uppercase text-amber-600 leading-tight">1. OYUNCU KAZANDI!</h2>
                 <div id="final-round-score" class="hidden mb-1 text-[12px] font-black text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1">ROUND SKORU 0 - 0</div>
                 <div class="flex justify-between items-center w-full mt-1 mb-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-2xl">
-                    <div class="w-[45%] text-center"><span id="final-p1-name" class="text-sm font-black text-amber-600 block truncate">1. OYUNCU</span><span id="final-score-val-p1" class="text-2xl font-black text-slate-900">0</span></div>
+                    <div id="final-p1-card" class="w-[45%] text-center transition-all"><span class="flex items-center justify-center gap-1"><span id="final-p1-name" class="text-sm font-black text-amber-600 truncate">1. OYUNCU</span><span id="final-p1-round-dots" class="round-dots hidden"><span class="round-dot"></span><span class="round-dot"></span><span class="round-dot"></span></span></span><span id="final-score-val-p1" class="text-2xl font-black text-slate-900">0</span><span id="final-p1-longest-bonus" class="longest-bonus">EN UZUN +10</span></div>
                     <span class="text-slate-400 font-bold">-</span>
-                    <div class="w-[45%] text-center"><span id="final-p2-name" class="text-sm font-black text-sky-600 block truncate">2. OYUNCU</span><span id="final-score-val-p2" class="text-2xl font-black text-slate-900">0</span></div>
+                    <div id="final-p2-card" class="w-[45%] text-center transition-all"><span class="flex items-center justify-center gap-1"><span id="final-p2-name" class="text-sm font-black text-sky-600 truncate">2. OYUNCU</span><span id="final-p2-round-dots" class="round-dots hidden"><span class="round-dot"></span><span class="round-dot"></span><span class="round-dot"></span></span></span><span id="final-score-val-p2" class="text-2xl font-black text-slate-900">0</span><span id="final-p2-longest-bonus" class="longest-bonus">EN UZUN +10</span></div>
                 </div>
                 <div class="grid grid-cols-2 gap-2 w-full mb-2 min-h-0">
                     <div class="rounded-xl border border-amber-200 bg-amber-50/80 p-2 min-w-0">
-                        <div class="text-[11px] font-black text-amber-700 uppercase tracking-wide mb-1">Bulunan Sözcükler</div>
+                        <div class="text-[11px] font-black text-amber-700 uppercase tracking-wide mb-1">En Yüksek 5 Sözcük</div>
                         <div id="final-p1-words" class="space-y-1 overflow-hidden text-left"></div>
                     </div>
                     <div class="rounded-xl border border-sky-200 bg-sky-50/80 p-2 min-w-0">
-                        <div class="text-[11px] font-black text-sky-700 uppercase tracking-wide mb-1">Bulunan Sözcükler</div>
+                        <div class="text-[11px] font-black text-sky-700 uppercase tracking-wide mb-1">En Yüksek 5 Sözcük</div>
                         <div id="final-p2-words" class="space-y-1 overflow-hidden text-left"></div>
                     </div>
                 </div>
@@ -62162,28 +62169,50 @@ BLİK
         let chosenAvatarId = 'av_1';
         let p1Score = 0, p2Score = 0;
         const roundWordResults = { p1:new Map(), p2:new Map() };
+        const seriesWordResults = { p1:new Map(), p2:new Map() };
+        let singleLongestBonusApplied=false;
+        let singleLongestBonus={p1:false,p2:false,maxLen:0};
         function resetRoundWordResults(){ roundWordResults.p1.clear(); roundWordResults.p2.clear(); }
+        function resetSeriesWordResults(){ seriesWordResults.p1.clear(); seriesWordResults.p2.clear(); singleLongestBonusApplied=false; singleLongestBonus={p1:false,p2:false,maxLen:0}; }
         function recordRoundWord(word, pts, isP1){
             const w=String(word||'').toLocaleUpperCase('tr-TR');
             if(!w) return;
-            const map=isP1?roundWordResults.p1:roundWordResults.p2;
-            if(!map.has(w)) map.set(w,{word:w,pts:Number(pts)||0});
+            const roundMap=isP1?roundWordResults.p1:roundWordResults.p2;
+            if(!roundMap.has(w)) roundMap.set(w,{word:w,pts:Number(pts)||0});
+            const seriesMap=isP1?seriesWordResults.p1:seriesWordResults.p2;
+            const key=activeGameMode==='multi'?`${Number(mpRound||1)}:${w}`:w;
+            if(!seriesMap.has(key)) seriesMap.set(key,{word:w,pts:Number(pts)||0,round:Number(mpRound||1)});
         }
-        function sortedRoundWords(isP1){
-            return Array.from((isP1?roundWordResults.p1:roundWordResults.p2).values())
-                .sort((a,b)=>b.word.length-a.word.length || b.pts-a.pts || a.word.localeCompare(b.word,'tr'));
+        function sortedTopScoreWords(isP1){
+            return Array.from((isP1?seriesWordResults.p1:seriesWordResults.p2).values())
+                .sort((a,b)=>b.pts-a.pts || b.word.length-a.word.length || a.word.localeCompare(b.word,'tr')).slice(0,5);
         }
         function renderGameoverWordLists(){
-            const available=Math.max(96,Math.min(330,window.innerHeight-385));
-            const maxItems=Math.max(4,Math.min(14,Math.floor(available/24)));
             const draw=(id,items,tone)=>{
                 const el=document.getElementById(id); if(!el) return;
-                const shown=items.slice(0,maxItems);
-                el.innerHTML=shown.length?shown.map(x=>`<div class="flex items-center justify-between gap-1 rounded-lg px-2 py-1 ${tone==='amber'?'bg-white/70 text-amber-950':'bg-white/70 text-sky-950'}"><span class="truncate text-[12px] font-black">${x.word}</span><span class="shrink-0 text-[11px] font-black opacity-80">+${x.pts}</span></div>`).join(''):'<div class="text-center text-[9px] font-bold text-slate-400 py-2">—</div>';
+                el.innerHTML=items.length?items.map((x,i)=>`<div class="flex items-center justify-between gap-1 rounded-lg px-2 py-1 ${tone==='amber'?'bg-white/75 text-amber-950':'bg-white/75 text-sky-950'}"><span class="truncate text-[12px] font-black"><span class="opacity-50 mr-1">${i+1}.</span>${x.word}</span><span class="shrink-0 text-[11px] font-black">+${x.pts}</span></div>`).join(''):'<div class="text-center text-[9px] font-bold text-slate-400 py-2">—</div>';
             };
-            draw('final-p1-words',sortedRoundWords(true),'amber');
-            draw('final-p2-words',sortedRoundWords(false),'sky');
+            draw('final-p1-words',sortedTopScoreWords(true),'amber');
+            draw('final-p2-words',sortedTopScoreWords(false),'sky');
         }
+        function setLongestBonusBadges(p1,p2){
+            const a=document.getElementById('final-p1-longest-bonus'),b=document.getElementById('final-p2-longest-bonus');
+            if(a)a.style.display=p1?'inline-block':'none';
+            if(b)b.style.display=p2?'inline-block':'none';
+        }
+        function applySingleLongestWordBonus(){
+            if(singleLongestBonusApplied) return singleLongestBonus;
+            singleLongestBonusApplied=true;
+            const a=Array.from(roundWordResults.p1.values()),b=Array.from(roundWordResults.p2.values());
+            const max1=a.reduce((m,x)=>Math.max(m,x.word.length),0),max2=b.reduce((m,x)=>Math.max(m,x.word.length),0),maxLen=Math.max(max1,max2);
+            if(maxLen>0){
+                if(max1===maxLen){p1Score+=10;singleLongestBonus.p1=true;}
+                if(max2===maxLen){p2Score+=10;singleLongestBonus.p2=true;}
+                singleLongestBonus.maxLen=maxLen; updateScores();
+            }
+            return singleLongestBonus;
+        }
+
         // ================= TAM EKRAN YÖNETİMİ (v115) =================
         let inviteFullscreenPending=false;
         let inviteFullscreenGestureArmed=false;
@@ -62358,7 +62387,7 @@ BLİK
             appId: "1:968159872150:web:c80429010ec21363116eb7"
         };
 
-        const GAME_VERSION='v124';
+        const GAME_VERSION='v125';
         // Firebase tarafında yalnızca dört oyun durumu vardır.
         const MP_STATES = Object.freeze({
             IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', SUDDEN:'sudden', FINISHED:'finished'
@@ -62559,6 +62588,7 @@ BLİK
         }
         async function startRandomAiFallback(){
             activeGameMode = 'single';
+            document.getElementById('mp-round-badge')?.classList.add('hidden'); updateRoundDots(null); setLongestBonusBadges(false,false);
             await cleanupRandomQueue(true);
             mpRole=null; mpRoomRef=null; mpRoomCode=null; mpRoomData=null; mpEntered=false; mpStarted=false;
             setMpState(MP_STATES.IDLE); clearInviteFromUrl();
@@ -62571,7 +62601,7 @@ BLİK
             document.getElementById('screen-home').classList.add('hidden');
             document.getElementById('screen-game').classList.remove('hidden');
             p1Score=0; p2Score=0; updateScores(); remainingSeconds=60;
-            resetRoundWordResults();
+            resetRoundWordResults(); resetSeriesWordResults();
             sessionFoundWords.clear(); document.getElementById('words-ticker').innerHTML='';
             buildGrid();
             triggerCountdownSequence(()=>{ isMatchActive=true; startTimer(); planBot(); });
@@ -62749,6 +62779,7 @@ BLİK
             p1Score=Number(d.scores?.host||0); p2Score=Number(d.scores?.guest||0); updateScores();
             remainingSeconds=60;
             resetRoundWordResults();
+            if(Number(d.round||1)===1 && Number(d.matchWins?.host||0)===0 && Number(d.matchWins?.guest||0)===0) resetSeriesWordResults();
             sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
 
             const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
@@ -62777,7 +62808,7 @@ BLİK
                 document.getElementById('p1-title').innerText='1. OYUNCU';
                 document.getElementById('p2-title').innerText='2. OYUNCU';
                 p1Score=Number(d.scores?.host||0); p2Score=Number(d.scores?.guest||0); updateScores();
-                remainingSeconds=60; resetRoundWordResults(); sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
+                remainingSeconds=60; resetRoundWordResults(); if(Number(d.round||1)===1 && Number(d.matchWins?.host||0)===0 && Number(d.matchWins?.guest||0)===0) resetSeriesWordResults(); sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
                 const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
                 if (!renderProvidedBoard(d.board)) return;
                 hydrateMultiplayerBoardState(d);
@@ -62810,7 +62841,7 @@ BLİK
                     if(!r.host || !r.guest || !expiresAt || expiresAt<now) return;
                     d.round=1; d.board=fresh; d.scores={host:0,guest:0}; d.words={};
                     d.matchWins={host:0,guest:0}; d.seriesScores={host:0,guest:0}; d.finalWinner=null;
-                    d.lastRoundWinner=null; d.lastRoundScores={host:0,guest:0}; d.suddenWinner=null; d.suddenEndsAt=0;
+                    d.lastRoundWinner=null; d.lastRoundScores={host:0,guest:0}; d.roundHistory=[]; d.bonusAppliedRound=0; d.longestBonus=null; d.suddenWinner=null; d.suddenEndsAt=0;
                     d.rematch={host:false,guest:false,expiresAt:0}; d.status='countdown'; d.startAt=now+5200;
                     return d;
                 });
@@ -62854,21 +62885,58 @@ BLİK
         }
 
 
+        function updateRoundDots(d){
+            const hist=Array.isArray(d?.roundHistory)?d.roundHistory:[];
+            const paint=(id,role)=>{
+                const wrap=document.getElementById(id); if(!wrap) return;
+                [...wrap.children].forEach((dot,i)=>{
+                    dot.classList.remove('win','loss');
+                    const winner=hist[i];
+                    if(winner) dot.classList.add(winner===role?'win':'loss');
+                });
+                wrap.classList.toggle('hidden',activeGameMode!=='multi' || !d);
+            };
+            paint('p1-round-dots','host');
+            paint('p2-round-dots','guest');
+            paint('final-p1-round-dots','host');
+            paint('final-p2-round-dots','guest');
+        }
         function updateMultiplayerRoundBadge(d){
             const el=document.getElementById('mp-round-badge'); if(!el) return;
-            if(activeGameMode!=='multi' || !d){ el.classList.add('hidden'); return; }
-            const w=d.matchWins||{host:0,guest:0};
+            if(activeGameMode!=='multi' || !d){ el.classList.add('hidden'); updateRoundDots(null); return; }
             const round=Math.max(1,Math.min(3,Number(d.round||1)));
-            el.textContent=`ROUND ${round}/3 • ${Number(w.host||0)}-${Number(w.guest||0)}`;
+            el.textContent=`ROUND ${round}/3`;
             el.classList.remove('hidden');
+            updateRoundDots(d);
         }
         function showRoundTransitionNotice(text,ms=1800){
             let el=document.getElementById('round-transition-toast');
             if(!el){ el=document.createElement('div'); el.id='round-transition-toast'; el.className='round-transition-toast'; document.body.appendChild(el); }
             el.textContent=text; el.style.display='block'; clearTimeout(el._t); el._t=setTimeout(()=>{el.style.display='none';},ms);
         }
+        async function hostApplyLongestWordBonus(){
+            if(mpRole!=='host'||!mpRoomRef) return;
+            await mpRoomRef.transaction(d=>{
+                if(!d || !['playing','sudden'].includes(d.status)) return;
+                const round=Number(d.round||1);
+                if(Number(d.bonusAppliedRound||0)===round) return d;
+                const vals=Object.values(d.words||{}).filter(x=>x&&Number(x.round||round)===round&&x.word);
+                let maxLen=0; vals.forEach(x=>{maxLen=Math.max(maxLen,String(x.word).length);});
+                let hostGets=false,guestGets=false;
+                if(maxLen>0){
+                    vals.forEach(x=>{if(String(x.word).length===maxLen){if(x.role==='host')hostGets=true;if(x.role==='guest')guestGets=true;}});
+                    d.scores=d.scores||{host:0,guest:0};
+                    if(hostGets)d.scores.host=Number(d.scores.host||0)+10;
+                    if(guestGets)d.scores.guest=Number(d.scores.guest||0)+10;
+                }
+                d.longestBonus={round,maxLen,host:hostGets,guest:guestGets};
+                d.bonusAppliedRound=round;
+                return d;
+            });
+        }
         async function hostResolveRoundEnd(){
             if(mpRole!=='host'||!mpRoomRef) return;
+            await hostApplyLongestWordBonus();
             const snap=await mpRoomRef.once('value'); const d=snap.val();
             if(!d || d.status!=='playing') return;
             const hs=Number(d.scores?.host||0), gs=Number(d.scores?.guest||0);
@@ -62894,6 +62962,7 @@ BLİK
                 series.host=Number(series.host||0)+Number(scores.host||0);
                 series.guest=Number(series.guest||0)+Number(scores.guest||0);
                 wins[winnerRole]=Number(wins[winnerRole]||0)+1;
+                const hist=Array.isArray(d.roundHistory)?d.roundHistory.slice(0,3):[]; hist[Math.max(0,Number(d.round||1)-1)]=winnerRole; d.roundHistory=hist;
                 d.matchWins=wins; d.seriesScores=series;
                 d.lastRoundWinner=winnerRole; d.lastRoundScores={host:Number(scores.host||0),guest:Number(scores.guest||0)};
                 d.suddenWinner=null; d.suddenEndsAt=0;
@@ -62902,7 +62971,7 @@ BLİK
                     return d;
                 }
                 d.round=Math.min(Number(d.maxRounds||3),Number(d.round||1)+1);
-                d.board=fresh; d.scores={host:0,guest:0}; d.words={};
+                d.board=fresh; d.scores={host:0,guest:0}; d.words={}; d.bonusAppliedRound=0; d.longestBonus=null;
                 d.status='countdown'; d.startAt=now+5200;
                 return d;
             });
@@ -62931,13 +63000,19 @@ BLİK
             document.getElementById('final-score-val-p2').innerText=Number(series.guest||0);
             const rs=document.getElementById('final-round-score'); if(rs){rs.textContent=`ROUND SKORU ${Number(wins.host||0)} - ${Number(wins.guest||0)}`;rs.classList.remove('hidden');}
             renderGameoverWordLists();
+            setLongestBonusBadges(!!d.longestBonus?.host,!!d.longestBonus?.guest);
+            updateRoundDots(d);
             const heading=document.getElementById('gameover-heading'), p1NameEl=document.getElementById('final-p1-name'),p2NameEl=document.getElementById('final-p2-name'),p1ScoreEl=document.getElementById('final-score-val-p1'),p2ScoreEl=document.getElementById('final-score-val-p2');
             [p1NameEl,p2NameEl,p1ScoreEl,p2ScoreEl].forEach(el=>el?.classList.remove('winner-pulse','winner-name-big'));
+            const c1=document.getElementById('final-p1-card'),c2=document.getElementById('final-p2-card');
+            [c1,c2].forEach(c=>{if(c){c.style.transform='';c.style.filter='';c.style.background='';c.style.borderRadius='';c.style.padding='';}});
             const winner=d.finalWinner || (Number(wins.host||0)>Number(wins.guest||0)?'host':'guest');
             if(winner==='host'){
+                if(c1){c1.style.transform='scale(1.05)';c1.style.background='rgba(254,243,199,.9)';c1.style.borderRadius='16px';c1.style.padding='6px';} if(c2)c2.style.filter='saturate(.7) opacity(.82)';
                 heading.innerText=`${p1Name} KAZANDI! 🏆`; p1NameEl?.classList.add('winner-pulse','winner-name-big'); p1ScoreEl?.classList.add('winner-pulse');
                 if(mpSeriesResultShownRound!==Number(d.round||0)){mpSeriesResultShownRound=Number(d.round||0);launchGrandCelebration('p1');}
             }else{
+                if(c2){c2.style.transform='scale(1.05)';c2.style.background='rgba(224,242,254,.92)';c2.style.borderRadius='16px';c2.style.padding='6px';} if(c1)c1.style.filter='saturate(.7) opacity(.82)';
                 heading.innerText=`${p2Name} KAZANDI! 🏆`; p2NameEl?.classList.add('winner-pulse','winner-name-big'); p2ScoreEl?.classList.add('winner-pulse');
                 if(mpSeriesResultShownRound!==Number(d.round||0)){mpSeriesResultShownRound=Number(d.round||0);launchGrandCelebration('p2');}
             }
@@ -63063,9 +63138,11 @@ BLİK
             mpStarted=true; isMatchActive=false; mpLastBeepSecond=null; clearInterval(mpClock);
             const modal=document.getElementById('modal-countdown'),num=document.getElementById('countdown-number'),status=document.getElementById('countdown-status');
             const inviteMsg=document.getElementById('countdown-invite-message');
+            const roundLabel=document.getElementById('countdown-round-label');
             if(inviteMsg) inviteMsg.classList.toggle('hidden', mpRole!=='guest');
+            if(roundLabel){roundLabel.textContent=`ROUND ${Number(d.round||1)}/3`;roundLabel.classList.remove('hidden');}
             const startAt=Number(d.startAt||0);
-            if(status)status.innerText=`ROUND ${Number(d.round||1)}/3 • SENKRONİZE EDİLİYOR…`; modal?.classList.remove('hidden');
+            if(status){status.innerText='SENKRONİZE EDİLDİ';status.className='countdown-sync-ok';} modal?.classList.remove('hidden');
             const tick=()=>{
                 const left=startAt-serverNow();
                 if(left>0){
@@ -63283,13 +63360,13 @@ BLİK
 
         function prepareGame() {
             activeGameMode = 'single';
-            document.getElementById('mp-round-badge')?.classList.add('hidden');
+            document.getElementById('mp-round-badge')?.classList.add('hidden'); updateRoundDots(null); setLongestBonusBadges(false,false);
             document.getElementById('p1-title').innerText = 'OYUNCU';
             document.getElementById('p2-title').innerText = 'BİLGİSAYAR';
             document.getElementById('screen-home').classList.add('hidden');
             document.getElementById('screen-game').classList.remove('hidden');
             p1Score = 0; p2Score = 0; updateScores(); remainingSeconds = 60;
-            resetRoundWordResults();
+            resetRoundWordResults(); resetSeriesWordResults();
             sessionFoundWords.clear(); document.getElementById('words-ticker').innerHTML = '';
             buildGrid();
             triggerCountdownSequence(() => { isMatchActive = true; startTimer(); planBot(); });
@@ -63303,7 +63380,8 @@ BLİK
             // Tekli oyuncu: yalnızca 1 saniyelik, yumuşak BAŞLA! geçişi.
             const statusEl=document.getElementById('countdown-status');
             const inviteMsg=document.getElementById('countdown-invite-message'); if(inviteMsg) inviteMsg.classList.add('hidden');
-            if(statusEl){ statusEl.innerText='KELİMELERİ YAKALA!'; statusEl.classList.remove('hidden'); }
+            const roundLabel=document.getElementById('countdown-round-label'); if(roundLabel)roundLabel.classList.add('hidden');
+            if(statusEl){ statusEl.innerText='KELİMELERİ YAKALA!'; statusEl.className='text-slate-800 font-black text-xs tracking-widest uppercase mt-3 bg-white px-4 py-1.5 rounded-full border border-slate-200 shadow-sm'; statusEl.classList.remove('hidden'); }
             numEl.innerText = 'BAŞLA!';
             numEl.style.opacity='0'; numEl.style.transform='scale(.72)';
             requestAnimationFrame(()=>requestAnimationFrame(()=>{ numEl.style.opacity='1'; numEl.style.transform='scale(1.28)'; }));
@@ -64095,7 +64173,9 @@ BLİK
                 else showRoundTransitionNotice('ROUND SONU • Sonuç senkronize ediliyor…',1200);
                 return;
             }
-            // Tekli/AI: mevcut tek-maç davranışı korunur.
+            // Tekli/AI: en uzun kelime bonusu sonuç belirlenmeden önce uygulanır.
+            const longestBonus=applySingleLongestWordBonus();
+            updateRoundDots(null);
             prepareAndPreviewNextSingleBoard();
             document.getElementById('modal-gameover').classList.remove('hidden');
             const replayBtn=document.getElementById('btn-play-again');
@@ -64106,11 +64186,14 @@ BLİK
             const p1Name=document.getElementById('p1-title').innerText, p2Name=document.getElementById('p2-title').innerText;
             document.getElementById('final-p1-name').innerText=p1Name; document.getElementById('final-p2-name').innerText=p2Name;
             renderGameoverWordLists();
+            setLongestBonusBadges(!!longestBonus.p1,!!longestBonus.p2);
             const heading=document.getElementById('gameover-heading');
             const p1NameEl=document.getElementById('final-p1-name'),p2NameEl=document.getElementById('final-p2-name'),p1ScoreEl=document.getElementById('final-score-val-p1'),p2ScoreEl=document.getElementById('final-score-val-p2');
             [p1NameEl,p2NameEl,p1ScoreEl,p2ScoreEl].forEach(el=>el?.classList.remove('winner-pulse','winner-name-big'));
-            if(p1Score>p2Score){ heading.innerText=`${p1Name} KAZANDI! 🏆`; p1NameEl?.classList.add('winner-pulse','winner-name-big'); p1ScoreEl?.classList.add('winner-pulse'); launchGrandCelebration('p1'); }
-            else if(p2Score>p1Score){ heading.innerText=`${p2Name} KAZANDI! 🏆`; p2NameEl?.classList.add('winner-pulse','winner-name-big'); p2ScoreEl?.classList.add('winner-pulse'); launchGrandCelebration('p2'); }
+            const c1=document.getElementById('final-p1-card'),c2=document.getElementById('final-p2-card');
+            [c1,c2].forEach(c=>{if(c){c.style.transform='';c.style.filter='';c.style.background='';c.style.borderRadius='';c.style.padding='';}});
+            if(p1Score>p2Score){if(c1){c1.style.transform='scale(1.05)';c1.style.background='rgba(254,243,199,.9)';c1.style.borderRadius='16px';c1.style.padding='6px';}if(c2)c2.style.filter='saturate(.7) opacity(.82)'; heading.innerText=`${p1Name} KAZANDI! 🏆`; p1NameEl?.classList.add('winner-pulse','winner-name-big'); p1ScoreEl?.classList.add('winner-pulse'); launchGrandCelebration('p1'); }
+            else if(p2Score>p1Score){if(c2){c2.style.transform='scale(1.05)';c2.style.background='rgba(224,242,254,.92)';c2.style.borderRadius='16px';c2.style.padding='6px';}if(c1)c1.style.filter='saturate(.7) opacity(.82)'; heading.innerText=`${p2Name} KAZANDI! 🏆`; p2NameEl?.classList.add('winner-pulse','winner-name-big'); p2ScoreEl?.classList.add('winner-pulse'); launchGrandCelebration('p2'); }
             else heading.innerText='BERABERE! 🤝';
         }
 
