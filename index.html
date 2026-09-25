@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Kelime Duellosu v125 | Round HUD + round dots + top words + longest-word bonus -->
+<!-- Kelime Duellosu v126 | Round HUD + round dots + top words + longest-word bonus -->
 
 <html lang="tr">
 <head>
@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Kelime Düellosu v125 - 9x9 Akıllı Tahta</title>
+    <title>Kelime Düellosu v126 - 9x9 Akıllı Tahta</title>
     <meta name="game-version" content="v121">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -388,6 +388,16 @@
         .countdown-sync-ok{font-size:10px;font-weight:1000;letter-spacing:.12em;color:#047857;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:9999px;padding:5px 10px;margin-top:8px}
         .longest-bonus{display:none;margin-top:4px;font-size:9px;font-weight:1000;color:#7c3aed;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:9999px;padding:3px 7px}
 
+
+/* v126 round clarity */
+.round-status-dot-wrap{display:inline-flex;align-items:center;margin-left:6px;vertical-align:middle}
+.round-status-dot{width:9px;height:9px;border-radius:50%;background:#cbd5e1;box-shadow:0 0 0 2px rgba(255,255,255,.9);transition:background .18s ease,box-shadow .18s ease,transform .18s ease}
+.round-status-dot.win{background:#22c55e;box-shadow:0 0 0 2px rgba(255,255,255,.92),0 0 8px rgba(34,197,94,.45);transform:scale(1.08)}
+.round-status-dot.loss{background:#ef4444;box-shadow:0 0 0 2px rgba(255,255,255,.92),0 0 8px rgba(239,68,68,.38);transform:scale(1.08)}
+.mp-round-banner{font-weight:900;letter-spacing:.02em;font-size:clamp(18px,4vw,30px);text-shadow:0 2px 8px rgba(0,0,0,.18)}
+.mp-sync-ok{display:flex;align-items:center;justify-content:center;gap:6px;font-weight:800;color:#16a34a;font-size:clamp(13px,2.8vw,17px)}
+.mp-sync-ok .sync-check{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#22c55e;color:#fff;font-size:13px;box-shadow:0 2px 8px rgba(34,197,94,.25)}
+
 </style>
     <!-- Firebase: yalnızca çok oyunculu modda kullanılan hafif compat SDK -->
     <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -520,7 +530,7 @@
                 </div>
 
                 <div class="compact-timer justify-self-center">
-                    <div id="mp-round-badge" class="hidden mb-0.5 round-hud-badge whitespace-nowrap">ROUND 1/3</div>
+                    <div id="mp-round-badge" class="hidden mb-0.5 round-hud-badge whitespace-nowrap">KAPMACA BAŞLIYOR • ROUND 1</div>
                     <span class="timer-label">SÜRE</span>
                     <div id="game-timer">60</div>
                 </div>
@@ -719,9 +729,9 @@
         <div id="modal-countdown" class="absolute inset-0 bg-slate-950/45 backdrop-blur-[7px] flex items-center justify-center z-50 hidden">
             <div class="flex flex-col items-center justify-center bg-white/90 border border-slate-200/80 p-6 rounded-3xl shadow-2xl backdrop-blur-md">
                 <div id="countdown-invite-message" class="hidden mb-3 max-w-[260px] text-center text-[12px] leading-snug font-black text-indigo-950 bg-indigo-50 border border-indigo-200 px-4 py-2.5 rounded-2xl shadow-sm">KAPMACA oyununa davet edildiniz<br><span class="text-indigo-600">Şimdi başlıyor</span></div>
-                <div id="countdown-round-label" class="countdown-round-label hidden">ROUND 1/3</div>
+                <div id="countdown-round-label" class="countdown-round-label hidden">KAPMACA BAŞLIYOR • ROUND 1</div>
                 <div id="countdown-number" class="text-7xl font-black text-amber-500 drop-shadow-sm" style="transition:transform .18s ease-out, filter .16s ease-out, opacity .14s ease-out; will-change:transform;">5</div>
-                <div id="countdown-status" class="countdown-sync-ok">SENKRONİZE EDİLDİ</div>
+                <div id="countdown-status" class="countdown-sync-ok">✓ SENKRON</div>
                 <button id="btn-countdown-fullscreen" type="button" class="hidden mt-3 px-3 py-1.5 rounded-full bg-slate-900 text-white text-[10px] font-black tracking-wide shadow" aria-label="Tam ekrana geç">⛶ TAM EKRAN</button>
             </div>
         </div>
@@ -62387,7 +62397,7 @@ BLİK
             appId: "1:968159872150:web:c80429010ec21363116eb7"
         };
 
-        const GAME_VERSION='v125';
+        const GAME_VERSION='v126';
         // Firebase tarafında yalnızca dört oyun durumu vardır.
         const MP_STATES = Object.freeze({
             IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', SUDDEN:'sudden', FINISHED:'finished'
@@ -62885,7 +62895,16 @@ BLİK
         }
 
 
-        function updateRoundDots(d){
+        
+function setRoundStatusDots(hostResult=null, guestResult=null){
+  const h=document.getElementById('p1RoundDot');
+  const g=document.getElementById('p2RoundDot');
+  [h,g].forEach(el=>{if(el){el.classList.remove('win','loss');}});
+  if(h&&hostResult) h.classList.add(hostResult==='win'?'win':'loss');
+  if(g&&guestResult) g.classList.add(guestResult==='win'?'win':'loss');
+}
+
+function updateRoundDots(d){
             const hist=Array.isArray(d?.roundHistory)?d.roundHistory:[];
             const paint=(id,role)=>{
                 const wrap=document.getElementById(id); if(!wrap) return;
@@ -62905,7 +62924,7 @@ BLİK
             const el=document.getElementById('mp-round-badge'); if(!el) return;
             if(activeGameMode!=='multi' || !d){ el.classList.add('hidden'); updateRoundDots(null); return; }
             const round=Math.max(1,Math.min(3,Number(d.round||1)));
-            el.textContent=`ROUND ${round}/3`;
+            el.textContent=`KAPMACA BAŞLIYOR • ROUND ${round}`;
             el.classList.remove('hidden');
             updateRoundDots(d);
         }
@@ -63072,7 +63091,8 @@ BLİK
                     }
                 }
 
-                if(d.status==='countdown'){
+                if(d.status==='countdown'){ setRoundStatusDots(null,null); }
+if(d.status==='countdown'){
                     setMpState(MP_STATES.COUNTDOWN);
                     document.getElementById('modal-mp-waiting')?.classList.add('hidden');
                     if(!mpEntered) await enterMultiplayerRoom();
@@ -63142,7 +63162,7 @@ BLİK
             if(inviteMsg) inviteMsg.classList.toggle('hidden', mpRole!=='guest');
             if(roundLabel){roundLabel.textContent=`ROUND ${Number(d.round||1)}/3`;roundLabel.classList.remove('hidden');}
             const startAt=Number(d.startAt||0);
-            if(status){status.innerText='SENKRONİZE EDİLDİ';status.className='countdown-sync-ok';} modal?.classList.remove('hidden');
+            if(status){status.innerHTML='<span class="sync-check">✓</span> SENKRON';status.className='countdown-sync-ok';} modal?.classList.remove('hidden');
             const tick=()=>{
                 const left=startAt-serverNow();
                 if(left>0){
