@@ -8,8 +8,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Kelime Düellosu v138-clean - 9x9 Akıllı Tahta</title>
-    <meta name="game-version" content="v138-clean">
+    <title>Kelime Düellosu v139-clean - 9x9 Akıllı Tahta</title>
+    <meta name="game-version" content="v139-clean">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -62370,7 +62370,9 @@ BLİK
         let botInterval = null;
         let isPointerDown = false;
         let pointerHoldStartedAt = 0;
-        const HOLD_CANCEL_MS = 4000;
+        let pointerHoldTimer = null;
+        let activePointerId = null;
+        const HOLD_CANCEL_MS = 3000;
 
         // ================= OYUN SESLERİ (Web Audio, harici dosya yok) =================
         let gameAudioCtx = null;
@@ -62470,7 +62472,7 @@ BLİK
             appId: "1:968159872150:web:c80429010ec21363116eb7"
         };
 
-        const GAME_VERSION='v138-clean';
+        const GAME_VERSION='v139-clean';
         // Firebase tarafında yalnızca dört oyun durumu vardır.
         const MP_STATES = Object.freeze({
             IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
@@ -63156,7 +63158,7 @@ BLİK
             clearInterval(timerInterval); timerInterval=null;
             clearTimeout(botInterval); botInterval=null;
             if(pointerFrame){ cancelAnimationFrame(pointerFrame); pointerFrame=0; }
-            isPointerDown=false; pointerHoldStartedAt=0; pendingPointer=null; activeGridRect=null; isMatchActive=false;
+            isPointerDown=false; pointerHoldStartedAt=0; clearTimeout(pointerHoldTimer); pointerHoldTimer=null; activePointerId=null; pendingPointer=null; activeGridRect=null; isMatchActive=false;
             try{ clearPath(); }catch(_){ selectedPath=[]; }
             mpEntered=false; mpStarted=false; mpStartBusy=false; mpRematchBusy=false;
             mpRoomRef=null; mpRoomCode=null; mpRole=null; mpRoomData=null; mpPresenceRef=null; mpLastRoomMetaSig='';
@@ -63697,6 +63699,22 @@ BLİK
             ensureGameAudio();
             isPointerDown = true;
             pointerHoldStartedAt = performance.now();
+            activePointerId = e.pointerId;
+            clearTimeout(pointerHoldTimer);
+            pointerHoldTimer = setTimeout(() => {
+                // 3 saniye dolduğu anda seçim otomatik ve cezasız bırakılır.
+                // Kullanıcı fiziksel olarak parmağını/fareyi kaldırana kadar yeni harf toplanmaz.
+                if (!isPointerDown) return;
+                isPointerDown = false;
+                pointerHoldStartedAt = 0;
+                pendingPointer = null;
+                activeGridRect = null;
+                if (pointerFrame) { cancelAnimationFrame(pointerFrame); pointerFrame = 0; }
+                gridEl.classList.remove('is-grabbing');
+                clearPath();
+                try { if (activePointerId !== null) gridEl.releasePointerCapture(activePointerId); } catch (_) {}
+                activePointerId = null;
+            }, HOLD_CANCEL_MS);
             activeGridRect = gridEl.getBoundingClientRect(); // sürükleme boyunca yalnızca bir kez ölç
             gridEl.classList.add('is-grabbing');
             try { gridEl.setPointerCapture(e.pointerId); } catch (_) {}
@@ -63724,10 +63742,10 @@ BLİK
 
         const finishPointer = (e, shouldSubmit = true) => {
             if (!isPointerDown) return;
+            clearTimeout(pointerHoldTimer); pointerHoldTimer = null;
             const heldMs = pointerHoldStartedAt ? (performance.now() - pointerHoldStartedAt) : 0;
             const cancelForLongHold = shouldSubmit && heldMs >= HOLD_CANCEL_MS;
-            // 4 saniye veya daha uzun basılı tutulduysa seçim cezasız iptal edilir.
-            // Normal bırakışta son temas noktası da seçime dahil edilmeye devam eder.
+            // Emniyet kontrolü: 3 saniye sınırı tam pointerup anına denk gelirse de ceza uygulanmaz.
             if (shouldSubmit && !cancelForLongHold && activeGridRect) processPointerAt(e.clientX, e.clientY, activeGridRect);
             isPointerDown = false;
             pointerHoldStartedAt = 0;
@@ -63736,6 +63754,7 @@ BLİK
             if (pointerFrame) { cancelAnimationFrame(pointerFrame); pointerFrame = 0; }
             gridEl.classList.remove('is-grabbing');
             try { gridEl.releasePointerCapture(e.pointerId); } catch(err) {}
+            activePointerId = null;
             if (cancelForLongHold) {
                 clearPath();
                 return;
@@ -64206,7 +64225,7 @@ BLİK
             clearInterval(mpClock); mpClock=null;
             clearTimeout(botInterval); botInterval=null;
             if(pointerFrame){ cancelAnimationFrame(pointerFrame); pointerFrame=0; }
-            isPointerDown=false; pointerHoldStartedAt=0; pendingPointer=null; activeGridRect=null;
+            isPointerDown=false; pointerHoldStartedAt=0; clearTimeout(pointerHoldTimer); pointerHoldTimer=null; activePointerId=null; pendingPointer=null; activeGridRect=null;
             try{ clearPath(); }catch(_){ selectedPath=[]; }
             const presence=mpPresenceRef;
             if(presence){
@@ -64248,7 +64267,7 @@ BLİK
             clearInterval(mpClock); mpClock=null;
             clearTimeout(botInterval); botInterval=null;
             if(pointerFrame){ cancelAnimationFrame(pointerFrame); pointerFrame=0; }
-            isPointerDown=false; pointerHoldStartedAt=0; pendingPointer=null; activeGridRect=null;
+            isPointerDown=false; pointerHoldStartedAt=0; clearTimeout(pointerHoldTimer); pointerHoldTimer=null; activePointerId=null; pendingPointer=null; activeGridRect=null;
             try{ clearPath(); }catch(_){ selectedPath=[]; }
 
             document.getElementById('modal-countdown')?.classList.add('hidden');
