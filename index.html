@@ -62459,23 +62459,19 @@ BLİK
         }
 
         async function hostStartRematch(){
-            // Yeni round'u yalnızca host kurar. Böylece iki cihazın ayrı tahta üretmesi engellenir.
+            // Yeni round'u yalnızca host kurar. Tahta maç bittiği anda zaten yenilenmiştir;
+            // burada aynı hazırlanmış tahta korunur ve yalnızca yeni round verileri sıfırlanır.
             if(mpRole!=='host'||mpRematchBusy||!mpRoomRef) return;
             mpRematchBusy=true;
             try{
-                const ready=prewarmedBoard || generateOptimizedBoard(2);
-                prewarmedBoard=null;
-                const fresh=ready.board;
-                rememberBoard(fresh);
                 const now=serverNow();
                 const result=await mpRoomRef.transaction(d=>{
-                    if(!d || d.status!=='finished') return;
+                    if(!d || d.status!=='finished' || !Array.isArray(d.board)) return;
                     const r=d.rematch||{};
                     const expiresAt=Number(r.expiresAt||0);
                     if(!r.host || !r.guest || !expiresAt || expiresAt<now) return;
 
                     d.round=Number(d.round||1)+1;
-                    d.board=fresh;
                     d.scores={host:0,guest:0};
                     d.words={};
                     d.rematch={host:false,guest:false,expiresAt:0};
@@ -62538,7 +62534,8 @@ BLİK
 
                 // words altına her kelime yazıldığında kök value olayı da tetiklenir.
                 // Oyun metası değişmediyse pahalı durum akışını tekrar çalıştırma.
-                const metaSig=[d.status,Number(d.round||1),Number(d.startAt||0),d.guestId||'',
+                const roomBoardSig=Array.isArray(d.board)?boardSignature(d.board):'';
+                const metaSig=[d.status,Number(d.round||1),Number(d.startAt||0),d.guestId||'',roomBoardSig,
                     Number(d.scores?.host||0),Number(d.scores?.guest||0),isOnline(d.presence?.guest),
                     !!d.rematch?.host,!!d.rematch?.guest,Number(d.rematch?.expiresAt||0)].join('|');
                 if(metaSig===mpLastRoomMetaSig) return;
@@ -62581,6 +62578,11 @@ BLİK
                 if(d.status==='finished'){
                     setMpState(MP_STATES.FINISHED);
                     document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
+                    // Host maç biter bitmez yeni tahtayı odaya yazar. Her iki istemci de oyun sonu
+                    // penceresinin arkasında bu yeni tahtayı görür ve rövanş aynı tahta ile başlar.
+                    if(Array.isArray(d.board) && boardSignature(d.board)!==boardSignature(gridBoard)) {
+                        renderProvidedBoard(d.board);
+                    }
                     renderRematchState(d);
                     await hostExpireRematchIfNeeded(d);
                     if(mpRole==='host' && d.rematch?.host && d.rematch?.guest && Number(d.rematch?.expiresAt||0)>=serverNow()) await hostStartRematch();
@@ -63039,6 +63041,30 @@ BLİK
             };
             if ('requestIdleCallback' in window) requestIdleCallback(work, {timeout:1200});
             else setTimeout(work, 80);
+        }
+
+        // Maç biter bitmez bir sonraki tekli tahta hazırlanır ve oyun sonu penceresinin
+        // arkasına çizilir. YENİ OYUN aynı hazırlanmış tahtayı kullanır; yeniden üretmez.
+        function prepareAndPreviewNextSingleBoard() {
+            const ready = generateOptimizedBoard(3);
+            prewarmedBoard = ready;
+            rememberBoard(ready.board);
+            gridBoard = ready.board;
+            boardFoundWords = ready.words;
+            const container = document.getElementById('scrabble-grid');
+            if (!container) return;
+            container.innerHTML = '';
+            domCells = [];
+            const frag = document.createDocumentFragment();
+            for (let r=0;r<BOARD_SIZE;r++) for (let c=0;c<BOARD_SIZE;c++) {
+                const char = gridBoard[r][c];
+                const cell = document.createElement('div');
+                cell.className = 'letter-cell';
+                cell.id = `cell-${r}-${c}`;
+                cell.innerHTML = `<span>${char}</span><span class="tile-score">${TILE_SCORES[char] || 1}</span>`;
+                frag.appendChild(cell); domCells.push(cell);
+            }
+            container.appendChild(frag);
         }
 
 
@@ -63587,15 +63613,25 @@ BLİK
             if(mpRoomRef && mpRole){
                 setMpState(MP_STATES.FINISHED);
                 if(mpRole==='host'){
+                    // Yeni çoklu tahta maç bittiği anda hazırlanır. Böylece YENİ OYUN eski
+                    // harf dizilimini asla tekrar kullanmaz ve iki oyuncu aynı yeni tahtayı alır.
+                    const ready = generateOptimizedBoard(3);
+                    const freshBoard = ready.board;
+                    rememberBoard(freshBoard);
                     mpRoomRef.transaction(d=>{
                         if(!d) return;
                         if(d.status!=='finished'){
                             d.status='finished'; d.startAt=0;
+                            d.board=freshBoard;
                             d.rematch={host:false,guest:false,expiresAt:0};
                         }
                         return d;
                     }).catch(()=>{});
+                    renderProvidedBoard(freshBoard);
                 }
+            } else {
+                // Tekli ve AI rakip modlarında da bitiş anında bir sonraki tahta hazırlanır.
+                prepareAndPreviewNextSingleBoard();
             }
             document.getElementById('modal-gameover').classList.remove('hidden');
             const replayBtn=document.getElementById('btn-play-again');
