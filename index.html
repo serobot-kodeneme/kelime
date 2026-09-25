@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Kelime Duellosu v116 | Wide-screen background + in-game fullscreen -->
+<!-- Kelime Duellosu v118 | UI + Help + Invite polish -->
 
 <html lang="tr">
 <head>
@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Kelime Düellosu v116 - 9x9 Akıllı Tahta</title>
+    <title>Kelime Düellosu v118 - 9x9 Akıllı Tahta</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -18,13 +18,22 @@
     <style>
         body {
             font-family: Calibri, 'Segoe UI', Arial, sans-serif;
-            /* Geniş ekranlarda boş alanı hafif, dosyasız bir oyun atmosferiyle doldurur. */
+            /* v117 — Geniş ekran: oyun alanındaki mavi/turkuazdan başlayıp dışa doğru koyulaşan, tamamen CSS tabanlı hafif gradient. */
             background:
-                radial-gradient(circle at 14% 18%, rgba(255,255,255,.82) 0 7%, transparent 24%),
-                radial-gradient(circle at 84% 20%, rgba(254,240,138,.48) 0 6%, transparent 23%),
-                radial-gradient(circle at 18% 84%, rgba(125,211,252,.34) 0 8%, transparent 27%),
-                radial-gradient(circle at 82% 82%, rgba(167,243,208,.34) 0 8%, transparent 27%),
-                linear-gradient(135deg, #dbeafe 0%, #f8fafc 44%, #fef3c7 100%);
+                radial-gradient(circle at 50% 12%, rgba(34,211,238,.14) 0 10%, transparent 38%),
+                linear-gradient(90deg,
+                    #020617 0%,
+                    #071827 10%,
+                    #0b2a3d 22%,
+                    #0e5d73 calc(50% - 520px),
+                    #0891b2 calc(50% - 350px),
+                    #38bdf8 calc(50% - 250px),
+                    #38bdf8 calc(50% + 250px),
+                    #0891b2 calc(50% + 350px),
+                    #0e5d73 calc(50% + 520px),
+                    #0b2a3d 78%,
+                    #071827 90%,
+                    #020617 100%);
             user-select: none;
             -webkit-user-select: none;
             touch-action: none;
@@ -340,12 +349,12 @@
             body::before {
                 left: 4vw;
                 top: 14vh;
-                background: radial-gradient(circle at 35% 35%, #ffffff 0 13%, #93c5fd 14% 40%, transparent 41%);
+                background: radial-gradient(circle at 35% 35%, rgba(103,232,249,.72) 0 10%, rgba(14,165,233,.30) 11% 38%, transparent 42%);
             }
             body::after {
                 right: 4vw;
                 bottom: 10vh;
-                background: radial-gradient(circle at 35% 35%, #ffffff 0 13%, #fde68a 14% 40%, transparent 41%);
+                background: radial-gradient(circle at 35% 35%, rgba(45,212,191,.58) 0 10%, rgba(8,145,178,.26) 11% 38%, transparent 42%);
             }
             #app-container { z-index: 1; }
         }
@@ -355,6 +364,11 @@
         .fullscreen-btn svg{width:15px;height:15px;stroke-width:2.2}
         @supports (height:100dvh){#app-container{height:100dvh}}
         .dict-letter-active{background:#f59e0b!important;color:#0f172a!important;border-color:#f59e0b!important}
+        .home-mode-btn{transition:transform .16s ease,filter .16s ease,box-shadow .16s ease;will-change:transform}
+        .home-mode-btn:hover{transform:scale(1.025);filter:brightness(1.04);cursor:pointer}
+        .home-mode-btn:active{transform:scale(.985)}
+        @media (hover:none){.home-mode-btn:active{transform:scale(1.018);filter:brightness(1.04)}}
+        @media (prefers-reduced-motion: reduce){.home-mode-btn{transition:none}.home-mode-btn:hover,.home-mode-btn:active{transform:none}}
         @media (prefers-reduced-motion: reduce){.home-float-dot{animation:none}.home-shortcut{transition:none}}
 </style>
     <!-- Firebase: yalnızca çok oyunculu modda kullanılan hafif compat SDK -->
@@ -387,7 +401,7 @@
                 </div>
 
                 <div class="w-full max-w-sm mt-5 space-y-3 shrink-0">
-                    <button id="btn-solo-mode" class="w-full min-h-[76px] flex items-center gap-4 px-5 bg-gradient-to-b from-emerald-400 to-green-600 text-white rounded-[24px] border-4 border-emerald-200/70 shadow-[0_8px_0_#166534] active:translate-y-1 active:shadow-[0_4px_0_#166534] transition">
+                    <button id="btn-solo-mode" class="home-mode-btn w-full min-h-[76px] flex items-center gap-4 px-5 bg-gradient-to-b from-emerald-400 to-green-600 text-white rounded-[24px] border-4 border-emerald-200/70 shadow-[0_8px_0_#166534] active:translate-y-1 active:shadow-[0_4px_0_#166534] transition">
                         <span class="text-4xl">🤖</span><span class="text-left flex-1"><b class="block text-xl leading-5 font-black">TEKLİ OYUN</b><small class="font-bold text-green-50">Zorluk seç ve hemen başla</small></span><span id="solo-arrow" class="text-3xl font-black transition-transform">›</span>
                     </button>
 
@@ -402,7 +416,7 @@
                         </div>
                     </div>
 
-                    <button id="btn-friend-mode" class="w-full min-h-[76px] flex items-center gap-4 px-5 bg-gradient-to-b from-sky-400 to-blue-600 text-white rounded-[24px] border-4 border-sky-200/70 shadow-[0_8px_0_#1e40af] active:translate-y-1 active:shadow-[0_4px_0_#1e40af] transition-all duration-200">
+                    <button id="btn-friend-mode" class="home-mode-btn w-full min-h-[76px] flex items-center gap-4 px-5 bg-gradient-to-b from-sky-400 to-blue-600 text-white rounded-[24px] border-4 border-sky-200/70 shadow-[0_8px_0_#1e40af] active:translate-y-1 active:shadow-[0_4px_0_#1e40af] transition-all duration-200">
                         <span class="text-4xl">👥</span><span class="text-left flex-1"><b class="block text-xl leading-5 font-black">ÇOKLU OYUNCU</b><small class="font-bold text-sky-50">Arkadaşınla karşılıklı oyna</small></span><span class="text-3xl font-black">›</span>
                     </button>
                 </div>
@@ -413,7 +427,7 @@
                         <button id="btn-create-room" class="w-full min-h-[40px] rounded-xl bg-gradient-to-b from-sky-400 to-blue-600 text-white text-xs font-black shadow-md border border-sky-200">ODA OLUŞTUR</button>
                         <div class="rounded-lg bg-sky-50 border border-sky-100 px-2.5 py-1.5 text-[10px] font-bold text-sky-900">Odayı kur, bağlantıyı arkadaşına gönder.</div>
                         <div class="flex items-center gap-2 py-0.5"><span class="h-px flex-1 bg-slate-200"></span><span class="text-[9px] font-black text-slate-400">VEYA</span><span class="h-px flex-1 bg-slate-200"></span></div>
-                        <button id="btn-random-match" class="w-full min-h-[40px] rounded-xl bg-gradient-to-b from-violet-400 to-indigo-600 text-white text-xs font-black shadow-md border border-violet-200">🎲 RASTGELE RAKİP</button>
+                        <button id="btn-random-match" class="home-mode-btn w-full min-h-[40px] rounded-xl bg-gradient-to-b from-violet-400 to-indigo-600 text-white text-xs font-black shadow-md border border-violet-200">🎲 RASTGELE RAKİP</button>
                         <div id="mp-random-status" class="hidden rounded-lg bg-violet-50 border border-violet-100 px-2.5 py-1.5 text-[10px] font-bold text-violet-900">Çevrimiçi rakip aranıyor…</div>
                         <div class="rounded-lg bg-slate-50 border border-slate-200 px-2.5 py-1.5 text-[9px] font-bold text-slate-500">Önce gerçek rakip aranır; bulunamazsa AI rakip devreye girer.</div>
                     </div>
@@ -440,28 +454,28 @@
 
                 <div class="mt-auto pt-3 w-full max-w-sm shrink-0">
                     <!-- LÖSEV destek alanı: harici görsel yok, hafif CSS kartı -->
-                    <a href="https://www.losev.org.tr/tr/bagis" target="_blank" rel="noopener noreferrer" class="home-shortcut block w-full rounded-[18px] bg-gradient-to-r from-rose-50 via-white to-red-50 border-2 border-rose-200 shadow-[0_7px_18px_rgba(127,29,29,.12)] px-3 py-2.5 active:scale-[.99]" aria-label="LÖSEV resmi bağış sayfasını aç">
+                    <a href="https://www.losev.org.tr/tr/bagis" target="_blank" rel="noopener noreferrer" class="home-shortcut block w-full rounded-[20px] bg-gradient-to-r from-rose-50 via-white to-red-50 border-2 border-rose-200 shadow-[0_8px_20px_rgba(127,29,29,.14)] px-4 py-3.5 active:scale-[.99]" aria-label="LÖSEV resmi bağış sayfasını aç">
                         <div class="flex items-center gap-2.5">
-                            <div class="w-10 h-10 shrink-0 rounded-[13px] bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center text-xl shadow-sm">❤</div>
+                            <div class="w-12 h-12 shrink-0 rounded-[14px] bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center text-2xl shadow-sm">❤</div>
                             <div class="min-w-0 flex-1 text-left">
-                                <div class="text-[8px] font-black tracking-[.16em] text-rose-500 uppercase">DESTEK ALANI</div>
-                                <div class="text-[13px] leading-tight font-black text-rose-950">LÖSEV’e Destek Ol</div>
-                                <div class="text-[9px] leading-tight font-bold text-rose-800/75 mt-0.5">Oyunu sevdiysen, lösemili çocuklara umut olmak için bağış yapabilirsin.</div>
+                                <div class="text-[9px] font-black tracking-[.14em] text-rose-500 uppercase">DESTEK ALANI</div>
+                                <div class="text-[15px] leading-tight font-black text-rose-950">LÖSEV’e Destek Ol</div>
+                                <div class="text-[10.5px] leading-snug font-bold text-rose-800/80 mt-1">Oyunu sevdiysen, lösemili çocuklara umut olmak için bağış yapabilirsin.</div>
                             </div>
-                            <div class="shrink-0 rounded-xl bg-rose-600 text-white px-2.5 py-2 text-[9px] font-black shadow-sm">BAĞIŞ YAP ›</div>
+                            <div class="shrink-0 rounded-xl bg-rose-600 text-white px-3 py-2.5 text-[10px] font-black shadow-sm">BAĞIŞ YAP ›</div>
                         </div>
                     </a>
 
                     <div class="grid grid-cols-4 gap-1.5 mt-2">
-                        <button id="btn-settings" class="home-shortcut min-h-[54px] rounded-[15px] bg-white/92 border border-white shadow-[0_5px_13px_rgba(15,23,42,.10)] flex flex-col items-center justify-center gap-1 text-slate-700 font-black text-[9px] leading-tight active:scale-95">
+                        <button id="btn-settings" class="home-shortcut min-h-[54px] rounded-[15px] bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-300 shadow-[0_5px_13px_rgba(15,23,42,.10)] flex flex-col items-center justify-center gap-1 text-slate-800 font-black text-[9px] leading-tight active:scale-95">
                             <span class="w-8 h-8 rounded-[11px] bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200 text-slate-700 flex items-center justify-center shadow-inner"><svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.55V21h-4v-.08A1.7 1.7 0 0 0 8.97 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1.03H3v-4h.08A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.88L4.2 7l2.83-2.83.06.06a1.7 1.7 0 0 0 1.88.34A1.7 1.7 0 0 0 10 3.08V3h4v.08a1.7 1.7 0 0 0 1.03 1.55 1.7 1.7 0 0 0 1.88-.34l.06-.06L19.8 7l-.06.06a1.7 1.7 0 0 0-.34 1.88 1.7 1.7 0 0 0 1.55 1.03H21v4h-.08A1.7 1.7 0 0 0 19.4 15z"/></svg></span>
                             <span>Ayarlar</span>
                         </button>
-                        <button id="btn-howto" class="home-shortcut min-h-[54px] rounded-[15px] bg-white/92 border border-white shadow-[0_5px_13px_rgba(15,23,42,.10)] flex flex-col items-center justify-center gap-1 text-slate-700 font-black text-[9px] leading-tight active:scale-95">
+                        <button id="btn-howto" class="home-shortcut min-h-[54px] rounded-[15px] bg-gradient-to-br from-sky-100 to-blue-200 border border-sky-300 shadow-[0_5px_13px_rgba(3,105,161,.12)] flex flex-col items-center justify-center gap-1 text-sky-950 font-black text-[9px] leading-tight active:scale-95">
                             <span class="w-8 h-8 rounded-[11px] bg-gradient-to-br from-sky-50 to-blue-100 border border-sky-100 text-sky-700 flex items-center justify-center shadow-inner"><svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.4 2.4 0 1 1 3.55 2.1c-.9.52-1.35 1.1-1.35 2.15"/><path d="M12 17h.01"/></svg></span>
-                            <span>Nasıl<br>Oynanır?</span>
+                            <span>Yardım</span>
                         </button>
-                        <button id="btn-about" class="home-shortcut min-h-[54px] rounded-[15px] bg-white/92 border border-white shadow-[0_5px_13px_rgba(15,23,42,.10)] flex flex-col items-center justify-center gap-1 text-slate-700 font-black text-[9px] leading-tight active:scale-95">
+                        <button id="btn-about" class="home-shortcut min-h-[54px] rounded-[15px] bg-gradient-to-br from-indigo-100 to-violet-200 border border-indigo-300 shadow-[0_5px_13px_rgba(79,70,229,.12)] flex flex-col items-center justify-center gap-1 text-indigo-950 font-black text-[9px] leading-tight active:scale-95">
                             <span class="w-8 h-8 rounded-[11px] bg-gradient-to-br from-indigo-50 to-violet-100 border border-indigo-100 text-indigo-700 flex items-center justify-center shadow-inner"><svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.2v6.2"/><path d="M12 17h.01"/></svg></span>
                             <span>Hakkında</span>
                         </button>
@@ -526,20 +540,46 @@
             </div>
         </div>
 
-        <!-- ================= NASIL OYNANIR ================= -->
+        <!-- ================= YARDIM ================= -->
         <div id="screen-howto" class="absolute inset-0 z-[80] hidden bg-gradient-to-b from-sky-100 to-amber-50 overflow-y-auto hide-scroll p-4">
-            <div class="max-w-sm mx-auto">
-                <div class="flex items-center justify-between mb-4"><button id="btn-howto-back" class="w-10 h-10 rounded-full bg-white shadow font-black text-xl">‹</button><h2 class="font-black text-xl text-indigo-950">NASIL OYNANIR?</h2><div class="w-10"></div></div>
+            <div class="max-w-sm mx-auto pb-6">
+                <div class="flex items-center justify-between mb-4"><button id="btn-howto-back" class="w-10 h-10 rounded-full bg-white shadow font-black text-xl">‹</button><h2 class="font-black text-xl text-indigo-950">YARDIM</h2><div class="w-10"></div></div>
+                <div class="rounded-3xl bg-indigo-950 text-white p-4 shadow-lg mb-3">
+                    <div class="text-lg font-black">Kelime Düellosu nasıl oynanır?</div>
+                    <p class="text-xs text-indigo-100 mt-1 leading-relaxed">9×9 tahtada komşu harfleri birleştir, geçerli Türkçe sözcükleri bul ve 60 saniyede en yüksek puanı toplamaya çalış.</p>
+                </div>
                 <div class="space-y-3">
-                    <div class="bg-white rounded-3xl p-4 shadow-lg border border-sky-100"><div class="flex gap-4 items-center"><div class="grid grid-cols-3 gap-1 shrink-0"><span class="w-8 h-8 rounded-lg bg-amber-100 border-2 border-amber-300 flex items-center justify-center font-black">K</span><span class="w-8 h-8 rounded-lg bg-amber-100 border-2 border-amber-300 flex items-center justify-center font-black">E</span><span class="w-8 h-8 rounded-lg bg-amber-100 border-2 border-amber-300 flex items-center justify-center font-black">L</span><span class="w-8 h-8 rounded-lg bg-amber-100 border-2 border-amber-300 flex items-center justify-center font-black">İ</span><span class="w-8 h-8 rounded-lg bg-amber-100 border-2 border-amber-300 flex items-center justify-center font-black">M</span><span class="w-8 h-8 rounded-lg bg-amber-100 border-2 border-amber-300 flex items-center justify-center font-black">E</span></div><div><b class="text-indigo-950">1. Harfleri birleştir</b><p class="text-xs text-slate-600 mt-1">Yalnızca yatay ve dikey komşu harfleri birleştir. Çapraz geçiş yapılamaz.</p></div></div></div>
-                    <div class="bg-white rounded-3xl p-4 shadow-lg border border-sky-100"><div class="flex gap-4 items-center"><div class="text-5xl">☝️</div><div><b class="text-indigo-950">2. Parmağını sürükle</b><p class="text-xs text-slate-600 mt-1">Bir harfe basılı tut ve yatay/dikey komşu harflere sürükle. Parmağını veya fareyi bıraktığında seçim otomatik tamamlanır.</p></div></div></div>
-                    <div class="bg-white rounded-3xl p-4 shadow-lg border border-sky-100"><div class="flex gap-4 items-center"><div class="bg-emerald-100 text-emerald-700 font-black px-3 py-2 rounded-xl text-center">KELİME<br><span class="text-xs">✓ +PUAN</span></div><div><b class="text-indigo-950">3. Sözlük kontrolü</b><p class="text-xs text-slate-600 mt-1">En az 2 harf seç. Parmağını veya fareyi bıraktığında sözcük otomatik kontrol edilir; sözlükte varsa puanın hemen eklenir.</p></div></div></div>
-                    <div class="bg-white rounded-3xl p-4 shadow-lg border border-sky-100"><div class="flex gap-4 items-center"><div class="text-4xl">⏱️</div><div><b class="text-indigo-950">4. Süre dolmadan bul</b><p class="text-xs text-slate-600 mt-1">60 saniye içinde mümkün olduğunca çok geçerli kelime bul. Uzun ve değerli harfli kelimeler daha fazla puan getirir.</p></div></div></div>
-                    <div class="bg-indigo-950 text-white rounded-3xl p-4 shadow-lg"><div class="flex gap-3 items-center"><span class="text-4xl">🏆</span><div><b>Düelloyu kazan</b><p class="text-xs text-indigo-100 mt-1">Süre sonunda en yüksek puana ulaşan oyuncu kazanır.</p></div></div></div>
+                    <div class="bg-white rounded-3xl p-4 shadow-lg border border-sky-100">
+                        <div class="font-black text-indigo-950 mb-2">🎮 Temel kurallar</div>
+                        <div class="space-y-2 text-xs text-slate-650 leading-relaxed">
+                            <p><b>Harf seçimi:</b> Bir harfe basılı tut, yalnızca sağ-sol-yukarı-aşağı komşu harflere sürükle ve bırak.</p>
+                            <p><b>Çapraz geçiş yoktur.</b> Tek bir harfe dokunup bırakmak ceza vermez.</p>
+                            <p><b>Sözlük kontrolü:</b> En az 2 harfli seçim bırakıldığı anda otomatik kontrol edilir. Geçerli sözcük puan kazandırır.</p>
+                            <p><b>Aynı sözcük:</b> Bir maçta daha önce bulunmuş sözcük tekrar puan getirmez; ancak aynı harfler başka sözcükler için tekrar kullanılabilir.</p>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-amber-50 to-yellow-100 rounded-3xl p-4 shadow-lg border border-amber-200">
+                        <div class="font-black text-amber-950 mb-2">👤 Tekli Oyun</div>
+                        <p class="text-xs text-amber-950/80 leading-relaxed">Bilgisayara karşı oynarsın. Kolay, Orta, Zor veya Uzman seviyesini seçersin. Sen ve bilgisayar aynı 9×9 tahtayı kullanırsınız; süre sonunda yüksek puan kazanan maçı alır. Yeni Oyun seçildiğinde aynı zorlukta tamamen yeni bir tahta hazırlanır.</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-sky-50 to-cyan-100 rounded-3xl p-4 shadow-lg border border-sky-200">
+                        <div class="font-black text-sky-950 mb-2">👥 Çoklu Oyun — KAPMACA</div>
+                        <p class="text-xs text-sky-950/80 leading-relaxed">Odayı kuran kişi 1. oyuncu/host olur ve davet bağlantısını arkadaşına gönderir. Bağlantıyla gelen kişi 2. oyuncu/guest olur. İki oyuncu bağlanınca oyun senkronize edilir, 5 saniyelik geri sayımdan sonra aynı tahta üzerinde kapışma başlar.</p>
+                        <div class="mt-2 rounded-2xl bg-white/75 border border-sky-200 p-3 text-[11px] font-bold text-sky-900 leading-relaxed">Kapmaca kuralı: Bir sözcüğü ilk bulan puanı alır. Rakip aynı sözcükten tekrar puan alamaz; fakat o harfleri kullanarak farklı bir sözcük oluşturabilir.</div>
+                    </div>
+                    <div class="bg-white rounded-3xl p-4 shadow-lg border border-emerald-100">
+                        <div class="font-black text-emerald-900 mb-2">🏆 Puan ve süre</div>
+                        <p class="text-xs text-slate-600 leading-relaxed">Maç 60 saniyedir. Uzun ve değerli harflerden oluşan sözcükler daha fazla puan kazandırır. Son 10 saniyede kalp atışı sesi devreye girer. Süre sonunda yüksek puanlı oyuncu kazanır.</p>
+                    </div>
+                    <div class="bg-white rounded-3xl p-4 shadow-lg border border-violet-100">
+                        <div class="font-black text-violet-950 mb-2">💡 İpucu</div>
+                        <p class="text-xs text-slate-600 leading-relaxed">Önce kısa sözcükleri hızlıca topla; ardından aynı bölgelerde daha uzun sözcükleri ara. Bulunmuş harfler kilitlenmez, yeni sözcüklerde tekrar kullanılabilir.</p>
+                    </div>
                 </div>
             </div>
         </div>
-        <!-- ================= AYARLAR ================= -->
+        
+<!-- ================= AYARLAR ================= -->
         <div id="screen-settings" class="absolute inset-0 z-[80] hidden bg-gradient-to-b from-sky-100 to-white p-4">
             <div class="max-w-sm mx-auto">
                 <div class="flex items-center justify-between">
@@ -568,15 +608,15 @@
                 <div class="flex items-center justify-between"><button id="btn-about-back" class="w-10 h-10 rounded-full bg-white shadow font-black text-xl">‹</button><h2 class="font-black text-xl text-indigo-950">HAKKINDA</h2><div class="w-10"></div></div>
                 <div class="mt-8 bg-white/90 border-2 border-sky-200 rounded-3xl p-5 shadow-lg text-center">
                     <p class="text-sm font-black text-slate-700 mb-4">Bu oyun LÖSEV'e destek amaçlı hazırlanmıştır.</p>
-                    <a href="https://www.losev.org.tr/tr/bagis" target="_blank" rel="noopener noreferrer" class="home-shortcut block w-full rounded-[18px] bg-gradient-to-r from-rose-50 via-white to-red-50 border-2 border-rose-200 shadow-[0_7px_18px_rgba(127,29,29,.12)] px-3 py-2.5 active:scale-[.99]" aria-label="LÖSEV resmi bağış sayfasını aç">
+                    <a href="https://www.losev.org.tr/tr/bagis" target="_blank" rel="noopener noreferrer" class="home-shortcut block w-full rounded-[20px] bg-gradient-to-r from-rose-50 via-white to-red-50 border-2 border-rose-200 shadow-[0_8px_20px_rgba(127,29,29,.14)] px-4 py-3.5 active:scale-[.99]" aria-label="LÖSEV resmi bağış sayfasını aç">
                         <div class="flex items-center gap-2.5">
-                            <div class="w-10 h-10 shrink-0 rounded-[13px] bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center text-xl shadow-sm">❤</div>
+                            <div class="w-12 h-12 shrink-0 rounded-[14px] bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center text-2xl shadow-sm">❤</div>
                             <div class="min-w-0 flex-1 text-left">
-                                <div class="text-[8px] font-black tracking-[.16em] text-rose-500 uppercase">DESTEK ALANI</div>
-                                <div class="text-[13px] leading-tight font-black text-rose-950">LÖSEV’e Destek Ol</div>
-                                <div class="text-[9px] leading-tight font-bold text-rose-800/75 mt-0.5">Oyunu sevdiysen, lösemili çocuklara umut olmak için bağış yapabilirsin.</div>
+                                <div class="text-[9px] font-black tracking-[.14em] text-rose-500 uppercase">DESTEK ALANI</div>
+                                <div class="text-[15px] leading-tight font-black text-rose-950">LÖSEV’e Destek Ol</div>
+                                <div class="text-[10.5px] leading-snug font-bold text-rose-800/80 mt-1">Oyunu sevdiysen, lösemili çocuklara umut olmak için bağış yapabilirsin.</div>
                             </div>
-                            <div class="shrink-0 rounded-xl bg-rose-600 text-white px-2.5 py-2 text-[9px] font-black shadow-sm">BAĞIŞ YAP ›</div>
+                            <div class="shrink-0 rounded-xl bg-rose-600 text-white px-3 py-2.5 text-[10px] font-black shadow-sm">BAĞIŞ YAP ›</div>
                         </div>
                     </a>
                 </div>
@@ -659,6 +699,7 @@
         <!-- ================= SAYDAM & TAHTAYI GÖSTEREN GERİ SAYIM MODALI ================= -->
         <div id="modal-countdown" class="absolute inset-0 bg-slate-950/45 backdrop-blur-[7px] flex items-center justify-center z-50 hidden">
             <div class="flex flex-col items-center justify-center bg-white/90 border border-slate-200/80 p-6 rounded-3xl shadow-2xl backdrop-blur-md">
+                <div id="countdown-invite-message" class="hidden mb-3 max-w-[260px] text-center text-[12px] leading-snug font-black text-indigo-950 bg-indigo-50 border border-indigo-200 px-4 py-2.5 rounded-2xl shadow-sm">KAPMACA oyununa davet edildiniz<br><span class="text-indigo-600">Şimdi başlıyor</span></div>
                 <div id="countdown-number" class="text-7xl font-black text-amber-500 drop-shadow-sm" style="transition:transform .18s ease-out, filter .16s ease-out, opacity .14s ease-out; will-change:transform;">5</div>
                 <div id="countdown-status" class="text-slate-800 font-black text-xs tracking-widest uppercase mt-3 bg-white px-4 py-1.5 rounded-full border border-slate-200 shadow-sm">
                     SENKRONİZE EDİLİYOR…
@@ -668,18 +709,28 @@
         </div>
 
         <!-- Bitiş Modalı -->
-        <div id="modal-gameover" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center z-50 hidden">
-            <div class="bg-white border border-slate-200 p-6 rounded-3xl text-center w-11/12 max-w-sm flex flex-col items-center text-slate-900 shadow-2xl">
-                <div class="text-5xl mb-2">🏆</div>
-                <h2 id="gameover-heading" class="text-2xl font-black mb-1 uppercase text-amber-600">1. OYUNCU KAZANDI!</h2>
-                <div class="flex justify-between items-center w-full my-4 bg-slate-50 border border-slate-200 p-3 rounded-2xl">
-                    <div class="w-[45%] text-center"><span id="final-p1-name" class="text-xs font-bold text-amber-600 block truncate">1. OYUNCU</span><span id="final-score-val-p1" class="text-2xl font-black text-slate-900">0</span></div>
+        <div id="modal-gameover" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex items-start justify-center z-50 hidden pt-3 sm:pt-5">
+            <div class="bg-white border border-slate-200 px-4 pt-3 pb-4 rounded-3xl text-center w-[94%] max-w-md flex flex-col items-center text-slate-900 shadow-2xl max-h-[96%] overflow-hidden">
+                <div class="text-3xl leading-none mb-1">🏆</div>
+                <h2 id="gameover-heading" class="text-xl font-black mb-1 uppercase text-amber-600 leading-tight">1. OYUNCU KAZANDI!</h2>
+                <div class="flex justify-between items-center w-full mt-1 mb-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-2xl">
+                    <div class="w-[45%] text-center"><span id="final-p1-name" class="text-[11px] font-bold text-amber-600 block truncate">1. OYUNCU</span><span id="final-score-val-p1" class="text-xl font-black text-slate-900">0</span></div>
                     <span class="text-slate-400 font-bold">-</span>
-                    <div class="w-[45%] text-center"><span id="final-p2-name" class="text-xs font-bold text-sky-600 block truncate">2. OYUNCU</span><span id="final-score-val-p2" class="text-2xl font-black text-slate-900">0</span></div>
+                    <div class="w-[45%] text-center"><span id="final-p2-name" class="text-[11px] font-bold text-sky-600 block truncate">2. OYUNCU</span><span id="final-score-val-p2" class="text-xl font-black text-slate-900">0</span></div>
                 </div>
-                <button id="btn-play-again" onclick="handlePlayAgain()" class="w-full bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 text-amber-950 font-black text-xs py-3 rounded-xl uppercase shadow-md">YENİ OYUN</button>
+                <div class="grid grid-cols-2 gap-2 w-full mb-2 min-h-0">
+                    <div class="rounded-xl border border-amber-200 bg-amber-50/80 p-2 min-w-0">
+                        <div class="text-[9px] font-black text-amber-700 uppercase tracking-wide mb-1">Bulunan Sözcükler</div>
+                        <div id="final-p1-words" class="space-y-1 overflow-hidden text-left"></div>
+                    </div>
+                    <div class="rounded-xl border border-sky-200 bg-sky-50/80 p-2 min-w-0">
+                        <div class="text-[9px] font-black text-sky-700 uppercase tracking-wide mb-1">Bulunan Sözcükler</div>
+                        <div id="final-p2-words" class="space-y-1 overflow-hidden text-left"></div>
+                    </div>
+                </div>
+                <button id="btn-play-again" onclick="handlePlayAgain()" class="w-full bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 text-amber-950 font-black text-xs py-2.5 rounded-xl uppercase shadow-md">YENİ OYUN</button>
                 <div id="rematch-inline-status" class="hidden mt-2 w-full rounded-xl bg-slate-100 border border-slate-200 px-3 py-2 text-[11px] font-bold text-slate-600">Rakip bekleniyor…</div>
-                <button id="btn-game-exit" class="w-full mt-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs py-3 rounded-xl uppercase border border-slate-200">ÇIKIŞ</button>
+                <button id="btn-game-exit" class="w-full mt-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs py-2.5 rounded-xl uppercase border border-slate-200">ÇIKIŞ</button>
             </div>
         </div>
     </div>
@@ -62098,6 +62149,29 @@ BLİK
 
         let chosenAvatarId = 'av_1';
         let p1Score = 0, p2Score = 0;
+        const roundWordResults = { p1:new Map(), p2:new Map() };
+        function resetRoundWordResults(){ roundWordResults.p1.clear(); roundWordResults.p2.clear(); }
+        function recordRoundWord(word, pts, isP1){
+            const w=String(word||'').toLocaleUpperCase('tr-TR');
+            if(!w) return;
+            const map=isP1?roundWordResults.p1:roundWordResults.p2;
+            if(!map.has(w)) map.set(w,{word:w,pts:Number(pts)||0});
+        }
+        function sortedRoundWords(isP1){
+            return Array.from((isP1?roundWordResults.p1:roundWordResults.p2).values())
+                .sort((a,b)=>b.word.length-a.word.length || b.pts-a.pts || a.word.localeCompare(b.word,'tr'));
+        }
+        function renderGameoverWordLists(){
+            const available=Math.max(96,Math.min(330,window.innerHeight-385));
+            const maxItems=Math.max(4,Math.min(14,Math.floor(available/24)));
+            const draw=(id,items,tone)=>{
+                const el=document.getElementById(id); if(!el) return;
+                const shown=items.slice(0,maxItems);
+                el.innerHTML=shown.length?shown.map(x=>`<div class="flex items-center justify-between gap-1 rounded-lg px-2 py-1 ${tone==='amber'?'bg-white/70 text-amber-950':'bg-white/70 text-sky-950'}"><span class="truncate text-[10px] font-black">${x.word}</span><span class="shrink-0 text-[9px] font-black opacity-70">+${x.pts}</span></div>`).join(''):'<div class="text-center text-[9px] font-bold text-slate-400 py-2">—</div>';
+            };
+            draw('final-p1-words',sortedRoundWords(true),'amber');
+            draw('final-p2-words',sortedRoundWords(false),'sky');
+        }
         // ================= TAM EKRAN YÖNETİMİ (v115) =================
         let inviteFullscreenPending=false;
         let inviteFullscreenGestureArmed=false;
@@ -62272,7 +62346,7 @@ BLİK
             appId: "1:968159872150:web:c80429010ec21363116eb7"
         };
 
-        const GAME_VERSION='v111';
+        const GAME_VERSION='v118';
         // Firebase tarafında yalnızca dört oyun durumu vardır.
         const MP_STATES = Object.freeze({
             IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
@@ -62439,6 +62513,7 @@ BLİK
             document.getElementById('screen-home').classList.add('hidden');
             document.getElementById('screen-game').classList.remove('hidden');
             p1Score=0; p2Score=0; updateScores(); remainingSeconds=60;
+            resetRoundWordResults();
             sessionFoundWords.clear(); document.getElementById('words-ticker').innerHTML='';
             buildGrid();
             triggerCountdownSequence(()=>{ isMatchActive=true; startTimer(); planBot(); });
@@ -62607,6 +62682,7 @@ BLİK
 
             p1Score=Number(d.scores?.host||0); p2Score=Number(d.scores?.guest||0); updateScores();
             remainingSeconds=60;
+            resetRoundWordResults();
             sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
 
             const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
@@ -62635,7 +62711,7 @@ BLİK
                 document.getElementById('p1-title').innerText='1. OYUNCU';
                 document.getElementById('p2-title').innerText='2. OYUNCU';
                 p1Score=Number(d.scores?.host||0); p2Score=Number(d.scores?.guest||0); updateScores();
-                remainingSeconds=60; sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
+                remainingSeconds=60; resetRoundWordResults(); sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
                 const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
                 if (!renderProvidedBoard(d.board)) return;
                 hydrateMultiplayerBoardState(d);
@@ -62801,7 +62877,7 @@ BLİK
                 if(!ev||!key||Number(ev.round||mpRound)!==Number(mpRound)||mpSeenWordEvents.has(key)) return;
                 mpSeenWordEvents.add(key);
                 const w=String(ev.word||'').toLocaleUpperCase('tr-TR');
-                if(w){ mpFoundWords.host.add(w); mpFoundWords.guest.add(w); sessionFoundWords.add(w); }
+                if(w){ mpFoundWords.host.add(w); mpFoundWords.guest.add(w); sessionFoundWords.add(w); recordRoundWord(w,ev.pts,ev.role==='host'); }
                 if(ev.role!==mpRole) applyRemoteWordEvent(ev,key);
             });
         }
@@ -62827,6 +62903,8 @@ BLİK
             if(mpStarted) return;
             mpStarted=true; isMatchActive=false; mpLastBeepSecond=null; clearInterval(mpClock);
             const modal=document.getElementById('modal-countdown'),num=document.getElementById('countdown-number'),status=document.getElementById('countdown-status');
+            const inviteMsg=document.getElementById('countdown-invite-message');
+            if(inviteMsg) inviteMsg.classList.toggle('hidden', mpRole!=='guest');
             const startAt=Number(d.startAt||0);
             if(status)status.innerText='SENKRONİZE EDİLİYOR…'; modal?.classList.remove('hidden');
             const tick=()=>{
@@ -63048,6 +63126,7 @@ BLİK
             document.getElementById('screen-home').classList.add('hidden');
             document.getElementById('screen-game').classList.remove('hidden');
             p1Score = 0; p2Score = 0; updateScores(); remainingSeconds = 60;
+            resetRoundWordResults();
             sessionFoundWords.clear(); document.getElementById('words-ticker').innerHTML = '';
             buildGrid();
             triggerCountdownSequence(() => { isMatchActive = true; startTimer(); planBot(); });
@@ -63060,6 +63139,7 @@ BLİK
 
             // Tekli oyuncu: yalnızca 1 saniyelik, yumuşak BAŞLA! geçişi.
             const statusEl=document.getElementById('countdown-status');
+            const inviteMsg=document.getElementById('countdown-invite-message'); if(inviteMsg) inviteMsg.classList.add('hidden');
             if(statusEl){ statusEl.innerText='KELİMELERİ YAKALA!'; statusEl.classList.remove('hidden'); }
             numEl.innerText = 'BAŞLA!';
             numEl.style.opacity='0'; numEl.style.transform='scale(.72)';
@@ -63594,6 +63674,7 @@ BLİK
                 mpFoundWords.host.add(word);
                 mpFoundWords.guest.add(word);
             } else sessionFoundWords.add(word);
+            recordRoundWord(word,pts,isP1);
             playCorrectChime();
             showToast(`${word} (+${pts})`, isP1 ? 'amber' : 'sky');
             if (typeof confetti === 'function') confetti({ particleCount: mpRole ? (matchMedia('(pointer:coarse)').matches ? 14 : 20) : (matchMedia('(pointer:coarse)').matches ? 24 : 36), spread: 64, origin: { y: 0.6 } });
@@ -63745,6 +63826,7 @@ BLİK
                     const botIsP2 = (chosenAvatarId === 'av_1');
 
                     sessionFoundWords.add(word);
+                    recordRoundWord(word,pts,!botIsP2);
 
                     // Bot ortak tahtadaki gerçek taşları ele geçirir
                     matchObj.path.forEach(pt => {
@@ -63885,6 +63967,7 @@ BLİK
             document.getElementById('final-score-val-p2').innerText=p2Score;
             const p1Name=document.getElementById('p1-title').innerText, p2Name=document.getElementById('p2-title').innerText;
             document.getElementById('final-p1-name').innerText=p1Name; document.getElementById('final-p2-name').innerText=p2Name;
+            renderGameoverWordLists();
             const heading=document.getElementById('gameover-heading');
             if(p1Score>p2Score){heading.innerText=`${p1Name} KAZANDI! 🏆`;launchGrandCelebration();}
             else if(p2Score>p1Score){heading.innerText=`${p2Name} KAZANDI! 🏆`;launchGrandCelebration();}
