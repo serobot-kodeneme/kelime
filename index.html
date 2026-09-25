@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Kelime Duellosu v129-stable | v128 stable base + random opponent round visuals -->
+<!-- Kelime Duellosu v136-clean | round-free stable build -->
 
 <html lang="tr">
 <head>
@@ -8,8 +8,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Kelime Düellosu v135-stable - 9x9 Akıllı Tahta</title>
-    <meta name="game-version" content="v135-stable">
+    <title>Kelime Düellosu v136-clean - 9x9 Akıllı Tahta</title>
+    <meta name="game-version" content="v136-clean">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -383,63 +383,51 @@
         }
         .winner-pulse { animation:winnerPulse .9s ease-in-out infinite; transform-origin:center; }
         .winner-name-big{font-size:1.25rem!important;line-height:1.1!important;letter-spacing:.02em;}
-        .round-transition-toast{position:fixed;left:50%;top:14%;transform:translateX(-50%);z-index:1001;background:rgba(15,23,42,.94);color:#fff;border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:10px 16px;font-weight:900;font-size:13px;box-shadow:0 12px 32px rgba(0,0,0,.28);pointer-events:none;text-align:center;max-width:90vw;}
-        .round-dots{display:inline-flex;align-items:center;gap:3px;margin-left:5px;vertical-align:middle;flex:none}
-        .round-dot{position:relative;width:7px;height:7px;border-radius:9999px;border:1.5px solid rgba(255,255,255,.72);background:rgba(255,255,255,.10);box-shadow:0 1px 2px rgba(0,0,0,.2);flex:none}
-        .round-dot.win{background:#22c55e;border-color:#86efac;box-shadow:0 0 7px rgba(34,197,94,.7)}
-        .round-dot.loss{background:transparent;border-color:transparent;box-shadow:none;border-radius:0}
-        .round-dot.loss::before,.round-dot.loss::after{content:"";position:absolute;left:50%;top:50%;width:135%;height:2px;border-radius:2px;background:#ef4444;box-shadow:0 0 5px rgba(239,68,68,.55);transform-origin:center}
-        .round-dot.loss::before{transform:translate(-50%,-50%) rotate(45deg)}
-        .round-dot.loss::after{transform:translate(-50%,-50%) rotate(-45deg)}
-        .round-hud-badge{display:inline-flex;align-items:center;justify-content:center;min-width:92px;padding:4px 10px;border-radius:9999px;background:linear-gradient(135deg,#0e7490,#1d4ed8);color:white;border:1px solid rgba(255,255,255,.32);box-shadow:0 6px 16px rgba(2,132,199,.28);font-size:10px;font-weight:1000;letter-spacing:.08em}
-        .countdown-round-label{font-size:14px;font-weight:1000;letter-spacing:.12em;color:#0f172a;background:linear-gradient(135deg,#cffafe,#dbeafe);border:1px solid #93c5fd;border-radius:9999px;padding:6px 12px;box-shadow:0 5px 14px rgba(14,116,144,.14)}
-        .countdown-round-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;flex-wrap:nowrap}
-        .countdown-side-dots{display:inline-flex;align-items:center;gap:5px}
-        .countdown-side-dots .round-dot{width:16px;height:16px;border-width:2.2px;background:rgba(255,255,255,.24);box-shadow:0 2px 8px rgba(15,23,42,.18)}
-        .countdown-side-dots .round-dot.win{background:#22c55e;border-color:#86efac;box-shadow:0 0 0 2px rgba(255,255,255,.55),0 0 14px rgba(34,197,94,.85),0 0 22px rgba(34,197,94,.42)}
-        .countdown-side-dots .round-dot.loss{background:transparent;border-color:transparent;box-shadow:none}
-        .countdown-side-dots .round-dot.loss::before,.countdown-side-dots .round-dot.loss::after{height:3px;width:120%;background:#ef4444;box-shadow:0 0 7px rgba(239,68,68,.7)}
-        .countdown-versus{display:flex;align-items:center;justify-content:center;gap:18px;margin:0 0 12px}
-        .countdown-avatar-card{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:96px}
-        .countdown-avatar-lg{width:72px;height:72px;border-radius:9999px;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;border:3px solid rgba(255,255,255,.88);box-shadow:0 10px 24px rgba(15,23,42,.18), inset 0 1px 0 rgba(255,255,255,.7)}
-        .countdown-avatar-lg.host{background:linear-gradient(180deg,#fde68a,#facc15);color:#5b3b00;border-color:#fef3c7}
-        .countdown-avatar-lg.guest{background:linear-gradient(180deg,#7dd3fc,#2563eb);color:#fff;border-color:#dbeafe}
-        .countdown-avatar-lg.ai{background:linear-gradient(180deg,#c4b5fd,#7c3aed);color:#fff;border-color:#ede9fe}
-        .countdown-avatar-name{max-width:110px;text-align:center;font-size:11px;line-height:1.1;font-weight:1000;color:#0f172a;letter-spacing:.04em;text-transform:uppercase;text-shadow:0 1px 0 rgba(255,255,255,.45)}
-        .countdown-vs-badge{display:grid;place-items:center;width:52px;height:52px;border-radius:9999px;background:radial-gradient(circle at 30% 30%,#fef08a 0 20%,#fb923c 58%,#f97316 100%);color:#fff;font-size:20px;font-weight:1000;letter-spacing:.08em;border:3px solid rgba(255,255,255,.92);box-shadow:0 10px 24px rgba(249,115,22,.28), inset 0 1px 0 rgba(255,255,255,.55)}
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        .countdown-side-dots 
+        .countdown-side-dots 
+        .countdown-side-dots 
+        .countdown-side-dots .round-dot.loss::before,.countdown-side-dots 
+        
+        
+        
+        
+        
+        
+        
+        
         .countdown-sync-ok{font-size:10px;font-weight:1000;letter-spacing:.12em;color:#047857;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:9999px;padding:5px 10px;margin-top:8px}
         .longest-bonus{display:none;margin-top:4px;font-size:9px;font-weight:1000;color:#7c3aed;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:9999px;padding:3px 7px}
 
 
 /* Round sonucu yalnızca üçlü ışıklarla gösterilir. */
-.mp-round-banner{font-weight:900;letter-spacing:.02em;font-size:clamp(18px,4vw,30px);text-shadow:0 2px 8px rgba(0,0,0,.18)}
+
 .mp-sync-ok{display:flex;align-items:center;justify-content:center;gap:6px;font-weight:800;color:#16a34a;font-size:clamp(13px,2.8vw,17px)}
 .mp-sync-ok .sync-check{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#22c55e;color:#fff;font-size:13px;box-shadow:0 2px 8px rgba(34,197,94,.25)}
         @media (max-width:420px){
             #modal-countdown>div{width:calc(100% - 24px);max-width:360px;padding:16px 12px!important;border-radius:22px!important}
-            .countdown-versus{gap:8px;margin-bottom:9px;width:100%;justify-content:space-between}
-            .countdown-avatar-card{min-width:0;flex:1;max-width:96px;gap:4px}
-            .countdown-avatar-lg{width:54px;height:54px;font-size:25px}
-            .countdown-vs-badge{width:40px;height:40px;font-size:15px;flex:none}
-            .countdown-avatar-name{font-size:9px;max-width:88px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-            .countdown-round-row{gap:6px;width:100%;justify-content:center}
-            .countdown-round-label{font-size:10px;letter-spacing:.07em;padding:5px 8px;min-width:0;white-space:nowrap}
-            .countdown-side-dots{gap:4px;flex:none}
-            .countdown-side-dots .round-dot{width:12px;height:12px}
+            
+            
+            
+            
+            
+            
+            
+            
             #countdown-number{font-size:3.25rem!important;line-height:1!important}
             .countdown-sync-ok{font-size:9px;padding:4px 8px;margin-top:6px}
         }
-        @media (max-width:340px){
-            #modal-countdown>div{width:calc(100% - 14px);padding:14px 8px!important}
-            .countdown-avatar-lg{width:48px;height:48px;font-size:22px}
-            .countdown-vs-badge{width:34px;height:34px;font-size:13px}
-            .countdown-avatar-name{font-size:8px;max-width:72px}
-            .countdown-round-row{gap:4px}
-            .countdown-round-label{font-size:9px;padding:4px 6px;letter-spacing:.04em}
-            .countdown-side-dots{gap:3px}
-            .countdown-side-dots .round-dot{width:10px;height:10px}
-        }
-
 </style>
     <!-- Firebase: yalnızca çok oyunculu modda kullanılan hafif compat SDK -->
     <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -566,14 +554,13 @@
                 <div class="compact-player justify-self-start">
                     <div class="compact-identity">
                         <div id="p1-avatar-box" class="compact-avatar bg-yellow-200 border-yellow-400">👑</div>
-                        <div id="p1-title" class="compact-name text-amber-200">1. OYUNCU</div><div id="p1-round-dots" class="round-dots hidden" aria-label="1. oyuncu round sonuçları"><span class="round-dot"></span><span class="round-dot"></span><span class="round-dot"></span></div>
+                        <div id="p1-title" class="compact-name text-amber-200">1. OYUNCU</div>
                     </div>
                 </div>
 
                 <div id="p1-score-chip" class="score-orb score-orb-p1 justify-self-end" aria-label="1. oyuncu puanı"><span id="p1-score-val">0</span></div>
 
                 <div class="compact-timer justify-self-center">
-                    <div id="mp-round-badge" class="hidden mb-0.5 round-hud-badge whitespace-nowrap">KAPMACA BAŞLIYOR • ROUND 1</div>
                     <span class="timer-label">SÜRE</span>
                     <div id="game-timer">60</div>
                 </div>
@@ -583,7 +570,7 @@
                 <div class="compact-player justify-self-end items-end">
                     <div class="compact-identity flex-row-reverse">
                         <div id="p2-avatar-box" class="compact-avatar bg-sky-200 border-sky-400">⚔️</div>
-                        <div id="p2-title" class="compact-name text-sky-200 text-right">2. OYUNCU</div><div id="p2-round-dots" class="round-dots hidden" aria-label="2. oyuncu round sonuçları"><span class="round-dot"></span><span class="round-dot"></span><span class="round-dot"></span></div>
+                        <div id="p2-title" class="compact-name text-sky-200 text-right">2. OYUNCU</div>
                     </div>
                 </div>
             </header>
@@ -773,22 +760,6 @@
         <div id="modal-countdown" class="absolute inset-0 bg-slate-950/45 backdrop-blur-[7px] flex items-center justify-center z-50 hidden">
             <div class="flex flex-col items-center justify-center bg-white/90 border border-slate-200/80 p-6 rounded-3xl shadow-2xl backdrop-blur-md">
                 <div id="countdown-invite-message" class="hidden mb-3 max-w-[260px] text-center text-[12px] leading-snug font-black text-indigo-950 bg-indigo-50 border border-indigo-200 px-4 py-2.5 rounded-2xl shadow-sm">KAPMACA oyununa davet edildiniz<br><span class="text-indigo-600">Şimdi başlıyor</span></div>
-                <div id="countdown-versus" class="countdown-versus hidden">
-                    <div class="countdown-avatar-card">
-                        <div id="countdown-avatar-host" class="countdown-avatar-lg host">👑</div>
-                        <div id="countdown-name-host" class="countdown-avatar-name">1. OYUNCU</div>
-                    </div>
-                    <div class="countdown-vs-badge">VS</div>
-                    <div class="countdown-avatar-card">
-                        <div id="countdown-avatar-guest" class="countdown-avatar-lg guest">⚔️</div>
-                        <div id="countdown-name-guest" class="countdown-avatar-name">2. OYUNCU</div>
-                    </div>
-                </div>
-                <div class="countdown-round-row">
-                    <div id="countdown-host-round-dots" class="countdown-side-dots hidden" aria-label="1. oyuncu round ışıkları"><span class="round-dot"></span><span class="round-dot"></span><span class="round-dot"></span></div>
-                    <div id="countdown-round-label" class="countdown-round-label hidden">KAPMACA BAŞLIYOR • ROUND 1</div>
-                    <div id="countdown-guest-round-dots" class="countdown-side-dots hidden" aria-label="2. oyuncu round ışıkları"><span class="round-dot"></span><span class="round-dot"></span><span class="round-dot"></span></div>
-                </div>
                 <div id="countdown-number" class="text-7xl font-black text-amber-500 drop-shadow-sm" style="transition:transform .18s ease-out, filter .16s ease-out, opacity .14s ease-out; will-change:transform;">5</div>
                 <div id="countdown-status" class="countdown-sync-ok">✓ SENKRON</div>
                 <button id="btn-countdown-fullscreen" type="button" class="hidden mt-3 px-3 py-1.5 rounded-full bg-slate-900 text-white text-[10px] font-black tracking-wide shadow" aria-label="Tam ekrana geç">⛶ TAM EKRAN</button>
@@ -800,11 +771,10 @@
             <div class="bg-white border border-slate-200 px-4 pt-3 pb-4 rounded-3xl text-center w-[94%] max-w-md flex flex-col items-center text-slate-900 shadow-2xl max-h-[96%] overflow-hidden">
                 <div class="text-3xl leading-none mb-1">🏆</div>
                 <h2 id="gameover-heading" class="text-2xl font-black mb-1 uppercase text-amber-600 leading-tight">1. OYUNCU KAZANDI!</h2>
-                <div id="final-round-score" class="hidden mb-1 text-[12px] font-black text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1">ROUND SKORU 0 - 0</div>
                 <div class="flex justify-between items-center w-full mt-1 mb-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-2xl">
-                    <div id="final-p1-card" class="w-[45%] text-center transition-all"><span class="flex items-center justify-center gap-1"><span id="final-p1-name" class="text-sm font-black text-amber-600 truncate">1. OYUNCU</span><span id="final-p1-round-dots" class="round-dots hidden"><span class="round-dot"></span><span class="round-dot"></span><span class="round-dot"></span></span></span><span id="final-score-val-p1" class="text-2xl font-black text-slate-900">0</span><span id="final-p1-longest-bonus" class="longest-bonus">EN UZUN +10</span></div>
+                    <div id="final-p1-card" class="w-[45%] text-center transition-all"><span class="flex items-center justify-center gap-1"><span id="final-p1-name" class="text-sm font-black text-amber-600 truncate">1. OYUNCU</span><span class="round-dot"></span><span class="round-dot"></span></span></span><span id="final-score-val-p1" class="text-2xl font-black text-slate-900">0</span><span id="final-p1-longest-bonus" class="longest-bonus">EN UZUN +10</span></div>
                     <span class="text-slate-400 font-bold">-</span>
-                    <div id="final-p2-card" class="w-[45%] text-center transition-all"><span class="flex items-center justify-center gap-1"><span id="final-p2-name" class="text-sm font-black text-sky-600 truncate">2. OYUNCU</span><span id="final-p2-round-dots" class="round-dots hidden"><span class="round-dot"></span><span class="round-dot"></span><span class="round-dot"></span></span></span><span id="final-score-val-p2" class="text-2xl font-black text-slate-900">0</span><span id="final-p2-longest-bonus" class="longest-bonus">EN UZUN +10</span></div>
+                    <div id="final-p2-card" class="w-[45%] text-center transition-all"><span class="flex items-center justify-center gap-1"><span id="final-p2-name" class="text-sm font-black text-sky-600 truncate">2. OYUNCU</span><span class="round-dot"></span><span class="round-dot"></span></span></span><span id="final-score-val-p2" class="text-2xl font-black text-slate-900">0</span><span id="final-p2-longest-bonus" class="longest-bonus">EN UZUN +10</span></div>
                 </div>
                 <div class="grid grid-cols-2 gap-2 w-full mb-2 min-h-0">
                     <div class="rounded-xl border border-amber-200 bg-amber-50/80 p-2 min-w-0">
@@ -62249,8 +62219,8 @@ BLİK
             const roundMap=isP1?roundWordResults.p1:roundWordResults.p2;
             if(!roundMap.has(w)) roundMap.set(w,{word:w,pts:Number(pts)||0});
             const seriesMap=isP1?seriesWordResults.p1:seriesWordResults.p2;
-            const key=(activeGameMode==='multi'||randomAiRoundMode)?`${Number(randomAiRoundMode?(randomAiSeries?.round||1):mpRound||1)}:${w}`:w;
-            if(!seriesMap.has(key)) seriesMap.set(key,{word:w,pts:Number(pts)||0,round:Number(mpRound||1)});
+            const key=w;
+            if(!seriesMap.has(key)) seriesMap.set(key,{word:w,pts:Number(pts)||0});
         }
         function sortedTopScoreWords(isP1){
             return Array.from((isP1?seriesWordResults.p1:seriesWordResults.p2).values())
@@ -62358,8 +62328,6 @@ BLİK
         let isMatchActive = false;
         let botDiffLevel = 'easy';
         let activeGameMode = null; // 'single' | 'multi' — replay akışının tek güvenilir kaynağı
-        let randomAiRoundMode = false;
-        let randomAiSeries = null;
         let selectedPath = [];
         let sessionFoundWords = new Set();
         let gridBoard = [];
@@ -62460,16 +62428,16 @@ BLİK
             appId: "1:968159872150:web:c80429010ec21363116eb7"
         };
 
-        const GAME_VERSION='v135-stable';
+        const GAME_VERSION='v136-clean';
         // Firebase tarafında yalnızca dört oyun durumu vardır.
         const MP_STATES = Object.freeze({
-            IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', SUDDEN:'sudden', FINISHED:'finished'
+            IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
         });
         let mpState=MP_STATES.IDLE;
         let mpDb=null, mpRoomRef=null, mpRoomCode=null, mpRole=null, mpRoomData=null;
         let mpSessionJoinedAt=0, mpExitHandling=false, mpLastExitSignalId='';
         let mpListener=null, mpWordsListener=null, mpScoresListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null;
-        let mpRound=0, mpStartBusy=false, mpRematchBusy=false, mpPresenceRef=null, mpLastRoomMetaSig='', mpSeriesResultShownRound=0;
+        let mpStartBusy=false, mpRematchBusy=false, mpPresenceRef=null, mpLastRoomMetaSig='';
         let mpSeenWordEvents=new Set(), mpLastBeepSecond=null;
         const mpFoundWords={host:new Set(),guest:new Set()};
         let globalOnlinePresenceRef=null, globalOnlineListRef=null, globalOnlineListListener=null, onlineSessionId=null;
@@ -62627,11 +62595,9 @@ BLİK
             await ref.set({
                 schema:14, mode:'random-match-v2', createdAt:firebase.database.ServerValue.TIMESTAMP,
                 dayKey:alloc.dayKey, expiresAt:alloc.expiresAt,
-                hostId, guestId, status:'waiting', round:1,
+                hostId, guestId, status:'waiting',
                 board:readyBoard.board, startAt:0,
-                scores:{host:0,guest:0}, words:{},
-                matchWins:{host:0,guest:0}, seriesScores:{host:0,guest:0}, targetWins:2, maxRounds:3,
-                suddenWinner:null, suddenEndsAt:0, lastRoundWinner:null, lastRoundScores:{host:0,guest:0},
+                scores:{host:0,guest:0}, words:{}, longestBonus:null, bonusApplied:false,
                 rematch:{host:false,guest:false,expiresAt:0},
                 presence:{host:{online:false,clientId:hostId},guest:{online:false,clientId:guestId}}
             });
@@ -62660,16 +62626,14 @@ BLİK
             });
         }
         async function startRandomAiFallback(existingAiName=null){
-            activeGameMode = 'single';
-            randomAiRoundMode = true;
+            activeGameMode='single';
             await cleanupRandomQueue(true);
             mpRole=null; mpRoomRef=null; mpRoomCode=null; mpRoomData=null; mpEntered=false; mpStarted=false;
             setMpState(MP_STATES.IDLE); clearInviteFromUrl();
             botDiffLevel='hard';
             const aiName=existingAiName || (RANDOM_AI_NAMES[Math.floor(Math.random()*RANDOM_AI_NAMES.length)]+' • AI');
-            randomAiSeries={round:1,matchWins:{host:0,guest:0},seriesScores:{host:0,guest:0},roundHistory:[null,null,null],aiName};
             setRandomStatus('Çevrimiçi rakip bulunamadı. AI Rakip ile eşleştirildin.',true);
-            showToast('AI Rakip bulundu. 3 ROUND kapışma hazırlanıyor…','sky');
+            showToast('AI Rakip bulundu. Oyun hazırlanıyor…','sky');
             document.getElementById('p1-title').innerText='OYUNCU';
             document.getElementById('p2-title').innerText=aiName;
             document.getElementById('screen-home').classList.add('hidden');
@@ -62678,124 +62642,10 @@ BLİK
             resetRoundWordResults(); resetSeriesWordResults();
             sessionFoundWords.clear(); document.getElementById('words-ticker').innerHTML='';
             buildGrid();
-            updateRandomAiRoundVisuals();
-            startRandomAiCountdown();
-        }
-        function randomAiRoundData(){
-            if(!randomAiSeries) return null;
-            return {round:Number(randomAiSeries.round||1),roundHistory:Array.isArray(randomAiSeries.roundHistory)?randomAiSeries.roundHistory:[],matchWins:randomAiSeries.matchWins||{host:0,guest:0}};
-        }
-        function updateRandomAiRoundVisuals(){
-            if(!randomAiRoundMode || !randomAiSeries) return;
-            const d=randomAiRoundData();
-            updateMultiplayerRoundBadge(d);
-            const hist=d.roundHistory.filter(Boolean);
-            const last=hist.length?hist[hist.length-1]:null;
-            if(last==='host') setRoundStatusDots('win','loss');
-            else if(last==='guest') setRoundStatusDots('loss','win');
-            else setRoundStatusDots(null,null);
-        }
-        function refreshCountdownVersus(){
-            const wrap=document.getElementById('countdown-versus');
-            if(!wrap) return;
-            const show=(activeGameMode==='multi')||!!randomAiRoundMode;
-            wrap.classList.toggle('hidden', !show);
-            if(!show) return;
-            const p1Name=(document.getElementById('p1-title')?.innerText||'1. OYUNCU').trim();
-            const p2Name=(document.getElementById('p2-title')?.innerText||'2. OYUNCU').trim();
-            const hName=document.getElementById('countdown-name-host');
-            const gName=document.getElementById('countdown-name-guest');
-            const hAvatar=document.getElementById('countdown-avatar-host');
-            const gAvatar=document.getElementById('countdown-avatar-guest');
-            if(hName) hName.textContent=p1Name;
-            if(gName) gName.textContent=p2Name;
-            if(hAvatar){ hAvatar.textContent='👑'; hAvatar.classList.remove('ai'); hAvatar.classList.add('host'); }
-            if(gAvatar){
-                const isAi=!!randomAiRoundMode || /AI|BOT|BİLGİSAYAR/i.test(p2Name);
-                gAvatar.textContent=isAi?'🤖':'⚔️';
-                gAvatar.classList.remove('guest','ai');
-                gAvatar.classList.add(isAi?'ai':'guest');
-            }
-        }
-        function startRandomAiCountdown(){
-            if(!randomAiRoundMode || !randomAiSeries) return;
-            clearInterval(mpClock); mpClock=null;
-            isMatchActive=false;
-            const modal=document.getElementById('modal-countdown');
-            const num=document.getElementById('countdown-number');
-            const status=document.getElementById('countdown-status');
-            const invite=document.getElementById('countdown-invite-message'); if(invite)invite.classList.add('hidden');
-            updateRandomAiRoundVisuals();
-            refreshCountdownVersus();
-            const label=document.getElementById('countdown-round-label');
-            if(label){label.textContent=`KAPMACA BAŞLIYOR • ROUND ${Number(randomAiSeries.round||1)}`;label.classList.remove('hidden');}
-            if(status){status.innerHTML='<span class="sync-check">✓</span> SENKRON';status.className='countdown-sync-ok';}
-            modal?.classList.remove('hidden');
-            let n=5; if(num){num.innerText='5';num.style.opacity='1';num.style.transform='scale(1)';}
-            playCountdownBeep(5);
-            mpClock=setInterval(()=>{
-                n--;
-                if(n>0){ if(num){num.innerText=String(n);num.style.transform=`scale(${1+(5-n)*.07})`;} playCountdownBeep(n); return; }
-                clearInterval(mpClock); mpClock=null; modal?.classList.add('hidden');
-                remainingSeconds=60; const timer=document.getElementById('game-timer'); if(timer){timer.innerText='60';timer.classList.remove('timer-warning');}
-                isMatchActive=true; startTimer(); planBot();
-            },1000);
-        }
-        function chooseRandomAiRoundWinner(){
-            if(p1Score!==p2Score) return p1Score>p2Score?'host':'guest';
-            const a=Array.from(roundWordResults.p1.values()),b=Array.from(roundWordResults.p2.values());
-            const la=a.reduce((m,x)=>Math.max(m,x.word.length),0),lb=b.reduce((m,x)=>Math.max(m,x.word.length),0);
-            if(la!==lb) return la>lb?'host':'guest';
-            const pa=a.reduce((m,x)=>Math.max(m,Number(x.pts)||0),0),pb=b.reduce((m,x)=>Math.max(m,Number(x.pts)||0),0);
-            if(pa!==pb) return pa>pb?'host':'guest';
-            return a.length>=b.length?'host':'guest';
-        }
-        function showRandomAiSeriesResult(){
-            const d=randomAiSeries; if(!d) return;
-            document.getElementById('modal-gameover')?.classList.remove('hidden');
-            const replay=document.getElementById('btn-play-again'); if(replay){replay.disabled=false;replay.innerText='YENİ OYUN';replay.classList.remove('hidden');}
-            const rs=document.getElementById('final-round-score'); if(rs){rs.textContent=`ROUND SKORU ${Number(d.matchWins.host||0)} - ${Number(d.matchWins.guest||0)}`;rs.classList.remove('hidden');}
-            document.getElementById('final-score-val-p1').innerText=Number(d.seriesScores.host||0);
-            document.getElementById('final-score-val-p2').innerText=Number(d.seriesScores.guest||0);
-            const p1Name=document.getElementById('p1-title').innerText,p2Name=document.getElementById('p2-title').innerText;
-            document.getElementById('final-p1-name').innerText=p1Name; document.getElementById('final-p2-name').innerText=p2Name;
-            renderGameoverWordLists(); updateRoundDots(randomAiRoundData());
-            const heading=document.getElementById('gameover-heading');
-            const p1NameEl=document.getElementById('final-p1-name'),p2NameEl=document.getElementById('final-p2-name'),p1ScoreEl=document.getElementById('final-score-val-p1'),p2ScoreEl=document.getElementById('final-score-val-p2');
-            [p1NameEl,p2NameEl,p1ScoreEl,p2ScoreEl].forEach(el=>el?.classList.remove('winner-pulse','winner-name-big'));
-            const c1=document.getElementById('final-p1-card'),c2=document.getElementById('final-p2-card');
-            [c1,c2].forEach(c=>{if(c){c.style.transform='';c.style.filter='';c.style.background='';c.style.borderRadius='';c.style.padding='';}});
-            const winner=Number(d.matchWins.host||0)>Number(d.matchWins.guest||0)?'host':'guest';
-            if(winner==='host'){
-                if(c1){c1.style.transform='scale(1.05)';c1.style.background='rgba(254,243,199,.9)';c1.style.borderRadius='16px';c1.style.padding='6px';} if(c2)c2.style.filter='saturate(.7) opacity(.82)';
-                heading.innerText=`${p1Name} KAZANDI! 🏆`; p1NameEl?.classList.add('winner-pulse','winner-name-big'); p1ScoreEl?.classList.add('winner-pulse'); launchGrandCelebration('p1');
-            }else{
-                if(c2){c2.style.transform='scale(1.05)';c2.style.background='rgba(224,242,254,.92)';c2.style.borderRadius='16px';c2.style.padding='6px';} if(c1)c1.style.filter='saturate(.7) opacity(.82)';
-                heading.innerText=`${p2Name} KAZANDI! 🏆`; p2NameEl?.classList.add('winner-pulse','winner-name-big'); p2ScoreEl?.classList.add('winner-pulse'); launchGrandCelebration('p2');
-            }
-        }
-        function finishRandomAiRound(){
-            if(!randomAiRoundMode || !randomAiSeries) return;
-            const bonus=applySingleLongestWordBonus();
-            setLongestBonusBadges(!!bonus.p1,!!bonus.p2);
-            const winner=chooseRandomAiRoundWinner();
-            randomAiSeries.seriesScores.host+=Number(p1Score||0); randomAiSeries.seriesScores.guest+=Number(p2Score||0);
-            randomAiSeries.matchWins[winner]=Number(randomAiSeries.matchWins[winner]||0)+1;
-            randomAiSeries.roundHistory[Math.max(0,Number(randomAiSeries.round||1)-1)]=winner;
-            updateRandomAiRoundVisuals();
-            if(Number(randomAiSeries.matchWins[winner]||0)>=2 || Number(randomAiSeries.round||1)>=3){ showRandomAiSeriesResult(); return; }
-            randomAiSeries.round=Number(randomAiSeries.round||1)+1;
-            showRoundTransitionNotice(`${winner==='host'?'OYUNCU':randomAiSeries.aiName} ROUND'U KAZANDI • ROUND ${randomAiSeries.round}/3`,1400);
-            setTimeout(()=>{
-                p1Score=0;p2Score=0;updateScores();remainingSeconds=60;
-                resetRoundWordResults(); singleLongestBonusApplied=false; singleLongestBonus={p1:false,p2:false,maxLen:0};
-                sessionFoundWords.clear();document.getElementById('words-ticker').innerHTML='';
-                buildGrid(); updateRandomAiRoundVisuals(); startRandomAiCountdown();
-            },650);
+            triggerCountdownSequence(()=>{isMatchActive=true;startTimer();planBot();});
         }
         async function searchRandomOpponent(){
             if(randomSearchActive) return;
-            randomAiRoundMode=false; randomAiSeries=null;
             const btn=document.getElementById('btn-random-match');
             if(btn){ btn.disabled=true; btn.innerText='RAKİP ARANIYOR…'; }
             setRandomStatus('Çevrimiçi rakip aranıyor…',true);
@@ -62887,7 +62737,6 @@ BLİK
         }
 
         async function createRoom(){
-            randomAiRoundMode=false; randomAiSeries=null;
             if(!await waitFirebaseConnected()){ showToast('Sunucuya bağlanılamadı. İnternet bağlantını kontrol et.','rose'); return; }
             let alloc;
             try{ alloc=await allocateDailyRoomCode(); }
@@ -62899,16 +62748,14 @@ BLİK
             await ref.set({
                 schema:14, mode:'invite-only-v2', createdAt:firebase.database.ServerValue.TIMESTAMP,
                 dayKey:alloc.dayKey, expiresAt:alloc.expiresAt,
-                hostId, guestId:null, status:'waiting', round:1,
+                hostId, guestId:null, status:'waiting',
                 board:readyBoard.board, startAt:0,
-                scores:{host:0,guest:0}, words:{},
-                matchWins:{host:0,guest:0}, seriesScores:{host:0,guest:0}, targetWins:2, maxRounds:3,
-                suddenWinner:null, suddenEndsAt:0, lastRoundWinner:null, lastRoundScores:{host:0,guest:0},
+                scores:{host:0,guest:0}, words:{}, longestBonus:null, bonusApplied:false,
                 rematch:{host:false,guest:false,expiresAt:0},
                 presence:{host:{online:true,clientId:hostId},guest:{online:false}}
             });
 
-            mpRoomCode=code; mpRole='host'; mpRoomRef=ref; mpRoomData=null; mpRound=1; mpEntered=false; mpStarted=false; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId='';
+            mpRoomCode=code; mpRole='host'; mpRoomRef=ref; mpRoomData=null; mpEntered=false; mpStarted=false; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId='';
             setRoomUrl(code); await markPresence();
             setMpPanelRoom(code,'1. oyuncusun. 6 haneli oda kodunu paylaş; 2. oyuncu gelince oyun otomatik başlayacak.');
             document.getElementById('btn-close-room')?.classList.remove('hidden');
@@ -62918,7 +62765,6 @@ BLİK
         }
 
         async function joinRoom(code){
-            randomAiRoundMode=false; randomAiSeries=null;
             code=String(code||'').replace(/\D/g,'').slice(0,6);
             if(!/^\d{6}$/.test(code)) return false;
             if(!code) return false;
@@ -62945,8 +62791,7 @@ BLİK
                 role='guest';
             }
 
-            mpRoomCode=code; mpRole=role; mpRoomRef=ref; mpRoomData=(await ref.once('value')).val()||{}; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId='';
-            mpRound=Number(mpRoomData.round||1); mpEntered=false; mpStarted=false;
+            mpRoomCode=code; mpRole=role; mpRoomRef=ref; mpRoomData=(await ref.once('value')).val()||{}; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId=''; mpEntered=false; mpStarted=false;
             await markPresence(); setRoomUrl(code);
             setMpPanelRoom(code,role==='host'?'1. oyuncu olarak odana yeniden bağlandın.':'2. oyuncu olarak davet odasına bağlandın.');
             document.getElementById('btn-close-room')?.classList.toggle('hidden',role!=='host');
@@ -62957,40 +62802,12 @@ BLİK
             return true;
         }
 
-        function resetLocalMultiplayerRound(d){
-            // Yeni round başlarken önceki maçtan kalan hiçbir yerel durum taşınmasın.
-            mpRound=Number(d.round||1); mpStarted=false; mpEntered=false; mpLastBeepSecond=null;
-            clearInterval(mpClock); mpClock=null;
-            clearInterval(timerInterval); timerInterval=null;
-            clearTimeout(botInterval); botInterval=null;
-            isMatchActive=false; isPointerDown=false;
-            try{ clearPath(); }catch(e){ selectedPath=[]; }
-
-            p1Score=Number(d.scores?.host||0); p2Score=Number(d.scores?.guest||0); updateScores();
-            remainingSeconds=60;
-            resetRoundWordResults();
-            if(Number(d.round||1)===1 && Number(d.matchWins?.host||0)===0 && Number(d.matchWins?.guest||0)===0) resetSeriesWordResults();
-            sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
-
-            const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
-            const preview=document.getElementById('selected-word-preview'); if(preview)preview.innerText='';
-            const gt=document.getElementById('game-timer'); if(gt){gt.innerText='60';gt.classList.remove('timer-warning');}
-            document.getElementById('modal-countdown')?.classList.add('hidden');
-            document.getElementById('modal-gameover')?.classList.add('hidden');
-            document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
-            const rs=document.getElementById('rematch-inline-status'); if(rs){rs.classList.add('hidden');rs.innerText='';}
-            const replay=document.getElementById('btn-play-again');
-            if(replay){ replay.disabled=false; replay.innerText='YENİ OYUN'; replay.classList.remove('hidden'); }
-
-            // Tahta burada ikinci kez çizilmez. Yeni round'u enterMultiplayerRoom tek noktadan render eder.
-        }
-
         async function enterMultiplayerRoom(){
             if(!mpRoomRef) return;
             activeGameMode = 'multi';
             if(mpRole==='guest' && inviteFullscreenPending) requestGameFullscreen(true);
             const snap=await mpRoomRef.once('value'); const d=snap.val(); if(!d||!d.board) return;
-            mpRoomData=d; mpRound=Number(d.round||1); updateMultiplayerRoundBadge(d);
+            mpRoomData=d;
             if(!mpEntered){
                 mpEntered=true; mpStarted=false;
                 document.getElementById('screen-home')?.classList.add('hidden');
@@ -62998,7 +62815,7 @@ BLİK
                 document.getElementById('p1-title').innerText='1. OYUNCU';
                 document.getElementById('p2-title').innerText='2. OYUNCU';
                 p1Score=Number(d.scores?.host||0); p2Score=Number(d.scores?.guest||0); updateScores();
-                remainingSeconds=60; resetRoundWordResults(); if(Number(d.round||1)===1 && Number(d.matchWins?.host||0)===0 && Number(d.matchWins?.guest||0)===0) resetSeriesWordResults(); sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
+                remainingSeconds=60; resetRoundWordResults(); resetSeriesWordResults(); sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
                 const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
                 if (!renderProvidedBoard(d.board)) return;
                 hydrateMultiplayerBoardState(d);
@@ -63012,33 +62829,29 @@ BLİK
             mpStartBusy=true;
             try{
                 await mpRoomRef.transaction(d=>{
-                    if(!d || d.status!=='waiting' || !d.guestId || Number(d.startAt||0)>0) return;
-                    d.matchWins=d.matchWins||{host:0,guest:0}; d.seriesScores=d.seriesScores||{host:0,guest:0}; d.targetWins=2; d.maxRounds=3; d.status='countdown'; d.startAt=serverNow()+5200;
+                    if(!d||d.status!=='waiting'||!d.guestId||Number(d.startAt||0)>0) return;
+                    d.status='countdown'; d.startAt=serverNow()+5200;
                     return d;
                 });
-            }finally{ mpStartBusy=false; }
+            }finally{mpStartBusy=false;}
         }
 
         async function hostStartRematch(){
-            // Seri tamamen bittikten sonra aynı odada yepyeni 3-roundluk seri başlar.
             if(mpRole!=='host'||mpRematchBusy||!mpRoomRef) return;
             mpRematchBusy=true;
             try{
-                const now=serverNow(); const fresh=generateOptimizedBoard(3).board; rememberBoard(fresh);
+                const now=serverNow(),fresh=generateOptimizedBoard(3).board;rememberBoard(fresh);
                 const result=await mpRoomRef.transaction(d=>{
-                    if(!d || d.status!=='finished') return;
-                    const r=d.rematch||{}; const expiresAt=Number(r.expiresAt||0);
-                    if(!r.host || !r.guest || !expiresAt || expiresAt<now) return;
-                    d.round=1; d.board=fresh; d.scores={host:0,guest:0}; d.words={};
-                    d.matchWins={host:0,guest:0}; d.seriesScores={host:0,guest:0}; d.finalWinner=null;
-                    d.lastRoundWinner=null; d.lastRoundScores={host:0,guest:0}; d.roundHistory=[]; d.bonusAppliedRound=0; d.longestBonus=null; d.suddenWinner=null; d.suddenEndsAt=0;
+                    if(!d||d.status!=='finished') return;
+                    const r=d.rematch||{},exp=Number(r.expiresAt||0);
+                    if(!r.host||!r.guest||!exp||exp<now) return;
+                    d.board=fresh; d.scores={host:0,guest:0}; d.words={}; d.longestBonus=null; d.bonusApplied=false; d.finalWinner=null;
                     d.rematch={host:false,guest:false,expiresAt:0}; d.status='countdown'; d.startAt=now+5200;
                     return d;
                 });
-                if(!result.committed) return;
-                mpSeriesResultShownRound=0; setTimeout(scheduleBoardPrewarm,250);
-            }catch(e){ console.error('Rematch start error',e); showToast('Yeni oyun başlatılamadı. Tekrar deneyin.','rose'); }
-            finally{ mpRematchBusy=false; }
+                if(result.committed){mpStarted=false;mpEntered=false;setTimeout(scheduleBoardPrewarm,250);}
+            }catch(e){console.error('Rematch start error',e);showToast('Yeni oyun başlatılamadı. Tekrar deneyin.','rose');}
+            finally{mpRematchBusy=false;}
         }
 
         async function hostExpireRematchIfNeeded(d){
@@ -63076,55 +62889,13 @@ BLİK
 
 
         
-function setRoundStatusDots(){ /* v133: tek durum noktası kaldırıldı; üçlü round ışıkları kullanılıyor. */ }
 
-function updateRoundDots(d){
-            const hist=Array.isArray(d?.roundHistory)?d.roundHistory:[];
-            const paint=(id,role,hide=true)=>{
-                const wrap=document.getElementById(id); if(!wrap) return;
-                [...wrap.children].forEach((dot,i)=>{
-                    dot.classList.remove('win','loss');
-                    const winner=hist[i];
-                    if(winner) dot.classList.add(winner===role?'win':'loss');
-                });
-                if(hide) wrap.classList.toggle('hidden',(!randomAiRoundMode && activeGameMode!=='multi') || !d);
-                else wrap.classList.toggle('hidden',!((randomAiRoundMode || activeGameMode==='multi') && d));
-            };
-            paint('p1-round-dots','host');
-            paint('p2-round-dots','guest');
-            paint('final-p1-round-dots','host');
-            paint('final-p2-round-dots','guest');
-            paint('countdown-host-round-dots','host',false);
-            paint('countdown-guest-round-dots','guest',false);
-        }
-        function updateMultiplayerRoundBadge(d){
-            const el=document.getElementById('mp-round-badge');
-            const cdLabel=document.getElementById('countdown-round-label');
-            if((activeGameMode!=='multi' && !randomAiRoundMode) || !d){
-                if(el) el.classList.add('hidden');
-                if(cdLabel) cdLabel.classList.add('hidden');
-                updateRoundDots(null);
-                return;
-            }
-            const round=Math.max(1,Math.min(3,Number(d.round||1)));
-            const label=`KAPMACA BAŞLIYOR • ROUND ${round}`;
-            if(el){ el.textContent=label; el.classList.remove('hidden'); }
-            if(cdLabel){ cdLabel.textContent=label; cdLabel.classList.remove('hidden'); }
-            updateRoundDots(d);
-        }
-        function showRoundTransitionNotice(text,ms=1800){
-            let el=document.getElementById('round-transition-toast');
-            if(!el){ el=document.createElement('div'); el.id='round-transition-toast'; el.className='round-transition-toast'; document.body.appendChild(el); }
-            el.textContent=text; el.style.display='block'; clearTimeout(el._t); el._t=setTimeout(()=>{el.style.display='none';},ms);
-        }
-        async function hostApplyLongestWordBonus(){
+                        async function hostApplyLongestWordBonus(){
             if(mpRole!=='host'||!mpRoomRef) return;
             await mpRoomRef.transaction(d=>{
-                if(!d || !['playing','sudden'].includes(d.status)) return;
-                const round=Number(d.round||1);
-                if(Number(d.bonusAppliedRound||0)===round) return d;
-                const vals=Object.values(d.words||{}).filter(x=>x&&Number(x.round||round)===round&&x.word);
-                let maxLen=0; vals.forEach(x=>{maxLen=Math.max(maxLen,String(x.word).length);});
+                if(!d||d.status!=='playing'||d.bonusApplied) return d;
+                const vals=Object.values(d.words||{}).filter(x=>x&&x.word);
+                let maxLen=0;vals.forEach(x=>{maxLen=Math.max(maxLen,String(x.word).length);});
                 let hostGets=false,guestGets=false;
                 if(maxLen>0){
                     vals.forEach(x=>{if(String(x.word).length===maxLen){if(x.role==='host')hostGets=true;if(x.role==='guest')guestGets=true;}});
@@ -63132,94 +62903,34 @@ function updateRoundDots(d){
                     if(hostGets)d.scores.host=Number(d.scores.host||0)+10;
                     if(guestGets)d.scores.guest=Number(d.scores.guest||0)+10;
                 }
-                d.longestBonus={round,maxLen,host:hostGets,guest:guestGets};
-                d.bonusAppliedRound=round;
-                return d;
+                d.longestBonus={maxLen,host:hostGets,guest:guestGets};d.bonusApplied=true;return d;
             });
         }
         async function hostResolveRoundEnd(){
             if(mpRole!=='host'||!mpRoomRef) return;
             await hostApplyLongestWordBonus();
-            const snap=await mpRoomRef.once('value'); const d=snap.val();
-            if(!d || d.status!=='playing') return;
-            const hs=Number(d.scores?.host||0), gs=Number(d.scores?.guest||0);
-            if(hs===gs){
-                await mpRoomRef.transaction(cur=>{
-                    if(!cur||cur.status!=='playing') return;
-                    cur.status='sudden'; cur.suddenWinner=null; cur.suddenEndsAt=serverNow()+20000;
-                    return cur;
-                });
-                return;
-            }
-            await hostFinalizeRound(hs>gs?'host':'guest');
-        }
-        async function hostFinalizeRound(winnerRole){
-            if(mpRole!=='host'||!mpRoomRef||!winnerRole) return;
-            const fresh=generateOptimizedBoard(3).board; rememberBoard(fresh);
-            const now=serverNow();
             await mpRoomRef.transaction(d=>{
-                if(!d || !['playing','sudden'].includes(d.status)) return;
-                const scores=d.scores||{host:0,guest:0};
-                const wins=d.matchWins||{host:0,guest:0};
-                const series=d.seriesScores||{host:0,guest:0};
-                series.host=Number(series.host||0)+Number(scores.host||0);
-                series.guest=Number(series.guest||0)+Number(scores.guest||0);
-                wins[winnerRole]=Number(wins[winnerRole]||0)+1;
-                const hist=Array.isArray(d.roundHistory)?d.roundHistory.slice(0,3):[]; hist[Math.max(0,Number(d.round||1)-1)]=winnerRole; d.roundHistory=hist;
-                d.matchWins=wins; d.seriesScores=series;
-                d.lastRoundWinner=winnerRole; d.lastRoundScores={host:Number(scores.host||0),guest:Number(scores.guest||0)};
-                d.suddenWinner=null; d.suddenEndsAt=0;
-                if(Number(wins[winnerRole]||0)>=Number(d.targetWins||2)){
-                    d.status='finished'; d.finalWinner=winnerRole; d.startAt=0;
-                    return d;
-                }
-                d.round=Math.min(Number(d.maxRounds||3),Number(d.round||1)+1);
-                d.board=fresh; d.scores={host:0,guest:0}; d.words={}; d.bonusAppliedRound=0; d.longestBonus=null;
-                d.status='countdown'; d.startAt=now+5200;
-                return d;
+                if(!d||d.status!=='playing') return;
+                const hs=Number(d.scores?.host||0),gs=Number(d.scores?.guest||0);
+                d.finalWinner=hs===gs?'tie':(hs>gs?'host':'guest');d.status='finished';d.startAt=0;return d;
             });
         }
-        function startSuddenDeath(d){
-            setMpState(MP_STATES.SUDDEN); isMatchActive=true; mpStarted=true;
-            const badge=document.getElementById('mp-round-badge');
-            if(badge){ const w=d.matchWins||{host:0,guest:0}; badge.textContent=`ANİ ÖLÜM • ROUND ${Number(d.round||1)}/3 • ${Number(w.host||0)}-${Number(w.guest||0)}`; badge.classList.remove('hidden'); }
-            showRoundTransitionNotice('BERABERE • 20 SANİYELİK ANİ ÖLÜM',2200);
-            clearInterval(timerInterval); lastHeartbeatSecond=null;
-            const tick=()=>{
-                const left=Math.max(0,Math.ceil((Number(d.suddenEndsAt||0)-serverNow())/1000));
-                remainingSeconds=left; const el=document.getElementById('game-timer'); if(el){el.innerText=left; el.classList.toggle('timer-warning',left<=10);} maybeHeartbeat(left);
-                if(left<=0){ clearInterval(timerInterval); if(mpRole==='host'&&mpRoomRef){ mpRoomRef.transaction(cur=>{ if(!cur||cur.status!=='sudden'||cur.suddenWinner) return; cur.suddenEndsAt=serverNow()+20000; return cur; }).catch(()=>{}); } }
-            };
-            tick(); timerInterval=setInterval(tick,200);
-        }
-        function showMultiplayerSeriesResult(d){
-            if(!d || d.status!=='finished') return;
-            isMatchActive=false; clearInterval(timerInterval); clearInterval(mpClock); clearTimeout(botInterval);
-            const modal=document.getElementById('modal-gameover'); modal?.classList.remove('hidden');
-            const wins=d.matchWins||{host:0,guest:0}; const series=d.seriesScores||{host:0,guest:0};
-            const p1Name=document.getElementById('p1-title').innerText, p2Name=document.getElementById('p2-title').innerText;
-            document.getElementById('final-p1-name').innerText=p1Name; document.getElementById('final-p2-name').innerText=p2Name;
-            document.getElementById('final-score-val-p1').innerText=Number(series.host||0);
-            document.getElementById('final-score-val-p2').innerText=Number(series.guest||0);
-            const rs=document.getElementById('final-round-score'); if(rs){rs.textContent=`ROUND SKORU ${Number(wins.host||0)} - ${Number(wins.guest||0)}`;rs.classList.remove('hidden');}
-            renderGameoverWordLists();
-            setLongestBonusBadges(!!d.longestBonus?.host,!!d.longestBonus?.guest);
-            updateRoundDots(d);
-            const heading=document.getElementById('gameover-heading'), p1NameEl=document.getElementById('final-p1-name'),p2NameEl=document.getElementById('final-p2-name'),p1ScoreEl=document.getElementById('final-score-val-p1'),p2ScoreEl=document.getElementById('final-score-val-p2');
+                        function showMultiplayerSeriesResult(d){
+            if(!d||d.status!=='finished') return;
+            isMatchActive=false;clearInterval(timerInterval);clearInterval(mpClock);clearTimeout(botInterval);
+            document.getElementById('modal-gameover')?.classList.remove('hidden');
+            const sc=d.scores||{host:0,guest:0};
+            const p1Name=document.getElementById('p1-title').innerText,p2Name=document.getElementById('p2-title').innerText;
+            document.getElementById('final-p1-name').innerText=p1Name;document.getElementById('final-p2-name').innerText=p2Name;
+            document.getElementById('final-score-val-p1').innerText=Number(sc.host||0);document.getElementById('final-score-val-p2').innerText=Number(sc.guest||0);
+            renderGameoverWordLists();setLongestBonusBadges(!!d.longestBonus?.host,!!d.longestBonus?.guest);
+            const heading=document.getElementById('gameover-heading'),p1NameEl=document.getElementById('final-p1-name'),p2NameEl=document.getElementById('final-p2-name'),p1ScoreEl=document.getElementById('final-score-val-p1'),p2ScoreEl=document.getElementById('final-score-val-p2');
             [p1NameEl,p2NameEl,p1ScoreEl,p2ScoreEl].forEach(el=>el?.classList.remove('winner-pulse','winner-name-big'));
-            const c1=document.getElementById('final-p1-card'),c2=document.getElementById('final-p2-card');
-            [c1,c2].forEach(c=>{if(c){c.style.transform='';c.style.filter='';c.style.background='';c.style.borderRadius='';c.style.padding='';}});
-            const winner=d.finalWinner || (Number(wins.host||0)>Number(wins.guest||0)?'host':'guest');
-            if(winner==='host'){
-                if(c1){c1.style.transform='scale(1.05)';c1.style.background='rgba(254,243,199,.9)';c1.style.borderRadius='16px';c1.style.padding='6px';} if(c2)c2.style.filter='saturate(.7) opacity(.82)';
-                heading.innerText=`${p1Name} KAZANDI! 🏆`; p1NameEl?.classList.add('winner-pulse','winner-name-big'); p1ScoreEl?.classList.add('winner-pulse');
-                if(mpSeriesResultShownRound!==Number(d.round||0)){mpSeriesResultShownRound=Number(d.round||0);launchGrandCelebration('p1');}
-            }else{
-                if(c2){c2.style.transform='scale(1.05)';c2.style.background='rgba(224,242,254,.92)';c2.style.borderRadius='16px';c2.style.padding='6px';} if(c1)c1.style.filter='saturate(.7) opacity(.82)';
-                heading.innerText=`${p2Name} KAZANDI! 🏆`; p2NameEl?.classList.add('winner-pulse','winner-name-big'); p2ScoreEl?.classList.add('winner-pulse');
-                if(mpSeriesResultShownRound!==Number(d.round||0)){mpSeriesResultShownRound=Number(d.round||0);launchGrandCelebration('p2');}
-            }
-            const replay=document.getElementById('btn-play-again'); if(replay){replay.disabled=false;replay.innerText='YENİ OYUN';replay.classList.remove('hidden');}
+            const c1=document.getElementById('final-p1-card'),c2=document.getElementById('final-p2-card');[c1,c2].forEach(c=>{if(c){c.style.transform='';c.style.filter='';c.style.background='';c.style.borderRadius='';c.style.padding='';}});
+            if(d.finalWinner==='host'){if(c1){c1.style.transform='scale(1.05)';c1.style.background='rgba(254,243,199,.9)';c1.style.borderRadius='16px';c1.style.padding='6px';}if(c2)c2.style.filter='saturate(.7) opacity(.82)';heading.innerText=`${p1Name} KAZANDI! 🏆`;p1NameEl?.classList.add('winner-pulse','winner-name-big');p1ScoreEl?.classList.add('winner-pulse');launchGrandCelebration('p1');}
+            else if(d.finalWinner==='guest'){if(c2){c2.style.transform='scale(1.05)';c2.style.background='rgba(224,242,254,.92)';c2.style.borderRadius='16px';c2.style.padding='6px';}if(c1)c1.style.filter='saturate(.7) opacity(.82)';heading.innerText=`${p2Name} KAZANDI! 🏆`;p2NameEl?.classList.add('winner-pulse','winner-name-big');p2ScoreEl?.classList.add('winner-pulse');launchGrandCelebration('p2');}
+            else heading.innerText='BERABERE! 🤝';
+            const replay=document.getElementById('btn-play-again');if(replay){replay.disabled=false;replay.innerText='YENİ OYUN';replay.classList.remove('hidden');}
             renderRematchState(d);
         }
 
@@ -63234,7 +62945,6 @@ function updateRoundDots(d){
                 if(d.hostId===clientId) mpRole='host';
                 else if(d.guestId===clientId) mpRole='guest';
                 mpRoomData=d;
-                updateMultiplayerRoundBadge(d);
 
                 // Herhangi bir oyuncu çıkış yaptığında iki istemci de aynı sinyali işler.
                 const exitSignal=d.roomExit;
@@ -63247,15 +62957,9 @@ function updateRoundDots(d){
                 // words altına her kelime yazıldığında kök value olayı da tetiklenir.
                 // Oyun metası değişmediyse pahalı durum akışını tekrar çalıştırma.
                 const roomBoardSig=Array.isArray(d.board)?boardSignature(d.board):'';
-                const metaSig=[d.status,Number(d.round||1),Number(d.startAt||0),d.guestId||'',roomBoardSig,
-                    isOnline(d.presence?.guest),!!d.rematch?.host,!!d.rematch?.guest,
-                    Number(d.rematch?.expiresAt||0),Number(d.matchWins?.host||0),Number(d.matchWins?.guest||0),d.suddenWinner||'',Number(d.suddenEndsAt||0),d.finalWinner||'',d.roomExit?.id||'',Number(d.roomExit?.at||0)].join('|');
+                const metaSig=[d.status,Number(d.startAt||0),d.guestId||'',roomBoardSig,isOnline(d.presence?.guest),!!d.rematch?.host,!!d.rematch?.guest,Number(d.rematch?.expiresAt||0),d.finalWinner||'',d.roomExit?.id||'',Number(d.roomExit?.at||0)].join('|');
                 if(metaSig===mpLastRoomMetaSig) return;
                 mpLastRoomMetaSig=metaSig;
-
-                const newRound=Number(d.round||1);
-                if(mpRound && newRound!==mpRound){ const prevWinner=d.lastRoundWinner; resetLocalMultiplayerRound(d); if(prevWinner) showRoundTransitionNotice(`${prevWinner==='host'?'1. OYUNCU':'2. OYUNCU'} ROUND'U KAZANDI • ROUND ${newRound}/3`); await enterMultiplayerRoom(); }
-                mpRound=newRound;
 
                 if(d.status==='waiting'){
                     setMpState(MP_STATES.WAITING);
@@ -63274,17 +62978,16 @@ function updateRoundDots(d){
                         if(!mpEntered) await enterMultiplayerRoom();
                     }
                 }
-
                 if(d.status==='countdown'){
-                    const hist=Array.isArray(d.roundHistory)?d.roundHistory.filter(Boolean):[];
-                    const last=hist.length?hist[hist.length-1]:null;
-                    if(last==='host') setRoundStatusDots('win','loss');
-                    else if(last==='guest') setRoundStatusDots('loss','win');
-                    else setRoundStatusDots(null,null);
-                }
-if(d.status==='countdown'){
                     setMpState(MP_STATES.COUNTDOWN);
                     document.getElementById('modal-mp-waiting')?.classList.add('hidden');
+                    const localSig=Array.isArray(gridBoard)&&gridBoard.length?boardSignature(gridBoard):'';
+                    if(roomBoardSig && localSig!==roomBoardSig){
+                        mpEntered=false; mpStarted=false; clearInterval(timerInterval); timerInterval=null; isMatchActive=false;
+                        p1Score=Number(d.scores?.host||0); p2Score=Number(d.scores?.guest||0); updateScores();
+                        resetRoundWordResults(); resetSeriesWordResults(); sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
+                        const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
+                    }
                     if(!mpEntered) await enterMultiplayerRoom();
                     if(d.startAt && !mpStarted) startSyncedMatch(d);
                 }
@@ -63292,11 +62995,6 @@ if(d.status==='countdown'){
                     if(!mpEntered) await enterMultiplayerRoom();
                     // COUNTDOWN dinleyicisi gecikmiş/kaçmış olsa bile harf seçimini kesin aç.
                     activateMultiplayerPlaying(d);
-                }
-                if(d.status==='sudden'){
-                    if(!mpEntered) await enterMultiplayerRoom();
-                    if(d.suddenWinner && mpRole==='host'){ await hostFinalizeRound(d.suddenWinner); return; }
-                    startSuddenDeath(d);
                 }
                 if(d.status==='finished'){
                     setMpState(MP_STATES.FINISHED);
@@ -63318,7 +63016,7 @@ if(d.status==='countdown'){
             if(mpWordsListener) mpRoomRef.child('words').off('child_added',mpWordsListener);
             mpWordsListener=mpRoomRef.child('words').on('child_added',snap=>{
                 const ev=snap.val(), key=snap.key;
-                if(!ev||!key||Number(ev.round||mpRound)!==Number(mpRound)||mpSeenWordEvents.has(key)) return;
+                if(!ev||!key||mpSeenWordEvents.has(key)) return;
                 mpSeenWordEvents.add(key);
                 const w=String(ev.word||'').toLocaleUpperCase('tr-TR');
                 if(w){ mpFoundWords.host.add(w); mpFoundWords.guest.add(w); sessionFoundWords.add(w); recordRoundWord(w,ev.pts,ev.role==='host'); }
@@ -63349,11 +63047,9 @@ if(d.status==='countdown'){
             mpStarted=true; isMatchActive=false; mpLastBeepSecond=null; clearInterval(mpClock);
             const modal=document.getElementById('modal-countdown'),num=document.getElementById('countdown-number'),status=document.getElementById('countdown-status');
             const inviteMsg=document.getElementById('countdown-invite-message');
-            const roundLabel=document.getElementById('countdown-round-label');
             if(inviteMsg) inviteMsg.classList.toggle('hidden', mpRole!=='guest');
-            if(roundLabel){roundLabel.textContent=`ROUND ${Number(d.round||1)}/3`;roundLabel.classList.remove('hidden');}
             const startAt=Number(d.startAt||0);
-            if(status){status.innerHTML='<span class="sync-check">✓</span> SENKRON';status.className='countdown-sync-ok';} updateMultiplayerRoundBadge(d); modal?.classList.remove('hidden');
+            if(status){status.innerHTML='<span class="sync-check">✓</span> SENKRON';status.className='countdown-sync-ok';} modal?.classList.remove('hidden');
             const tick=()=>{
                 const left=startAt-serverNow();
                 if(left>0){
@@ -63421,7 +63117,7 @@ if(d.status==='countdown'){
             isPointerDown=false; pointerHoldStartedAt=0; pendingPointer=null; activeGridRect=null; isMatchActive=false;
             try{ clearPath(); }catch(_){ selectedPath=[]; }
             mpEntered=false; mpStarted=false; mpStartBusy=false; mpRematchBusy=false;
-            mpRoomRef=null; mpRoomCode=null; mpRole=null; mpRoomData=null; mpPresenceRef=null; mpRound=0; mpLastRoomMetaSig='';
+            mpRoomRef=null; mpRoomCode=null; mpRole=null; mpRoomData=null; mpPresenceRef=null; mpLastRoomMetaSig='';
             mpSessionJoinedAt=0; mpExitHandling=false; mpLastExitSignalId='';
             mpSeenWordEvents.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear();
             setMpState(MP_STATES.IDLE);
@@ -63570,9 +63266,7 @@ if(d.status==='countdown'){
         updateFullscreenUi();
 
         function prepareGame() {
-            activeGameMode = 'single';
-            randomAiRoundMode = false; randomAiSeries = null;
-            document.getElementById('mp-round-badge')?.classList.add('hidden'); updateRoundDots(null); setLongestBonusBadges(false,false);
+            activeGameMode = 'single'; setLongestBonusBadges(false,false);
             document.getElementById('p1-title').innerText = 'OYUNCU';
             document.getElementById('p2-title').innerText = 'BİLGİSAYAR';
             document.getElementById('screen-home').classList.add('hidden');
@@ -63592,8 +63286,6 @@ if(d.status==='countdown'){
             // Tekli oyuncu: yalnızca 1 saniyelik, yumuşak BAŞLA! geçişi.
             const statusEl=document.getElementById('countdown-status');
             const inviteMsg=document.getElementById('countdown-invite-message'); if(inviteMsg) inviteMsg.classList.add('hidden');
-            const roundLabel=document.getElementById('countdown-round-label'); if(roundLabel && activeGameMode!=='multi' && !randomAiRoundMode)roundLabel.classList.add('hidden');
-            const versusWrap=document.getElementById('countdown-versus'); if(versusWrap && activeGameMode!=='multi' && !randomAiRoundMode) versusWrap.classList.add('hidden');
             if(statusEl){ statusEl.innerText='KELİMELERİ YAKALA!'; statusEl.className='text-slate-800 font-black text-xs tracking-widest uppercase mt-3 bg-white px-4 py-1.5 rounded-full border border-slate-200 shadow-sm'; statusEl.classList.remove('hidden'); }
             numEl.innerText = 'BAŞLA!';
             numEl.style.opacity='0'; numEl.style.transform='scale(.72)';
@@ -63903,7 +63595,7 @@ if(d.status==='countdown'){
             if (!d || !d.words || !domCells.length) return;
             const entries = Object.entries(d.words);
             for (const [key, ev] of entries) {
-                if (!ev || Number(ev.round || mpRound) !== Number(mpRound)) continue;
+                if (!ev) continue;
                 const word = String(ev.word || '').toLocaleUpperCase('tr-TR');
                 if (!word) continue;
                 mpFoundWords.host.add(word);
@@ -64112,7 +63804,7 @@ if(d.status==='countdown'){
                         return {
                             word: normalizedWord, role: mpRole, pts: pts,
                             path: selectedPath.map(p=>({r:p.r,c:p.c})),
-                            round: mpRound, at: firebase.database.ServerValue.TIMESTAMP
+                            at: firebase.database.ServerValue.TIMESTAMP
                         };
                     });
                     if (!tx.committed) {
@@ -64151,10 +63843,6 @@ if(d.status==='countdown'){
             addTickerBadge(word, isP1);
             flyScore(pts, isP1);
             adjustScore(isP1 ? pts : 0, !isP1 ? pts : 0);
-            if(mpRole && mpState===MP_STATES.SUDDEN && mpRoomRef){
-                await syncMpScore().catch(()=>{});
-                await mpRoomRef.child('suddenWinner').transaction(cur=>cur||mpRole).catch(()=>{});
-            }
             // Çoklu oyunda kelime olayı words transaction'ı ile atomik olarak yayımlandı.
             clearPath();
         }
@@ -64351,12 +64039,7 @@ if(d.status==='countdown'){
                 clearInterval(mpClock); mpClock=null;
                 isMatchActive=false;
                 document.getElementById('modal-gameover')?.classList.add('hidden');
-                if(randomAiRoundMode){
-                    const sameAi=randomAiSeries?.aiName||null;
-                    await startRandomAiFallback(sameAi);
-                }else{
-                    prepareGame();
-                }
+                prepareGame();
                 return;
             }
             const btn=document.getElementById('btn-play-again');
@@ -64393,18 +64076,16 @@ if(d.status==='countdown'){
 
 
         function endGame(){
-            if(!isMatchActive && mpRole && [MP_STATES.FINISHED,MP_STATES.SUDDEN].includes(mpState)) return;
+            if(!isMatchActive && mpRole && mpState===MP_STATES.FINISHED) return;
             isMatchActive=false; clearInterval(timerInterval); clearTimeout(botInterval);
             if(mpRoomRef && mpRole){
-                // Çoklu oyunda round sonucunu yalnızca host belirler. Final modalı yalnız seri bittiğinde açılır.
+                // Çoklu oyunda sonucu yalnızca host belirler.
                 if(mpRole==='host' && mpState===MP_STATES.PLAYING) hostResolveRoundEnd().catch(()=>{});
-                else showRoundTransitionNotice('ROUND SONU • Sonuç senkronize ediliyor…',1200);
+                else showToast('Maç sonucu senkronize ediliyor…','sky');
                 return;
             }
-            if(randomAiRoundMode){ finishRandomAiRound(); return; }
             // Tekli/AI: en uzun kelime bonusu sonuç belirlenmeden önce uygulanır.
             const longestBonus=applySingleLongestWordBonus();
-            updateRoundDots(null);
             prepareAndPreviewNextSingleBoard();
             document.getElementById('modal-gameover').classList.remove('hidden');
             const replayBtn=document.getElementById('btn-play-again');
@@ -64509,8 +64190,6 @@ if(d.status==='countdown'){
                 returnToHomeFromMultiplayer();
             }else{
                 activeGameMode='single';
-                randomAiRoundMode=false; randomAiSeries=null;
-                updateRoundDots(null); document.getElementById('mp-round-badge')?.classList.add('hidden');
                 sessionFoundWords.clear();
                 const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
                 const preview=document.getElementById('selected-word-preview'); if(preview)preview.innerText='';
