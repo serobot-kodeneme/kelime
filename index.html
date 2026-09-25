@@ -8,8 +8,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Kelime Düellosu v132-stable - 9x9 Akıllı Tahta</title>
-    <meta name="game-version" content="v132-stable">
+    <title>Kelime Düellosu v133-stable - 9x9 Akıllı Tahta</title>
+    <meta name="game-version" content="v133-stable">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -407,11 +407,7 @@
         .longest-bonus{display:none;margin-top:4px;font-size:9px;font-weight:1000;color:#7c3aed;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:9999px;padding:3px 7px}
 
 
-/* v126 round clarity */
-.round-status-dot-wrap{display:inline-flex;align-items:center;margin-left:6px;vertical-align:middle}
-.round-status-dot{width:9px;height:9px;border-radius:50%;background:#cbd5e1;box-shadow:0 0 0 2px rgba(255,255,255,.9);transition:background .18s ease,box-shadow .18s ease,transform .18s ease}
-.round-status-dot.win{background:#22c55e;box-shadow:0 0 0 2px rgba(255,255,255,.92),0 0 8px rgba(34,197,94,.45);transform:scale(1.08)}
-.round-status-dot.loss{background:#ef4444;box-shadow:0 0 0 2px rgba(255,255,255,.92),0 0 8px rgba(239,68,68,.38);transform:scale(1.08)}
+/* Round sonucu yalnızca üçlü ışıklarla gösterilir. */
 .mp-round-banner{font-weight:900;letter-spacing:.02em;font-size:clamp(18px,4vw,30px);text-shadow:0 2px 8px rgba(0,0,0,.18)}
 .mp-sync-ok{display:flex;align-items:center;justify-content:center;gap:6px;font-weight:800;color:#16a34a;font-size:clamp(13px,2.8vw,17px)}
 .mp-sync-ok .sync-check{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#22c55e;color:#fff;font-size:13px;box-shadow:0 2px 8px rgba(34,197,94,.25)}
@@ -428,7 +424,7 @@
         <!-- ================= EKRAN 1: YENİ ANA MENÜ ================= -->
         <div id="screen-home" class="absolute inset-0 z-40 overflow-hidden bg-gradient-to-b from-sky-400 via-sky-200 to-emerald-200">
             <div class="absolute left-2 top-[max(10px,env(safe-area-inset-top))] z-[70]" aria-live="polite">
-                <div class="inline-flex items-center gap-1.5 rounded-full bg-slate-950/78 border border-cyan-300/35 px-2.5 py-1 text-[9px] font-black text-cyan-50 shadow-md backdrop-blur-sm">
+                <div class="inline-flex items-center gap-1.5 rounded-full bg-black border border-black px-2.5 py-1 text-[9px] font-black text-white shadow-md">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_7px_rgba(52,211,153,.85)]"></span>
                     <span id="online-player-count">0</span><span>çevrimiçi</span>
                 </div>
@@ -543,7 +539,7 @@
                 <div class="compact-player justify-self-start">
                     <div class="compact-identity">
                         <div id="p1-avatar-box" class="compact-avatar bg-yellow-200 border-yellow-400">👑</div>
-                        <div id="p1-title" class="compact-name text-amber-200">1. OYUNCU</div><span class="round-status-dot-wrap" aria-hidden="true"><span id="p1RoundDot" class="round-status-dot"></span></span><div id="p1-round-dots" class="round-dots hidden" aria-label="1. oyuncu round sonuçları"><span class="round-dot"></span><span class="round-dot"></span><span class="round-dot"></span></div>
+                        <div id="p1-title" class="compact-name text-amber-200">1. OYUNCU</div><div id="p1-round-dots" class="round-dots hidden" aria-label="1. oyuncu round sonuçları"><span class="round-dot"></span><span class="round-dot"></span><span class="round-dot"></span></div>
                     </div>
                 </div>
 
@@ -560,7 +556,7 @@
                 <div class="compact-player justify-self-end items-end">
                     <div class="compact-identity flex-row-reverse">
                         <div id="p2-avatar-box" class="compact-avatar bg-sky-200 border-sky-400">⚔️</div>
-                        <div id="p2-title" class="compact-name text-sky-200 text-right">2. OYUNCU</div><span class="round-status-dot-wrap" aria-hidden="true"><span id="p2RoundDot" class="round-status-dot"></span></span><div id="p2-round-dots" class="round-dots hidden" aria-label="2. oyuncu round sonuçları"><span class="round-dot"></span><span class="round-dot"></span><span class="round-dot"></span></div>
+                        <div id="p2-title" class="compact-name text-sky-200 text-right">2. OYUNCU</div><div id="p2-round-dots" class="round-dots hidden" aria-label="2. oyuncu round sonuçları"><span class="round-dot"></span><span class="round-dot"></span><span class="round-dot"></span></div>
                     </div>
                 </div>
             </header>
@@ -62435,7 +62431,7 @@ BLİK
             appId: "1:968159872150:web:c80429010ec21363116eb7"
         };
 
-        const GAME_VERSION='v132-stable';
+        const GAME_VERSION='v133-stable';
         // Firebase tarafında yalnızca dört oyun durumu vardır.
         const MP_STATES = Object.freeze({
             IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', SUDDEN:'sudden', FINISHED:'finished'
@@ -63051,13 +63047,7 @@ BLİK
 
 
         
-function setRoundStatusDots(hostResult=null, guestResult=null){
-  const h=document.getElementById('p1RoundDot');
-  const g=document.getElementById('p2RoundDot');
-  [h,g].forEach(el=>{if(el){el.classList.remove('win','loss');}});
-  if(h&&hostResult) h.classList.add(hostResult==='win'?'win':'loss');
-  if(g&&guestResult) g.classList.add(guestResult==='win'?'win':'loss');
-}
+function setRoundStatusDots(){ /* v133: tek durum noktası kaldırıldı; üçlü round ışıkları kullanılıyor. */ }
 
 function updateRoundDots(d){
             const hist=Array.isArray(d?.roundHistory)?d.roundHistory:[];
