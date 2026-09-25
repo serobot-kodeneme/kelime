@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v160-core-optimum</title>
-<meta name="game-version" content="v160-core-optimum">
+<title>Kelime Düellosu v161-core-clean</title>
+<meta name="game-version" content="v161-core-clean">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -62329,8 +62329,15 @@ if(ARGO_EXACT.has(w)) return true;
 for(const root of ARGO_PREFIXES) if(w.startsWith(root)) return true;
 return w.startsWith('BOK') && !w.startsWith('BOKS') && !w.startsWith('BOKSİT');
 }
-// Tam sözlük verisi yerinde kalır; Sözlük ekranı argo sözcükleri filtreler, oyun motoru yalnız temiz 2–10 harfli kelimeleri kullanır.
-const GAME_WORD_LIST = WORD_LIST.filter(w => w.length >= 2 && w.length <= 10 && !isArgoWord(w)).sort();
+// Bariz İngilizce/yabancı girişler. Türkçede yerleşmiş ortak sözcükleri yanlışlıkla silmemek için tam eşleşme dar tutulur.
+const FOREIGN_EXACT = new Set(['ASK','CHANGE','CHAT','RUN','TALK']);
+const TURKISH_WORD_CHARS = /^[ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ]+$/;
+function isForeignWord(word){
+const w=String(word||'').toLocaleUpperCase('tr-TR');
+return !TURKISH_WORD_CHARS.test(w) || FOREIGN_EXACT.has(w);
+}
+// Tam sözlük verisi yerinde kalır; Sözlük ekranı argo/yabancı girişleri filtreler, oyun motoru yalnız temiz 2–10 harfli kelimeleri kullanır.
+const GAME_WORD_LIST = WORD_LIST.filter(w => w.length >= 2 && w.length <= 10 && !isArgoWord(w) && !isForeignWord(w)).sort();
 const GAME_WORD_SET = new Set(GAME_WORD_LIST);
 const GAME_WORDS_BY_LENGTH = new Map();
 for (const w of GAME_WORD_LIST) {
@@ -62353,7 +62360,7 @@ let DICT_SORTED = false;
 function ensureDictionaryIndex() {
 if (DICT_BY_LETTER) return;
 DICT_BY_LETTER = Object.fromEntries(TURKISH_ALPHABET.map(l => [l, []]));
-for (const w of WORD_LIST) if (!isArgoWord(w) && DICT_BY_LETTER[w[0]]) DICT_BY_LETTER[w[0]].push(w);
+for (const w of WORD_LIST) if (!isArgoWord(w) && !isForeignWord(w) && DICT_BY_LETTER[w[0]]) DICT_BY_LETTER[w[0]].push(w);
 }
 
 const AVATARS = [
@@ -62621,7 +62628,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v160-core-optimum';
+const GAME_VERSION='v161-core-clean';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -64064,7 +64071,9 @@ if(!target) return;
 const tr=target.getBoundingClientRect();
 const el=document.createElement('div'); el.className='score-fly'; el.textContent=`+${pts}`;
 el.style.color=isP1?'#fbbf24':'#38bdf8';
-const sx=innerWidth/2-16, sy=Math.min(innerHeight*.78, innerHeight-120);
+const previewRect=selectedWordPreviewEl?.getBoundingClientRect();
+const sx=previewRect && previewRect.width ? (previewRect.left+previewRect.width/2-16) : (innerWidth/2-16);
+const sy=previewRect && previewRect.height ? (previewRect.top+previewRect.height/2-10) : Math.min(innerHeight*.38, innerHeight-120);
 el.style.left=sx+'px'; el.style.top=sy+'px';
 el.style.setProperty('--dx',(tr.left+tr.width/2-sx)+'px');
 el.style.setProperty('--dy',(tr.top+tr.height/2-sy)+'px');
