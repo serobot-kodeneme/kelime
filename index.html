@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v188</title>
-<meta name="game-version" content="v188">
+<title>Kelime Düellosu v189</title>
+<meta name="game-version" content="v189">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -39495,6 +39495,7 @@ return !TURKISH_WORD_CHARS.test(w) || FOREIGN_EXACT.has(w);
 // v164: Gömülü sözlük de 2–9 harfle sınırlandı; 10+ girişler dosyadan çıkarıldı. Oyun ve Sözlük ekranı yalnız temiz 2–9 harfli kelimeleri kullanır.
 const GAME_WORD_LIST = WORD_LIST.filter(w => w.length >= 2 && w.length <= 9 && !isArgoWord(w) && !isForeignWord(w)).sort();
 const GAME_WORD_SET = new Set(GAME_WORD_LIST);
+const TILE_SCORE_CACHE = Object.freeze({...TILE_SCORES});
 const GAME_WORDS_BY_LENGTH = new Map();
 for (const w of GAME_WORD_LIST) {
 if (!GAME_WORDS_BY_LENGTH.has(w.length)) GAME_WORDS_BY_LENGTH.set(w.length, []);
@@ -39825,7 +39826,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v188';
+const GAME_VERSION='v189';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -40907,20 +40908,39 @@ const BOARD_SIZE = 9;
 const BOARD_DIRS = [
 {dr:0,dc:1},{dr:0,dc:-1},{dr:1,dc:0},{dr:-1,dc:0}
 ];
+const SEED_VOWELS = new Set(['A','E','I','İ','O','Ö','U','Ü']);
+function isFriendlyBoardSeed(word){
+const w=String(word||'');
+if(w.length<3) return true;
+let vowels=0, consonantRun=0, maxConsonantRun=0, rare=0;
+for(let i=0;i<w.length;i++){
+const ch=w[i];
+if(SEED_VOWELS.has(ch)){vowels++;consonantRun=0;}else{consonantRun++;if(consonantRun>maxConsonantRun)maxConsonantRun=consonantRun;}
+if(ch==='J'||ch==='F') rare++;
+if(i>=2 && ch===w[i-1] && ch===w[i-2]) return false;
+}
+const ratio=vowels/Math.max(1,w.length);
+return vowels>0 && ratio>=.22 && ratio<=.72 && maxConsonantRun<=3 && rare<=1;
+}
+const FRIENDLY_WORDS_BY_LENGTH = new Map();
+for(const [len,list] of GAME_WORDS_BY_LENGTH){
+const friendly=list.filter(isFriendlyBoardSeed);
+FRIENDLY_WORDS_BY_LENGTH.set(len, friendly.length>=Math.min(12,list.length) ? friendly : list);
+}
 const BOARD_POOLS = Object.freeze({
 easy2: GAME_WORDS_BY_LENGTH.get(2) || [],
-medium34: [...(GAME_WORDS_BY_LENGTH.get(3) || []), ...(GAME_WORDS_BY_LENGTH.get(4) || [])],
-bridge5: GAME_WORDS_BY_LENGTH.get(5) || [],
-hidden69: [...(GAME_WORDS_BY_LENGTH.get(6) || []), ...(GAME_WORDS_BY_LENGTH.get(7) || []), ...(GAME_WORDS_BY_LENGTH.get(8) || []), ...(GAME_WORDS_BY_LENGTH.get(9) || [])]
+medium34: [...(FRIENDLY_WORDS_BY_LENGTH.get(3) || []), ...(FRIENDLY_WORDS_BY_LENGTH.get(4) || [])],
+bridge5: FRIENDLY_WORDS_BY_LENGTH.get(5) || [],
+hidden69: [...(FRIENDLY_WORDS_BY_LENGTH.get(6) || []), ...(FRIENDLY_WORDS_BY_LENGTH.get(7) || []), ...(FRIENDLY_WORDS_BY_LENGTH.get(8) || []), ...(FRIENDLY_WORDS_BY_LENGTH.get(9) || [])]
 });
 const BOARD_BALANCE = Object.freeze({
-easyMin: 20, easyIdeal: 42, easyMax: 74,
-mediumMin: 92, mediumIdeal: 165,
-bridgeMin: 16, bridgeIdeal: 40,
-coreMin: 118, coreIdeal: 205,
-hiddenMin: 7, hiddenIdeal: 16, hiddenMax: 30,
-totalMin: 195, totalIdeal: 340,
-coverageMin: 54, coverageIdeal: 76,
+easyMin: 16, easyIdeal: 32, easyMax: 58,
+mediumMin: 105, mediumIdeal: 178,
+bridgeMin: 18, bridgeIdeal: 44,
+coreMin: 126, coreIdeal: 216,
+hiddenMin: 8, hiddenIdeal: 17, hiddenMax: 30,
+totalMin: 205, totalIdeal: 350,
+coverageMin: 57, coverageIdeal: 77,
 longVarietyMin: 3, initialVarietyMin: 16
 });
 const FILL_LETTERS = "AAAAAAAABCCÇDDEEEEEEEFGĞHHIIIIIİİİİJKKKLLLMMMNNNOOÖPRRRRSSSŞTTTUUÜVYYZ";
@@ -40965,7 +40985,7 @@ const easySeeds = shuffledSample(BOARD_POOLS.easy2, 72);
 
 let placedLong = 0;
 for (const len of [9,8,7,6]) {
-const candidates = shuffledSample(GAME_WORDS_BY_LENGTH.get(len) || [], 14);
+const candidates = shuffledSample(FRIENDLY_WORDS_BY_LENGTH.get(len) || GAME_WORDS_BY_LENGTH.get(len) || [], 14);
 for (const word of candidates) {
 if (tryPlaceWord(board, word, placedLong >= 3)) { placedLong++; break; }
 }
@@ -40977,17 +40997,17 @@ if (tryPlaceWord(board, word, placedLong >= 5)) placedLong++;
 }
 let bridgePlaced=0;
 for (const word of bridgeSeeds) {
-if (bridgePlaced >= 12) break;
+if (bridgePlaced >= 14) break;
 if (tryPlaceWord(board, word, true) || tryPlaceWord(board, word, false)) bridgePlaced++;
 }
 let mediumPlaced=0;
 for (const word of mediumSeeds) {
-if (mediumPlaced >= 30) break;
+if (mediumPlaced >= 32) break;
 if (tryPlaceWord(board, word, true) || tryPlaceWord(board, word, false)) mediumPlaced++;
 }
 let easyPlaced = 0;
 for (const word of easySeeds) {
-if (easyPlaced >= 8) break;
+if (easyPlaced >= 5) break;
 if (tryPlaceWord(board, word, false)) easyPlaced++;
 }
 
@@ -41371,7 +41391,7 @@ ensurePreviewTiles();
 let word='';
 for(let i=0;i<selectedPath.length;i++){
 const p=selectedPath[i]; word+=p.char;
-const pv=previewTiles[i]; if(pv){pv.letter.textContent=p.char;pv.score.textContent=String(TILE_SCORES[p.char]||1);pv.tile.hidden=false;}
+const pv=previewTiles[i]; if(pv){pv.letter.textContent=p.char;pv.score.textContent=String(TILE_SCORE_CACHE[p.char]||1);pv.tile.hidden=false;}
 }
 for(let i=selectedPath.length;i<previewTiles.length;i++) previewTiles[i].tile.hidden=true;
 const desc = wordStatusDescEl;
@@ -41395,7 +41415,7 @@ desc.className=state==='valid' ? 'text-[11px] font-bold text-emerald-400 italic 
 async function submitWord() {
 if (!isMatchActive || selectedPath.length === 0) return;
 const word = selectedPath.map(p => p.char).join('');
-const pts = word.split('').reduce((sum, ch) => sum + (TILE_SCORES[ch] || 1), 0);
+const pts = word.split('').reduce((sum, ch) => sum + (TILE_SCORE_CACHE[ch] || 1), 0);
 const isP1 = mpRole ? (mpRole === 'host') : (chosenAvatarId === 'av_1');
 
 if (word.length < 2) {
@@ -41613,7 +41633,7 @@ if (targetPool.length === 0) targetPool = available;
 
 const ranked = targetPool.map(item => ({
 item,
-score: item.word.split('').reduce((sum, ch) => sum + (TILE_SCORES[ch] || 1), 0)
+score: item.word.split('').reduce((sum, ch) => sum + (TILE_SCORE_CACHE[ch] || 1), 0)
 })).sort((a,b) => b.score - a.score || b.item.word.length - a.item.word.length);
 const focusChance = botDiffLevel === 'expert' ? 0.78 : botDiffLevel === 'hard' ? 0.62 : botDiffLevel === 'medium' ? 0.38 : 0.12;
 let matchObj;
@@ -42000,7 +42020,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v188: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Kelime Düellosu optimize motor v189: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
