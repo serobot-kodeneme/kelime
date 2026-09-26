@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v174</title>
-<meta name="game-version" content="v174">
+<title>Kelime Düellosu v176</title>
+<meta name="game-version" content="v176">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -39822,7 +39822,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v174';
+const GAME_VERSION='v176';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -39830,6 +39830,7 @@ let mpState=MP_STATES.IDLE;
 let mpDb=null, mpRoomRef=null, mpRoomCode=null, mpRole=null, mpRoomData=null;
 let mpSessionJoinedAt=0, mpExitHandling=false, mpLastExitSignalId='';
 let mpListener=null, mpWordsListener=null, mpScoresListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null;
+let mpScoreSyncTimer=null, mpScoreSyncInFlight=false, mpScoreDesired=null;
 let mpControlListeners=[];
 let mpStartBusy=false, mpRematchBusy=false, mpPresenceRef=null, mpLastRoomMetaSig='', mpEndResolveTimer=null;
 let mpSeenWordEvents=new Set(), mpLastBeepSecond=null;
@@ -39974,12 +39975,12 @@ const alloc=await allocateDailyRoomCode();
 const code=alloc.code, ref=mpDb.ref('rooms/'+code);
 const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board, readyBoard.words);
 await ref.set({
-schema:15, mode:'random-match-v2', createdAt:firebase.database.ServerValue.TIMESTAMP,
+schema:16, mode:'random-match-v2', createdAt:firebase.database.ServerValue.TIMESTAMP,
 dayKey:alloc.dayKey, expiresAt:alloc.expiresAt,
 hostId, guestId, status:'waiting',
 board:readyBoard.board, startAt:0,
 scores:{host:0,guest:0}, words:{}, longestBonus:null, bonusApplied:false,
-rematch:{host:false,guest:false,expiresAt:0},
+endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0},
 presence:{host:{online:false,clientId:hostId},guest:{online:false,clientId:guestId}}
 });
 return code;
@@ -40127,12 +40128,12 @@ const code=alloc.code, ref=mpDb.ref('rooms/'+code);
 const hostId=getClientToken();
 const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board, readyBoard.words);
 await ref.set({
-schema:15, mode:'invite-only-v2', createdAt:firebase.database.ServerValue.TIMESTAMP,
+schema:16, mode:'invite-only-v2', createdAt:firebase.database.ServerValue.TIMESTAMP,
 dayKey:alloc.dayKey, expiresAt:alloc.expiresAt,
 hostId, guestId:null, status:'waiting',
 board:readyBoard.board, startAt:0,
 scores:{host:0,guest:0}, words:{}, longestBonus:null, bonusApplied:false,
-rematch:{host:false,guest:false,expiresAt:0},
+endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0},
 presence:{host:{online:true,clientId:hostId},guest:{online:false}}
 });
 
@@ -40230,7 +40231,7 @@ const result=await mpRoomRef.transaction(d=>{
 if(!d||d.status!=='finished') return;
 const r=d.rematch||{},exp=Number(r.expiresAt||0);
 if(!r.host||!r.guest||!exp||exp<now) return;
-d.board=fresh; d.scores={host:0,guest:0}; d.words={}; d.longestBonus=null; d.bonusApplied=false; d.finalWinner=null;
+d.board=fresh; d.scores={host:0,guest:0}; d.words={}; d.longestBonus=null; d.bonusApplied=false; d.finalWinner=null; d.endReady={host:false,guest:false};
 d.rematch={host:false,guest:false,expiresAt:0}; d.status='countdown'; d.startAt=now+3200;
 return d;
 });
@@ -40290,6 +40291,7 @@ d.longestBonus={maxLen,host:hostGets,guest:guestGets};d.bonusApplied=true;return
 }
 async function hostResolveMatchEnd(){
 if(mpRole!=='host'||!mpRoomRef) return;
+await waitForBothEndReady(1400);
 await hostApplyLongestWordBonus();
 await mpRoomRef.transaction(d=>{
 if(!d||d.status!=='playing') return;
@@ -40317,8 +40319,13 @@ renderRematchState(d);
 scheduleBoardPrewarm();
 }
 
-async function handleRoomState(d){
-if(!d) return;
+function attachRoomListener(){
+if(!mpRoomRef) return;
+if(mpListener) mpRoomRef.off('value',mpListener);
+mpLastRoomMetaSig='';
+mpListener=mpRoomRef.on('value',async snap=>{
+const d=snap.val();
+if(!d){ if(mpRole){showToast('Oda kapatıldı.','rose'); returnToHomeFromMultiplayer();} return; }
 const clientId=getClientToken();
 if(d.hostId===clientId) mpRole='host';
 else if(d.guestId===clientId) mpRole='guest';
@@ -40379,73 +40386,21 @@ else showMultiplayerSeriesResult(d);
 await hostExpireRematchIfNeeded(d);
 if(mpRole==='host' && bothReady) await hostStartRematch();
 }
-}
-
-function setCachedRoomPath(path,value){
-if(!mpRoomData) mpRoomData={};
-const parts=path.split('/');
-let cur=mpRoomData;
-for(let i=0;i<parts.length-1;i++){
-const k=parts[i];
-if(!cur[k] || typeof cur[k]!=='object') cur[k]={};
-cur=cur[k];
-}
-cur[parts[parts.length-1]]=value;
-}
-
-function detachRoomControlListeners(){
-if(!mpRoomRef || !mpControlListeners.length){ mpControlListeners=[]; return; }
-for(const item of mpControlListeners){
-try{ item.ref.off('value',item.fn); }catch(_){}
-}
-mpControlListeners=[];
-mpListener=null;
-}
-
-async function attachRoomListener(){
-if(!mpRoomRef) return;
-detachRoomControlListeners();
-mpLastRoomMetaSig='';
-
-try{
-const initial=await mpRoomRef.once('value');
-if(!initial.exists()){
-if(mpRole){showToast('Oda kapatıldı.','rose'); returnToHomeFromMultiplayer();}
-return;
-}
-mpRoomData=initial.val()||{};
-await handleRoomState(mpRoomData);
-}catch(e){ console.warn('Room initial sync failed',e); }
-
-const watch=(path,apply)=>{
-const ref=mpRoomRef.child(path);
-const fn=async snap=>{
-if(path==='status' && !snap.exists()){
-if(mpRole){showToast('Oda kapatıldı.','rose'); returnToHomeFromMultiplayer();}
-return;
-}
-apply(snap.val());
-await handleRoomState(mpRoomData);
-};
-ref.on('value',fn);
-mpControlListeners.push({ref,fn});
-};
-
-watch('status',v=>setCachedRoomPath('status',v));
-watch('startAt',v=>setCachedRoomPath('startAt',Number(v||0)));
-watch('guestId',v=>setCachedRoomPath('guestId',v||null));
-watch('board',v=>setCachedRoomPath('board',Array.isArray(v)?v:[]));
-watch('presence/guest',v=>setCachedRoomPath('presence/guest',v||{online:false}));
-watch('rematch',v=>setCachedRoomPath('rematch',v||{host:false,guest:false,expiresAt:0}));
-watch('finalWinner',v=>setCachedRoomPath('finalWinner',v||null));
-watch('roomExit',v=>setCachedRoomPath('roomExit',v||null));
-watch('longestBonus',v=>setCachedRoomPath('longestBonus',v||null));
+});
 
 if(mpScoresListener) mpRoomRef.child('scores').off('value',mpScoresListener);
 mpScoresListener=mpRoomRef.child('scores').on('value',snap=>{
 const sc=snap.val()||{};
-setCachedRoomPath('scores',sc);
-p1Score=Number(sc.host||0); p2Score=Number(sc.guest||0); updateScores();
+if(mpRole==='host'){
+if(!isOwnMpScorePending()) p1Score=Number(sc.host||0);
+p2Score=Number(sc.guest||0);
+}else if(mpRole==='guest'){
+p1Score=Number(sc.host||0);
+if(!isOwnMpScorePending()) p2Score=Number(sc.guest||0);
+}else{
+p1Score=Number(sc.host||0); p2Score=Number(sc.guest||0);
+}
+updateScores();
 });
 
 if(mpWordsListener) mpRoomRef.child('words').off('child_added',mpWordsListener);
@@ -40453,9 +40408,6 @@ mpWordsListener=mpRoomRef.child('words').on('child_added',snap=>{
 const ev=snap.val(), key=snap.key;
 if(!ev||!key||mpSeenWordEvents.has(key)) return;
 mpSeenWordEvents.add(key);
-if(!mpRoomData) mpRoomData={};
-if(!mpRoomData.words) mpRoomData.words={};
-mpRoomData.words[key]=ev;
 const w=String(ev.word||'').toLocaleUpperCase('tr-TR');
 if(w){ mpFoundWords.host.add(w); mpFoundWords.guest.add(w); sessionFoundWords.add(w); recordMatchWord(w,ev.pts,ev.role==='host'); }
 if(ev.role!==mpRole) applyRemoteWordEvent(ev,key);
@@ -40464,7 +40416,7 @@ if(ev.role!==mpRole) applyRemoteWordEvent(ev,key);
 
 function applyRemoteWordEvent(ev){
 if(!ev||!ev.word) return;
-const path=Array.isArray(ev.path)?ev.path:[];
+const path=decodeClaimPath(ev.path);
 if(path.length) applyClaimedPath(path,ev.role==='host');
 addTickerBadge(String(ev.word).toLocaleUpperCase('tr-TR'),ev.role==='host');
 flyScore(Number(ev.pts||0), ev.role==='host');
@@ -40561,15 +40513,86 @@ const game=document.getElementById('screen-game');
 if(game) game.style.pointerEvents='auto';
 if(!timerAlreadyRunning) startMultiplayerTimer(Number(d.startAt));
 }
-async function syncMpScoreDelta(delta){
-if(!mpRoomRef||!mpRole||!delta)return;
+function getLocalMpScore(){
+if(!mpRole) return 0;
+return mpRole==='host' ? Number(p1Score||0) : Number(p2Score||0);
+}
+function isOwnMpScorePending(){
+return !!mpRole && (mpScoreSyncInFlight || mpScoreSyncTimer!==null || mpScoreDesired!==null);
+}
+function scheduleMpScoreSync(){
+if(!mpRoomRef||!mpRole) return;
+mpScoreDesired=Math.max(0,getLocalMpScore());
+if(mpScoreSyncInFlight || mpScoreSyncTimer!==null) return;
+mpScoreSyncTimer=setTimeout(flushMpScoreSync,0);
+}
+async function flushMpScoreSync(){
+if(mpScoreSyncTimer!==null){ clearTimeout(mpScoreSyncTimer); mpScoreSyncTimer=null; }
+if(!mpRoomRef||!mpRole){ mpScoreDesired=null; return; }
+if(mpScoreSyncInFlight) return;
+const value=Math.max(0,Number(mpScoreDesired??getLocalMpScore()));
+mpScoreSyncInFlight=true;
 try{
-await mpRoomRef.child('scores/'+mpRole).transaction(v=>Math.max(0,Number(v||0)+Number(delta||0)));
-}catch(e){ console.warn('Score sync retry needed',e); }
+await mpRoomRef.child('scores/'+mpRole).set(value);
+}catch(e){
+console.warn('Score sync retry needed',e);
+}finally{
+mpScoreSyncInFlight=false;
+if(!mpRoomRef||!mpRole){ mpScoreDesired=null; return; }
+const latest=Math.max(0,getLocalMpScore());
+if(latest!==value){ mpScoreDesired=latest; scheduleMpScoreSync(); }
+else mpScoreDesired=null;
+}
+}
+function encodeClaimPath(path){
+return path.map(p=>(p.r*BOARD_SIZE+p.c).toString(36)).join('.');
+}
+function decodeClaimPath(raw){
+if(Array.isArray(raw)) return raw;
+if(typeof raw!=='string'||!raw) return [];
+const out=[];
+for(const token of raw.split('.')){
+const idx=parseInt(token,36);
+if(!Number.isFinite(idx)||idx<0||idx>=BOARD_SIZE*BOARD_SIZE) continue;
+out.push({r:Math.floor(idx/BOARD_SIZE),c:idx%BOARD_SIZE});
+}
+return out;
+}
+async function forceFlushMpScore(){
+if(!mpRoomRef||!mpRole) return;
+mpScoreDesired=Math.max(0,getLocalMpScore());
+if(mpScoreSyncTimer!==null){ clearTimeout(mpScoreSyncTimer); mpScoreSyncTimer=null; }
+while(mpScoreSyncInFlight) await new Promise(r=>setTimeout(r,8));
+if(mpScoreSyncTimer!==null){ clearTimeout(mpScoreSyncTimer); mpScoreSyncTimer=null; }
+const finalScore=Math.max(0,getLocalMpScore());
+mpScoreSyncInFlight=true;
+try{
+await mpRoomRef.child('scores/'+mpRole).set(finalScore);
+mpScoreDesired=finalScore;
+}finally{
+mpScoreSyncInFlight=false;
+mpScoreDesired=null;
+}
+}
+async function markMultiplayerEndReady(){
+if(!mpRoomRef||!mpRole) return;
+await forceFlushMpScore();
+await mpRoomRef.child('endReady/'+mpRole).set({ready:true,at:firebase.database.ServerValue.TIMESTAMP});
+}
+function waitForBothEndReady(timeoutMs=1400){
+if(!mpRoomRef) return Promise.resolve(false);
+return new Promise(resolve=>{
+const ref=mpRoomRef.child('endReady');
+let done=false,timer=null;
+const finish=v=>{if(done)return;done=true;if(timer)clearTimeout(timer);ref.off('value',onValue);resolve(v);};
+const onValue=snap=>{const v=snap.val()||{};if(v.host?.ready&&v.guest?.ready)finish(true);};
+ref.on('value',onValue);
+timer=setTimeout(()=>finish(false),Math.max(300,timeoutMs||1400));
+});
 }
 
 function detachMultiplayerListeners(){
-detachRoomControlListeners();
+if(mpRoomRef && mpListener){ mpRoomRef.off('value',mpListener); mpListener=null; }
 if(mpRoomRef && mpScoresListener){ mpRoomRef.child('scores').off('value',mpScoresListener); mpScoresListener=null; }
 if(mpRoomRef && mpWordsListener){ mpRoomRef.child('words').off('child_added',mpWordsListener); mpWordsListener=null; }
 }
@@ -40579,6 +40602,8 @@ clearInterval(mpClock); mpClock=null;
 clearInterval(timerInterval); timerInterval=null;
 clearTimeout(botInterval); botInterval=null;
 clearTimeout(mpEndResolveTimer); mpEndResolveTimer=null;
+if(mpScoreSyncTimer!==null){ clearTimeout(mpScoreSyncTimer); mpScoreSyncTimer=null; }
+mpScoreSyncInFlight=false; mpScoreDesired=null;
 if(pointerFrame){ cancelAnimationFrame(pointerFrame); pointerFrame=0; }
 isPointerDown=false; pointerHoldStartedAt=0; clearTimeout(pointerHoldTimer); pointerHoldTimer=null; activePointerId=null; pendingPointer=null; activeGridRect=null; activeGridMetrics=null; isMatchActive=false;
 try{ clearPath(); }catch(_){ selectedPath=[]; }
@@ -41038,7 +41063,7 @@ if (!word) continue;
 mpFoundWords.host.add(word);
 mpFoundWords.guest.add(word);
 sessionFoundWords.add(word);
-if (Array.isArray(ev.path)) applyClaimedPath(ev.path, ev.role === 'host');
+{ const remotePath=decodeClaimPath(ev.path); if(remotePath.length) applyClaimedPath(remotePath, ev.role === 'host'); }
 if (!mpSeenWordEvents.has(key)) {
 mpSeenWordEvents.add(key);
 addTickerBadge(word, ev.role === 'host');
@@ -41301,7 +41326,7 @@ const tx = await claimRef.transaction(current => {
 if (current !== null) return;
 return {
 word: normalizedWord, role: mpRole, pts: pts,
-path: selectedPath.map(p=>({r:p.r,c:p.c})),
+path: encodeClaimPath(selectedPath),
 at: firebase.database.ServerValue.TIMESTAMP
 };
 });
@@ -41384,7 +41409,7 @@ p2Score = Math.max(0, p2Score + p2Delta);
 updateScores();
 if (mpRole) {
 const delta=mpRole==='host'?Number(p1Delta||0):Number(p2Delta||0);
-if(delta) syncMpScoreDelta(delta);
+if(delta) scheduleMpScoreSync();
 }
 }
 
@@ -41631,9 +41656,10 @@ function endGame(){
 if(!isMatchActive && mpRole && mpState===MP_STATES.FINISHED) return;
 isMatchActive=false; clearInterval(timerInterval); clearTimeout(botInterval);
 if(mpRoomRef && mpRole){
+markMultiplayerEndReady().catch(e=>console.warn('Final score sync retry needed',e));
 if(mpRole==='host' && mpState===MP_STATES.PLAYING){
 clearTimeout(mpEndResolveTimer);
-mpEndResolveTimer=setTimeout(()=>{mpEndResolveTimer=null;hostResolveMatchEnd().catch(()=>{});},320);
+mpEndResolveTimer=setTimeout(()=>{mpEndResolveTimer=null;hostResolveMatchEnd().catch(()=>{});},120);
 }else showToast('Maç sonucu senkronize ediliyor…','sky');
 return;
 }
