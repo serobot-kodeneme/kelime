@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v183</title>
-<meta name="game-version" content="v183">
+<title>Kelime Düellosu v184</title>
+<meta name="game-version" content="v184">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -39825,7 +39825,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v183';
+const GAME_VERSION='v184';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -39998,7 +39998,7 @@ dayKey:alloc.dayKey,
 hostId, guestId,
 gameState:{status:'waiting',board:readyBoard.board,startAt:0,round:1},
 scores:{host:0,guest:0}, words:{}, longestBonus:null, bonusApplied:false,
-endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0}, randomRematchRequest:null,
+endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0}, pendingRound:null, randomRematchRequest:null,
 presence:{host:{online:false,clientId:hostId},guest:{online:false,clientId:guestId}}
 });
 return code;
@@ -40151,7 +40151,7 @@ dayKey:alloc.dayKey,
 hostId, guestId:null,
 gameState:{status:'waiting',board:readyBoard.board,startAt:0,round:1},
 scores:{host:0,guest:0}, words:{}, longestBonus:null, bonusApplied:false,
-endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0},
+endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0}, pendingRound:null,
 presence:{host:{online:true,clientId:hostId},guest:{online:false}}
 });
 
@@ -40235,26 +40235,51 @@ return gs;
 }finally{mpStartBusy=false;}
 }
 
+async function hostPrepareNextRound(){
+if(mpRole!=='host'||!mpRoomRef) return null;
+try{
+const [gsSnap,pendingSnap]=await Promise.all([
+mpRoomRef.child('gameState').once('value'),
+mpRoomRef.child('pendingRound').once('value')
+]);
+const gs=gsSnap.val()||{};
+if(gs.status!=='finished') return null;
+const nextRound=Number(gs.round||1)+1;
+const existing=pendingSnap.val();
+if(existing && Number(existing.round||0)===nextRound && Array.isArray(existing.board) && existing.board.length===9) return existing;
+const ready=prewarmedBoard || generateOptimizedBoard(2); prewarmedBoard=null;
+const pending={board:ready.board,round:nextRound,preparedAt:serverNow()};
+rememberBoard(pending.board, ready.words);
+await mpRoomRef.child('pendingRound').set(pending);
+scheduleBoardPrewarm();
+return pending;
+}catch(e){console.error('Next round prepare error',e);return null;}
+}
+
 async function hostStartRematch(){
 if(mpRole!=='host'||mpRematchBusy||!mpRoomRef) return;
 mpRematchBusy=true;
 try{
-await new Promise(resolve=>requestAnimationFrame(()=>resolve()));
 const now=serverNow();
-const ready=prewarmedBoard || generateOptimizedBoard(2); prewarmedBoard=null;
-const fresh=ready.board; rememberBoard(fresh, ready.words);
-const [gsSnap,rSnap]=await Promise.all([mpRoomRef.child('gameState').once('value'),mpRoomRef.child('rematch').once('value')]);
+const [gsSnap,rSnap]=await Promise.all([
+mpRoomRef.child('gameState').once('value'),
+mpRoomRef.child('rematch').once('value')
+]);
 const gs=gsSnap.val()||{}, r=rSnap.val()||{}, exp=Number(r.expiresAt||0);
 if(gs.status!=='finished'||!r.host||!r.guest||!exp||exp<now) return;
+let pending=(await mpRoomRef.child('pendingRound').once('value')).val();
 const nextRound=Number(gs.round||1)+1;
-// Yeni turu yazmadan ÖNCE yerel başlangıç bayraklarını sıfırla.
-// Firebase local event'i update() promise'inden önce gelebilir; aksi halde host countdown'u kaçırabilir.
+if(!pending || Number(pending.round||0)!==nextRound || !Array.isArray(pending.board) || pending.board.length!==9){
+pending=await hostPrepareNextRound();
+}
+if(!pending || !Array.isArray(pending.board)) throw new Error('pending-round-missing');
+// Firebase local event'i update() promise'inden önce gelebilir; host yeni countdown'u kaçırmasın.
 mpStarted=false; mpEntered=false; isMatchActive=false;
 clearInterval(timerInterval); timerInterval=null;
 await mpRoomRef.update({
-'gameState':{status:'countdown',board:fresh,startAt:now+3200,round:nextRound},
+'gameState':{status:'countdown',board:pending.board,startAt:now+3200,round:nextRound},
 'scores':{host:0,guest:0},'words':null,'longestBonus':null,'bonusApplied':false,'finalWinner':null,
-'endReady':{host:false,guest:false},'rematch':{host:false,guest:false,expiresAt:0},'randomRematchRequest':null
+'endReady':{host:false,guest:false},'rematch':{host:false,guest:false,expiresAt:0},'randomRematchRequest':null,'pendingRound':null
 });
 }catch(e){console.error('Rematch start error',e);showToast('Yeni oyun başlatılamadı. Tekrar deneyin.','rose');}
 finally{mpRematchBusy=false;}
@@ -40312,7 +40337,7 @@ btn.disabled=false; btn.textContent='YENİDEN OYNA'; btn.classList.add('rematch-
 st.classList.remove('hidden'); st.textContent=`Rakibin yeniden oynamak istiyor • ${Math.max(0,Math.ceil((exp-serverNow())/1000))} sn içinde katıl`;
 }else if(me && other){
 btn.disabled=true; btn.textContent='YENİ OYUN HAZIRLANIYOR…'; btn.classList.remove('rematch-pulse');
-st.classList.remove('hidden'); st.textContent='İki oyuncu da hazır. Yeni tahta hazırlanıyor…';
+st.classList.remove('hidden'); st.textContent='İki oyuncu da hazır. Hazır tahta senkronize ediliyor…';
 }else{
 btn.disabled=false; btn.textContent='YENİDEN OYNA'; btn.classList.remove('rematch-pulse'); st.classList.add('hidden'); st.textContent='';
 }
@@ -40339,7 +40364,10 @@ await hostApplyLongestWordBonus();
 const [gsSnap,scoreSnap]=await Promise.all([mpRoomRef.child('gameState').once('value'),mpRoomRef.child('scores').once('value')]);
 const gameState=gsSnap.val()||{}; if(gameState.status!=='playing') return;
 const sc=scoreSnap.val()||{host:0,guest:0}; const hs=Number(sc.host||0),guestScore=Number(sc.guest||0);
-await mpRoomRef.update({'finalWinner':hs===guestScore?'tie':(hs>guestScore?'host':'guest'),'gameState/status':'finished','gameState/startAt':0});
+await mpRoomRef.update({'finalWinner':hs===guestScore?'tie':(hs>guestScore?'host':'guest'),'gameState/status':'finished','gameState/startAt':0,'rematch':{host:false,guest:false,expiresAt:0},'pendingRound':null});
+// Kutlama ekranı görünür görünmez bir sonraki turu arka planda hazırla.
+// Oyun başlamaz; iki oyuncu da YENİDEN OYNA diyene kadar pendingRound içinde bekler.
+hostPrepareNextRound().catch(()=>{});
 }
 function showMultiplayerSeriesResult(d){
 if(!d||d.status!=='finished') return;
@@ -41907,7 +41935,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v183: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Kelime Düellosu optimize motor v184: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
