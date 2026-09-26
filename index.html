@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v193</title>
-<meta name="game-version" content="v193">
+<title>Kelime Düellosu v194</title>
+<meta name="game-version" content="v194">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -39804,7 +39804,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v193';
+const GAME_VERSION='v194';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -40506,7 +40506,10 @@ if(mpRole==='host'){if(!isOwnMpScorePending())p1Score=Number(sc.host||0);p2Score
 });
 
 mpWordsListener=mpRoomRef.child('words').on('child_added',snap=>{
-const ev=snap.val(),key=snap.key;if(!ev||!key||mpSeenWordEvents.has(key))return;mpSeenWordEvents.add(key);const w=String(ev.word||'').toLocaleUpperCase('tr-TR');if(w){mpFoundWords.host.add(w);mpFoundWords.guest.add(w);sessionFoundWords.add(w);recordMatchWord(w,ev.pts,ev.role==='host');}if(ev.role!==mpRole)applyRemoteWordEvent(ev,key);
+const ev=snap.val(),key=snap.key;if(!ev||!key||mpSeenWordEvents.has(key))return;
+const activeRound=Number(mpRoomData?.round||1), eventRound=Number(ev.round||1);
+if(eventRound!==activeRound) return;
+mpSeenWordEvents.add(key);const w=String(ev.word||'').toLocaleUpperCase('tr-TR');if(w){mpFoundWords.host.add(w);mpFoundWords.guest.add(w);sessionFoundWords.add(w);recordMatchWord(w,ev.pts,ev.role==='host');}if(ev.role!==mpRole)applyRemoteWordEvent(ev,key);
 });
 }
 
@@ -41201,7 +41204,7 @@ pendingPointer=null; lastPointerX=null; lastPointerY=null;
 if(pointerFrame){cancelAnimationFrame(pointerFrame);pointerFrame=0;}
 if(hoverLiftCell){hoverLiftCell.classList.remove('tile-hover-lift');hoverLiftCell=null;}
 for(const cell of domCells){
-cell?.classList.remove('tile-dragging','tile-dragging-p1','tile-dragging-p2','tile-claimed-p1','tile-claimed-p2','tile-hover-lift');
+cell?.classList.remove('tile-dragging','tile-dragging-p1','tile-dragging-p2','tile-claimed-p1','tile-claimed-p2','tile-hover-lift','tile-hover-p1','tile-hover-p2');
 }
 remainingSeconds=60;
 p1Score=0; p2Score=0; updateScores();
@@ -41272,6 +41275,9 @@ if (!d || !d.words || !domCells.length) return;
 const entries = Object.entries(d.words);
 for (const [key, ev] of entries) {
 if (!ev) continue;
+const activeRound=Number(d.round||mpRoomData?.round||1);
+const eventRound=Number(ev.round||1);
+if(eventRound!==activeRound) continue;
 const word = String(ev.word || '').toLocaleUpperCase('tr-TR');
 if (!word) continue;
 mpFoundWords.host.add(word);
@@ -41540,6 +41546,7 @@ const tx = await claimRef.transaction(current => {
 if (current !== null) return;
 return {
 word: normalizedWord, role: mpRole, pts: pts,
+round: Number(mpRoomData?.round||1),
 path: encodeClaimPath(selectedPath),
 at: firebase.database.ServerValue.TIMESTAMP
 };
@@ -42085,7 +42092,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v193: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Kelime Düellosu optimize motor v194: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
