@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v209</title>
-<meta name="game-version" content="v209">
+<title>Kelime Düellosu v210</title>
+<meta name="game-version" content="v210">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -346,7 +346,7 @@ text-shadow:0 2px 8px rgba(0,0,0,.22); filter:saturate(.96); will-change:transfo
 .score-fly.go { transform: translate3d(var(--dx),var(--dy),0) scale(1.22); opacity:0; }
 
 
-/* v209: hafif ödül efektleri — tahta hattından bağımsız */
+/* v210: hafif ödül efektleri — tahta hattından bağımsız */
 @keyframes kdScorePop{0%{transform:scale(1)}42%{transform:scale(1.13)}100%{transform:scale(1)}}
 .kd-score-pop{animation:kdScorePop .24s ease-out;will-change:transform}
 @keyframes kdAvatarRing{0%{box-shadow:0 0 0 0 rgba(255,255,255,.9),0 2px 6px rgba(0,0,0,.24)}55%{box-shadow:0 0 0 5px rgba(255,255,255,.18),0 2px 6px rgba(0,0,0,.24)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0),0 2px 6px rgba(0,0,0,.24)}}
@@ -457,6 +457,17 @@ button:not(:disabled):active{filter:brightness(.96) saturate(1.12);}
 .final-avatar svg{width:22px;height:22px;}
 .winner-avatar-big{width:52px!important;height:52px!important;box-shadow:0 10px 22px rgba(15,23,42,.18),0 0 0 4px rgba(255,255,255,.65);transform:scale(1.04);}
 .winner-avatar-big svg{width:32px!important;height:32px!important;}
+.victory-card{position:relative;isolation:isolate;overflow:visible!important;}
+.victory-card::before{content:"";position:absolute;inset:-18px -14px;z-index:-1;border-radius:24px;background:radial-gradient(circle at 50% 38%,rgba(255,255,255,.96) 0 16%,rgba(250,204,21,.28) 36%,rgba(250,204,21,0) 72%);animation:victoryHalo 1.35s ease-in-out infinite;pointer-events:none;}
+.victory-card.victory-sky::before{background:radial-gradient(circle at 50% 38%,rgba(255,255,255,.96) 0 16%,rgba(56,189,248,.28) 36%,rgba(56,189,248,0) 72%);}
+@keyframes victoryHalo{0%,100%{transform:scale(.96);opacity:.72}50%{transform:scale(1.06);opacity:1}}
+.victory-badge{display:inline-flex;align-items:center;justify-content:center;gap:4px;margin:2px auto 5px;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:1000;letter-spacing:.12em;color:#fff;background:linear-gradient(135deg,#f59e0b,#facc15);box-shadow:0 5px 14px rgba(245,158,11,.28);animation:victoryBadgePop .45s cubic-bezier(.2,.8,.2,1) both;}
+.victory-badge.sky{background:linear-gradient(135deg,#0284c7,#38bdf8);box-shadow:0 5px 14px rgba(14,165,233,.28)}
+@keyframes victoryBadgePop{0%{opacity:0;transform:translateY(7px) scale(.72)}70%{opacity:1;transform:translateY(-1px) scale(1.08)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.victory-avatar-crown{position:absolute;left:50%;top:-17px;transform:translateX(-50%) rotate(-5deg);font-size:24px;filter:drop-shadow(0 4px 5px rgba(0,0,0,.18));animation:crownFloat 1.2s ease-in-out infinite;pointer-events:none;z-index:6}
+@keyframes crownFloat{0%,100%{transform:translateX(-50%) translateY(0) rotate(-5deg)}50%{transform:translateX(-50%) translateY(-3px) rotate(4deg)}}
+@media (prefers-reduced-motion:reduce){.victory-card::before,.victory-badge,.victory-avatar-crown{animation:none!important}}
+
 .result-card-party{position:absolute;inset:-6px;pointer-events:none;overflow:hidden;border-radius:18px;z-index:4;}
 .result-card-party i{position:absolute;top:-8%;width:8px;height:12px;border-radius:2px;opacity:.96;animation:resultCardConfetti var(--dur,1.5s) ease-out forwards;will-change:transform,opacity;}
 @keyframes resultCardConfetti{0%{opacity:0;transform:translate3d(0,-8px,0) rotate(0deg) scale(.8)}10%{opacity:1}100%{opacity:0;transform:translate3d(var(--dx),calc(100% + var(--dy)),0) rotate(var(--rot,320deg)) scale(1.02)}}
@@ -39863,7 +39874,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v209';
+const GAME_VERSION='v210';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -40502,8 +40513,25 @@ await mpRoomRef.update({'finalWinner':hs===guestScore?'tie':(hs>guestScore?'host
 // Rastgele rakipte rövanş yok; oda 3 saniye içinde kapatılacaktır.
 if(!isRandomHumanRoom()) hostPrepareNextRound().catch(()=>{});
 }
+
+function clearVictoryPresentation(){
+  document.querySelectorAll('.victory-badge,.victory-avatar-crown').forEach(el=>el.remove());
+  ['final-p1-card','final-p2-card'].forEach(id=>document.getElementById(id)?.classList.remove('victory-card','victory-sky'));
+}
+function decorateWinnerCard(side){
+  clearVictoryPresentation();
+  const card=document.getElementById(side==='p1'?'final-p1-card':'final-p2-card');
+  const avatar=document.getElementById(side==='p1'?'final-p1-avatar':'final-p2-avatar');
+  if(!card||!avatar) return;
+  card.classList.add('victory-card');
+  if(side==='p2') card.classList.add('victory-sky');
+  const crown=document.createElement('div'); crown.className='victory-avatar-crown'; crown.textContent='👑'; avatar.appendChild(crown);
+  const badge=document.createElement('div'); badge.className='victory-badge'+(side==='p2'?' sky':''); badge.textContent='★ ZAFER ★';
+  avatar.insertAdjacentElement('afterend',badge);
+}
 function showMultiplayerSeriesResult(d){
 if(!d||d.status!=='finished') return;
+clearVictoryPresentation();
 isMatchActive=false;clearInterval(timerInterval);clearInterval(mpClock);clearTimeout(botInterval);
 document.getElementById('modal-gameover')?.classList.remove('hidden');
 const sc=d.scores||{host:0,guest:0};
@@ -40514,8 +40542,8 @@ renderGameoverWordLists();setLongestBonusBadges(!!d.longestBonus?.host,!!d.longe
 const heading=document.getElementById('gameover-heading'),p1NameEl=document.getElementById('final-p1-name'),p2NameEl=document.getElementById('final-p2-name'),p1ScoreEl=document.getElementById('final-score-val-p1'),p2ScoreEl=document.getElementById('final-score-val-p2');
 [p1NameEl,p2NameEl,p1ScoreEl,p2ScoreEl].forEach(el=>el?.classList.remove('winner-pulse','winner-name-big','winner-score-big')); const p1AvatarEl=document.getElementById('final-p1-avatar'),p2AvatarEl=document.getElementById('final-p2-avatar'); [p1AvatarEl,p2AvatarEl].forEach(el=>el?.classList.remove('winner-avatar-big'));
 const c1=document.getElementById('final-p1-card'),c2=document.getElementById('final-p2-card');[c1,c2].forEach(c=>{if(c){c.classList.remove('kd-winner-glow');c.style.transform='';c.style.filter='';c.style.background='';c.style.borderRadius='';c.style.padding='';}});
-if(d.finalWinner==='host'){if(c1){c1.classList.add('kd-winner-glow');c1.style.transform='scale(1.07)';c1.style.background='rgba(254,243,199,.9)';c1.style.borderRadius='16px';c1.style.padding='8px';spawnWinnerCardParty('final-p1-card','amber');}if(c2)c2.style.filter='saturate(.7) opacity(.82)';heading.textContent=`${p1Name} KAZANDI! 🏆`;p1NameEl?.classList.add('winner-pulse','winner-name-big');p1ScoreEl?.classList.add('winner-pulse','winner-score-big');p1AvatarEl?.classList.add('winner-avatar-big');launchGrandCelebration('p1');}
-else if(d.finalWinner==='guest'){if(c2){c2.classList.add('kd-winner-glow');c2.style.transform='scale(1.07)';c2.style.background='rgba(224,242,254,.92)';c2.style.borderRadius='16px';c2.style.padding='8px';spawnWinnerCardParty('final-p2-card','sky');}if(c1)c1.style.filter='saturate(.7) opacity(.82)';heading.textContent=`${p2Name} KAZANDI! 🏆`;p2NameEl?.classList.add('winner-pulse','winner-name-big');p2ScoreEl?.classList.add('winner-pulse','winner-score-big');p2AvatarEl?.classList.add('winner-avatar-big');launchGrandCelebration('p2');}
+if(d.finalWinner==='host'){if(c1){c1.classList.add('kd-winner-glow');c1.style.transform='scale(1.07)';c1.style.background='rgba(254,243,199,.9)';c1.style.borderRadius='16px';c1.style.padding='8px';spawnWinnerCardParty('final-p1-card','amber');}if(c2)c2.style.filter='saturate(.7) opacity(.82)';heading.textContent=`${p1Name} KAZANDI! 🏆`;p1NameEl?.classList.add('winner-pulse','winner-name-big');p1ScoreEl?.classList.add('winner-pulse','winner-score-big');p1AvatarEl?.classList.add('winner-avatar-big');decorateWinnerCard('p1');launchGrandCelebration('p1');}
+else if(d.finalWinner==='guest'){if(c2){c2.classList.add('kd-winner-glow');c2.style.transform='scale(1.07)';c2.style.background='rgba(224,242,254,.92)';c2.style.borderRadius='16px';c2.style.padding='8px';spawnWinnerCardParty('final-p2-card','sky');}if(c1)c1.style.filter='saturate(.7) opacity(.82)';heading.textContent=`${p2Name} KAZANDI! 🏆`;p2NameEl?.classList.add('winner-pulse','winner-name-big');p2ScoreEl?.classList.add('winner-pulse','winner-score-big');p2AvatarEl?.classList.add('winner-avatar-big');decorateWinnerCard('p2');launchGrandCelebration('p2');}
 else {heading.textContent='BERABERE! 🤝'; spawnHighResultPartyFx(); launchLightResultConfetti(0.5);}
 const replay=document.getElementById('btn-play-again');
 const exitBtn=document.getElementById('btn-game-exit');
@@ -42134,10 +42162,11 @@ setLongestBonusBadges(!!longestBonus.p1,!!longestBonus.p2);
 const heading=document.getElementById('gameover-heading');
 const p1NameEl=document.getElementById('final-p1-name'),p2NameEl=document.getElementById('final-p2-name'),p1ScoreEl=document.getElementById('final-score-val-p1'),p2ScoreEl=document.getElementById('final-score-val-p2');
 [p1NameEl,p2NameEl,p1ScoreEl,p2ScoreEl].forEach(el=>el?.classList.remove('winner-pulse','winner-name-big','winner-score-big')); const p1AvatarEl=document.getElementById('final-p1-avatar'),p2AvatarEl=document.getElementById('final-p2-avatar'); [p1AvatarEl,p2AvatarEl].forEach(el=>el?.classList.remove('winner-avatar-big'));
+clearVictoryPresentation();
 const c1=document.getElementById('final-p1-card'),c2=document.getElementById('final-p2-card');
 [c1,c2].forEach(c=>{if(c){c.classList.remove('kd-winner-glow');c.style.transform='';c.style.filter='';c.style.background='';c.style.borderRadius='';c.style.padding='';}});
-if(p1Score>p2Score){if(c1){c1.classList.add('kd-winner-glow');c1.style.transform='scale(1.07)';c1.style.background='rgba(254,243,199,.9)';c1.style.borderRadius='16px';c1.style.padding='8px';spawnWinnerCardParty('final-p1-card','amber');}if(c2)c2.style.filter='saturate(.7) opacity(.82)'; heading.textContent=`${p1Name} KAZANDI! 🏆`; p1NameEl?.classList.add('winner-pulse','winner-name-big'); p1ScoreEl?.classList.add('winner-pulse','winner-score-big'); p1AvatarEl?.classList.add('winner-avatar-big'); launchGrandCelebration('p1'); }
-else if(p2Score>p1Score){if(c2){c2.classList.add('kd-winner-glow');c2.style.transform='scale(1.07)';c2.style.background='rgba(224,242,254,.92)';c2.style.borderRadius='16px';c2.style.padding='8px';spawnWinnerCardParty('final-p2-card','sky');}if(c1)c1.style.filter='saturate(.7) opacity(.82)'; heading.textContent=`${p2Name} KAZANDI! 🏆`; p2NameEl?.classList.add('winner-pulse','winner-name-big'); p2ScoreEl?.classList.add('winner-pulse','winner-score-big'); p2AvatarEl?.classList.add('winner-avatar-big'); launchGrandCelebration('p2'); }
+if(p1Score>p2Score){if(c1){c1.classList.add('kd-winner-glow');c1.style.transform='scale(1.07)';c1.style.background='rgba(254,243,199,.9)';c1.style.borderRadius='16px';c1.style.padding='8px';spawnWinnerCardParty('final-p1-card','amber');}if(c2)c2.style.filter='saturate(.7) opacity(.82)'; heading.textContent=`${p1Name} KAZANDI! 🏆`; p1NameEl?.classList.add('winner-pulse','winner-name-big'); p1ScoreEl?.classList.add('winner-pulse','winner-score-big'); p1AvatarEl?.classList.add('winner-avatar-big'); decorateWinnerCard('p1'); launchGrandCelebration('p1'); }
+else if(p2Score>p1Score){if(c2){c2.classList.add('kd-winner-glow');c2.style.transform='scale(1.07)';c2.style.background='rgba(224,242,254,.92)';c2.style.borderRadius='16px';c2.style.padding='8px';spawnWinnerCardParty('final-p2-card','sky');}if(c1)c1.style.filter='saturate(.7) opacity(.82)'; heading.textContent=`${p2Name} KAZANDI! 🏆`; p2NameEl?.classList.add('winner-pulse','winner-name-big'); p2ScoreEl?.classList.add('winner-pulse','winner-score-big'); p2AvatarEl?.classList.add('winner-avatar-big'); decorateWinnerCard('p2'); launchGrandCelebration('p2'); }
 else {heading.textContent='BERABERE! 🤝'; spawnHighResultPartyFx(); launchLightResultConfetti(0.5);}
 scheduleBoardPrewarm();
 }
@@ -42163,6 +42192,8 @@ if(el) el.style.display='none';
 async function handleSynchronizedRoomExit(reason='game-cancelled'){
 if(mpExitHandling) return;
 mpExitHandling=true;
+stopWinnerConfettiWaterfall();
+clearVictoryPresentation();
 isMatchActive=false;
 clearInterval(timerInterval); timerInterval=null;
 clearInterval(mpClock); mpClock=null;
@@ -42176,19 +42207,21 @@ await presence.set({online:false,clientId:getClientToken(),at:firebase.database.
 }
 const exitingRef=mpRoomRef;
 const randomResultExit=(reason==='random-result-timeout'||reason==='random-result-exit');
+const isAutomaticRandomTimeout=(reason==='random-result-timeout');
+const isManualPlayerExit=(reason==='player-exit'||reason==='random-result-exit');
 const shouldDeletePrivate=!!(exitingRef && mpRole==='host' && /^invite-only-/.test(String(mpRoomMode||'')));
 const shouldDeleteRandom=!!(exitingRef && mpRole==='host' && randomResultExit && /^random-match-/.test(String(mpRoomMode||'')));
-if(randomResultExit){
-  if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
-  if(shouldDeleteRandom){ try{ await exitingRef.remove(); }catch(_){ } }
+if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
+if(shouldDeleteRandom){ try{ await exitingRef.remove(); }catch(_){ } }
+if(isAutomaticRandomTimeout){
   returnToHomeFromMultiplayer();
   hideRoomExitNotice();
   return;
 }
 const exitMessage=(reason==='rematch-timeout'||reason==='invite-timeout')?'OYUN İPTAL OLDU':'OYUNDAN ÇIKIŞ YAPILDI';
-showRoomExitNotice(exitMessage);
+if(isManualPlayerExit || !randomResultExit) showRoomExitNotice(exitMessage);
 if(shouldDeletePrivate){ try{ await closeAndLockPrivateRoom(exitingRef,mpRoomCode,reason||'player-exit'); }catch(_){ } }
-await new Promise(r=>setTimeout(r,2000));
+await new Promise(r=>setTimeout(r,isManualPlayerExit?1250:2000));
 returnToHomeFromMultiplayer();
 hideRoomExitNotice();
 }
@@ -42217,6 +42250,8 @@ await handleSynchronizedRoomExit(reason);
 }
 
 async function exitCurrentGameToHome(){
+stopWinnerConfettiWaterfall();
+clearVictoryPresentation();
 isMatchActive=false;
 clearInterval(timerInterval); timerInterval=null;
 clearInterval(mpClock); mpClock=null;
@@ -42366,7 +42401,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v209: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Kelime Düellosu optimize motor v210: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
