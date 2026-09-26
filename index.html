@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v178</title>
-<meta name="game-version" content="v178">
+<title>Kelime Düellosu v179</title>
+<meta name="game-version" content="v179">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -39822,7 +39822,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v178';
+const GAME_VERSION='v179';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -39917,7 +39917,7 @@ const snap=await roomRef.once('value');
 if(!snap.exists()) return {code,dayKey};
 const room=snap.val()||{};
 const oldDay=String(room.dayKey||'')!==dayKey;
-const active=isOnline(room.presence?.host)||isOnline(room.presence?.guest)||['countdown','playing'].includes(String(room.status||''));
+const active=isOnline(room.presence?.host)||isOnline(room.presence?.guest)||['countdown','playing'].includes(String(room.gameState?.status||''));
 if(oldDay && !active){
 try{ await roomRef.remove(); return {code,dayKey}; }catch(_){ }
 }
@@ -39990,10 +39990,10 @@ const alloc=await allocateDailyRoomCode();
 const code=alloc.code, ref=mpDb.ref('rooms/'+code);
 const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board, readyBoard.words);
 await ref.set({
-schema:17, mode:'random-match-v3', createdAt:firebase.database.ServerValue.TIMESTAMP,
+schema:18, mode:'random-match-v4', createdAt:firebase.database.ServerValue.TIMESTAMP,
 dayKey:alloc.dayKey,
-hostId, guestId, status:'waiting',
-board:readyBoard.board, startAt:0,
+hostId, guestId,
+gameState:{status:'waiting',board:readyBoard.board,startAt:0,round:1},
 scores:{host:0,guest:0}, words:{}, longestBonus:null, bonusApplied:false,
 endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0},
 presence:{host:{online:false,clientId:hostId},guest:{online:false,clientId:guestId}}
@@ -40143,10 +40143,10 @@ const code=alloc.code, ref=mpDb.ref('rooms/'+code);
 const hostId=getClientToken();
 const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board, readyBoard.words);
 await ref.set({
-schema:17, mode:'invite-only-v3', createdAt:firebase.database.ServerValue.TIMESTAMP,
+schema:18, mode:'invite-only-v4', createdAt:firebase.database.ServerValue.TIMESTAMP,
 dayKey:alloc.dayKey,
-hostId, guestId:null, status:'waiting',
-board:readyBoard.board, startAt:0,
+hostId, guestId:null,
+gameState:{status:'waiting',board:readyBoard.board,startAt:0,round:1},
 scores:{host:0,guest:0}, words:{}, longestBonus:null, bonusApplied:false,
 endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0},
 presence:{host:{online:true,clientId:hostId},guest:{online:false}}
@@ -40182,7 +40182,9 @@ if(!claim.committed){ showToast('Bu davet odasında zaten 2 oyuncu var.','rose')
 role='guest';
 }
 
-mpRoomCode=code; mpRole=role; mpRoomRef=ref; mpRoomData=(await ref.once('value')).val()||{}; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId=''; mpEntered=false; mpStarted=false;
+mpRoomCode=code; mpRole=role; mpRoomRef=ref;
+const [gsSnap,scoreSnap]=await Promise.all([ref.child('gameState').once('value'),ref.child('scores').once('value')]);
+mpRoomData={...(gsSnap.val()||{}),scores:scoreSnap.val()||{host:0,guest:0}}; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId=''; mpEntered=false; mpStarted=false;
 await markPresence(); setRoomUrl(code);
 setMpPanelRoom(code,role==='host'?'1. oyuncu olarak odana yeniden bağlandın.':'2. oyuncu olarak davet odasına bağlandın.');
 document.getElementById('btn-close-room')?.classList.toggle('hidden',role!=='host');
@@ -40197,8 +40199,9 @@ async function enterMultiplayerRoom(){
 if(!mpRoomRef) return;
 activeGameMode = 'multi';
 if(mpRole==='guest' && inviteFullscreenPending) requestGameFullscreen(true);
-const snap=await mpRoomRef.once('value'); const d=snap.val(); if(!d||!d.board) return;
-mpRoomData=d;
+const [gsSnap,scoreSnap,wordsSnap]=await Promise.all([mpRoomRef.child('gameState').once('value'),mpRoomRef.child('scores').once('value'),mpRoomRef.child('words').once('value')]);
+const d={...(gsSnap.val()||{}),scores:scoreSnap.val()||{host:0,guest:0},words:wordsSnap.val()||{}}; if(!d||!d.board) return;
+mpRoomData={...(mpRoomData||{}),...d};
 if(!mpEntered){
 mpEntered=true; mpStarted=false;
 document.getElementById('screen-home')?.classList.add('hidden');
@@ -40219,10 +40222,12 @@ async function hostStartWaitingRound(){
 if(mpRole!=='host'||mpStartBusy||!mpRoomRef) return;
 mpStartBusy=true;
 try{
-await mpRoomRef.transaction(d=>{
-if(!d||d.status!=='waiting'||!d.guestId||Number(d.startAt||0)>0) return;
-d.status='countdown'; d.startAt=serverNow()+3200;
-return d;
+const guestSnap=await mpRoomRef.child('guestId').once('value');
+if(!guestSnap.val()) return;
+await mpRoomRef.child('gameState').transaction(gs=>{
+if(!gs||gs.status!=='waiting'||Number(gs.startAt||0)>0) return;
+gs.status='countdown'; gs.startAt=serverNow()+3200;
+return gs;
 });
 }finally{mpStartBusy=false;}
 }
@@ -40235,15 +40240,16 @@ await new Promise(resolve=>requestAnimationFrame(()=>resolve()));
 const now=serverNow();
 const ready=prewarmedBoard || generateOptimizedBoard(2); prewarmedBoard=null;
 const fresh=ready.board; rememberBoard(fresh, ready.words);
-const result=await mpRoomRef.transaction(d=>{
-if(!d||d.status!=='finished') return;
-const r=d.rematch||{},exp=Number(r.expiresAt||0);
-if(!r.host||!r.guest||!exp||exp<now) return;
-d.board=fresh; d.scores={host:0,guest:0}; d.words={}; d.longestBonus=null; d.bonusApplied=false; d.finalWinner=null; d.endReady={host:false,guest:false};
-d.rematch={host:false,guest:false,expiresAt:0}; d.status='countdown'; d.startAt=now+3200;
-return d;
+const [gsSnap,rSnap]=await Promise.all([mpRoomRef.child('gameState').once('value'),mpRoomRef.child('rematch').once('value')]);
+const gs=gsSnap.val()||{}, r=rSnap.val()||{}, exp=Number(r.expiresAt||0);
+if(gs.status!=='finished'||!r.host||!r.guest||!exp||exp<now) return;
+const nextRound=Number(gs.round||1)+1;
+await mpRoomRef.update({
+'gameState':{status:'countdown',board:fresh,startAt:now+3200,round:nextRound},
+'scores':{host:0,guest:0},'words':null,'longestBonus':null,'bonusApplied':false,'finalWinner':null,
+'endReady':{host:false,guest:false},'rematch':{host:false,guest:false,expiresAt:0}
 });
-if(result.committed){mpStarted=false;mpEntered=false;}
+mpStarted=false;mpEntered=false;
 }catch(e){console.error('Rematch start error',e);showToast('Yeni oyun başlatılamadı. Tekrar deneyin.','rose');}
 finally{mpRematchBusy=false;}
 }
@@ -40283,29 +40289,26 @@ btn.disabled=false; btn.textContent='YENİDEN OYNA'; btn.classList.remove('remat
 
 async function hostApplyLongestWordBonus(){
 if(mpRole!=='host'||!mpRoomRef) return;
-await mpRoomRef.transaction(d=>{
-if(!d||d.status!=='playing'||d.bonusApplied) return d;
-const vals=Object.values(d.words||{}).filter(x=>x&&x.word);
-let maxLen=0;vals.forEach(x=>{maxLen=Math.max(maxLen,String(x.word).length);});
+const [gsSnap,bonusSnap,wordsSnap,scoresSnap]=await Promise.all([
+mpRoomRef.child('gameState').once('value'),mpRoomRef.child('bonusApplied').once('value'),mpRoomRef.child('words').once('value'),mpRoomRef.child('scores').once('value')]);
+const gs=gsSnap.val()||{}; if(gs.status!=='playing'||bonusSnap.val()) return;
+const vals=Object.values(wordsSnap.val()||{}).filter(x=>x&&x.word);
+let maxLen=0; vals.forEach(x=>{maxLen=Math.max(maxLen,String(x.word).length);});
 let hostGets=false,guestGets=false;
-if(maxLen>0){
-vals.forEach(x=>{if(String(x.word).length===maxLen){if(x.role==='host')hostGets=true;if(x.role==='guest')guestGets=true;}});
-d.scores=d.scores||{host:0,guest:0};
-if(hostGets)d.scores.host=Number(d.scores.host||0)+10;
-if(guestGets)d.scores.guest=Number(d.scores.guest||0)+10;
-}
-d.longestBonus={maxLen,host:hostGets,guest:guestGets};d.bonusApplied=true;return d;
-});
+if(maxLen>0) vals.forEach(x=>{if(String(x.word).length===maxLen){if(x.role==='host')hostGets=true;if(x.role==='guest')guestGets=true;}});
+const sc=scoresSnap.val()||{host:0,guest:0};
+if(hostGets) sc.host=Number(sc.host||0)+10;
+if(guestGets) sc.guest=Number(sc.guest||0)+10;
+await mpRoomRef.update({scores:sc,longestBonus:{maxLen,host:hostGets,guest:guestGets},bonusApplied:true});
 }
 async function hostResolveMatchEnd(){
 if(mpRole!=='host'||!mpRoomRef) return;
 await waitForBothEndReady(1400);
 await hostApplyLongestWordBonus();
-await mpRoomRef.transaction(d=>{
-if(!d||d.status!=='playing') return;
-const hs=Number(d.scores?.host||0),gs=Number(d.scores?.guest||0);
-d.finalWinner=hs===gs?'tie':(hs>gs?'host':'guest');d.status='finished';d.startAt=0;return d;
-});
+const [gsSnap,scoreSnap]=await Promise.all([mpRoomRef.child('gameState').once('value'),mpRoomRef.child('scores').once('value')]);
+const gameState=gsSnap.val()||{}; if(gameState.status!=='playing') return;
+const sc=scoreSnap.val()||{host:0,guest:0}; const hs=Number(sc.host||0),guestScore=Number(sc.guest||0);
+await mpRoomRef.update({'finalWinner':hs===guestScore?'tie':(hs>guestScore?'host':'guest'),'gameState/status':'finished','gameState/startAt':0});
 }
 function showMultiplayerSeriesResult(d){
 if(!d||d.status!=='finished') return;
@@ -40329,32 +40332,26 @@ scheduleBoardPrewarm();
 
 function attachRoomListener(){
 if(!mpRoomRef) return;
-if(mpListener) mpRoomRef.off('value',mpListener);
+detachMultiplayerListeners();
 mpLastRoomMetaSig='';
-mpListener=mpRoomRef.on('value',async snap=>{
-const d=snap.val();
-if(!d){ if(mpRole){showToast('Oda kapatıldı.','rose'); returnToHomeFromMultiplayer();} return; }
-const clientId=getClientToken();
-if(d.hostId===clientId) mpRole='host';
-else if(d.guestId===clientId) mpRole='guest';
-mpRoomData=d;
 
-const exitSignal=d.roomExit;
-if(exitSignal?.id && exitSignal.id!==mpLastExitSignalId && Number(exitSignal.at||0)>=mpSessionJoinedAt-1000){
-mpLastExitSignalId=exitSignal.id;
-handleSynchronizedRoomExit();
-return;
-}
+const bindControl=(path,event,handler)=>{
+const ref=mpRoomRef.child(path); ref.on(event,handler); mpControlListeners.push({ref,event,handler});
+};
 
-const roomBoardSig=Array.isArray(d.board)?boardSignature(d.board):'';
-const metaSig=[d.status,Number(d.startAt||0),d.guestId||'',roomBoardSig,isOnline(d.presence?.guest),!!d.rematch?.host,!!d.rematch?.guest,Number(d.rematch?.expiresAt||0),d.finalWinner||'',d.roomExit?.id||'',Number(d.roomExit?.at||0)].join('|');
+mpListener=async snap=>{
+const gs=snap.val();
+if(!gs){ if(mpRole){showToast('Oda kapatıldı.','rose'); returnToHomeFromMultiplayer();} return; }
+mpRoomData={...(mpRoomData||{}),...gs};
+const roomBoardSig=Array.isArray(gs.board)?boardSignature(gs.board):'';
+const metaSig=[gs.status,Number(gs.startAt||0),Number(gs.round||1),roomBoardSig,mpRoomData.guestId||'',!!mpRoomData.guestOnline,!!mpRoomData.rematch?.host,!!mpRoomData.rematch?.guest,Number(mpRoomData.rematch?.expiresAt||0),mpRoomData.finalWinner||''].join('|');
 if(metaSig===mpLastRoomMetaSig) return;
 mpLastRoomMetaSig=metaSig;
 
-if(d.status==='waiting'){
+if(gs.status==='waiting'){
 setMpState(MP_STATES.WAITING);
 if(mpRole==='host'){
-if(!d.guestId || !isOnline(d.presence?.guest)){
+if(!mpRoomData.guestId || !mpRoomData.guestOnline){
 if(mpEntered) document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
 else document.getElementById('modal-mp-waiting')?.classList.add('hidden');
 const st=document.getElementById('mp-status'); if(st)st.textContent='2. oyuncunun odaya katılması bekleniyor…';
@@ -40364,61 +40361,40 @@ const st=document.getElementById('mp-status'); if(st)st.textContent='2. oyuncu b
 if(!mpEntered) await enterMultiplayerRoom();
 await hostStartWaitingRound();
 }
-}else if(mpRole==='guest'){
-if(!mpEntered) await enterMultiplayerRoom();
+}else if(mpRole==='guest' && !mpEntered) await enterMultiplayerRoom();
 }
-}
-if(d.status==='countdown'){
-setMpState(MP_STATES.COUNTDOWN);
-document.getElementById('modal-mp-waiting')?.classList.add('hidden');
+if(gs.status==='countdown'){
+setMpState(MP_STATES.COUNTDOWN); document.getElementById('modal-mp-waiting')?.classList.add('hidden');
 const localSig=Array.isArray(gridBoard)&&gridBoard.length?boardSignature(gridBoard):'';
-if(roomBoardSig && localSig!==roomBoardSig){
-mpEntered=false; mpStarted=false; clearInterval(timerInterval); timerInterval=null; isMatchActive=false;
-p1Score=Number(d.scores?.host||0); p2Score=Number(d.scores?.guest||0); updateScores();
-resetMatchWordResults(); resetSeriesWordResults(); sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
-const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
-}
+if(roomBoardSig && localSig!==roomBoardSig){mpEntered=false;mpStarted=false;clearInterval(timerInterval);timerInterval=null;isMatchActive=false;resetMatchWordResults();resetSeriesWordResults();sessionFoundWords.clear();mpFoundWords.host.clear();mpFoundWords.guest.clear();mpSeenWordEvents.clear();const ticker=document.getElementById('words-ticker');if(ticker)ticker.innerHTML='';}
 if(!mpEntered) await enterMultiplayerRoom();
-if(d.startAt && !mpStarted) startSyncedMatch(d);
+if(gs.startAt && !mpStarted) startSyncedMatch(gs);
 }
-if(d.status==='playing'){
-if(!mpEntered) await enterMultiplayerRoom();
-activateMultiplayerPlaying(d);
-}
-if(d.status==='finished'){
-setMpState(MP_STATES.FINISHED);
-document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
+if(gs.status==='playing'){if(!mpEntered) await enterMultiplayerRoom();activateMultiplayerPlaying(gs);}
+if(gs.status==='finished'){
+setMpState(MP_STATES.FINISHED); document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
+const d={...(mpRoomData||{}),...gs};
 const bothReady=!!d.rematch?.host && !!d.rematch?.guest && Number(d.rematch?.expiresAt||0)>=serverNow();
-if(bothReady) showImmediateRematchSync();
-else showMultiplayerSeriesResult(d);
-await hostExpireRematchIfNeeded(d);
-if(mpRole==='host' && bothReady) await hostStartRematch();
+if(bothReady) showImmediateRematchSync(); else showMultiplayerSeriesResult(d);
+await hostExpireRematchIfNeeded(d); if(mpRole==='host'&&bothReady) await hostStartRematch();
 }
-});
+};
+mpRoomRef.child('gameState').on('value',mpListener);
 
-if(mpScoresListener) mpRoomRef.child('scores').off('value',mpScoresListener);
+bindControl('guestId','value',snap=>{mpRoomData={...(mpRoomData||{}),guestId:snap.val()||null}; if(mpRoomData.status==='waiting'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
+bindControl('presence/guest','value',snap=>{const v=snap.val()||{};mpRoomData={...(mpRoomData||{}),guestOnline:isOnline(v)}; if(mpRoomData.status==='waiting'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
+bindControl('rematch','value',snap=>{mpRoomData={...(mpRoomData||{}),rematch:snap.val()||{}}; if(mpRoomData.status==='finished'){renderRematchState({...mpRoomData,status:'finished'}); if(mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);}});
+bindControl('finalWinner','value',snap=>{mpRoomData={...(mpRoomData||{}),finalWinner:snap.val()||null}; if(mpRoomData.status==='finished'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
+bindControl('longestBonus','value',snap=>{mpRoomData={...(mpRoomData||{}),longestBonus:snap.val()||null}; if(mpRoomData.status==='finished'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
+bindControl('roomExit','value',snap=>{const exitSignal=snap.val(); if(exitSignal?.id&&exitSignal.id!==mpLastExitSignalId&&Number(exitSignal.at||0)>=mpSessionJoinedAt-1000){mpLastExitSignalId=exitSignal.id;handleSynchronizedRoomExit();}});
+
 mpScoresListener=mpRoomRef.child('scores').on('value',snap=>{
-const sc=snap.val()||{};
-if(mpRole==='host'){
-if(!isOwnMpScorePending()) p1Score=Number(sc.host||0);
-p2Score=Number(sc.guest||0);
-}else if(mpRole==='guest'){
-p1Score=Number(sc.host||0);
-if(!isOwnMpScorePending()) p2Score=Number(sc.guest||0);
-}else{
-p1Score=Number(sc.host||0); p2Score=Number(sc.guest||0);
-}
-updateScores();
+const sc=snap.val()||{}; mpRoomData={...(mpRoomData||{}),scores:sc};
+if(mpRole==='host'){if(!isOwnMpScorePending())p1Score=Number(sc.host||0);p2Score=Number(sc.guest||0);}else if(mpRole==='guest'){p1Score=Number(sc.host||0);if(!isOwnMpScorePending())p2Score=Number(sc.guest||0);}else{p1Score=Number(sc.host||0);p2Score=Number(sc.guest||0);} updateScores();
 });
 
-if(mpWordsListener) mpRoomRef.child('words').off('child_added',mpWordsListener);
 mpWordsListener=mpRoomRef.child('words').on('child_added',snap=>{
-const ev=snap.val(), key=snap.key;
-if(!ev||!key||mpSeenWordEvents.has(key)) return;
-mpSeenWordEvents.add(key);
-const w=String(ev.word||'').toLocaleUpperCase('tr-TR');
-if(w){ mpFoundWords.host.add(w); mpFoundWords.guest.add(w); sessionFoundWords.add(w); recordMatchWord(w,ev.pts,ev.role==='host'); }
-if(ev.role!==mpRole) applyRemoteWordEvent(ev,key);
+const ev=snap.val(),key=snap.key;if(!ev||!key||mpSeenWordEvents.has(key))return;mpSeenWordEvents.add(key);const w=String(ev.word||'').toLocaleUpperCase('tr-TR');if(w){mpFoundWords.host.add(w);mpFoundWords.guest.add(w);sessionFoundWords.add(w);recordMatchWord(w,ev.pts,ev.role==='host');}if(ev.role!==mpRole)applyRemoteWordEvent(ev,key);
 });
 }
 
@@ -40482,7 +40458,7 @@ if(num)num.style.transform=`scale(${1+(3-n)*.10})`;
 return;
 }
 clearInterval(mpClock); modal?.classList.add('hidden'); isMatchActive=true; setMpState(MP_STATES.PLAYING);
-if(mpRole==='host') mpRoomRef.child('status').set('playing').catch(()=>{});
+if(mpRole==='host') mpRoomRef.child('gameState/status').set('playing').catch(()=>{});
 remainingSeconds=60; updateGameTimerUI(60);
 startMultiplayerTimer(startAt);
 };
@@ -40600,9 +40576,10 @@ timer=setTimeout(()=>finish(false),Math.max(300,timeoutMs||1400));
 }
 
 function detachMultiplayerListeners(){
-if(mpRoomRef && mpListener){ mpRoomRef.off('value',mpListener); mpListener=null; }
+if(mpRoomRef && mpListener){ mpRoomRef.child('gameState').off('value',mpListener); mpListener=null; }
 if(mpRoomRef && mpScoresListener){ mpRoomRef.child('scores').off('value',mpScoresListener); mpScoresListener=null; }
 if(mpRoomRef && mpWordsListener){ mpRoomRef.child('words').off('child_added',mpWordsListener); mpWordsListener=null; }
+for(const x of mpControlListeners.splice(0)){ try{x.ref.off(x.event,x.handler);}catch(e){} }
 }
 function resetMultiplayerClientState(){
 detachMultiplayerListeners();
@@ -41598,7 +41575,7 @@ if(!mpRoomRef) return false;
 const started=Date.now();
 while(Date.now()-started<timeoutMs){
 try{
-const snap=await mpRoomRef.child('status').once('value');
+const snap=await mpRoomRef.child('gameState/status').once('value');
 if(snap.val()==='finished') return true;
 }catch(e){}
 await new Promise(r=>setTimeout(r,120));
