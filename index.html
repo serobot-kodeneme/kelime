@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v186</title>
-<meta name="game-version" content="v185">
+<title>Kelime Düellosu v187</title>
+<meta name="game-version" content="v187">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -673,7 +673,7 @@ body.graphics-high #gameover-heading{animation:highWinnerBounce .85s ease-in-out
 <div class="flex items-center gap-2 py-0.5"><span class="h-px flex-1 bg-slate-200"></span><span class="text-[9px] font-black text-slate-400">VEYA</span><span class="h-px flex-1 bg-slate-200"></span></div>
 <button id="btn-random-match" class="home-mode-btn w-full min-h-[40px] rounded-xl bg-gradient-to-b from-violet-400 to-indigo-600 text-white text-xs font-black shadow-md border border-violet-200">🎲 RASTGELE RAKİP</button>
 <div id="mp-random-status" class="hidden rounded-lg bg-violet-50 border border-violet-100 px-2.5 py-1.5 text-[10px] font-bold text-violet-900">Çevrimiçi rakip aranıyor…</div>
-<div class="rounded-lg bg-slate-50 border border-slate-200 px-2.5 py-1.5 text-[9px] font-bold text-slate-500">Çevrimiçi kapışma arayan rakip aranır, rakip bulunamazsa AI rakiple kapışılır.</div>
+<div class="rounded-lg bg-slate-50 border border-slate-200 px-2.5 py-1.5 text-[9px] font-bold text-slate-500">Çevrimiçi Rastgele Rakip düğmesine basan oyuncular sırayla eşleştirilir. İlk basan 1. oyuncu, sonra eşleşen 2. oyuncu olur.</div>
 </div>
 <div id="mp-room-view" class="hidden mt-2 text-center">
 <div class="text-[9px] font-black text-slate-500 uppercase text-left mb-1">ODA KODU</div>
@@ -39825,7 +39825,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v186';
+const GAME_VERSION='v187';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -39953,7 +39953,8 @@ mpPresenceRef.onDisconnect().set({online:false,clientId:getClientToken(),at:fire
 function isOnline(p){ return !!(p && (p===true || p.online===true)); }
 
 let randomQueueRef=null, randomQueueListener=null, randomSearchActive=false, randomSearchTicket=null;
-const RANDOM_SEARCH_MS=5000;
+let randomResultAutoExitTimer=null;
+const RANDOM_SEARCH_MS=600000;
 const RANDOM_QUEUE_TTL=14000;
 const RANDOM_AI_NAMES=['İsmail A.','Yavuz M.','Mert K.','Emre D.','Burak T.','Can E.'];
 
@@ -39993,7 +39994,7 @@ const alloc=await allocateDailyRoomCode();
 const code=alloc.code, ref=mpDb.ref('rooms/'+code);
 const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board, readyBoard.words);
 await ref.set({
-schema:20, mode:'random-match-v5', createdAt:firebase.database.ServerValue.TIMESTAMP,
+schema:20, mode:'random-match-v6', createdAt:firebase.database.ServerValue.TIMESTAMP,
 dayKey:alloc.dayKey,
 hostId, guestId,
 gameState:{status:'waiting',board:readyBoard.board,startAt:0,round:1},
@@ -40133,7 +40134,12 @@ if(ok) return;
 }
 }catch(e){}
 }
-await startRandomAiFallback();
+setRandomStatus('Rakip bekleniyor…',true);
+if(randomQueueRef && randomSearchTicket){
+  const room=await waitForRandomRoom(randomSearchTicket,600000);
+  if(room){ randomSearchActive=false; const ok=await joinRoom(room); if(ok) return; }
+}
+await cleanupRandomQueue(true);
 }
 
 async function createRoom(){
@@ -40380,9 +40386,30 @@ const c1=document.getElementById('final-p1-card'),c2=document.getElementById('fi
 if(d.finalWinner==='host'){if(c1){c1.style.transform='scale(1.05)';c1.style.background='rgba(254,243,199,.9)';c1.style.borderRadius='16px';c1.style.padding='6px';}if(c2)c2.style.filter='saturate(.7) opacity(.82)';heading.textContent=`${p1Name} KAZANDI! 🏆`;p1NameEl?.classList.add('winner-pulse','winner-name-big');p1ScoreEl?.classList.add('winner-pulse');launchGrandCelebration('p1');}
 else if(d.finalWinner==='guest'){if(c2){c2.style.transform='scale(1.05)';c2.style.background='rgba(224,242,254,.92)';c2.style.borderRadius='16px';c2.style.padding='6px';}if(c1)c1.style.filter='saturate(.7) opacity(.82)';heading.textContent=`${p2Name} KAZANDI! 🏆`;p2NameEl?.classList.add('winner-pulse','winner-name-big');p2ScoreEl?.classList.add('winner-pulse');launchGrandCelebration('p2');}
 else {heading.textContent='BERABERE! 🤝'; spawnHighResultPartyFx(); launchLightResultConfetti(0.5);}
-const replay=document.getElementById('btn-play-again');if(replay){replay.disabled=false;replay.textContent='YENİDEN OYNA';replay.classList.remove('hidden');replay.classList.toggle('rematch-pulse',isRandomHumanRoom());}
-const exitBtn=document.getElementById('btn-game-exit'); if(exitBtn){exitBtn.disabled=false;exitBtn.classList.remove('hidden');}
-const inline=document.getElementById('rematch-inline-status'); if(inline){inline.classList.add('hidden');inline.textContent='';} renderRematchState(d);
+const replay=document.getElementById('btn-play-again');
+const exitBtn=document.getElementById('btn-game-exit');
+const inline=document.getElementById('rematch-inline-status');
+if(isRandomHumanRoom()){
+  if(replay){replay.disabled=true;replay.classList.add('hidden');replay.classList.remove('rematch-pulse');}
+  if(inline){inline.classList.add('hidden');inline.textContent='';}
+  if(exitBtn){
+    exitBtn.disabled=false;exitBtn.classList.remove('hidden');
+    exitBtn.className='w-full mt-2 bg-red-600 hover:bg-red-700 text-white font-black text-sm py-3 rounded-xl uppercase border border-red-500 shadow-md';
+    exitBtn.textContent='ÇIKIŞ';
+  }
+  if(randomResultAutoExitTimer) clearTimeout(randomResultAutoExitTimer);
+  randomResultAutoExitTimer=setTimeout(()=>{
+    randomResultAutoExitTimer=null;
+    const ref=mpRoomRef, role=mpRole;
+    returnToHomeFromMultiplayer();
+    if(role==='host' && ref) ref.remove().catch(()=>{});
+  },5000);
+}else{
+  if(replay){replay.disabled=false;replay.textContent='YENİDEN OYNA';replay.classList.remove('hidden');replay.classList.add('rematch-pulse');}
+  if(exitBtn){exitBtn.disabled=false;exitBtn.classList.remove('hidden');exitBtn.className='w-full mt-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs py-2.5 rounded-xl uppercase border border-slate-200';exitBtn.textContent='ÇIKIŞ';}
+  if(inline){inline.classList.add('hidden');inline.textContent='';}
+  renderRematchState(d);
+}
 scheduleBoardPrewarm();
 }
 
@@ -40661,6 +40688,7 @@ mpSeenWordEvents.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear();
 setMpState(MP_STATES.IDLE);
 }
 function returnToHomeFromMultiplayer(){
+if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
 resetMultiplayerClientState();
 clearInviteFromUrl();
 document.getElementById('modal-countdown')?.classList.add('hidden');
@@ -41675,6 +41703,7 @@ modal?.classList.remove('hidden');
 }
 
 async function handlePlayAgain(){
+if(activeGameMode==='multi' && isRandomHumanRoom()) return;
 if(activeGameMode !== 'multi'){
 clearInterval(timerInterval); timerInterval=null;
 clearTimeout(botInterval); botInterval=null;
@@ -41844,6 +41873,13 @@ else exitCurrentGameToHome();
 });
 
 document.getElementById('btn-game-exit')?.addEventListener('click', ()=>{
+if(isRandomHumanRoom()){
+  if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
+  const ref=mpRoomRef, role=mpRole;
+  returnToHomeFromMultiplayer();
+  if(role==='host' && ref) ref.remove().catch(()=>{});
+  return;
+}
 if(mpRoomRef && mpRole) requestSynchronizedRoomExit();
 else returnToHomeFromMultiplayer();
 });
@@ -41953,7 +41989,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v186: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Kelime Düellosu optimize motor v187: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
