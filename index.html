@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v187</title>
-<meta name="game-version" content="v187">
+<title>Kelime Düellosu v188</title>
+<meta name="game-version" content="v188">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -39825,7 +39825,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v187';
+const GAME_VERSION='v188';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -40170,6 +40170,17 @@ setMpState(MP_STATES.WAITING);
 attachRoomListener();
 }
 
+function showInviteDecisionModal(){
+const modal=document.getElementById('modal-room-invite');
+const codeEl=document.getElementById('invite-room-code');
+const startBtn=document.getElementById('btn-invite-start');
+const cancelBtn=document.getElementById('btn-invite-cancel');
+if(codeEl) codeEl.textContent=String(mpRoomCode||'').toUpperCase();
+if(startBtn){ startBtn.disabled=false; startBtn.classList.remove('hidden'); }
+if(cancelBtn){ cancelBtn.disabled=false; cancelBtn.classList.remove('hidden'); }
+modal?.classList.remove('hidden');
+}
+
 async function joinRoom(code){
 code=String(code||'').toLowerCase().replace(/[^a-z]/g,'').slice(0,5);
 if(!/^[a-z]{5}$/.test(code)) return false;
@@ -40202,6 +40213,9 @@ document.getElementById('btn-close-room')?.classList.toggle('hidden',role!=='hos
 document.getElementById('btn-enter-room')?.classList.toggle('hidden',role!=='host');
 setMpState(mpRoomData.status||MP_STATES.WAITING);
 attachRoomListener();
+if(role==='guest' && /^invite-only-/.test(String(mpRoomMode||'')) && mpRoomData.status==='waiting'){
+showInviteDecisionModal();
+}
 if(role==='guest' && /^random-match-/.test(String(mpRoomMode||''))) await enterMultiplayerRoom();
 return true;
 }
@@ -40775,10 +40789,7 @@ document.getElementById('friend-invite-panel')?.classList.remove('hidden');
 const ok=await joinRoom(code);
 if(ok){
 if(mpRole==='guest' && /^invite-only-/.test(String(mpRoomMode||'')) && mpRoomData?.status==='waiting') {
-const modal=document.getElementById('modal-room-invite');
-const codeEl=document.getElementById('invite-room-code'); if(codeEl) codeEl.textContent=String(mpRoomCode||'').toUpperCase();
-const startBtn=document.getElementById('btn-invite-start'); if(startBtn) startBtn.disabled=false;
-modal?.classList.remove('hidden');
+showInviteDecisionModal();
 } else if(mpRole==='guest') {
 await enterMultiplayerRoom();
 } else {
@@ -41989,7 +42000,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v187: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Kelime Düellosu optimize motor v188: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
