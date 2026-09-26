@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v182</title>
-<meta name="game-version" content="v182">
+<title>Kelime Düellosu v183</title>
+<meta name="game-version" content="v183">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -39825,7 +39825,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v182';
+const GAME_VERSION='v183';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -40247,12 +40247,15 @@ const [gsSnap,rSnap]=await Promise.all([mpRoomRef.child('gameState').once('value
 const gs=gsSnap.val()||{}, r=rSnap.val()||{}, exp=Number(r.expiresAt||0);
 if(gs.status!=='finished'||!r.host||!r.guest||!exp||exp<now) return;
 const nextRound=Number(gs.round||1)+1;
+// Yeni turu yazmadan ÖNCE yerel başlangıç bayraklarını sıfırla.
+// Firebase local event'i update() promise'inden önce gelebilir; aksi halde host countdown'u kaçırabilir.
+mpStarted=false; mpEntered=false; isMatchActive=false;
+clearInterval(timerInterval); timerInterval=null;
 await mpRoomRef.update({
 'gameState':{status:'countdown',board:fresh,startAt:now+3200,round:nextRound},
 'scores':{host:0,guest:0},'words':null,'longestBonus':null,'bonusApplied':false,'finalWinner':null,
-'endReady':{host:false,guest:false},'rematch':{host:false,guest:false,expiresAt:0}
+'endReady':{host:false,guest:false},'rematch':{host:false,guest:false,expiresAt:0},'randomRematchRequest':null
 });
-mpStarted=false;mpEntered=false;
 }catch(e){console.error('Rematch start error',e);showToast('Yeni oyun başlatılamadı. Tekrar deneyin.','rose');}
 finally{mpRematchBusy=false;}
 }
@@ -40263,40 +40266,23 @@ return activeGameMode==='multi' && /^random-match-/.test(String(mpRoomMode||''))
 }
 
 async function hostStartRandomRematch(){
-if(mpRole!=='host'||mpRematchBusy||!mpRoomRef||!isRandomHumanRoom()) return;
-mpRematchBusy=true;
-try{
-const gsSnap=await mpRoomRef.child('gameState').once('value');
-const gs=gsSnap.val()||{};
-if(gs.status!=='finished') return;
-await new Promise(resolve=>requestAnimationFrame(()=>resolve()));
-const ready=prewarmedBoard || generateOptimizedBoard(2); prewarmedBoard=null;
-const fresh=ready.board; rememberBoard(fresh, ready.words);
-const now=serverNow();
-const nextRound=Number(gs.round||1)+1;
-await mpRoomRef.update({
-'gameState':{status:'countdown',board:fresh,startAt:now+3200,round:nextRound},
-'scores':{host:0,guest:0},'words':null,'longestBonus':null,'bonusApplied':false,'finalWinner':null,
-'endReady':{host:false,guest:false},'rematch':{host:false,guest:false,expiresAt:0},'randomRematchRequest':null
-});
-mpStarted=false; mpEntered=false;
-}catch(e){
-console.error('Random rematch start error',e);
-showToast('Yeni oyun başlatılamadı. Tekrar deneyin.','rose');
-}finally{ mpRematchBusy=false; }
+// v183: Rastgele ve davetli maçlar aynı çift-onaylı rövanş motorunu kullanır.
+return hostStartRematch();
 }
 
 async function requestRandomImmediateRematch(){
+// Geriye dönük isim korunuyor; v183'te rastgele rakip de karşılıklı onay ister.
 if(!mpRoomRef||!mpRole||!isRandomHumanRoom()) return false;
-showImmediateRematchSync();
-const btn=document.getElementById('btn-play-again');
-if(btn){btn.disabled=true;btn.textContent='YENİ OYUN HAZIRLANIYOR…';}
-if(mpRole==='host'){
-await hostStartRandomRematch();
-return true;
-}
-await mpRoomRef.child('randomRematchRequest').set({by:mpRole,at:firebase.database.ServerValue.TIMESTAMP,round:Number(mpRoomData?.round||1)});
-return true;
+const rematchRef=mpRoomRef.child('rematch');
+const res=await rematchRef.transaction(current=>{
+const now=serverNow();
+let r=current||{host:false,guest:false,expiresAt:0};
+const exp=Number(r.expiresAt||0);
+if(!exp || exp<now) r={host:false,guest:false,expiresAt:now+30000};
+r[mpRole]=true;
+return r;
+});
+return !!res.committed;
 }
 
 async function hostExpireRematchIfNeeded(d){
@@ -40372,7 +40358,7 @@ else if(d.finalWinner==='guest'){if(c2){c2.style.transform='scale(1.05)';c2.styl
 else {heading.textContent='BERABERE! 🤝'; spawnHighResultPartyFx(); launchLightResultConfetti(0.5);}
 const replay=document.getElementById('btn-play-again');if(replay){replay.disabled=false;replay.textContent='YENİDEN OYNA';replay.classList.remove('hidden');replay.classList.toggle('rematch-pulse',isRandomHumanRoom());}
 const exitBtn=document.getElementById('btn-game-exit'); if(exitBtn){exitBtn.disabled=false;exitBtn.classList.remove('hidden');}
-const inline=document.getElementById('rematch-inline-status'); if(inline&&isRandomHumanRoom()){inline.classList.add('hidden');inline.textContent='';} else renderRematchState(d);
+const inline=document.getElementById('rematch-inline-status'); if(inline){inline.classList.add('hidden');inline.textContent='';} renderRematchState(d);
 scheduleBoardPrewarm();
 }
 
@@ -40420,13 +40406,10 @@ if(gs.status==='playing'){if(!mpEntered) await enterMultiplayerRoom();activateMu
 if(gs.status==='finished'){
 setMpState(MP_STATES.FINISHED); document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
 const d={...(mpRoomData||{}),...gs};
-if(isRandomHumanRoom()){
-showMultiplayerSeriesResult(d);
-}else{
 const bothReady=!!d.rematch?.host && !!d.rematch?.guest && Number(d.rematch?.expiresAt||0)>=serverNow();
 if(bothReady) showImmediateRematchSync(); else showMultiplayerSeriesResult(d);
-await hostExpireRematchIfNeeded(d); if(mpRole==='host'&&bothReady) await hostStartRematch();
-}
+await hostExpireRematchIfNeeded(d);
+if(mpRole==='host'&&bothReady) await hostStartRematch();
 }
 };
 mpRoomRef.child('gameState').on('value',mpListener);
@@ -40437,13 +40420,6 @@ bindControl('rematch','value',snap=>{mpRoomData={...(mpRoomData||{}),rematch:sna
 bindControl('finalWinner','value',snap=>{mpRoomData={...(mpRoomData||{}),finalWinner:snap.val()||null}; if(mpRoomData.status==='finished'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
 bindControl('longestBonus','value',snap=>{mpRoomData={...(mpRoomData||{}),longestBonus:snap.val()||null}; if(mpRoomData.status==='finished'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
 bindControl('roomExit','value',snap=>{const exitSignal=snap.val(); if(exitSignal?.id&&exitSignal.id!==mpLastExitSignalId&&Number(exitSignal.at||0)>=mpSessionJoinedAt-1000){mpLastExitSignalId=exitSignal.id;handleSynchronizedRoomExit();}});
-bindControl('randomRematchRequest','value',snap=>{
-const req=snap.val();
-if(!req||!isRandomHumanRoom()||mpRole!=='host'||mpState!==MP_STATES.FINISHED) return;
-const at=Number(req.at||0); if(at && at<mpSessionJoinedAt-1000) return;
-hostStartRandomRematch();
-});
-
 mpScoresListener=mpRoomRef.child('scores').on('value',snap=>{
 const sc=snap.val()||{}; mpRoomData={...(mpRoomData||{}),scores:sc};
 if(mpRole==='host'){if(!isOwnMpScorePending())p1Score=Number(sc.host||0);p2Score=Number(sc.guest||0);}else if(mpRole==='guest'){p1Score=Number(sc.host||0);if(!isOwnMpScorePending())p2Score=Number(sc.guest||0);}else{p1Score=Number(sc.host||0);p2Score=Number(sc.guest||0);} updateScores();
@@ -41670,11 +41646,6 @@ try{
 const finished=await waitUntilRoomFinished();
 if(!finished) throw new Error('room-not-finished');
 
-if(isRandomHumanRoom()){
-await requestRandomImmediateRematch();
-return;
-}
-
 const role=mpRole;
 const rematchRef=mpRoomRef.child('rematch');
 const res=await rematchRef.transaction(current=>{
@@ -41936,7 +41907,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v182: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Kelime Düellosu optimize motor v183: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
