@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v207</title>
-<meta name="game-version" content="v207">
+<title>Kelime Düellosu v208</title>
+<meta name="game-version" content="v208">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -346,7 +346,7 @@ text-shadow:0 2px 8px rgba(0,0,0,.22); filter:saturate(.96); will-change:transfo
 .score-fly.go { transform: translate3d(var(--dx),var(--dy),0) scale(1.22); opacity:0; }
 
 
-/* v207: hafif ödül efektleri — tahta hattından bağımsız */
+/* v208: hafif ödül efektleri — tahta hattından bağımsız */
 @keyframes kdScorePop{0%{transform:scale(1)}42%{transform:scale(1.13)}100%{transform:scale(1)}}
 .kd-score-pop{animation:kdScorePop .24s ease-out;will-change:transform}
 @keyframes kdAvatarRing{0%{box-shadow:0 0 0 0 rgba(255,255,255,.9),0 2px 6px rgba(0,0,0,.24)}55%{box-shadow:0 0 0 5px rgba(255,255,255,.18),0 2px 6px rgba(0,0,0,.24)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0),0 2px 6px rgba(0,0,0,.24)}}
@@ -948,8 +948,9 @@ Bir harfe basılı tutup sürükle; bıraktığında sözcük otomatik kontrol e
 <div class="mx-auto mb-4 w-16 h-16 rounded-full bg-sky-50 border-2 border-sky-100 flex items-center justify-center">
 <div class="w-8 h-8 rounded-full border-4 border-sky-200 border-t-sky-600 animate-spin"></div>
 </div>
-<div class="text-lg font-black text-slate-800">2. oyuncunun yanıtı bekleniyor</div>
-<div class="mt-2 text-xs font-bold text-slate-500">Arkadaşın davette BAŞLA dediğinde senkronizasyon ve geri sayım otomatik başlayacak.</div>
+<div class="text-lg font-black text-slate-800">DAVET EDİLEN OYUNCU BEKLENİYOR</div>
+<div id="invite-wait-countdown" class="mt-2 text-3xl font-black tabular-nums text-sky-600">59</div>
+<div class="mt-1 text-xs font-bold text-slate-500">59 saniye içinde BAŞLA yanıtı gelmezse oda otomatik kapatılır.</div>
 </div>
 </div>
 
@@ -39862,7 +39863,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v207';
+const GAME_VERSION='v208';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -39943,12 +39944,58 @@ let code='';
 for(let i=0;i<5;i++) code+=alphabet[bytes[i]%26];
 return code;
 }
+async function lockClosedRoomCode(code,roomRef=null,reason='closed'){
+if(!mpDb || !code) return;
+let dayKey=turkeyRoomDayInfo().dayKey;
+try{
+if(roomRef){ const snap=await roomRef.child('dayKey').once('value'); if(snap.val()) dayKey=String(snap.val()); }
+await mpDb.ref('meta/closedRoomCodes/'+dayKey+'/'+code).set({closed:true,at:firebase.database.ServerValue.TIMESTAMP,reason:String(reason||'closed')});
+}catch(_){ }
+}
+async function isRoomCodeClosedToday(code){
+if(!mpDb || !code) return false;
+const {dayKey}=turkeyRoomDayInfo();
+try{ return !!(await mpDb.ref('meta/closedRoomCodes/'+dayKey+'/'+code).once('value')).exists(); }catch(_){ return false; }
+}
+async function closeAndLockPrivateRoom(ref,code,reason='closed'){
+if(!ref || !code) return;
+await lockClosedRoomCode(code,ref,reason);
+try{ await ref.remove(); }catch(_){ }
+}
+function stopInviteWaitCountdown(){
+if(inviteWaitCountdownTimer){ clearInterval(inviteWaitCountdownTimer); inviteWaitCountdownTimer=null; }
+inviteWaitDeadlineAt=0;
+const el=document.getElementById('invite-wait-countdown'); if(el) el.textContent='59';
+}
+async function expirePrivateInviteRoom(){
+if(mpRole!=='host'||!mpRoomRef||!mpRoomCode||!/^invite-only-/.test(String(mpRoomMode||''))) return;
+const ref=mpRoomRef,code=mpRoomCode;
+try{
+const [gsSnap,invSnap]=await Promise.all([ref.child('gameState').once('value'),ref.child('invite/guest').once('value')]);
+const gs=gsSnap.val()||{}, inv=invSnap.val()||{};
+if(gs.status!=='waiting'||inv.guest==='accepted') return;
+await closeAndLockPrivateRoom(ref,code,'invite-timeout');
+}catch(_){ }
+showToast('Davet süresi doldu. Oda kapatıldı.','slate');
+returnToHomeFromMultiplayer();
+}
+function startInviteWaitCountdown(deadlineAt){
+stopInviteWaitCountdown();
+inviteWaitDeadlineAt=Number(deadlineAt||0);
+const tick=()=>{
+const left=Math.max(0,Math.ceil((inviteWaitDeadlineAt-serverNow())/1000));
+const el=document.getElementById('invite-wait-countdown'); if(el) el.textContent=String(left);
+if(left<=0){ stopInviteWaitCountdown(); expirePrivateInviteRoom(); }
+};
+tick(); inviteWaitCountdownTimer=setInterval(tick,250);
+}
 async function allocateDailyRoomCode(){
 if(!mpDb) throw new Error('firebase-not-ready');
 const {dayKey}=turkeyRoomDayInfo();
 const claimToken=getClientToken()+':'+serverNow()+':'+Math.random().toString(36).slice(2,8);
 for(let attempt=0;attempt<40;attempt++){
 const code=randomDailyRoomCode();
+if(await isRoomCodeClosedToday(code)) continue;
 const claimRef=mpDb.ref('meta/dailyRoomCodes/'+dayKey+'/'+code);
 const claim=await claimRef.transaction(current=>current==null?claimToken:undefined);
 if(!claim.committed) continue;
@@ -39991,6 +40038,8 @@ function isOnline(p){ return !!(p && (p===true || p.online===true)); }
 
 let randomQueueRef=null, randomQueueListener=null, randomSearchActive=false, randomSearchTicket=null;
 let randomResultAutoExitTimer=null;
+let inviteWaitCountdownTimer=null;
+let inviteWaitDeadlineAt=0;
 const RANDOM_SEARCH_MS=600000;
 const RANDOM_QUEUE_TTL=14000;
 const RANDOM_AI_NAMES=['İsmail A.','Yavuz M.','Mert K.','Emre D.','Burak T.','Can E.'];
@@ -40194,7 +40243,7 @@ dayKey:alloc.dayKey,
 hostId, guestId:null,
 gameState:{status:'waiting',board:readyBoard.board,startAt:0,round:1},
 scores:{host:0,guest:0}, words:{}, longestBonus:null, bonusApplied:false,
-endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0}, pendingRound:null, invite:{guest:'pending'},
+endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0}, pendingRound:null, invite:{guest:'pending',expiresAt:0},
 presence:{host:{online:true,clientId:hostId},guest:{online:false}}
 });
 
@@ -40222,9 +40271,14 @@ async function joinRoom(code){
 code=String(code||'').toLowerCase().replace(/[^a-z]/g,'').slice(0,5);
 if(!/^[a-z]{5}$/.test(code)) return false;
 if(!await waitFirebaseConnected()){ showToast('Sunucuya bağlanılamadı.','rose'); return false; }
+if(await isRoomCodeClosedToday(code)){ showToast('Bu oda kapatılmış.','rose'); clearInviteFromUrl(); returnToHomeFromMultiplayer(); return false; }
 const ref=mpDb.ref('rooms/'+code); const snap=await ref.once('value');
-if(!snap.exists()){ showToast('Davet odası bulunamadı veya kapatılmış.','rose'); clearInviteFromUrl(); return false; }
+if(!snap.exists()){ showToast('Davet odası bulunamadı veya kapatılmış.','rose'); clearInviteFromUrl(); returnToHomeFromMultiplayer(); return false; }
 const d=snap.val()||{}; const clientId=getClientToken();
+if(/^invite-only-/.test(String(d.mode||'')) && Number(d.invite?.expiresAt||0)>0 && Number(d.invite.expiresAt)<=serverNow() && String(d.gameState?.status||'')==='waiting'){
+  await closeAndLockPrivateRoom(ref,code,'invite-expired');
+  showToast('Davet süresi dolmuş.','rose'); clearInviteFromUrl(); returnToHomeFromMultiplayer(); return false;
+}
 // Gün değişimi aktif odayı kapatmaz. dayKey yalnızca yeni oda kodu havuzunu ayırır.
 let role=null;
 if(d.hostId===clientId){
@@ -40519,6 +40573,7 @@ else document.getElementById('modal-mp-waiting')?.classList.add('hidden');
 const st=document.getElementById('mp-status');
 if(st) st.textContent = mpRoomData.guestId && mpRoomData.guestOnline ? '2. oyuncunun BAŞLA yanıtı bekleniyor…' : '2. oyuncunun yanıtı bekleniyor…';
 }else{
+stopInviteWaitCountdown();
 document.getElementById('modal-mp-waiting')?.classList.add('hidden');
 const st=document.getElementById('mp-status'); if(st)st.textContent='2. oyuncu hazır ✓ Senkron başlatılıyor…';
 if(!mpEntered) await enterMultiplayerRoom();
@@ -40763,6 +40818,7 @@ if(mpRoomRef && mpWordsListener){ mpRoomRef.child('words').off('child_added',mpW
 for(const x of mpControlListeners.splice(0)){ try{x.ref.off(x.event,x.handler);}catch(e){} }
 }
 function resetMultiplayerClientState(){
+stopInviteWaitCountdown();
 detachMultiplayerListeners();
 clearInterval(mpClock); mpClock=null;
 clearInterval(timerInterval); timerInterval=null;
@@ -40807,7 +40863,7 @@ async function discardCurrentPrivateRoom(){
 const oldRef=mpRoomRef, oldRole=mpRole, oldMode=mpRoomMode;
 if(oldRef && oldRole==='host' && /^invite-only-/.test(String(oldMode||''))){
   detachMultiplayerListeners();
-  try{ await oldRef.remove(); }catch(_){ }
+  try{ await closeAndLockPrivateRoom(oldRef,mpRoomCode,'host-discard'); }catch(_){ }
 }
 if(mpPresenceRef){ try{ await mpPresenceRef.onDisconnect().cancel(); }catch(_){ } }
 resetMultiplayerClientState();
@@ -40864,10 +40920,13 @@ setTimeout(async()=>{
   try{
     const gs=(await mpRoomRef.child('gameState').once('value')).val()||{};
     if(gs.status!=='waiting') return;
+    const deadline=serverNow()+59000;
+    await mpRoomRef.child('invite/expiresAt').set(deadline);
     await enterMultiplayerRoom();
     isMatchActive=false;
-    const st=document.getElementById('mp-status'); if(st) st.textContent='DAVETE YANIT BEKLENİYOR';
+    const st=document.getElementById('mp-status'); if(st) st.textContent='DAVET EDİLEN OYUNCU BEKLENİYOR';
     document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
+    startInviteWaitCountdown(deadline);
   }catch(_){ }
 },2000);
 }catch(e){ showToast('Bağlantı kopyalanamadı.','rose'); }
@@ -40928,6 +40987,8 @@ document.getElementById('btn-invite-start')?.addEventListener('click',async()=>{
 if(mpRole!=='guest'||!mpRoomRef) return;
 const btn=document.getElementById('btn-invite-start'); if(btn) btn.disabled=true;
 try{
+const inv=(await mpRoomRef.child('invite').once('value')).val()||{};
+if(Number(inv.expiresAt||0)>0 && Number(inv.expiresAt)<=serverNow()){ showToast('Davet süresi doldu.','rose'); await closeAndLockPrivateRoom(mpRoomRef,mpRoomCode,'invite-expired'); returnToHomeFromMultiplayer(); return; }
 await mpRoomRef.child('invite/guest').set('accepted');
 document.getElementById('modal-room-invite')?.classList.add('hidden');
 await enterMultiplayerRoom();
@@ -40936,7 +40997,7 @@ await enterMultiplayerRoom();
 document.getElementById('btn-invite-cancel')?.addEventListener('click',async()=>{
 if(mpRole==='guest'&&mpRoomRef){
 await mpRoomRef.child('invite/guest').set('declined').catch(()=>{});
-await requestSynchronizedRoomExit('invite-declined');
+await requestSynchronizedRoomExit('player-exit');
 }else returnToHomeFromMultiplayer();
 });
 
@@ -40945,7 +41006,7 @@ if(!mpRoomRef || mpRole!=='host') return;
 try{
 const snap=await mpRoomRef.once('value'),d=snap.val();
 if(!d || d.hostId!==getClientToken()){ showToast('Bu odayı yalnızca kurucusu kapatabilir.','rose'); return; }
-await mpRoomRef.remove();
+await closeAndLockPrivateRoom(mpRoomRef,mpRoomCode,'host-close');
 resetMultiplayerClientState();
 clearInviteFromUrl();
 document.getElementById('mp-room-view').classList.add('hidden');
@@ -42077,13 +42138,13 @@ else {heading.textContent='BERABERE! 🤝'; spawnHighResultPartyFx(); launchLigh
 scheduleBoardPrewarm();
 }
 
-function showRoomExitNotice(message='OYUN İPTAL OLDU'){
+function showRoomExitNotice(message='OYUNDAN ÇIKIŞ YAPILDI'){
 let el=document.getElementById('mp-room-exit-notice');
 if(!el){
 el=document.createElement('div');
 el.id='mp-room-exit-notice';
 el.style.cssText='position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.52);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);pointer-events:auto;';
-el.innerHTML='<div id="mp-room-exit-notice-text" style="background:#7f1d1d;color:#fff;font-weight:900;font-size:18px;letter-spacing:.06em;padding:16px 24px;border-radius:18px;box-shadow:0 16px 40px rgba(0,0,0,.28)">OYUN İPTAL OLDU</div>';
+el.innerHTML='<div id="mp-room-exit-notice-text" style="background:#7f1d1d;color:#fff;font-weight:900;font-size:18px;letter-spacing:.06em;padding:16px 24px;border-radius:18px;box-shadow:0 16px 40px rgba(0,0,0,.28)">OYUNDAN ÇIKIŞ YAPILDI</div>';
 document.body.appendChild(el);
 }
 const txt=el.querySelector('#mp-room-exit-notice-text'); if(txt) txt.textContent=message;
@@ -42111,8 +42172,9 @@ await presence.set({online:false,clientId:getClientToken(),at:firebase.database.
 }
 const exitingRef=mpRoomRef;
 const shouldDeleteRoom=!!(exitingRef && mpRole==='host' && /^invite-only-/.test(String(mpRoomMode||'')));
-showRoomExitNotice('OYUN İPTAL OLDU');
-if(shouldDeleteRoom){ try{ await exitingRef.remove(); }catch(_){ } }
+const exitMessage=(reason==='rematch-timeout'||reason==='invite-timeout')?'OYUN İPTAL OLDU':'OYUNDAN ÇIKIŞ YAPILDI';
+showRoomExitNotice(exitMessage);
+if(shouldDeleteRoom){ try{ await closeAndLockPrivateRoom(exitingRef,mpRoomCode,reason||'player-exit'); }catch(_){ } }
 await new Promise(r=>setTimeout(r,2000));
 returnToHomeFromMultiplayer();
 hideRoomExitNotice();
@@ -42172,7 +42234,7 @@ document.getElementById('screen-home')?.classList.remove('hidden');
 }
 
 document.getElementById('btn-quick-exit')?.addEventListener('click', ()=>{
-if(activeGameMode==='multi' && mpRoomRef && mpRole) requestSynchronizedRoomExit();
+if(activeGameMode==='multi' && mpRoomRef && mpRole) requestSynchronizedRoomExit('player-exit');
 else exitCurrentGameToHome();
 });
 
@@ -42184,7 +42246,7 @@ if(isRandomHumanRoom()){
   if(role==='host' && ref) ref.remove().catch(()=>{});
   return;
 }
-if(mpRoomRef && mpRole) requestSynchronizedRoomExit();
+if(mpRoomRef && mpRole) requestSynchronizedRoomExit('player-exit');
 else returnToHomeFromMultiplayer();
 });
 const btnOpenDictionary = document.getElementById('btn-open-dictionary');
@@ -42293,7 +42355,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v207: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Kelime Düellosu optimize motor v208: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
