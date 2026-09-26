@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v171-invite-flow</title>
-<meta name="game-version" content="v171-invite-flow">
+<title>Kelime Düellosu v173</title>
+<meta name="game-version" content="v173">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -277,7 +277,17 @@ border-radius: 11px !important;
 .compact-name { font-size:9px; line-height:10px; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:94px; }
 .compact-score { font-size:15px; line-height:16px; font-weight:1000; margin-top:1px; }
 .score-label { font-size:7px; letter-spacing:.08em; opacity:.72; vertical-align:2px; }
-.score-orb { width:50px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex:none; font-size:17px; line-height:1; font-weight:1000; box-shadow:0 3px 9px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.22); border:2px solid rgba(255,255,255,.18); }
+@keyframes longestPlayerShake {
+0%,100%{transform:translate3d(0,0,0) rotate(0)}
+15%{transform:translate3d(-2px,0,0) rotate(-2deg)}
+30%{transform:translate3d(2px,0,0) rotate(2deg)}
+45%{transform:translate3d(-2px,0,0) rotate(-1.5deg)}
+60%{transform:translate3d(2px,0,0) rotate(1.5deg)}
+75%{transform:translate3d(-1px,0,0) rotate(-1deg)}
+90%{transform:translate3d(1px,0,0) rotate(1deg)}
+}
+.longest-player-shake{animation:longestPlayerShake .62s ease-in-out 1;will-change:transform;}
+.score-orb { width:56px; height:56px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex:none; font-size:29px; line-height:1; font-weight:1000; box-shadow:0 3px 9px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.22); border:2px solid rgba(255,255,255,.18); }
 .score-orb-p1 { background:#facc15; color:#4a2b12; border-color:#fde68a; }
 .score-orb-p2 { background:#0b3a67; color:#ffffff; border-color:#60a5fa; }
 .compact-timer { display:flex; flex-direction:column; align-items:center; justify-content:center; width:56px; height:56px; min-width:56px; border-radius:10px; background:#ef4444; border:2px solid #fecaca; box-shadow:0 5px 14px rgba(127,29,29,.28),inset 0 1px 0 rgba(255,255,255,.28); }
@@ -297,7 +307,7 @@ border-radius: 11px !important;
 .compact-avatar { width:21px !important; height:21px !important; font-size:10px !important; margin:0 !important; }
 .compact-name { font-size:8px !important; line-height:9px !important; max-width:82px; }
 .compact-score { font-size:14px !important; line-height:14px !important; }
-.score-orb { width:46px; height:32px; border-radius:8px; font-size:16px; }
+.score-orb { width:51px; height:51px; border-radius:9px; font-size:24px; }
 #compact-game-header #game-timer { font-size:24px !important; line-height:24px !important; }
 .compact-timer{width:51px;height:51px;min-width:51px;border-radius:9px;}
 #words-ticker { min-height:18px; }
@@ -310,7 +320,7 @@ border-radius: 11px !important;
 .compact-avatar { width:19px !important; height:19px !important; font-size:9px !important; }
 #compact-game-header #game-timer { font-size:22px !important; line-height:22px !important; }
 .compact-timer{width:47px;height:47px;min-width:47px;border-radius:8px;}
-.score-orb { width:42px; height:29px; border-radius:7px; font-size:14px; }
+.score-orb { width:47px; height:47px; border-radius:8px; font-size:22px; }
 #scrabble-grid { width:min(calc(100vw - 6px), calc(100dvh - 170px), 440px) !important; }
 }
 
@@ -39517,16 +39527,49 @@ const roundWordResults = { p1:new Map(), p2:new Map() };
 const seriesWordResults = { p1:new Map(), p2:new Map() };
 let singleLongestBonusApplied=false;
 let singleLongestBonus={p1:false,p2:false,maxLen:0};
-function resetMatchWordResults(){ roundWordResults.p1.clear(); roundWordResults.p2.clear(); }
+function clearPlayerWordShake(){
+['p1-avatar-box','p1-title','p1-score-chip','p2-avatar-box','p2-title','p2-score-chip'].forEach(id=>{
+const el=document.getElementById(id);
+if(!el) return;
+if(el._wordShakeAnim){ el._wordShakeAnim.cancel(); el._wordShakeAnim=null; }
+el.style.transform='';
+});
+}
+function celebrateWordPlayer(isP1){
+const ids=isP1?['p1-avatar-box','p1-title','p1-score-chip']:['p2-avatar-box','p2-title','p2-score-chip'];
+const frames=[
+{transform:'translate3d(0,0,0)'},
+{transform:'translate3d(-2px,0,0)'},
+{transform:'translate3d(2px,0,0)'},
+{transform:'translate3d(-1px,0,0)'},
+{transform:'translate3d(1px,0,0)'},
+{transform:'translate3d(0,0,0)'}
+];
+ids.forEach(id=>{
+const el=document.getElementById(id); if(!el) return;
+if(el._wordShakeAnim) el._wordShakeAnim.cancel();
+if(typeof el.animate==='function'){
+const anim=el.animate(frames,{duration:300,easing:'ease-out',iterations:1});
+el._wordShakeAnim=anim;
+anim.onfinish=anim.oncancel=()=>{ if(el._wordShakeAnim===anim) el._wordShakeAnim=null; };
+}else{
+el.classList.remove('longest-player-shake');
+requestAnimationFrame(()=>{el.classList.add('longest-player-shake');setTimeout(()=>el.classList.remove('longest-player-shake'),340);});
+}
+});
+}
+function resetMatchWordResults(){ roundWordResults.p1.clear(); roundWordResults.p2.clear(); clearPlayerWordShake(); }
 function resetSeriesWordResults(){ seriesWordResults.p1.clear(); seriesWordResults.p2.clear(); singleLongestBonusApplied=false; singleLongestBonus={p1:false,p2:false,maxLen:0}; }
 function recordMatchWord(word, pts, isP1){
 const w=String(word||'').toLocaleUpperCase('tr-TR');
 if(!w) return;
 const roundMap=isP1?roundWordResults.p1:roundWordResults.p2;
-if(!roundMap.has(w)) roundMap.set(w,{word:w,pts:Number(pts)||0});
+const isNew=!roundMap.has(w);
+if(isNew) roundMap.set(w,{word:w,pts:Number(pts)||0});
 const seriesMap=isP1?seriesWordResults.p1:seriesWordResults.p2;
 const key=w;
 if(!seriesMap.has(key)) seriesMap.set(key,{word:w,pts:Number(pts)||0});
+if(isNew) celebrateWordPlayer(isP1);
 }
 function sortedTopScoreWords(isP1){
 return Array.from((isP1?seriesWordResults.p1:seriesWordResults.p2).values())
@@ -39779,7 +39822,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v171-invite-flow';
+const GAME_VERSION='v173';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
