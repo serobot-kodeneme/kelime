@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v190</title>
-<meta name="game-version" content="v190">
+<title>Kelime Düellosu v191</title>
+<meta name="game-version" content="v191">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -39690,8 +39690,7 @@ const SOUND_VOLUME_KEY = 'kd_sound_volume_v2';
 const AUDIO_GAIN_BOOST = 1.294; // v147: önceki çıkışa göre yaklaşık +%5
 const AUDIO_GAIN_CAP = 0.26;
 let masterSoundVolume = Math.max(0.1, Math.min(1, Number(localStorage.getItem(SOUND_VOLUME_KEY) ?? 0.80)));
-// v190: tek standart, hafif görsel profil. Kullanıcıya grafik kalite seçeneği sunulmaz.
-const graphicsQuality='low';
+// v191: tek standart, hafif görsel profil. Grafik kalite seçeneği yoktur.
 
 function setMasterSoundVolume(v){
 masterSoundVolume = Math.max(0.2, Math.min(1, Number(v)||0.2));
@@ -39804,7 +39803,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v190';
+const GAME_VERSION='v191';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -40418,7 +40417,7 @@ const ref=mpRoomRef.child(path); ref.on(event,handler); mpControlListeners.push(
 mpListener=async snap=>{
 const gs=snap.val();
 const previousRound=Number(mpRoomData?.round||0);
-if(!gs){ if(mpRole){showToast('Oda kapatıldı.','rose'); returnToHomeFromMultiplayer();} return; }
+if(!gs){ if(mpRole && !mpExitHandling){showToast('Oda kapatıldı.','rose'); returnToHomeFromMultiplayer();} return; }
 mpRoomData={...(mpRoomData||{}),...gs};
 const roomBoardSig=Array.isArray(gs.board)?boardSignature(gs.board):'';
 const metaSig=[gs.status,Number(gs.startAt||0),Number(gs.round||1),roomBoardSig,mpRoomData.guestId||'',!!mpRoomData.guestOnline,mpRoomData.inviteGuest||'',!!mpRoomData.rematch?.host,!!mpRoomData.rematch?.guest,Number(mpRoomData.rematch?.expiresAt||0),mpRoomData.finalWinner||''].join('|');
@@ -41519,16 +41518,7 @@ el.style.setProperty('--dx',(tr.left+tr.width/2-sx)+'px');
 el.style.setProperty('--dy',(tr.top+tr.height/2-sy)+'px');
 document.body.appendChild(el); requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('go')));
 setTimeout(()=>el.remove(),780);
-if(graphicsQuality==='high'){
-for(let i=0;i<2;i++){
-const spark=el.cloneNode(true); spark.textContent=i===0?'✦':'+'+pts; spark.style.fontSize=i===0?'16px':'13px';
-spark.style.left=(sx+(i?18:-16))+'px'; spark.style.top=(sy+(i?8:-8))+'px';
-spark.style.setProperty('--dx',(tr.left+tr.width/2-sx+(i?8:-8))+'px');
-spark.style.setProperty('--dy',(tr.top+tr.height/2-sy+(i?-6:6))+'px');
-document.body.appendChild(spark); requestAnimationFrame(()=>requestAnimationFrame(()=>spark.classList.add('go')));
-setTimeout(()=>spark.remove(),820);
-}
-}
+
 }
 
 function adjustScore(p1Delta, p2Delta) {
@@ -41673,44 +41663,23 @@ planBot();
 }, delay);
 }
 
-function spawnHighResultPartyFx(){
-if(graphicsQuality!=='high') return;
-const modal=document.getElementById('modal-gameover'); if(!modal) return;
-modal.querySelector('.result-party-fx')?.remove();
-const fx=document.createElement('div'); fx.className='result-party-fx';
-const icons=['⭐','✨','🎉','🏆','💥','🎊'];
-for(let i=0;i<18;i++){
-const s=document.createElement('span'); s.textContent=icons[i%icons.length];
-s.style.left=(3+Math.random()*94)+'%'; s.style.animationDelay=(Math.random()*.7)+'s';
-s.style.setProperty('--dur',(2.0+Math.random()*1.8)+'s'); s.style.setProperty('--drift',((-60+Math.random()*120))+'px'); s.style.setProperty('--rot',((-360+Math.random()*720))+'deg');
-fx.appendChild(s);
-}
-modal.appendChild(fx); setTimeout(()=>fx.remove(),4300);
-}
-
-function launchLightResultConfetti(originX=0.5){
-if(typeof confetti!=='function') return;
-const coarse=matchMedia('(pointer:coarse)').matches;
-confetti({particleCount:coarse?18:26,spread:64,startVelocity:25,gravity:0.9,scalar:0.78,origin:{x:originX,y:0.58},zIndex:999});
-}
+function spawnHighResultPartyFx(){ return; }
 
 function launchGrandCelebration(winnerSide=null) {
 spawnHighResultPartyFx();
 const baseX = winnerSide==='p1' ? 0.22 : winnerSide==='p2' ? 0.78 : 0.5;
 launchLightResultConfetti(baseX);
 if (typeof confetti !== 'function') return;
-const high=graphicsQuality==='high';
-const duration = (mpRole ? (high?4.0:2.6) : (high?5.0:3.6)) * 1000;
+const duration = (mpRole ? 2.6 : 3.6) * 1000;
 const animationEnd = Date.now() + duration;
 const interval = setInterval(function() {
 const timeLeft = animationEnd - Date.now();
 if (timeLeft <= 0) return clearInterval(interval);
-const baseCount=(mpRole ? (high?42:24) : (high?58:38));
-confetti({particleCount:baseCount*(timeLeft/duration),startVelocity:high?44:34,spread:high?100:72,origin:{x:Math.max(.08,Math.min(.92,baseX+(Math.random()-.5)*(high?.22:.12))),y:.68},zIndex:999});
-},high?190:250);
-setTimeout(()=>confetti({particleCount:mpRole?(high?120:65):(high?190:105),spread:high?130:95,startVelocity:high?48:34,origin:{x:baseX,y:.52},zIndex:999}),220);
-setTimeout(()=>confetti({particleCount:mpRole?(high?150:80):(high?230:135),spread:high?155:115,startVelocity:high?52:34,origin:{x:baseX,y:.42},zIndex:999}),780);
-if(high) setTimeout(()=>confetti({particleCount:170,spread:180,startVelocity:42,origin:{x:baseX,y:.35},zIndex:999}),1450);
+const baseCount=mpRole ? 24 : 38;
+confetti({particleCount:baseCount*(timeLeft/duration),startVelocity:34,spread:72,origin:{x:Math.max(.08,Math.min(.92,baseX+(Math.random()-.5)*.12)),y:.68},zIndex:999});
+},250);
+setTimeout(()=>confetti({particleCount:mpRole?65:105,spread:95,startVelocity:34,origin:{x:baseX,y:.52},zIndex:999}),220);
+setTimeout(()=>confetti({particleCount:mpRole?80:135,spread:115,startVelocity:34,origin:{x:baseX,y:.42},zIndex:999}),780);
 }
 
 async function waitUntilRoomFinished(timeoutMs=3500){
@@ -42028,7 +41997,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v190: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Kelime Düellosu optimize motor v191: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
