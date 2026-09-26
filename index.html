@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v210</title>
-<meta name="game-version" content="v210">
+<title>Kelime Düellosu v212</title>
+<meta name="game-version" content="v212">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -346,7 +346,7 @@ text-shadow:0 2px 8px rgba(0,0,0,.22); filter:saturate(.96); will-change:transfo
 .score-fly.go { transform: translate3d(var(--dx),var(--dy),0) scale(1.22); opacity:0; }
 
 
-/* v210: hafif ödül efektleri — tahta hattından bağımsız */
+/* v212: hafif ödül efektleri — tahta hattından bağımsız */
 @keyframes kdScorePop{0%{transform:scale(1)}42%{transform:scale(1.13)}100%{transform:scale(1)}}
 .kd-score-pop{animation:kdScorePop .24s ease-out;will-change:transform}
 @keyframes kdAvatarRing{0%{box-shadow:0 0 0 0 rgba(255,255,255,.9),0 2px 6px rgba(0,0,0,.24)}55%{box-shadow:0 0 0 5px rgba(255,255,255,.18),0 2px 6px rgba(0,0,0,.24)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0),0 2px 6px rgba(0,0,0,.24)}}
@@ -39748,26 +39748,38 @@ el.classList.toggle('timer-critical',sec<=5);
 
 let timerInterval = null;
 let botInterval = null;
+let localCountdownInterval=null, localCountdownTimeout=null;
+function stopLocalCountdown(){
+if(localCountdownInterval){clearInterval(localCountdownInterval);localCountdownInterval=null;}
+if(localCountdownTimeout){clearTimeout(localCountdownTimeout);localCountdownTimeout=null;}
+}
 let isPointerDown = false;
 let pointerHoldStartedAt = 0;
 let pointerHoldTimer = null;
 let activePointerId = null;
 const HOLD_CANCEL_MS = 3000;
+const IS_COARSE_POINTER=!!window.matchMedia?.('(pointer:coarse)').matches;
 
 let gameAudioCtx = null;
 let lastHeartbeatSecond = null;
 let lastGongSecond = null;
 const SOUND_VOLUME_KEY = 'kd_sound_volume_v2';
-const AUDIO_GAIN_BOOST = 1.294; // v147: önceki çıkışa göre yaklaşık +%5
+const AUDIO_GAIN_BOOST = 1.294; // önceki çıkışa göre yaklaşık +%5
 const AUDIO_GAIN_CAP = 0.26;
-let masterSoundVolume = Math.max(0.1, Math.min(1, Number(localStorage.getItem(SOUND_VOLUME_KEY) ?? 0.80)));
-// v193: tek standart, hafif görsel profil. Grafik kalite seçeneği yoktur.
+function safeStorageGet(kind,key){
+try{return (kind==='session'?window.sessionStorage:window.localStorage).getItem(key);}catch(_){return null;}
+}
+function safeStorageSet(kind,key,value){
+try{(kind==='session'?window.sessionStorage:window.localStorage).setItem(key,value);return true;}catch(_){return false;}
+}
+let masterSoundVolume = Math.max(0.1, Math.min(1, Number(safeStorageGet('local',SOUND_VOLUME_KEY) ?? 0.80)));
+// Tek standart, hafif görsel profil. Grafik kalite seçeneği yoktur.
 
 function setMasterSoundVolume(v){
 masterSoundVolume = Math.max(0.2, Math.min(1, Number(v)||0.2));
 const level=Math.max(1,Math.min(5,Math.round(masterSoundVolume*5)));
 masterSoundVolume=level/5;
-localStorage.setItem(SOUND_VOLUME_KEY, String(masterSoundVolume));
+safeStorageSet('local',SOUND_VOLUME_KEY,String(masterSoundVolume));
 const label=document.getElementById('sound-volume-label');
 if(label) label.textContent=`${level} / 5`;
 document.querySelectorAll('.sound-level-dot').forEach(dot=>{
@@ -39874,7 +39886,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v210';
+const GAME_VERSION='v212';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -39885,17 +39897,20 @@ let mpListener=null, mpWordsListener=null, mpScoresListener=null, mpServerOffset
 let mpScoreSyncTimer=null, mpScoreSyncInFlight=false, mpScoreDesired=null;
 let mpControlListeners=[];
 let mpStartBusy=false, mpRematchBusy=false, mpPresenceRef=null, mpLastRoomMetaSig='', mpEndResolveTimer=null, mpRematchExpiryTimer=null;
-let mpSeenWordEvents=new Set(), mpLastBeepSecond=null;
+let mpSeenWordEvents=new Set(), mpLastBeepSecond=null, mpLastResultRenderSig='';
 const mpFoundWords={host:new Set(),guest:new Set()};
 
 function setMpState(next){ mpState=next; document.documentElement.dataset.mpState=next; }
+let runtimeClientToken='';
 function getClientToken(){
-let t=localStorage.getItem('kd_client_token');
+if(runtimeClientToken) return runtimeClientToken;
+let t=safeStorageGet('local','kd_client_token');
 if(!t){
 const a=new Uint32Array(4); crypto.getRandomValues(a);
 t=Array.from(a,n=>n.toString(36)).join('');
-localStorage.setItem('kd_client_token',t);
+safeStorageSet('local','kd_client_token',t);
 }
+runtimeClientToken=t;
 return t;
 }
 function initGlobalOnlinePresence(){
@@ -39998,7 +40013,7 @@ const left=Math.max(0,Math.ceil((inviteWaitDeadlineAt-serverNow())/1000));
 const el=document.getElementById('invite-wait-countdown'); if(el) el.textContent=String(left);
 if(left<=0){ stopInviteWaitCountdown(); expirePrivateInviteRoom(); }
 };
-tick(); inviteWaitCountdownTimer=setInterval(tick,250);
+tick(); inviteWaitCountdownTimer=setInterval(tick,500);
 }
 async function allocateDailyRoomCode(){
 if(!mpDb) throw new Error('firebase-not-ready');
@@ -40047,13 +40062,12 @@ mpPresenceRef.onDisconnect().set({online:false,clientId:getClientToken(),at:fire
 }
 function isOnline(p){ return !!(p && (p===true || p.online===true)); }
 
-let randomQueueRef=null, randomQueueListener=null, randomSearchActive=false, randomSearchTicket=null;
+let randomQueueRef=null, randomQueueListener=null, randomSearchActive=false, randomSearchTicket=null, randomWaitCancel=null;
 let randomResultAutoExitTimer=null;
 let inviteWaitCountdownTimer=null;
 let inviteWaitDeadlineAt=0;
-const RANDOM_SEARCH_MS=600000;
-const RANDOM_QUEUE_TTL=14000;
-const RANDOM_AI_NAMES=['İsmail A.','Yavuz M.','Mert K.','Emre D.','Burak T.','Can E.'];
+const RANDOM_SEARCH_MS=45000;
+const RANDOM_QUEUE_TTL=RANDOM_SEARCH_MS+5000;
 
 function setRandomStatus(text,visible=true){
 const el=document.getElementById('mp-random-status');
@@ -40065,24 +40079,29 @@ function randomTicket(){
 const a=new Uint32Array(3); crypto.getRandomValues(a);
 return Array.from(a,n=>n.toString(36)).join('');
 }
-async function cleanupRandomQueue(onlyIfMine=true){
-if(randomQueueRef && randomQueueListener){
-randomQueueRef.off('value',randomQueueListener);
+function releaseRandomSearchLocal(){
+if(randomWaitCancel){const cancel=randomWaitCancel;randomWaitCancel=null;try{cancel();}catch(_){}}
+if(randomQueueRef && randomQueueListener){try{randomQueueRef.off('value',randomQueueListener);}catch(_){} }
 randomQueueListener=null;
-}
-if(randomQueueRef && randomSearchTicket){
-try{
-await randomQueueRef.transaction(cur=>{
-if(!cur) return cur;
-if(onlyIfMine && cur.ticket!==randomSearchTicket) return;
-return null;
-});
-try{ await randomQueueRef.onDisconnect().cancel(); }catch(e){}
-}catch(e){}
-}
 randomSearchActive=false;
 randomSearchTicket=null;
 randomQueueRef=null;
+}
+async function cleanupRandomQueue(onlyIfMine=true){
+const ref=randomQueueRef, ticket=randomSearchTicket;
+if(randomWaitCancel){const cancel=randomWaitCancel;randomWaitCancel=null;try{cancel();}catch(_){}}
+if(ref && randomQueueListener){try{ref.off('value',randomQueueListener);}catch(_){} randomQueueListener=null;}
+if(ref && ticket){
+try{
+await ref.transaction(cur=>{
+if(!cur) return cur;
+if(onlyIfMine && cur.ticket!==ticket) return;
+return null;
+});
+try{ await ref.onDisconnect().cancel(); }catch(_){}
+}catch(_){}
+}
+if(randomQueueRef===ref){randomSearchActive=false;randomSearchTicket=null;randomQueueRef=null;randomQueueListener=null;}
 const btn=document.getElementById('btn-random-match');
 if(btn){ btn.disabled=false; btn.textContent='🎲 RASTGELE RAKİP'; }
 }
@@ -40096,51 +40115,35 @@ dayKey:alloc.dayKey,
 hostId, guestId,
 gameState:{status:'waiting',board:readyBoard.board,startAt:0,round:1},
 scores:{host:0,guest:0}, words:{}, longestBonus:null, bonusApplied:false,
-endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0}, pendingRound:null, randomRematchRequest:null, invite:{guest:'accepted'},
+endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0}, pendingRound:null, invite:{guest:'accepted'},
 presence:{host:{online:false,clientId:hostId},guest:{online:false,clientId:guestId}}
 });
 return code;
 }
 function waitForRandomRoom(ticket,timeoutMs){
 return new Promise(resolve=>{
-if(!randomQueueRef) return resolve(null);
-let done=false;
-let timer=null;
+const ref=randomQueueRef;
+if(!ref) return resolve(null);
+let done=false,timer=null;
 const finish=v=>{
 if(done) return; done=true;
 if(timer) clearTimeout(timer);
-if(randomQueueRef && randomQueueListener) randomQueueRef.off('value',randomQueueListener);
+try{if(randomQueueListener) ref.off('value',randomQueueListener);}catch(_){}
 randomQueueListener=null;
+if(randomWaitCancel===cancel) randomWaitCancel=null;
 resolve(v);
 };
+const cancel=()=>finish(null);
+randomWaitCancel=cancel;
 randomQueueListener=snap=>{
 const d=snap.val();
 if(!d || d.ticket!==ticket) return finish(null);
 if(d.claimedBy && !d.roomCode) setRandomStatus('Rakip bulundu ✓ Oda hazırlanıyor…');
 if(d.roomCode) finish(String(d.roomCode));
 };
-randomQueueRef.on('value',randomQueueListener);
-timer=setTimeout(()=>finish(null),Math.max(500,timeoutMs||RANDOM_SEARCH_MS));
+ref.on('value',randomQueueListener);
+timer=setTimeout(()=>finish(null),Math.max(1,timeoutMs||RANDOM_SEARCH_MS));
 });
-}
-async function startRandomAiFallback(existingAiName=null){
-activeGameMode='single';
-await cleanupRandomQueue(true);
-mpRole=null; mpRoomRef=null; mpRoomCode=null; mpRoomData=null; mpRoomMode=''; mpEntered=false; mpStarted=false;
-setMpState(MP_STATES.IDLE); clearInviteFromUrl();
-botDiffLevel='hard';
-const aiName=existingAiName || (RANDOM_AI_NAMES[Math.floor(Math.random()*RANDOM_AI_NAMES.length)]+' • AI');
-setRandomStatus('Çevrimiçi rakip bulunamadı. AI Rakip ile eşleştirildin.',true);
-showToast('AI Rakip bulundu. Oyun hazırlanıyor…','sky');
-document.getElementById('p1-title').textContent='OYUNCU';
-document.getElementById('p2-title').textContent=aiName;
-document.getElementById('screen-home').classList.add('hidden');
-document.getElementById('screen-game').classList.remove('hidden');
-p1Score=0; p2Score=0; updateScores(); remainingSeconds=60;
-resetMatchWordResults(); resetSeriesWordResults();
-sessionFoundWords.clear(); document.getElementById('words-ticker').innerHTML='';
-buildGrid();
-triggerCountdownSequence(()=>{isMatchActive=true;startTimer();planBot();});
 }
 async function searchRandomOpponent(){
 if(randomSearchActive) return;
@@ -40155,17 +40158,17 @@ return;
 
 randomSearchActive=true;
 randomQueueRef=mpDb.ref('matchmaking/random/waiting');
-randomSearchTicket=randomTicket();
-const myId=getClientToken(), started=serverNow();
-let becameWaiter=false;
+const ticket=randomTicket();
+randomSearchTicket=ticket;
+const myId=getClientToken(), started=serverNow(), deadline=started+RANDOM_SEARCH_MS;
 
-while(randomSearchActive && serverNow()-started<RANDOM_SEARCH_MS){
+while(randomSearchActive && randomSearchTicket===ticket && serverNow()<deadline){
 const now=serverNow();
 let tx=null;
 try{
 tx=await randomQueueRef.transaction(cur=>{
 if(!cur || Number(cur.expiresAt||0)<now){
-return {ticket:randomSearchTicket,clientId:myId,createdAt:now,expiresAt:now+RANDOM_QUEUE_TTL,claimedBy:null,roomCode:null};
+return {ticket,clientId:myId,createdAt:now,expiresAt:now+RANDOM_QUEUE_TTL,claimedBy:null,roomCode:null};
 }
 if(cur.clientId===myId) return cur;
 if(!cur.claimedBy){
@@ -40174,18 +40177,20 @@ return cur;
 }
 return;
 });
-}catch(e){}
+}catch(_){}
 
+if(!randomSearchActive || randomSearchTicket!==ticket) break;
+if(serverNow()>=deadline) break;
 if(tx?.committed){
 const q=tx.snapshot.val()||{};
 if(q.clientId===myId){
-becameWaiter=true;
-try{ await randomQueueRef.onDisconnect().remove(); }catch(e){}
+try{ await randomQueueRef.onDisconnect().remove(); }catch(_){}
 setRandomStatus(q.claimedBy?'Rakip bulundu ✓ Oda hazırlanıyor…':'Rakip bekleniyor…',true);
-const room=await waitForRandomRoom(randomSearchTicket,RANDOM_SEARCH_MS-(serverNow()-started)+2500);
+const room=await waitForRandomRoom(ticket,Math.max(1,deadline-serverNow()));
+if(!randomSearchActive || randomSearchTicket!==ticket) break;
 if(room){
-try{ await randomQueueRef.onDisconnect().cancel(); }catch(e){}
-randomSearchActive=false;
+try{ await randomQueueRef?.onDisconnect().cancel(); }catch(_){}
+releaseRandomSearchLocal();
 const ok=await joinRoom(room);
 if(ok){ const rb=document.getElementById('btn-random-match'); if(rb){rb.disabled=false;rb.textContent='🎲 RASTGELE RAKİP';} setRandomStatus('Rakip bulundu ✓ Senkronize ediliyor…',true);}
 return;
@@ -40196,8 +40201,10 @@ if(q.clientId && q.clientId!==myId && q.claimedBy===myId){
 setRandomStatus('Rakip bulundu ✓ Ortak oda kuruluyor…',true);
 try{
 const room=await createRandomMatchedRoom(q.clientId,myId);
-await randomQueueRef.update({roomCode:room,expiresAt:serverNow()+8000});
-randomSearchActive=false;
+if(!randomSearchActive || randomSearchTicket!==ticket){try{await mpDb.ref('rooms/'+room).remove();}catch(_){} break;}
+const queueRef=randomQueueRef;
+await queueRef.update({roomCode:room,expiresAt:serverNow()+8000});
+releaseRandomSearchLocal();
 const ok=await joinRoom(room);
 setTimeout(async()=>{
 try{
@@ -40205,8 +40212,8 @@ await mpDb.ref('matchmaking/random/waiting').transaction(cur=>{
 if(cur && cur.roomCode===room) return null;
 return;
 });
-}catch(e){}
-},4500);
+}catch(_){}
+},2500);
 if(ok){ const rb=document.getElementById('btn-random-match'); if(rb){rb.disabled=false;rb.textContent='🎲 RASTGELE RAKİP';} setRandomStatus('Rakip bulundu ✓ Senkronize ediliyor…',true);}
 return;
 }catch(e){
@@ -40218,25 +40225,19 @@ break;
 await new Promise(r=>setTimeout(r,450));
 }
 
-if(becameWaiter && randomQueueRef){
-try{
-const snap=await randomQueueRef.once('value'),d=snap.val();
-if(d?.ticket===randomSearchTicket && d?.claimedBy){
-const room=await waitForRandomRoom(randomSearchTicket,2500);
-if(room){
-randomSearchActive=false;
-const ok=await joinRoom(room);
-if(ok) return;
-}
-}
-}catch(e){}
-}
-setRandomStatus('Rakip bekleniyor…',true);
-if(randomQueueRef && randomSearchTicket){
-  const room=await waitForRandomRoom(randomSearchTicket,600000);
-  if(room){ randomSearchActive=false; const ok=await joinRoom(room); if(ok) return; }
+// Kullanıcı paneli kapatıp aramayı iptal ettiyse sessizce çık.
+if(randomSearchTicket!==ticket){
+const rb=document.getElementById('btn-random-match');
+if(rb){rb.disabled=false;rb.textContent='🎲 RASTGELE RAKİP';}
+setRandomStatus('',false);
+return;
 }
 await cleanupRandomQueue(true);
+const rb=document.getElementById('btn-random-match');
+if(rb){rb.disabled=false;rb.textContent='🎲 RASTGELE RAKİP';}
+setRandomStatus('45 saniye içinde rakip bulunamadı.',true);
+showToast('Rakip bulunamadı. Tekrar deneyebilirsin.','slate');
+setTimeout(()=>setRandomStatus('',false),1800);
 }
 
 async function createRoom(){
@@ -40411,38 +40412,17 @@ await mpRoomRef.update({
 'scores':{host:0,guest:0},'words':null,'longestBonus':null,'bonusApplied':false,'finalWinner':null,
 'endReady':{host:false,guest:false},'rematch':{host:false,guest:false,expiresAt:0},'pendingRound':null
 });
-scheduleBoardPrewarm();
 }catch(e){console.error('Rematch start error',e);showToast('Yeni oyun başlatılamadı. Tekrar deneyin.','rose');}
 finally{mpRematchBusy=false;}
 }
 
 
 function isRandomHumanRoom(){
-return activeGameMode==='multi' && /^random-match-/.test(String(mpRoomMode||''));
-}
-
-async function hostStartRandomRematch(){
-// Rastgele ve davetli maçlar aynı çift-onaylı rövanş motorunu kullanır.
-return hostStartRematch();
-}
-
-async function requestRandomImmediateRematch(){
-// Geriye dönük isim korunuyor; rastgele rakip de karşılıklı onay ister.
-if(!mpRoomRef||!mpRole||!isRandomHumanRoom()) return false;
-const rematchRef=mpRoomRef.child('rematch');
-const res=await rematchRef.transaction(current=>{
-const now=serverNow();
-let r=current||{host:false,guest:false,expiresAt:0};
-const exp=Number(r.expiresAt||0);
-if(!exp || exp<now) r={host:false,guest:false,expiresAt:now+30000};
-r[mpRole]=true;
-return r;
-});
-return !!res.committed;
+return /^random-match-/.test(String(mpRoomMode||''));
 }
 
 async function hostExpireRematchIfNeeded(d){
-if(mpRole!=='host'||!mpRoomRef||d?.status!=='finished') return;
+if(mpRole!=='host'||!mpRoomRef||d?.status!=='finished'||isRandomHumanRoom()) return;
 const r=d.rematch||{}; const exp=Number(r.expiresAt||0);
 if(mpRematchExpiryTimer){clearTimeout(mpRematchExpiryTimer);mpRematchExpiryTimer=null;}
 if(!exp || (r.host&&r.guest)) return;
@@ -40508,13 +40488,15 @@ await hostApplyLongestWordBonus();
 const [gsSnap,scoreSnap]=await Promise.all([mpRoomRef.child('gameState').once('value'),mpRoomRef.child('scores').once('value')]);
 const gameState=gsSnap.val()||{}; if(gameState.status!=='playing') return;
 const sc=scoreSnap.val()||{host:0,guest:0}; const hs=Number(sc.host||0),guestScore=Number(sc.guest||0);
-await mpRoomRef.update({'finalWinner':hs===guestScore?'tie':(hs>guestScore?'host':'guest'),'gameState/status':'finished','gameState/startAt':0,'rematch':{host:false,guest:false,expiresAt:serverNow()+30000},'pendingRound':null});
+const randomRoom=isRandomHumanRoom();
+await mpRoomRef.update({'finalWinner':hs===guestScore?'tie':(hs>guestScore?'host':'guest'),'gameState/status':'finished','gameState/startAt':0,'rematch':randomRoom?{host:false,guest:false,expiresAt:0}:{host:false,guest:false,expiresAt:serverNow()+30000},'pendingRound':null});
 // Özel davetli odalarda bir sonraki tur arka planda hazırlanır.
-// Rastgele rakipte rövanş yok; oda 3 saniye içinde kapatılacaktır.
-if(!isRandomHumanRoom()) hostPrepareNextRound().catch(()=>{});
+if(!randomRoom) hostPrepareNextRound().catch(()=>{});
 }
 
 function clearVictoryPresentation(){
+  stopGrandCelebrationFx();
+  stopWinnerConfettiWaterfall();
   document.querySelectorAll('.victory-badge,.victory-avatar-crown').forEach(el=>el.remove());
   ['final-p1-card','final-p2-card'].forEach(id=>document.getElementById(id)?.classList.remove('victory-card','victory-sky'));
 }
@@ -40531,6 +40513,11 @@ function decorateWinnerCard(side){
 }
 function showMultiplayerSeriesResult(d){
 if(!d||d.status!=='finished') return;
+const finalWinner=String(d.finalWinner||'');
+if(!['host','guest','tie'].includes(finalWinner)) return;
+const resultSig=[Number(d.round||1),finalWinner,Number(d.scores?.host||0),Number(d.scores?.guest||0),Number(d.longestBonus?.maxLen||0)].join('|');
+if(resultSig===mpLastResultRenderSig) return;
+mpLastResultRenderSig=resultSig;
 clearVictoryPresentation();
 isMatchActive=false;clearInterval(timerInterval);clearInterval(mpClock);clearTimeout(botInterval);
 document.getElementById('modal-gameover')?.classList.remove('hidden');
@@ -40557,23 +40544,20 @@ if(isRandomHumanRoom()){
     exitBtn.textContent='ÇIKIŞ';
   }
   if(randomResultAutoExitTimer) clearTimeout(randomResultAutoExitTimer);
-  // Rastgele maçta ortak kapanışın sahibi hosttur. Maç sonucu göründükten 3 sn sonra
-  // roomExit sinyali gönderilir; iki oyuncu da aynı anda ana sayfaya döner.
-  if(mpRole==='host'){
-    randomResultAutoExitTimer=setTimeout(()=>{
-      randomResultAutoExitTimer=null;
-      if(mpRoomRef && mpRole==='host' && isRandomHumanRoom() && !mpExitHandling){
-        requestSynchronizedRoomExit('random-result-timeout');
-      }
-    },3000);
-  }
+  // Host 3. saniyede ortak kapanış sinyalini gönderir. Guest tarafında küçük bir
+  // yerel yedek süre, sinyal gecikirse sonuç ekranında takılı kalmayı önler.
+  randomResultAutoExitTimer=setTimeout(()=>{
+    randomResultAutoExitTimer=null;
+    if(!mpRoomRef || !isRandomHumanRoom() || mpExitHandling) return;
+    if(mpRole==='host') requestSynchronizedRoomExit('random-result-timeout');
+    else returnToHomeFromMultiplayer();
+  },mpRole==='host'?3000:3300);
 }else{
   if(replay){replay.disabled=false;replay.textContent='YENİDEN OYNA';replay.classList.remove('hidden');replay.classList.add('rematch-pulse');}
   if(exitBtn){exitBtn.disabled=false;exitBtn.classList.remove('hidden');exitBtn.className='w-full mt-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs py-2.5 rounded-xl uppercase border border-slate-200';exitBtn.textContent='ÇIKIŞ';}
   if(inline){inline.classList.add('hidden');inline.textContent='';}
   renderRematchState(d);
 }
-scheduleBoardPrewarm();
 }
 
 function attachRoomListener(){
@@ -40633,7 +40617,7 @@ setMpState(MP_STATES.FINISHED); document.getElementById('modal-rematch-waiting')
 const d={...(mpRoomData||{}),...gs};
 const bothReady=!!d.rematch?.host && !!d.rematch?.guest && Number(d.rematch?.expiresAt||0)>=serverNow();
 if(bothReady) showImmediateRematchSync(); else showMultiplayerSeriesResult(d);
-await hostExpireRematchIfNeeded(d);
+if(!isRandomHumanRoom()) await hostExpireRematchIfNeeded(d);
 }
 };
 mpRoomRef.child('gameState').on('value',mpListener);
@@ -40641,7 +40625,7 @@ mpRoomRef.child('gameState').on('value',mpListener);
 bindControl('guestId','value',snap=>{mpRoomData={...(mpRoomData||{}),guestId:snap.val()||null}; if(mpRoomData.status==='waiting'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
 bindControl('presence/guest','value',snap=>{const v=snap.val()||{};mpRoomData={...(mpRoomData||{}),guestOnline:isOnline(v)}; if(mpRoomData.status==='waiting'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
 bindControl('invite/guest','value',snap=>{mpRoomData={...(mpRoomData||{}),inviteGuest:snap.val()||null}; if(mpRoomData.status==='waiting'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
-bindControl('rematch','value',snap=>{const r=snap.val()||{};mpRoomData={...(mpRoomData||{}),rematch:r}; if(mpRoomData.status==='finished'){const d={...mpRoomData,status:'finished'};renderRematchState(d); if(mpRole==='host'){hostExpireRematchIfNeeded(d); if(r.host&&r.guest&&Number(r.expiresAt||0)>=serverNow()) hostStartRematch();}}});
+bindControl('rematch','value',snap=>{const r=snap.val()||{};mpRoomData={...(mpRoomData||{}),rematch:r}; if(mpRoomData.status==='finished'&&!isRandomHumanRoom()){const d={...mpRoomData,status:'finished'};renderRematchState(d); if(mpRole==='host'){hostExpireRematchIfNeeded(d); if(r.host&&r.guest&&Number(r.expiresAt||0)>=serverNow()) hostStartRematch();}}});
 bindControl('finalWinner','value',snap=>{mpRoomData={...(mpRoomData||{}),finalWinner:snap.val()||null}; if(mpRoomData.status==='finished'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
 bindControl('longestBonus','value',snap=>{mpRoomData={...(mpRoomData||{}),longestBonus:snap.val()||null}; if(mpRoomData.status==='finished'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
 bindControl('roomExit','value',snap=>{const exitSignal=snap.val(); if(exitSignal?.id&&exitSignal.id!==mpLastExitSignalId&&Number(exitSignal.at||0)>=mpSessionJoinedAt-1000){mpLastExitSignalId=exitSignal.id;handleSynchronizedRoomExit(exitSignal.reason||'game-cancelled');}});
@@ -40673,26 +40657,6 @@ if(lastPos){
 flyScore(Number(ev.pts||0), ev.role==='host', remoteOrigin);
 rewardWordFx(ev.role==='host');
 showToast(`${ev.role==='host'?'1. Oyuncu':'2. Oyuncu'}: ${ev.word} (+${ev.pts||0})`,ev.role==='host'?'amber':'sky');
-}
-
-function showInviteArrivalOverlay(){
-const modal=document.getElementById('modal-countdown');
-const inviteMsg=document.getElementById('countdown-invite-message');
-const num=document.getElementById('countdown-number');
-const status=document.getElementById('countdown-status');
-if(inviteMsg){
-inviteMsg.innerHTML='Kapışmaya davet aldınız<br><span class="text-indigo-600">Karşılaşma birazdan başlayacak</span>';
-inviteMsg.classList.remove('hidden');
-}
-if(num) num.classList.add('hidden');
-if(status){status.textContent='SENKRONİZE EDİLİYOR…';status.className='countdown-sync-ok';}
-modal?.classList.remove('hidden');
-}
-function hideInviteArrivalOverlay(){
-const modal=document.getElementById('modal-countdown');
-const num=document.getElementById('countdown-number');
-if(num) num.classList.remove('hidden');
-modal?.classList.add('hidden');
 }
 
 function playCountdownBeep(n){
@@ -40851,11 +40815,17 @@ for(const x of mpControlListeners.splice(0)){ try{x.ref.off(x.event,x.handler);}
 }
 function resetMultiplayerClientState(){
 stopInviteWaitCountdown();
+stopGrandCelebrationFx();
+stopWinnerConfettiWaterfall();
 detachMultiplayerListeners();
+stopLocalCountdown();
 clearInterval(mpClock); mpClock=null;
 clearInterval(timerInterval); timerInterval=null;
 clearTimeout(botInterval); botInterval=null;
 clearTimeout(mpEndResolveTimer); mpEndResolveTimer=null;
+if(mpRematchExpiryTimer){clearTimeout(mpRematchExpiryTimer);mpRematchExpiryTimer=null;}
+if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
+if(mpPresenceRef){try{mpPresenceRef.onDisconnect().cancel().catch(()=>{});}catch(_){} }
 if(mpScoreSyncTimer!==null){ clearTimeout(mpScoreSyncTimer); mpScoreSyncTimer=null; }
 mpScoreSyncInFlight=false; mpScoreDesired=null;
 if(pointerFrame){ cancelAnimationFrame(pointerFrame); pointerFrame=0; }
@@ -40864,12 +40834,11 @@ try{ clearPath(); }catch(_){ selectedPath=[]; }
 mpEntered=false; mpStarted=false; mpStartBusy=false; mpRematchBusy=false;
 mpRoomRef=null; mpRoomCode=null; mpRole=null; mpRoomData=null; mpRoomMode=''; mpPresenceRef=null; mpLastRoomMetaSig='';
 mpSessionJoinedAt=0; mpExitHandling=false; mpLastExitSignalId='';
-mpSeenWordEvents.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear();
+mpSeenWordEvents.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpLastResultRenderSig='';
 setMpState(MP_STATES.IDLE);
 }
 function returnToHomeFromMultiplayer(){
-if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
-if(mpRematchExpiryTimer){clearTimeout(mpRematchExpiryTimer);mpRematchExpiryTimer=null;}
+if(randomSearchActive) cleanupRandomQueue(true).catch(()=>{}); else releaseRandomSearchLocal();
 resetMultiplayerClientState();
 clearInviteFromUrl();
 document.getElementById('modal-countdown')?.classList.add('hidden');
@@ -41074,6 +41043,7 @@ setMasterSoundVolume(masterSoundVolume);
 updateFullscreenUi();
 
 function prepareGame() {
+stopLocalCountdown();
 activeGameMode = 'single'; setLongestBonusBadges(false,false);
 document.getElementById('p1-title').textContent = 'OYUNCU';
 document.getElementById('p2-title').textContent = 'BİLGİSAYAR';
@@ -41087,6 +41057,7 @@ triggerCountdownSequence(() => { isMatchActive = true; startTimer(); planBot(); 
 }
 
 function triggerCountdownSequence(onComplete) {
+stopLocalCountdown();
 const modal=document.getElementById('modal-countdown');
 const numEl=document.getElementById('countdown-number');
 const statusEl=document.getElementById('countdown-status');
@@ -41104,14 +41075,15 @@ playCountdownBeep(n);
 requestAnimationFrame(()=>{ numEl.style.transform='scale(1)'; });
 };
 paint();
-const iv=setInterval(()=>{
+localCountdownInterval=setInterval(()=>{
 n--;
 if(n>0){ paint(); return; }
-clearInterval(iv);
+clearInterval(localCountdownInterval); localCountdownInterval=null;
 if(numEl){ numEl.style.opacity='0'; numEl.style.transform='scale(1.28)'; }
-setTimeout(()=>{
+localCountdownTimeout=setTimeout(()=>{
 if(numEl){ numEl.style.opacity='1'; numEl.style.transform='scale(1)'; }
 modal?.classList.add('hidden');
+localCountdownTimeout=null;
 onComplete();
 },120);
 },1000);
@@ -41286,7 +41258,7 @@ return words.filter(x=>x?.word?.length>=5).sort((a,b)=>b.word.length-a.word.leng
 }
 function getRecentBoardProfiles() {
 try {
-const x = JSON.parse(sessionStorage.getItem(RECENT_BOARD_KEY) || '[]');
+const x = JSON.parse(safeStorageGet('session',RECENT_BOARD_KEY) || '[]');
 return Array.isArray(x) ? x.slice(-6) : [];
 } catch (_) { return []; }
 }
@@ -41300,7 +41272,7 @@ function rememberBoard(board, words=[]) {
 try {
 const list = getRecentBoardProfiles();
 list.push(boardWordProfile(words));
-sessionStorage.setItem(RECENT_BOARD_KEY, JSON.stringify(list.slice(-6)));
+safeStorageSet('session',RECENT_BOARD_KEY,JSON.stringify(list.slice(-6)));
 } catch (_) {}
 }
 function packBoardResult(board, words) {
@@ -41357,6 +41329,7 @@ return next;
 }
 
 function resetMultiplayerRoundVisualState(){
+mpLastResultRenderSig='';
 resetRewardFx();
 try{ clearPath(); }catch(_){ selectedPath.length=0; selectedFlags.fill(0); }
 selectedFlags.fill(0);
@@ -41391,14 +41364,6 @@ container.innerHTML=html;
 domCells=Array.from(container.children);
 hoverGridRect=null; activeGridRect=null; hoverGridMetrics=null; activeGridMetrics=null;
 return true;
-}
-
-function prepareAndPreviewNextSingleBoard() {
-const ready = generateOptimizedBoard(3);
-prewarmedBoard = ready;
-gridBoard = ready.board;
-boardFoundWords = ready.words;
-paintBoardCells(gridBoard);
 }
 
 function buildGrid() {
@@ -41804,7 +41769,7 @@ recordMatchWord(word,pts,isP1);
 playCorrectChime();
 flashWordFeedback(true);
 showToast(`${word} (+${pts})`, isP1 ? 'amber' : 'sky');
-if (typeof confetti === 'function') confetti({ particleCount: mpRole ? (matchMedia('(pointer:coarse)').matches ? 14 : 20) : (matchMedia('(pointer:coarse)').matches ? 24 : 36), spread: 76, startVelocity: 24, gravity: 1.15, decay: .90, ticks: 58, scalar: .82, origin: { y: 0.6 }, zIndex: 88 });
+if (typeof confetti === 'function') confetti({ particleCount: mpRole ? (IS_COARSE_POINTER ? 14 : 20) : (IS_COARSE_POINTER ? 24 : 36), spread: 76, startVelocity: 24, gravity: 1.15, decay: .90, ticks: 58, scalar: .82, origin: { y: 0.6 }, zIndex: 88 });
 
 selectedPath.forEach(p => {
 p.el.classList.add(isP1 ? 'tile-claimed-p1' : 'tile-claimed-p2');
@@ -42029,7 +41994,11 @@ function spawnGlobalResultConfetti(winnerSide=null){
  document.body.appendChild(wrap); setTimeout(()=>wrap.remove(),3300);
 }
 
-let winnerWaterfallTimer=null;
+let winnerWaterfallTimer=null, grandCelebrationInterval=null, grandCelebrationTimeouts=[];
+function stopGrandCelebrationFx(){
+if(grandCelebrationInterval){clearInterval(grandCelebrationInterval);grandCelebrationInterval=null;}
+for(const t of grandCelebrationTimeouts.splice(0)) clearTimeout(t);
+}
 function stopWinnerConfettiWaterfall(){
  if(winnerWaterfallTimer){clearInterval(winnerWaterfallTimer);winnerWaterfallTimer=null;}
 }
@@ -42052,6 +42021,7 @@ function startWinnerConfettiWaterfall(winnerSide=null){
 }
 
 function launchGrandCelebration(winnerSide=null) {
+stopGrandCelebrationFx();
 spawnHighResultPartyFx();
 spawnGlobalResultConfetti(winnerSide);
 const baseX = winnerSide==='p1' ? 0.22 : winnerSide==='p2' ? 0.78 : 0.5;
@@ -42059,14 +42029,14 @@ launchLightResultConfetti(baseX);
 if (typeof confetti !== 'function') return;
 const duration = (mpRole ? 2.6 : 3.6) * 1000;
 const animationEnd = Date.now() + duration;
-const interval = setInterval(function() {
+grandCelebrationInterval = setInterval(function() {
 const timeLeft = animationEnd - Date.now();
-if (timeLeft <= 0) return clearInterval(interval);
+if (timeLeft <= 0){clearInterval(grandCelebrationInterval);grandCelebrationInterval=null;return;}
 const baseCount=mpRole ? 24 : 38;
 confetti({particleCount:baseCount*(timeLeft/duration),startVelocity:34,spread:72,origin:{x:Math.max(.08,Math.min(.92,baseX+(Math.random()-.5)*.12)),y:.68},zIndex:999});
 },250);
-setTimeout(()=>confetti({particleCount:mpRole?65:105,spread:95,startVelocity:34,origin:{x:baseX,y:.52},zIndex:999}),220);
-setTimeout(()=>confetti({particleCount:mpRole?80:135,spread:115,startVelocity:34,origin:{x:baseX,y:.42},zIndex:999}),780);
+grandCelebrationTimeouts.push(setTimeout(()=>confetti({particleCount:mpRole?65:105,spread:95,startVelocity:34,origin:{x:baseX,y:.52},zIndex:999}),220));
+grandCelebrationTimeouts.push(setTimeout(()=>confetti({particleCount:mpRole?80:135,spread:115,startVelocity:34,origin:{x:baseX,y:.42},zIndex:999}),780));
 startWinnerConfettiWaterfall(winnerSide);
 }
 
@@ -42210,18 +42180,19 @@ const randomResultExit=(reason==='random-result-timeout'||reason==='random-resul
 const isAutomaticRandomTimeout=(reason==='random-result-timeout');
 const isManualPlayerExit=(reason==='player-exit'||reason==='random-result-exit');
 const shouldDeletePrivate=!!(exitingRef && mpRole==='host' && /^invite-only-/.test(String(mpRoomMode||'')));
-const shouldDeleteRandom=!!(exitingRef && mpRole==='host' && randomResultExit && /^random-match-/.test(String(mpRoomMode||'')));
+const shouldDeleteRandom=!!(exitingRef && mpRole==='host' && /^random-match-/.test(String(mpRoomMode||'')));
 if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
-if(shouldDeleteRandom){ try{ await exitingRef.remove(); }catch(_){ } }
+if(shouldDeletePrivate){ try{ await lockClosedRoomCode(mpRoomCode,exitingRef,reason||'player-exit'); }catch(_){ } }
 if(isAutomaticRandomTimeout){
+  if(shouldDeleteRandom) setTimeout(()=>exitingRef.remove().catch(()=>{}),450);
   returnToHomeFromMultiplayer();
   hideRoomExitNotice();
   return;
 }
 const exitMessage=(reason==='rematch-timeout'||reason==='invite-timeout')?'OYUN İPTAL OLDU':'OYUNDAN ÇIKIŞ YAPILDI';
 if(isManualPlayerExit || !randomResultExit) showRoomExitNotice(exitMessage);
-if(shouldDeletePrivate){ try{ await closeAndLockPrivateRoom(exitingRef,mpRoomCode,reason||'player-exit'); }catch(_){ } }
 await new Promise(r=>setTimeout(r,isManualPlayerExit?1250:2000));
+if(shouldDeletePrivate||shouldDeleteRandom){try{await exitingRef.remove();}catch(_){}}
 returnToHomeFromMultiplayer();
 hideRoomExitNotice();
 }
@@ -42250,6 +42221,7 @@ await handleSynchronizedRoomExit(reason);
 }
 
 async function exitCurrentGameToHome(){
+stopLocalCountdown();
 stopWinnerConfettiWaterfall();
 clearVictoryPresentation();
 isMatchActive=false;
@@ -42401,7 +42373,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v210: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Kelime Düellosu optimize motor v212: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
