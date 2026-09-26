@@ -39825,12 +39825,12 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v179';
+const GAME_VERSION='v182';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
 let mpState=MP_STATES.IDLE;
-let mpDb=null, mpRoomRef=null, mpRoomCode=null, mpRole=null, mpRoomData=null;
+let mpDb=null, mpRoomRef=null, mpRoomCode=null, mpRole=null, mpRoomData=null, mpRoomMode='';
 let mpSessionJoinedAt=0, mpExitHandling=false, mpLastExitSignalId='';
 let mpListener=null, mpWordsListener=null, mpScoresListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null;
 let mpScoreSyncTimer=null, mpScoreSyncInFlight=false, mpScoreDesired=null;
@@ -39993,12 +39993,12 @@ const alloc=await allocateDailyRoomCode();
 const code=alloc.code, ref=mpDb.ref('rooms/'+code);
 const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board, readyBoard.words);
 await ref.set({
-schema:18, mode:'random-match-v4', createdAt:firebase.database.ServerValue.TIMESTAMP,
+schema:19, mode:'random-match-v5', createdAt:firebase.database.ServerValue.TIMESTAMP,
 dayKey:alloc.dayKey,
 hostId, guestId,
 gameState:{status:'waiting',board:readyBoard.board,startAt:0,round:1},
 scores:{host:0,guest:0}, words:{}, longestBonus:null, bonusApplied:false,
-endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0},
+endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0}, randomRematchRequest:null,
 presence:{host:{online:false,clientId:hostId},guest:{online:false,clientId:guestId}}
 });
 return code;
@@ -40028,7 +40028,7 @@ timer=setTimeout(()=>finish(null),Math.max(500,timeoutMs||RANDOM_SEARCH_MS));
 async function startRandomAiFallback(existingAiName=null){
 activeGameMode='single';
 await cleanupRandomQueue(true);
-mpRole=null; mpRoomRef=null; mpRoomCode=null; mpRoomData=null; mpEntered=false; mpStarted=false;
+mpRole=null; mpRoomRef=null; mpRoomCode=null; mpRoomData=null; mpRoomMode=''; mpEntered=false; mpStarted=false;
 setMpState(MP_STATES.IDLE); clearInviteFromUrl();
 botDiffLevel='hard';
 const aiName=existingAiName || (RANDOM_AI_NAMES[Math.floor(Math.random()*RANDOM_AI_NAMES.length)]+' • AI');
@@ -40089,7 +40089,7 @@ if(room){
 try{ await randomQueueRef.onDisconnect().cancel(); }catch(e){}
 randomSearchActive=false;
 const ok=await joinRoom(room);
-if(ok) setRandomStatus('Rakip bulundu ✓ Senkronize ediliyor…',true);
+if(ok){ const rb=document.getElementById('btn-random-match'); if(rb){rb.disabled=false;rb.textContent='🎲 RASTGELE RAKİP';} setRandomStatus('Rakip bulundu ✓ Senkronize ediliyor…',true);}
 return;
 }
 break;
@@ -40109,7 +40109,7 @@ return;
 });
 }catch(e){}
 },4500);
-if(ok) setRandomStatus('Rakip bulundu ✓ Senkronize ediliyor…',true);
+if(ok){ const rb=document.getElementById('btn-random-match'); if(rb){rb.disabled=false;rb.textContent='🎲 RASTGELE RAKİP';} setRandomStatus('Rakip bulundu ✓ Senkronize ediliyor…',true);}
 return;
 }catch(e){
 console.error('Random match room error',e);
@@ -40146,7 +40146,7 @@ const code=alloc.code, ref=mpDb.ref('rooms/'+code);
 const hostId=getClientToken();
 const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board, readyBoard.words);
 await ref.set({
-schema:18, mode:'invite-only-v4', createdAt:firebase.database.ServerValue.TIMESTAMP,
+schema:19, mode:'invite-only-v4', createdAt:firebase.database.ServerValue.TIMESTAMP,
 dayKey:alloc.dayKey,
 hostId, guestId:null,
 gameState:{status:'waiting',board:readyBoard.board,startAt:0,round:1},
@@ -40155,7 +40155,7 @@ endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0},
 presence:{host:{online:true,clientId:hostId},guest:{online:false}}
 });
 
-mpRoomCode=code; mpRole='host'; mpRoomRef=ref; mpRoomData=null; mpEntered=false; mpStarted=false; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId='';
+mpRoomCode=code; mpRole='host'; mpRoomRef=ref; mpRoomMode='invite-only-v4'; mpRoomData=null; mpEntered=false; mpStarted=false; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId='';
 setRoomUrl(code); await markPresence();
 setMpPanelRoom(code,'1. oyuncusun. 5 harfli oda kodunu paylaş; 2. oyuncu gelince oyun otomatik başlayacak.');
 document.getElementById('btn-close-room')?.classList.remove('hidden');
@@ -40185,7 +40185,7 @@ if(!claim.committed){ showToast('Bu davet odasında zaten 2 oyuncu var.','rose')
 role='guest';
 }
 
-mpRoomCode=code; mpRole=role; mpRoomRef=ref;
+mpRoomCode=code; mpRole=role; mpRoomRef=ref; mpRoomMode=String(d.mode||'');
 const [gsSnap,scoreSnap]=await Promise.all([ref.child('gameState').once('value'),ref.child('scores').once('value')]);
 mpRoomData={...(gsSnap.val()||{}),scores:scoreSnap.val()||{host:0,guest:0}}; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId=''; mpEntered=false; mpStarted=false;
 await markPresence(); setRoomUrl(code);
@@ -40255,6 +40255,48 @@ await mpRoomRef.update({
 mpStarted=false;mpEntered=false;
 }catch(e){console.error('Rematch start error',e);showToast('Yeni oyun başlatılamadı. Tekrar deneyin.','rose');}
 finally{mpRematchBusy=false;}
+}
+
+
+function isRandomHumanRoom(){
+return activeGameMode==='multi' && /^random-match-/.test(String(mpRoomMode||''));
+}
+
+async function hostStartRandomRematch(){
+if(mpRole!=='host'||mpRematchBusy||!mpRoomRef||!isRandomHumanRoom()) return;
+mpRematchBusy=true;
+try{
+const gsSnap=await mpRoomRef.child('gameState').once('value');
+const gs=gsSnap.val()||{};
+if(gs.status!=='finished') return;
+await new Promise(resolve=>requestAnimationFrame(()=>resolve()));
+const ready=prewarmedBoard || generateOptimizedBoard(2); prewarmedBoard=null;
+const fresh=ready.board; rememberBoard(fresh, ready.words);
+const now=serverNow();
+const nextRound=Number(gs.round||1)+1;
+await mpRoomRef.update({
+'gameState':{status:'countdown',board:fresh,startAt:now+3200,round:nextRound},
+'scores':{host:0,guest:0},'words':null,'longestBonus':null,'bonusApplied':false,'finalWinner':null,
+'endReady':{host:false,guest:false},'rematch':{host:false,guest:false,expiresAt:0},'randomRematchRequest':null
+});
+mpStarted=false; mpEntered=false;
+}catch(e){
+console.error('Random rematch start error',e);
+showToast('Yeni oyun başlatılamadı. Tekrar deneyin.','rose');
+}finally{ mpRematchBusy=false; }
+}
+
+async function requestRandomImmediateRematch(){
+if(!mpRoomRef||!mpRole||!isRandomHumanRoom()) return false;
+showImmediateRematchSync();
+const btn=document.getElementById('btn-play-again');
+if(btn){btn.disabled=true;btn.textContent='YENİ OYUN HAZIRLANIYOR…';}
+if(mpRole==='host'){
+await hostStartRandomRematch();
+return true;
+}
+await mpRoomRef.child('randomRematchRequest').set({by:mpRole,at:firebase.database.ServerValue.TIMESTAMP,round:Number(mpRoomData?.round||1)});
+return true;
 }
 
 async function hostExpireRematchIfNeeded(d){
@@ -40328,8 +40370,9 @@ const c1=document.getElementById('final-p1-card'),c2=document.getElementById('fi
 if(d.finalWinner==='host'){if(c1){c1.style.transform='scale(1.05)';c1.style.background='rgba(254,243,199,.9)';c1.style.borderRadius='16px';c1.style.padding='6px';}if(c2)c2.style.filter='saturate(.7) opacity(.82)';heading.textContent=`${p1Name} KAZANDI! 🏆`;p1NameEl?.classList.add('winner-pulse','winner-name-big');p1ScoreEl?.classList.add('winner-pulse');launchGrandCelebration('p1');}
 else if(d.finalWinner==='guest'){if(c2){c2.style.transform='scale(1.05)';c2.style.background='rgba(224,242,254,.92)';c2.style.borderRadius='16px';c2.style.padding='6px';}if(c1)c1.style.filter='saturate(.7) opacity(.82)';heading.textContent=`${p2Name} KAZANDI! 🏆`;p2NameEl?.classList.add('winner-pulse','winner-name-big');p2ScoreEl?.classList.add('winner-pulse');launchGrandCelebration('p2');}
 else {heading.textContent='BERABERE! 🤝'; spawnHighResultPartyFx(); launchLightResultConfetti(0.5);}
-const replay=document.getElementById('btn-play-again');if(replay){replay.disabled=false;replay.textContent='YENİDEN OYNA';replay.classList.remove('hidden');}
-renderRematchState(d);
+const replay=document.getElementById('btn-play-again');if(replay){replay.disabled=false;replay.textContent='YENİDEN OYNA';replay.classList.remove('hidden');replay.classList.toggle('rematch-pulse',isRandomHumanRoom());}
+const exitBtn=document.getElementById('btn-game-exit'); if(exitBtn){exitBtn.disabled=false;exitBtn.classList.remove('hidden');}
+const inline=document.getElementById('rematch-inline-status'); if(inline&&isRandomHumanRoom()){inline.classList.add('hidden');inline.textContent='';} else renderRematchState(d);
 scheduleBoardPrewarm();
 }
 
@@ -40377,9 +40420,13 @@ if(gs.status==='playing'){if(!mpEntered) await enterMultiplayerRoom();activateMu
 if(gs.status==='finished'){
 setMpState(MP_STATES.FINISHED); document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
 const d={...(mpRoomData||{}),...gs};
+if(isRandomHumanRoom()){
+showMultiplayerSeriesResult(d);
+}else{
 const bothReady=!!d.rematch?.host && !!d.rematch?.guest && Number(d.rematch?.expiresAt||0)>=serverNow();
 if(bothReady) showImmediateRematchSync(); else showMultiplayerSeriesResult(d);
 await hostExpireRematchIfNeeded(d); if(mpRole==='host'&&bothReady) await hostStartRematch();
+}
 }
 };
 mpRoomRef.child('gameState').on('value',mpListener);
@@ -40390,6 +40437,12 @@ bindControl('rematch','value',snap=>{mpRoomData={...(mpRoomData||{}),rematch:sna
 bindControl('finalWinner','value',snap=>{mpRoomData={...(mpRoomData||{}),finalWinner:snap.val()||null}; if(mpRoomData.status==='finished'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
 bindControl('longestBonus','value',snap=>{mpRoomData={...(mpRoomData||{}),longestBonus:snap.val()||null}; if(mpRoomData.status==='finished'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
 bindControl('roomExit','value',snap=>{const exitSignal=snap.val(); if(exitSignal?.id&&exitSignal.id!==mpLastExitSignalId&&Number(exitSignal.at||0)>=mpSessionJoinedAt-1000){mpLastExitSignalId=exitSignal.id;handleSynchronizedRoomExit();}});
+bindControl('randomRematchRequest','value',snap=>{
+const req=snap.val();
+if(!req||!isRandomHumanRoom()||mpRole!=='host'||mpState!==MP_STATES.FINISHED) return;
+const at=Number(req.at||0); if(at && at<mpSessionJoinedAt-1000) return;
+hostStartRandomRematch();
+});
 
 mpScoresListener=mpRoomRef.child('scores').on('value',snap=>{
 const sc=snap.val()||{}; mpRoomData={...(mpRoomData||{}),scores:sc};
@@ -40596,7 +40649,7 @@ if(pointerFrame){ cancelAnimationFrame(pointerFrame); pointerFrame=0; }
 isPointerDown=false; pointerHoldStartedAt=0; clearTimeout(pointerHoldTimer); pointerHoldTimer=null; activePointerId=null; pendingPointer=null; activeGridRect=null; activeGridMetrics=null; isMatchActive=false;
 try{ clearPath(); }catch(_){ selectedPath=[]; }
 mpEntered=false; mpStarted=false; mpStartBusy=false; mpRematchBusy=false;
-mpRoomRef=null; mpRoomCode=null; mpRole=null; mpRoomData=null; mpPresenceRef=null; mpLastRoomMetaSig='';
+mpRoomRef=null; mpRoomCode=null; mpRole=null; mpRoomData=null; mpRoomMode=''; mpPresenceRef=null; mpLastRoomMetaSig='';
 mpSessionJoinedAt=0; mpExitHandling=false; mpLastExitSignalId='';
 mpSeenWordEvents.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear();
 setMpState(MP_STATES.IDLE);
@@ -40615,6 +40668,8 @@ document.getElementById('mp-create-view')?.classList.remove('hidden');
 document.getElementById('btn-close-room')?.classList.add('hidden');
 document.getElementById('btn-enter-room')?.classList.add('hidden');
 const st=document.getElementById('mp-status'); if(st) st.textContent='Oda hazırlanıyor…';
+const randomBtn=document.getElementById('btn-random-match'); if(randomBtn){randomBtn.disabled=false;randomBtn.textContent='🎲 RASTGELE RAKİP';}
+setRandomStatus('',false);
 }
 
 const difficultyPanel = document.getElementById('bot-settings-panel');
@@ -41614,6 +41669,11 @@ if(btn){ btn.disabled=true; btn.textContent='HAZIRLANIYOR…'; }
 try{
 const finished=await waitUntilRoomFinished();
 if(!finished) throw new Error('room-not-finished');
+
+if(isRandomHumanRoom()){
+await requestRandomImmediateRematch();
+return;
+}
 
 const role=mpRole;
 const rematchRef=mpRoomRef.child('rematch');
