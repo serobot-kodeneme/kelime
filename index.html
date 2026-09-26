@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v214</title>
-<meta name="game-version" content="v214">
+<title>Kelime Düellosu v216</title>
+<meta name="game-version" content="v216">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2305,15 +2305,27 @@ white-space: nowrap;
 #screen-game > div:last-child { min-height: 0; overflow: hidden; }
 
 /* Seçilen harf önizlemesi: her ekran ve tam ekran modunda daima yatay */
+#selected-preview-bar{
+  position:relative;
+  height:40px!important;
+  min-height:40px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:8px;
+  padding-left:8px!important;
+  padding-right:8px!important;
+}
 #selected-word-preview{
   min-width:0;
-  width:100%;
-  min-height:27px;
+  width:auto;
+  flex:1 1 auto;
+  min-height:33px;
   display:flex;
   flex-direction:row;
   flex-wrap:nowrap;
   align-items:center;
-  justify-content:center;
+  justify-content:flex-start;
   overflow:hidden;
 }
 .selected-preview-tiles{
@@ -2321,36 +2333,65 @@ white-space: nowrap;
   flex-direction:row !important;
   flex-wrap:nowrap !important;
   align-items:center;
-  justify-content:center;
+  justify-content:flex-start;
   gap:3px;
-  min-height:27px;
+  min-height:33px;
   max-width:100%;
   white-space:nowrap;
   overflow:hidden;
 }
 .letter-cell.selected-preview-tile{
-  width:25px!important;
-  height:25px!important;
-  min-width:25px!important;
-  min-height:25px!important;
-  flex:0 0 25px!important;
-  font-size:14px!important;
-  border-radius:5px!important;
+  width:31px!important;
+  height:31px!important;
+  min-width:31px!important;
+  min-height:31px!important;
+  flex:0 0 31px!important;
+  font-size:clamp(1.05rem,5vw,1.32rem)!important;
+  border-radius:6px!important;
   box-shadow:0 2px 0 #cbd5e1!important;
   transform:none!important;
   pointer-events:none!important;
   background:#fff!important;
   color:#0f172a!important;
 }
-@media(max-width:360px){
-  .selected-preview-tiles{gap:2px}
-  .letter-cell.selected-preview-tile{width:22px!important;height:22px!important;min-width:22px!important;min-height:22px!important;flex-basis:22px!important;font-size:12px!important}
+#selected-preview-bar.preview-invalid .selected-preview-tile:not([hidden]){
+  background:#fee2e2!important;
+  color:#991b1b!important;
+  border-color:#fca5a5!important;
+  box-shadow:0 2px 0 #fca5a5!important;
 }
-
-
-#selected-preview-bar{position:relative;}
-#selected-preview-bar::before{content:"SEÇİLEN";position:absolute;left:7px;top:50%;transform:translateY(-50%);font-size:6px;font-weight:900;letter-spacing:.12em;color:#64748b;pointer-events:none;}
-@media(max-width:360px){#selected-preview-bar::before{display:none;}}
+#selected-preview-bar.preview-valid .selected-preview-tile:not([hidden]){
+  background:#dcfce7!important;
+  color:#166534!important;
+  border-color:#86efac!important;
+  box-shadow:0 2px 0 #86efac!important;
+}
+#selected-preview-status{
+  display:none;
+  flex:0 0 auto;
+  margin-left:auto;
+  font-size:10px;
+  line-height:1;
+  font-weight:900;
+  white-space:nowrap;
+  letter-spacing:.015em;
+  text-align:right;
+}
+#selected-preview-bar.preview-valid #selected-preview-status{display:inline-flex;color:#4ade80;}
+#selected-preview-bar.preview-invalid #selected-preview-status{display:inline-flex;color:#fca5a5;}
+@media (pointer:coarse){
+  .letter-cell.selected-preview-tile{font-size:clamp(1.12rem,5.75vw,1.52rem)!important;}
+}
+@media(max-width:380px){
+  #selected-preview-bar{gap:5px;padding-left:5px!important;padding-right:5px!important;}
+  .selected-preview-tiles{gap:2px}
+  .letter-cell.selected-preview-tile{width:27px!important;height:27px!important;min-width:27px!important;min-height:27px!important;flex-basis:27px!important;font-size:clamp(1.08rem,5.7vw,1.34rem)!important}
+  #selected-preview-status{font-size:8.5px;}
+}
+@media(max-width:340px){
+  .letter-cell.selected-preview-tile{width:25px!important;height:25px!important;min-width:25px!important;min-height:25px!important;flex-basis:25px!important;font-size:1.05rem!important}
+  #selected-preview-status{font-size:8px;}
+}
 @media (max-width: 600px), (max-height: 760px) {
 #screen-game > header {
 padding: 4px 8px 3px !important;
@@ -2389,7 +2430,6 @@ border-radius: 11px !important;
 .letter-cell { font-size: clamp(.96rem, 4.9vw, 1.26rem) !important; border-radius: 5px !important; }
 .letter-cell .tile-score { font-size: .43rem !important; bottom: 1px !important; right: 2px !important; }
 
-#word-status-desc { font-size: 9px !important; }
 
 }
 
@@ -2430,7 +2470,6 @@ border-radius: 11px !important;
 #compact-game-header .compact-player:nth-of-type(2){padding-left:2px;}
 #screen-game > div:last-child { align-items:center; }
 #scrabble-grid { aspect-ratio:1 / 1 !important; height:auto !important; }
-#mobile-word-status { max-width:430px; margin-left:auto; margin-right:auto; flex:none; }
 
 @media (max-width:600px) {
 #compact-game-header { min-height:48px; padding-top:3px !important; padding-bottom:3px !important; }
@@ -2442,8 +2481,6 @@ border-radius: 11px !important;
 .compact-timer{width:51px;height:51px;min-width:51px;border-radius:9px;}
 #words-ticker { min-height:18px; }
 #scrabble-grid { width:min(calc(100vw - 6px), calc(100dvh - 190px), 440px) !important; max-width:none !important; }
-#mobile-word-status { min-height:24px !important; margin-top:0 !important; margin-bottom:4px !important; padding-top:2px !important; padding-bottom:2px !important; }
-#word-status-desc { font-size:9px !important; }
 }
 @media (max-height:680px) {
 #compact-game-header { min-height:43px; }
@@ -2464,7 +2501,7 @@ text-shadow:0 2px 8px rgba(0,0,0,.22); filter:saturate(.96); will-change:transfo
 .score-fly.go { transform: translate3d(var(--dx),var(--dy),0) scale(1.22); opacity:0; }
 
 
-/* v214: hafif ödül efektleri — tahta hattından bağımsız */
+/* v216: hafif ödül efektleri — tahta hattından bağımsız */
 @keyframes kdScorePop{0%{transform:scale(1)}42%{transform:scale(1.13)}100%{transform:scale(1)}}
 .kd-score-pop{animation:kdScorePop .24s ease-out;will-change:transform}
 @keyframes kdAvatarRing{0%{box-shadow:0 0 0 0 rgba(255,255,255,.9),0 2px 6px rgba(0,0,0,.24)}55%{box-shadow:0 0 0 5px rgba(255,255,255,.18),0 2px 6px rgba(0,0,0,.24)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0),0 2px 6px rgba(0,0,0,.24)}}
@@ -2919,15 +2956,10 @@ button:not(:disabled):active{filter:brightness(.96) saturate(1.12);}
 
 <div id="selected-preview-bar" class="w-full h-8 flex items-center justify-center bg-slate-950/95 shrink-0 border-b border-slate-700 px-3 shadow-inner">
 <div id="selected-word-preview" class="selected-preview-tiles" aria-label="Seçilen harfler"></div>
+<span id="selected-preview-status" aria-live="polite"></span>
 </div>
 
 <div class="w-full relative flex-1 min-h-0 bg-slate-900 flex flex-col justify-start px-2 pt-1 pb-0 overflow-hidden">
-
-<div id="mobile-word-status" class="w-full bg-slate-950 px-3 py-1 text-center min-h-[26px] flex items-center justify-center border border-slate-800 mb-1 rounded-xl">
-<span id="word-status-desc" class="text-[11px] font-bold text-slate-300 italic truncate px-1">
-Bir harfe basılı tutup sürükle; bıraktığında sözcük otomatik kontrol edilir.
-</span>
-</div>
 
 <div id="scrabble-grid" class="scrabble-board touch-none select-none w-full max-w-md mx-auto"></div>
 
@@ -42004,7 +42036,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v214';
+const GAME_VERSION='v216';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -43513,10 +43545,7 @@ resetMatchWordResults(); resetSeriesWordResults();
 sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
 const ticker=document.getElementById('words-ticker'); if(ticker) ticker.replaceChildren();
 if(selectedWordPreviewEl){ for(const pv of previewTiles) pv.tile.hidden=true; }
-if(wordStatusDescEl){
-wordStatusDescEl.textContent='Bir harfe basılı tutup sürükle; bıraktığında sözcük otomatik kontrol edilir.';
-wordStatusVisualState='';
-}
+setSelectedPreviewState('neutral');
 }
 
 function paintBoardCells(board) {
@@ -43595,9 +43624,20 @@ let hoverLiftCell = null;
 let lastPointerX = null, lastPointerY = null;
 const selectedFlags = new Uint8Array(BOARD_SIZE*BOARD_SIZE);
 const selectedWordPreviewEl=document.getElementById('selected-word-preview');
-const wordStatusDescEl=document.getElementById('word-status-desc');
-let wordStatusVisualState='';
+const selectedPreviewBarEl=document.getElementById('selected-preview-bar');
+const selectedPreviewStatusEl=document.getElementById('selected-preview-status');
+let selectedPreviewVisualState='neutral';
 const previewTiles=[];
+function setSelectedPreviewState(state='neutral'){
+if(!selectedPreviewBarEl) return;
+const statusText=state==='valid'?'(SÖZLÜKTE VAR)':(state==='invalid'?'(SÖZLÜKTE YOK)':'');
+if(state===selectedPreviewVisualState && selectedPreviewStatusEl?.textContent===statusText) return;
+selectedPreviewVisualState=state;
+selectedPreviewBarEl.classList.remove('preview-invalid','preview-valid');
+if(state==='valid') selectedPreviewBarEl.classList.add('preview-valid');
+else if(state==='invalid') selectedPreviewBarEl.classList.add('preview-invalid');
+if(selectedPreviewStatusEl) selectedPreviewStatusEl.textContent=statusText;
+}
 
 function ensurePreviewTiles(){
 if(!selectedWordPreviewEl) return;
@@ -43789,22 +43829,12 @@ const p=selectedPath[i]; word+=p.char;
 const pv=previewTiles[i]; if(pv){pv.letter.textContent=p.char;pv.score.textContent=String(TILE_SCORE_CACHE[p.char]||1);pv.tile.hidden=false;}
 }
 for(let i=selectedPath.length;i<previewTiles.length;i++) previewTiles[i].tile.hidden=true;
-const desc = wordStatusDescEl;
-if(!desc) return;
-let state='neutral', message='Yatay veya dikey komşu harfleri sürükleyerek kelime oluştur!';
-if(word.length===1){ state='short'; message=`"${word}" (En az 2 harfli olmalı)`; }
-else if(word.length>=2 && isArgoWord(word)){ state='argo'; message='ARGO -3 CEZA'; }
-else if(word.length>=2 && GAME_WORD_SET.has(word)){ state='valid'; message=`"${word}" (Sözlük Onaylı) ✨`; }
-else if(word.length>=2){ state='invalid'; message=`"${word}" (Sözlükte yok -3 puan)`; }
-if(desc.textContent!==message) desc.textContent=message;
-if(state!==wordStatusVisualState){
-wordStatusVisualState=state;
-desc.className=state==='valid' ? 'text-[11px] font-bold text-emerald-400 italic truncate px-1'
-: state==='argo' ? 'text-[11px] font-black text-orange-400 italic truncate px-1'
-: state==='invalid' ? 'text-[11px] font-bold text-rose-400 italic truncate px-1'
-: state==='short' ? 'text-[11px] font-bold text-amber-400 italic truncate px-1'
-: 'text-[11px] font-bold text-slate-300 italic truncate px-1';
+let state='neutral';
+if(word.length>=1){
+  const valid = word.length>=2 && !isArgoWord(word) && GAME_WORD_SET.has(word);
+  state=valid?'valid':'invalid';
 }
+setSelectedPreviewState(state);
 }
 
 function flashWordFeedback(ok){
@@ -44416,7 +44446,7 @@ activeGameMode='single';
 sessionFoundWords.clear();
 const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
 ensurePreviewTiles(); for(const pv of previewTiles){ pv.tile.hidden=true; pv.letter.textContent=''; pv.score.textContent=''; }
-const desc=document.getElementById('word-status-desc'); if(desc)desc.textContent='Bir harfe basılı tutup sürükle; bıraktığında sözcük otomatik kontrol edilir.'; wordStatusVisualState='';
+setSelectedPreviewState('neutral');
 document.getElementById('screen-game')?.classList.add('hidden');
 document.getElementById('screen-home')?.classList.remove('hidden');
 }
@@ -44542,7 +44572,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v214: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Kelime Düellosu optimize motor v216: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
