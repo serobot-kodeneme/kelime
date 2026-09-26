@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v192</title>
-<meta name="game-version" content="v192">
+<title>Kelime Düellosu v193</title>
+<meta name="game-version" content="v193">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -39691,7 +39691,7 @@ const SOUND_VOLUME_KEY = 'kd_sound_volume_v2';
 const AUDIO_GAIN_BOOST = 1.294; // v147: önceki çıkışa göre yaklaşık +%5
 const AUDIO_GAIN_CAP = 0.26;
 let masterSoundVolume = Math.max(0.1, Math.min(1, Number(localStorage.getItem(SOUND_VOLUME_KEY) ?? 0.80)));
-// v192: tek standart, hafif görsel profil. Grafik kalite seçeneği yoktur.
+// v193: tek standart, hafif görsel profil. Grafik kalite seçeneği yoktur.
 
 function setMasterSoundVolume(v){
 masterSoundVolume = Math.max(0.2, Math.min(1, Number(v)||0.2));
@@ -39804,7 +39804,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v192';
+const GAME_VERSION='v193';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -40205,16 +40205,19 @@ activeGameMode = 'multi';
 if(mpRole==='guest' && inviteFullscreenPending) requestGameFullscreen(true);
 const [gsSnap,scoreSnap,wordsSnap]=await Promise.all([mpRoomRef.child('gameState').once('value'),mpRoomRef.child('scores').once('value'),mpRoomRef.child('words').once('value')]);
 const d={...(gsSnap.val()||{}),scores:scoreSnap.val()||{host:0,guest:0},words:wordsSnap.val()||{}}; if(!d||!d.board) return;
+const prevRound=Number(mpRoomData?.round||0);
+const prevBoardSig=Array.isArray(gridBoard)&&gridBoard.length===BOARD_SIZE?boardSignature(gridBoard):'';
 mpRoomData={...(mpRoomData||{}),...d};
-if(!mpEntered){
+const incomingBoardSig=Array.isArray(d.board)?boardSignature(d.board):'';
+const mustRefreshBoard=!mpEntered || Number(d.round||1)!==prevRound || (incomingBoardSig && incomingBoardSig!==prevBoardSig);
+if(mustRefreshBoard){
 mpEntered=true; mpStarted=false;
 document.getElementById('screen-home')?.classList.add('hidden');
 document.getElementById('screen-game')?.classList.remove('hidden');
 document.getElementById('p1-title').textContent='1. OYUNCU';
 document.getElementById('p2-title').textContent='2. OYUNCU';
+resetMultiplayerRoundVisualState();
 p1Score=Number(d.scores?.host||0); p2Score=Number(d.scores?.guest||0); updateScores();
-remainingSeconds=60; resetMatchWordResults(); resetSeriesWordResults(); sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
-const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
 if (!renderProvidedBoard(d.board)) return;
 hydrateMultiplayerBoardState(d);
 }
@@ -40248,7 +40251,7 @@ if(gs.status!=='finished') return null;
 const nextRound=Number(gs.round||1)+1;
 const existing=pendingSnap.val();
 if(existing && Number(existing.round||0)===nextRound && Array.isArray(existing.board) && existing.board.length===9) return existing;
-const ready=prewarmedBoard || generateOptimizedBoard(2); prewarmedBoard=null;
+const ready=takeDistinctNextBoard(gs.board,5);
 const pending={board:ready.board,round:nextRound,preparedAt:serverNow()};
 rememberBoard(pending.board, ready.words);
 await mpRoomRef.child('pendingRound').set(pending);
@@ -40277,6 +40280,7 @@ pending=await hostPrepareNextRound();
 if(!pending || !Array.isArray(pending.board) || pending.board.length!==9) throw new Error('pending-round-missing');
 mpStarted=false; mpEntered=false; isMatchActive=false;
 clearInterval(timerInterval); timerInterval=null;
+resetMultiplayerRoundVisualState();
 if(mpRematchExpiryTimer){clearTimeout(mpRematchExpiryTimer);mpRematchExpiryTimer=null;}
 rememberBoard(pending.board, []);
 await mpRoomRef.update({
@@ -40470,7 +40474,11 @@ document.getElementById('modal-gameover')?.classList.add('hidden');
 document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
 const localSig=Array.isArray(gridBoard)&&gridBoard.length?boardSignature(gridBoard):'';
 const isNewRound=Number(gs.round||1)>previousRound;
-if(isNewRound || (roomBoardSig && localSig!==roomBoardSig)){mpEntered=false;mpStarted=false;clearInterval(timerInterval);timerInterval=null;isMatchActive=false;resetMatchWordResults();resetSeriesWordResults();sessionFoundWords.clear();mpFoundWords.host.clear();mpFoundWords.guest.clear();mpSeenWordEvents.clear();const ticker=document.getElementById('words-ticker');if(ticker)ticker.innerHTML='';}
+if(isNewRound || (roomBoardSig && localSig!==roomBoardSig)){
+mpEntered=false;mpStarted=false;clearInterval(timerInterval);timerInterval=null;isMatchActive=false;
+resetMultiplayerRoundVisualState();
+if(Array.isArray(gs.board) && gs.board.length===BOARD_SIZE) renderProvidedBoard(gs.board);
+}
 if(!mpEntered) await enterMultiplayerRoom();
 if(gs.startAt && !mpStarted) startSyncedMatch(gs);
 }
@@ -41165,6 +41173,47 @@ prewarmedBoard = generateOptimizedBoard(2);
 };
 if ('requestIdleCallback' in window) requestIdleCallback(work, {timeout:1200});
 else setTimeout(work, 80);
+}
+
+function takeDistinctNextBoard(currentBoard, maxAttempts=5){
+const currentSig=Array.isArray(currentBoard)&&currentBoard.length===BOARD_SIZE ? boardSignature(currentBoard) : '';
+let candidate=prewarmedBoard; prewarmedBoard=null;
+if(candidate && boardSignature(candidate.board)!==currentSig) return candidate;
+for(let i=0;i<maxAttempts;i++){
+const next=generateOptimizedBoard(i<2?2:3);
+if(boardSignature(next.board)!==currentSig) return next;
+}
+// 9x9 rastgele tahta için pratikte buraya düşülmez; yine de kesin farklılık sağla.
+let next=generateOptimizedBoard(3);
+if(boardSignature(next.board)===currentSig){
+next={...next,board:next.board.map(row=>row.slice())};
+const a=next.board[0][0], b=next.board[0][1];
+next.board[0][0]=b; next.board[0][1]=a;
+if(a===b){ next.board[0][0]=next.board[1][0]; next.board[1][0]=a; }
+}
+return next;
+}
+
+function resetMultiplayerRoundVisualState(){
+try{ clearPath(); }catch(_){ selectedPath.length=0; selectedFlags.fill(0); }
+selectedFlags.fill(0);
+pendingPointer=null; lastPointerX=null; lastPointerY=null;
+if(pointerFrame){cancelAnimationFrame(pointerFrame);pointerFrame=0;}
+if(hoverLiftCell){hoverLiftCell.classList.remove('tile-hover-lift');hoverLiftCell=null;}
+for(const cell of domCells){
+cell?.classList.remove('tile-dragging','tile-dragging-p1','tile-dragging-p2','tile-claimed-p1','tile-claimed-p2','tile-hover-lift');
+}
+remainingSeconds=60;
+p1Score=0; p2Score=0; updateScores();
+const timer=document.getElementById('game-timer'); if(timer) timer.textContent='60';
+resetMatchWordResults(); resetSeriesWordResults();
+sessionFoundWords.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpSeenWordEvents.clear();
+const ticker=document.getElementById('words-ticker'); if(ticker) ticker.replaceChildren();
+if(selectedWordPreviewEl){ for(const pv of previewTiles) pv.tile.hidden=true; }
+if(wordStatusDescEl){
+wordStatusDescEl.textContent='Bir harfe basılı tutup sürükle; bıraktığında sözcük otomatik kontrol edilir.';
+wordStatusVisualState='';
+}
 }
 
 function paintBoardCells(board) {
@@ -42036,7 +42085,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v192: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Kelime Düellosu optimize motor v193: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
