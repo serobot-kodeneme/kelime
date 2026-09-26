@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v173</title>
-<meta name="game-version" content="v173">
+<title>Kelime Düellosu v174</title>
+<meta name="game-version" content="v174">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -39822,7 +39822,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v173';
+const GAME_VERSION='v174';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -39830,10 +39830,10 @@ let mpState=MP_STATES.IDLE;
 let mpDb=null, mpRoomRef=null, mpRoomCode=null, mpRole=null, mpRoomData=null;
 let mpSessionJoinedAt=0, mpExitHandling=false, mpLastExitSignalId='';
 let mpListener=null, mpWordsListener=null, mpScoresListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null;
+let mpControlListeners=[];
 let mpStartBusy=false, mpRematchBusy=false, mpPresenceRef=null, mpLastRoomMetaSig='', mpEndResolveTimer=null;
 let mpSeenWordEvents=new Set(), mpLastBeepSecond=null;
 const mpFoundWords={host:new Set(),guest:new Set()};
-let globalOnlinePresenceRef=null, globalOnlineListRef=null, globalOnlineListListener=null, onlineSessionId=null;
 
 function setMpState(next){ mpState=next; document.documentElement.dataset.mpState=next; }
 function getClientToken(){
@@ -39845,32 +39845,14 @@ localStorage.setItem('kd_client_token',t);
 }
 return t;
 }
-function getOnlineSessionId(){
-if(onlineSessionId) return onlineSessionId;
-const a=new Uint32Array(2); crypto.getRandomValues(a);
-onlineSessionId=getClientToken()+'_'+Array.from(a,n=>n.toString(36)).join('');
-return onlineSessionId;
-}
 function initGlobalOnlinePresence(){
-if(!mpDb || globalOnlineListListener) return;
-const connectedRef=mpDb.ref('.info/connected');
-connectedRef.on('value',async snap=>{
-if(snap.val()!==true) return;
-globalOnlinePresenceRef=mpDb.ref('onlinePlayers/'+getOnlineSessionId());
-try{
-await globalOnlinePresenceRef.set({clientId:getClientToken(),at:firebase.database.ServerValue.TIMESTAMP});
-await globalOnlinePresenceRef.onDisconnect().remove();
-}catch(e){}
-});
-globalOnlineListRef=mpDb.ref('onlinePlayers');
-globalOnlineListListener=globalOnlineListRef.on('value',snap=>{
-const clients=new Set();
-snap.forEach(child=>{
-const v=child.val()||{};
-if(v.clientId) clients.add(String(v.clientId));
-});
+if(!mpDb) return;
 const el=document.getElementById('online-player-count');
-if(el) el.textContent=String(clients.size);
+const label=el?.nextElementSibling;
+mpDb.ref('.info/connected').on('value',snap=>{
+const online=snap.val()===true;
+if(el) el.textContent=online?'●':'○';
+if(label) label.textContent=online?'sunucuya bağlı':'çevrimdışı';
 });
 }
 
@@ -39992,7 +39974,7 @@ const alloc=await allocateDailyRoomCode();
 const code=alloc.code, ref=mpDb.ref('rooms/'+code);
 const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board, readyBoard.words);
 await ref.set({
-schema:14, mode:'random-match-v2', createdAt:firebase.database.ServerValue.TIMESTAMP,
+schema:15, mode:'random-match-v2', createdAt:firebase.database.ServerValue.TIMESTAMP,
 dayKey:alloc.dayKey, expiresAt:alloc.expiresAt,
 hostId, guestId, status:'waiting',
 board:readyBoard.board, startAt:0,
@@ -40145,7 +40127,7 @@ const code=alloc.code, ref=mpDb.ref('rooms/'+code);
 const hostId=getClientToken();
 const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board, readyBoard.words);
 await ref.set({
-schema:14, mode:'invite-only-v2', createdAt:firebase.database.ServerValue.TIMESTAMP,
+schema:15, mode:'invite-only-v2', createdAt:firebase.database.ServerValue.TIMESTAMP,
 dayKey:alloc.dayKey, expiresAt:alloc.expiresAt,
 hostId, guestId:null, status:'waiting',
 board:readyBoard.board, startAt:0,
@@ -40175,6 +40157,7 @@ const today=turkeyRoomDayInfo();
 if(d.dayKey!==today.dayKey || Number(d.expiresAt||0)<=serverNow()){
 showToast('Bu oda kodunun süresi dolmuş. Yeni bir oda oluştur.','rose');
 clearInviteFromUrl();
+ref.remove().catch(()=>{});
 return false;
 }
 let role=null;
@@ -40334,13 +40317,8 @@ renderRematchState(d);
 scheduleBoardPrewarm();
 }
 
-function attachRoomListener(){
-if(!mpRoomRef) return;
-if(mpListener) mpRoomRef.off('value',mpListener);
-mpLastRoomMetaSig='';
-mpListener=mpRoomRef.on('value',async snap=>{
-const d=snap.val();
-if(!d){ if(mpRole){showToast('Oda kapatıldı.','rose'); returnToHomeFromMultiplayer();} return; }
+async function handleRoomState(d){
+if(!d) return;
 const clientId=getClientToken();
 if(d.hostId===clientId) mpRole='host';
 else if(d.guestId===clientId) mpRole='guest';
@@ -40401,11 +40379,72 @@ else showMultiplayerSeriesResult(d);
 await hostExpireRematchIfNeeded(d);
 if(mpRole==='host' && bothReady) await hostStartRematch();
 }
-});
+}
+
+function setCachedRoomPath(path,value){
+if(!mpRoomData) mpRoomData={};
+const parts=path.split('/');
+let cur=mpRoomData;
+for(let i=0;i<parts.length-1;i++){
+const k=parts[i];
+if(!cur[k] || typeof cur[k]!=='object') cur[k]={};
+cur=cur[k];
+}
+cur[parts[parts.length-1]]=value;
+}
+
+function detachRoomControlListeners(){
+if(!mpRoomRef || !mpControlListeners.length){ mpControlListeners=[]; return; }
+for(const item of mpControlListeners){
+try{ item.ref.off('value',item.fn); }catch(_){}
+}
+mpControlListeners=[];
+mpListener=null;
+}
+
+async function attachRoomListener(){
+if(!mpRoomRef) return;
+detachRoomControlListeners();
+mpLastRoomMetaSig='';
+
+try{
+const initial=await mpRoomRef.once('value');
+if(!initial.exists()){
+if(mpRole){showToast('Oda kapatıldı.','rose'); returnToHomeFromMultiplayer();}
+return;
+}
+mpRoomData=initial.val()||{};
+await handleRoomState(mpRoomData);
+}catch(e){ console.warn('Room initial sync failed',e); }
+
+const watch=(path,apply)=>{
+const ref=mpRoomRef.child(path);
+const fn=async snap=>{
+if(path==='status' && !snap.exists()){
+if(mpRole){showToast('Oda kapatıldı.','rose'); returnToHomeFromMultiplayer();}
+return;
+}
+apply(snap.val());
+await handleRoomState(mpRoomData);
+};
+ref.on('value',fn);
+mpControlListeners.push({ref,fn});
+};
+
+watch('status',v=>setCachedRoomPath('status',v));
+watch('startAt',v=>setCachedRoomPath('startAt',Number(v||0)));
+watch('guestId',v=>setCachedRoomPath('guestId',v||null));
+watch('board',v=>setCachedRoomPath('board',Array.isArray(v)?v:[]));
+watch('presence/guest',v=>setCachedRoomPath('presence/guest',v||{online:false}));
+watch('rematch',v=>setCachedRoomPath('rematch',v||{host:false,guest:false,expiresAt:0}));
+watch('finalWinner',v=>setCachedRoomPath('finalWinner',v||null));
+watch('roomExit',v=>setCachedRoomPath('roomExit',v||null));
+watch('longestBonus',v=>setCachedRoomPath('longestBonus',v||null));
 
 if(mpScoresListener) mpRoomRef.child('scores').off('value',mpScoresListener);
 mpScoresListener=mpRoomRef.child('scores').on('value',snap=>{
 const sc=snap.val()||{};
+setCachedRoomPath('scores',sc);
 p1Score=Number(sc.host||0); p2Score=Number(sc.guest||0); updateScores();
 });
 
@@ -40414,6 +40453,9 @@ mpWordsListener=mpRoomRef.child('words').on('child_added',snap=>{
 const ev=snap.val(), key=snap.key;
 if(!ev||!key||mpSeenWordEvents.has(key)) return;
 mpSeenWordEvents.add(key);
+if(!mpRoomData) mpRoomData={};
+if(!mpRoomData.words) mpRoomData.words={};
+mpRoomData.words[key]=ev;
 const w=String(ev.word||'').toLocaleUpperCase('tr-TR');
 if(w){ mpFoundWords.host.add(w); mpFoundWords.guest.add(w); sessionFoundWords.add(w); recordMatchWord(w,ev.pts,ev.role==='host'); }
 if(ev.role!==mpRole) applyRemoteWordEvent(ev,key);
@@ -40527,7 +40569,7 @@ await mpRoomRef.child('scores/'+mpRole).transaction(v=>Math.max(0,Number(v||0)+N
 }
 
 function detachMultiplayerListeners(){
-if(mpRoomRef && mpListener){ mpRoomRef.off('value',mpListener); mpListener=null; }
+detachRoomControlListeners();
 if(mpRoomRef && mpScoresListener){ mpRoomRef.child('scores').off('value',mpScoresListener); mpScoresListener=null; }
 if(mpRoomRef && mpWordsListener){ mpRoomRef.child('words').off('child_added',mpWordsListener); mpWordsListener=null; }
 }
