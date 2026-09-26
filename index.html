@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v213</title>
-<meta name="game-version" content="v213">
+<title>Kelime Düellosu v214</title>
+<meta name="game-version" content="v214">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2464,7 +2464,7 @@ text-shadow:0 2px 8px rgba(0,0,0,.22); filter:saturate(.96); will-change:transfo
 .score-fly.go { transform: translate3d(var(--dx),var(--dy),0) scale(1.22); opacity:0; }
 
 
-/* v213: hafif ödül efektleri — tahta hattından bağımsız */
+/* v214: hafif ödül efektleri — tahta hattından bağımsız */
 @keyframes kdScorePop{0%{transform:scale(1)}42%{transform:scale(1.13)}100%{transform:scale(1)}}
 .kd-score-pop{animation:kdScorePop .24s ease-out;will-change:transform}
 @keyframes kdAvatarRing{0%{box-shadow:0 0 0 0 rgba(255,255,255,.9),0 2px 6px rgba(0,0,0,.24)}55%{box-shadow:0 0 0 5px rgba(255,255,255,.18),0 2px 6px rgba(0,0,0,.24)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0),0 2px 6px rgba(0,0,0,.24)}}
@@ -42004,7 +42004,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v213';
+const GAME_VERSION='v214';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -42226,13 +42226,12 @@ await requestSynchronizedRoomExit('opponent-disconnected');
 },MP_DISCONNECT_GRACE_MS);
 }
 
-let randomQueueRoot=null, randomQueueRef=null, randomSearchActive=false, randomSearchTicket=null;
+let randomQueueRef=null, randomQueueListener=null, randomSearchActive=false, randomSearchTicket=null, randomWaitCancel=null;
 let randomResultAutoExitTimer=null;
 let inviteWaitCountdownTimer=null;
 let inviteWaitDeadlineAt=0;
 const RANDOM_SEARCH_MS=45000;
-const RANDOM_QUEUE_TTL=RANDOM_SEARCH_MS+8000;
-const RANDOM_QUEUE_POLL_MS=650;
+const RANDOM_QUEUE_TTL=RANDOM_SEARCH_MS+5000;
 
 function setRandomStatus(text,visible=true){
 const el=document.getElementById('mp-random-status');
@@ -42245,22 +42244,28 @@ const a=new Uint32Array(3); crypto.getRandomValues(a);
 return Array.from(a,n=>n.toString(36)).join('');
 }
 function releaseRandomSearchLocal(){
+if(randomWaitCancel){const cancel=randomWaitCancel;randomWaitCancel=null;try{cancel();}catch(_){}}
+if(randomQueueRef && randomQueueListener){try{randomQueueRef.off('value',randomQueueListener);}catch(_){} }
+randomQueueListener=null;
 randomSearchActive=false;
 randomSearchTicket=null;
 randomQueueRef=null;
-randomQueueRoot=null;
 }
 async function cleanupRandomQueue(onlyIfMine=true){
 const ref=randomQueueRef, ticket=randomSearchTicket;
-if(ref){
+if(randomWaitCancel){const cancel=randomWaitCancel;randomWaitCancel=null;try{cancel();}catch(_){}}
+if(ref && randomQueueListener){try{ref.off('value',randomQueueListener);}catch(_){} randomQueueListener=null;}
+if(ref && ticket){
 try{
-const snap=await ref.once('value');
-const cur=snap.val();
-if(!onlyIfMine || !cur || cur.ticket===ticket) await ref.remove();
-try{ await ref.onDisconnect().cancel(); }catch(_){ }
-}catch(_){ }
+await ref.transaction(cur=>{
+if(!cur) return cur;
+if(onlyIfMine && cur.ticket!==ticket) return;
+return null;
+});
+try{ await ref.onDisconnect().cancel(); }catch(_){}
+}catch(_){}
 }
-if(randomQueueRef===ref) releaseRandomSearchLocal();
+if(randomQueueRef===ref){randomSearchActive=false;randomSearchTicket=null;randomQueueRef=null;randomQueueListener=null;}
 const btn=document.getElementById('btn-random-match');
 if(btn){ btn.disabled=false; btn.textContent='🎲 RASTGELE RAKİP'; }
 }
@@ -42279,17 +42284,30 @@ presence:{host:{online:false,clientId:hostId},guest:{online:false,clientId:guest
 });
 return code;
 }
-function randomEntryIsOlder(entryKey,entry,started,ticket){
-const at=Number(entry?.createdAt||0);
-return at<started || (at===started && String(entryKey)<String(ticket));
-}
-async function ensureRandomQueueEntry(ref,ticket,myId,started,deadline){
-const snap=await ref.once('value').catch(()=>null);
-if(snap?.exists()) return snap.val();
-const payload={ticket,clientId:myId,createdAt:started,expiresAt:deadline+8000,claimedBy:null,claimedTicket:null,claimAt:0,busy:false,busyAt:0,roomCode:null};
-await ref.setWithPriority(payload,started);
-try{ await ref.onDisconnect().remove(); }catch(_){ }
-return payload;
+function waitForRandomRoom(ticket,timeoutMs){
+return new Promise(resolve=>{
+const ref=randomQueueRef;
+if(!ref) return resolve(null);
+let done=false,timer=null;
+const finish=v=>{
+if(done) return; done=true;
+if(timer) clearTimeout(timer);
+try{if(randomQueueListener) ref.off('value',randomQueueListener);}catch(_){}
+randomQueueListener=null;
+if(randomWaitCancel===cancel) randomWaitCancel=null;
+resolve(v);
+};
+const cancel=()=>finish(null);
+randomWaitCancel=cancel;
+randomQueueListener=snap=>{
+const d=snap.val();
+if(!d || d.ticket!==ticket) return finish(null);
+if(d.claimedBy && !d.roomCode) setRandomStatus('Rakip bulundu ✓ Oda hazırlanıyor…');
+if(d.roomCode) finish(String(d.roomCode));
+};
+ref.on('value',randomQueueListener);
+timer=setTimeout(()=>finish(null),Math.max(1,timeoutMs||RANDOM_SEARCH_MS));
+});
 }
 async function searchRandomOpponent(){
 if(randomSearchActive) return;
@@ -42303,120 +42321,75 @@ return;
 }
 
 randomSearchActive=true;
-randomQueueRoot=mpDb.ref('matchmaking/random/waiting');
+randomQueueRef=mpDb.ref('matchmaking/random/waiting');
 const ticket=randomTicket();
 randomSearchTicket=ticket;
-randomQueueRef=randomQueueRoot.child(ticket);
-const myRef=randomQueueRef;
 const myId=getClientToken(), started=serverNow(), deadline=started+RANDOM_SEARCH_MS;
-try{ await ensureRandomQueueEntry(myRef,ticket,myId,started,deadline); }
-catch(_){ await cleanupRandomQueue(true); setRandomStatus('Eşleşme kuyruğuna bağlanılamadı.',true); return; }
 
 while(randomSearchActive && randomSearchTicket===ticket && serverNow()<deadline){
 const now=serverNow();
-let own=null;
+let tx=null;
 try{
-own=await ensureRandomQueueEntry(myRef,ticket,myId,started,deadline);
-}catch(_){
-await new Promise(r=>setTimeout(r,RANDOM_QUEUE_POLL_MS));
-continue;
+tx=await randomQueueRef.transaction(cur=>{
+if(!cur || Number(cur.expiresAt||0)<now){
+return {ticket,clientId:myId,createdAt:now,expiresAt:now+RANDOM_QUEUE_TTL,claimedBy:null,roomCode:null};
 }
+if(cur.clientId===myId) return cur;
+if(!cur.claimedBy){
+cur.claimedBy=myId; cur.claimedAt=now; cur.expiresAt=now+RANDOM_QUEUE_TTL;
+return cur;
+}
+return;
+});
+}catch(_){}
+
 if(!randomSearchActive || randomSearchTicket!==ticket) break;
-if(own?.roomCode){
-const room=String(own.roomCode);
-try{ await myRef.onDisconnect().cancel(); }catch(_){ }
-try{ await myRef.remove(); }catch(_){ }
-releaseRandomSearchLocal();
-const ok=await joinRoom(room);
-if(ok){ const rb=document.getElementById('btn-random-match'); if(rb){rb.disabled=false;rb.textContent='🎲 RASTGELE RAKİP';} setRandomStatus('Rakip bulundu ✓ Senkronize ediliyor…',true); }
-return;
-}
-if(own?.busy && !own?.claimedBy){
-if(Number(own.busyAt||0)>0 && now-Number(own.busyAt||0)>9000){
-try{ await myRef.transaction(cur=>{ if(!cur||!cur.busy||cur.roomCode||cur.claimedBy) return cur; cur.busy=false;cur.busyAt=0;return cur; }); }catch(_){ }
-}
-await new Promise(r=>setTimeout(r,RANDOM_QUEUE_POLL_MS));
-continue;
-}
-if(own?.claimedBy){
-setRandomStatus('Rakip bulundu ✓ Oda hazırlanıyor…',true);
-if(Number(own.claimAt||0)>0 && now-Number(own.claimAt||0)>8000){
-try{
-await myRef.transaction(cur=>{
-if(!cur || cur.roomCode || !cur.claimedBy) return cur;
-if(now-Number(cur.claimAt||0)<=8000) return;
-cur.claimedBy=null; cur.claimedTicket=null; cur.claimAt=0; return cur;
-});
-}catch(_){ }
-}
-await new Promise(r=>setTimeout(r,RANDOM_QUEUE_POLL_MS));
-continue;
-}
-
-let candidates=[];
-try{
-const snap=await randomQueueRoot.orderByPriority().limitToFirst(24).once('value');
-snap.forEach(ch=>{
-const v=ch.val()||{};
-if(ch.key===ticket) return;
-if(Number(v.expiresAt||0)<now){ ch.ref.remove().catch(()=>{}); return; }
-if(v.clientId===myId || v.roomCode || v.claimedBy || v.busy) return;
-if(!randomEntryIsOlder(ch.key,v,started,ticket)) return;
-candidates.push({key:ch.key,data:v,ref:ch.ref});
-});
-}catch(_){ }
-candidates.sort((a,b)=>Number(a.data.createdAt||0)-Number(b.data.createdAt||0)||String(a.key).localeCompare(String(b.key)));
-const candidate=candidates[0];
-if(candidate){
-let ownReserved=false;
-try{
-const reserve=await myRef.transaction(cur=>{
-if(!cur || cur.roomCode || cur.claimedBy || cur.busy) return;
-cur.busy=true;cur.busyAt=now;return cur;
-});
-ownReserved=!!reserve.committed;
-}catch(_){ }
-if(!ownReserved){ await new Promise(r=>setTimeout(r,RANDOM_QUEUE_POLL_MS)); continue; }
-let claim=null;
-try{
-claim=await candidate.ref.transaction(cur=>{
-if(!cur || cur.roomCode || cur.claimedBy || cur.busy || Number(cur.expiresAt||0)<now || cur.clientId===myId) return;
-if(!randomEntryIsOlder(candidate.key,cur,started,ticket)) return;
-cur.claimedBy=myId; cur.claimedTicket=ticket; cur.claimAt=now; return cur;
-});
-}catch(_){ }
-if(!claim?.committed){
-try{ await myRef.transaction(cur=>{if(!cur||cur.roomCode||cur.claimedBy)return cur;cur.busy=false;cur.busyAt=0;return cur;}); }catch(_){ }
-}
-if(claim?.committed){
-const q=claim.snapshot.val()||{};
-setRandomStatus('Rakip bulundu ✓ Ortak oda kuruluyor…',true);
-let room=null;
-try{
-room=await createRandomMatchedRoom(q.clientId,myId);
-const publish=await candidate.ref.transaction(cur=>{
-if(!cur || cur.claimedBy!==myId || cur.claimedTicket!==ticket || cur.roomCode) return;
-cur.roomCode=room; cur.expiresAt=serverNow()+8000; return cur;
-});
-if(!publish.committed){ await mpDb.ref('rooms/'+room).remove().catch(()=>{}); room=null; }
-}catch(e){ console.error('Random match room error',e); if(room) await mpDb.ref('rooms/'+room).remove().catch(()=>{}); }
+if(serverNow()>=deadline) break;
+if(tx?.committed){
+const q=tx.snapshot.val()||{};
+if(q.clientId===myId){
+try{ await randomQueueRef.onDisconnect().remove(); }catch(_){}
+setRandomStatus(q.claimedBy?'Rakip bulundu ✓ Oda hazırlanıyor…':'Rakip bekleniyor…',true);
+const room=await waitForRandomRoom(ticket,Math.max(1,deadline-serverNow()));
+if(!randomSearchActive || randomSearchTicket!==ticket) break;
 if(room){
-try{ await myRef.onDisconnect().cancel(); }catch(_){ }
-try{ await myRef.remove(); }catch(_){ }
+try{ await randomQueueRef?.onDisconnect().cancel(); }catch(_){}
 releaseRandomSearchLocal();
 const ok=await joinRoom(room);
-setTimeout(()=>candidate.ref.transaction(cur=>cur?.roomCode===room?null:cur).catch(()=>{}),6500);
-if(ok){ const rb=document.getElementById('btn-random-match'); if(rb){rb.disabled=false;rb.textContent='🎲 RASTGELE RAKİP';} setRandomStatus('Rakip bulundu ✓ Senkronize ediliyor…',true); }
+if(ok){ const rb=document.getElementById('btn-random-match'); if(rb){rb.disabled=false;rb.textContent='🎲 RASTGELE RAKİP';} setRandomStatus('Rakip bulundu ✓ Senkronize ediliyor…',true);}
 return;
-}else{
-try{ await candidate.ref.transaction(cur=>{if(!cur||cur.roomCode||cur.claimedBy!==myId||cur.claimedTicket!==ticket)return cur;cur.claimedBy=null;cur.claimedTicket=null;cur.claimAt=0;return cur;}); }catch(_){ }
-try{ await myRef.transaction(cur=>{if(!cur||cur.roomCode||cur.claimedBy)return cur;cur.busy=false;cur.busyAt=0;return cur;}); }catch(_){ }
+}
+break;
+}
+if(q.clientId && q.clientId!==myId && q.claimedBy===myId){
+setRandomStatus('Rakip bulundu ✓ Ortak oda kuruluyor…',true);
+try{
+const room=await createRandomMatchedRoom(q.clientId,myId);
+if(!randomSearchActive || randomSearchTicket!==ticket){try{await mpDb.ref('rooms/'+room).remove();}catch(_){} break;}
+const queueRef=randomQueueRef;
+await queueRef.update({roomCode:room,expiresAt:serverNow()+8000});
+releaseRandomSearchLocal();
+const ok=await joinRoom(room);
+setTimeout(async()=>{
+try{
+await mpDb.ref('matchmaking/random/waiting').transaction(cur=>{
+if(cur && cur.roomCode===room) return null;
+return;
+});
+}catch(_){}
+},2500);
+if(ok){ const rb=document.getElementById('btn-random-match'); if(rb){rb.disabled=false;rb.textContent='🎲 RASTGELE RAKİP';} setRandomStatus('Rakip bulundu ✓ Senkronize ediliyor…',true);}
+return;
+}catch(e){
+console.error('Random match room error',e);
+break;
 }
 }
 }
-await new Promise(r=>setTimeout(r,RANDOM_QUEUE_POLL_MS));
+await new Promise(r=>setTimeout(r,450));
 }
 
+// Kullanıcı paneli kapatıp aramayı iptal ettiyse sessizce çık.
 if(randomSearchTicket!==ticket){
 const rb=document.getElementById('btn-random-match');
 if(rb){rb.disabled=false;rb.textContent='🎲 RASTGELE RAKİP';}
@@ -44569,7 +44542,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v213: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Kelime Düellosu optimize motor v214: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
