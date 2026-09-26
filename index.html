@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v189</title>
-<meta name="game-version" content="v189">
+<title>Kelime Düellosu v190</title>
+<meta name="game-version" content="v190">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -453,11 +453,6 @@ button:not(:disabled):active{filter:brightness(.96) saturate(1.12);}
 .sound-level-dot.active{background:#22c55e;border-color:#16a34a;box-shadow:inset 0 0 0 3px rgba(255,255,255,.88),0 0 10px rgba(34,197,94,.72);}
 .sound-level-dot:active{transform:scale(.94);}
 @media (max-width:380px){#sound-volume-levels{gap:11px}.sound-level-dot{width:22px;height:22px}}
-.graphics-choice{transition:transform .14s ease,box-shadow .14s ease,filter .14s ease;}
-.graphics-choice.active{box-shadow:0 0 0 3px rgba(79,70,229,.18),0 7px 16px rgba(15,23,42,.12);transform:translateY(-1px);filter:brightness(1.03);}
-body.graphics-high .score-fly{font-size:23px;text-shadow:0 0 9px currentColor,0 3px 10px rgba(0,0,0,.35);}
-body.graphics-high #modal-gameover>div{animation:highResultPop .55s cubic-bezier(.2,1.25,.4,1);box-shadow:0 0 0 4px rgba(255,255,255,.18),0 20px 65px rgba(79,70,229,.38);}
-body.graphics-high #gameover-heading{animation:highWinnerBounce .85s ease-in-out infinite alternate;}
 .result-party-fx{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2;}
 .result-party-fx span{position:absolute;top:-12%;font-size:clamp(22px,6vw,38px);animation:resultPartyFall var(--dur,2.7s) linear forwards;filter:drop-shadow(0 3px 3px rgba(0,0,0,.18));}
 @keyframes resultPartyFall{to{transform:translate3d(var(--drift,0),120vh,0) rotate(var(--rot,360deg));opacity:.15;}}
@@ -668,9 +663,6 @@ body.graphics-high #gameover-heading{animation:highWinnerBounce .85s ease-in-out
 <div id="friend-invite-panel" class="hidden w-full max-w-sm mt-2 bg-white/95 p-3 rounded-[20px] border-2 border-sky-100 shadow-xl shrink-0">
 <div class="flex justify-between items-center"><b class="text-sm text-slate-800">👥 ÇOK OYUNCULU</b><button id="btn-close-friend" class="w-7 h-7 rounded-full bg-slate-100 text-lg font-black text-slate-500 leading-none">×</button></div>
 <div id="mp-create-view" class="mt-2 space-y-1.5">
-<button id="btn-create-room" class="w-full min-h-[40px] rounded-xl bg-gradient-to-b from-sky-400 to-blue-600 text-white text-xs font-black shadow-md border border-sky-200">ÖZEL ODA OLUŞTUR</button>
-<div class="rounded-lg bg-sky-50 border border-sky-100 px-2.5 py-1.5 text-[10px] font-bold text-sky-900">Odanı kur, bağlantını paylaş ve odada bekle.</div>
-<div class="flex items-center gap-2 py-0.5"><span class="h-px flex-1 bg-slate-200"></span><span class="text-[9px] font-black text-slate-400">VEYA</span><span class="h-px flex-1 bg-slate-200"></span></div>
 <button id="btn-random-match" class="home-mode-btn w-full min-h-[40px] rounded-xl bg-gradient-to-b from-violet-400 to-indigo-600 text-white text-xs font-black shadow-md border border-violet-200">🎲 RASTGELE RAKİP</button>
 <div id="mp-random-status" class="hidden rounded-lg bg-violet-50 border border-violet-100 px-2.5 py-1.5 text-[10px] font-bold text-violet-900">Çevrimiçi rakip aranıyor…</div>
 <div class="rounded-lg bg-slate-50 border border-slate-200 px-2.5 py-1.5 text-[9px] font-bold text-slate-500">Çevrimiçi Rastgele Rakip düğmesine basan oyuncular sırayla eşleştirilir. İlk basan 1. oyuncu, sonra eşleşen 2. oyuncu olur.</div>
@@ -687,6 +679,7 @@ body.graphics-high #gameover-heading{animation:highWinnerBounce .85s ease-in-out
 <button id="btn-share-link" class="min-h-[40px] rounded-lg bg-emerald-100 border border-emerald-300 text-emerald-900 font-black text-[10px]">📨 DAVET ET</button>
 </div>
 <button id="btn-close-room" class="hidden w-full mt-1.5 min-h-[34px] rounded-lg bg-rose-50 border border-rose-200 text-rose-700 font-black text-[10px]">ODAYI KAPAT</button>
+<button id="btn-random-match-room" class="w-full mt-1.5 min-h-[36px] rounded-lg bg-gradient-to-b from-violet-400 to-indigo-600 text-white font-black text-[10px] border border-violet-200">🎲 RASTGELE RAKİP</button>
 </div>
 </div>
 
@@ -843,14 +836,6 @@ Bir harfe basılı tutup sürükle; bıraktığında sözcük otomatik kontrol e
 <button type="button" class="sound-level-dot" data-sound-level="5" aria-label="Ses 5"></button>
 </div>
 <button id="btn-sound-test" type="button" class="w-full mt-5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-[.99] text-white font-black text-xs py-3 shadow">SESİ DENE</button>
-<div class="mt-6 pt-5 border-t border-slate-200">
-<div class="font-black text-slate-900">Grafik Kalitesi</div>
-<div class="text-[11px] font-bold text-slate-500 mt-0.5">Yüksek mod; puan ve maç sonu efektlerini güçlendirir.</div>
-<div class="grid grid-cols-2 gap-3 mt-3">
-<button id="graphics-low" type="button" class="graphics-choice rounded-2xl bg-slate-100 border-2 border-slate-200 text-slate-700 font-black text-xs py-3">DÜŞÜK</button>
-<button id="graphics-high" type="button" class="graphics-choice rounded-2xl bg-gradient-to-r from-fuchsia-500 to-indigo-600 border-2 border-indigo-300 text-white font-black text-xs py-3">YÜKSEK ✨</button>
-</div>
-</div>
 </div>
 </div>
 </div>
@@ -928,7 +913,7 @@ Bir harfe basılı tutup sürükle; bıraktığında sözcük otomatik kontrol e
 <div class="w-8 h-8 rounded-full border-4 border-sky-200 border-t-sky-600 animate-spin"></div>
 </div>
 <div class="text-lg font-black text-slate-800">2. oyuncunun yanıtı bekleniyor</div>
-<div class="mt-2 text-xs font-bold text-slate-500">Arkadaşın bağlantıyı açtığında senkronizasyon otomatik başlayacak.</div>
+<div class="mt-2 text-xs font-bold text-slate-500">Arkadaşın davette BAŞLA dediğinde senkronizasyon ve geri sayım otomatik başlayacak.</div>
 </div>
 </div>
 
@@ -39705,15 +39690,8 @@ const SOUND_VOLUME_KEY = 'kd_sound_volume_v2';
 const AUDIO_GAIN_BOOST = 1.294; // v147: önceki çıkışa göre yaklaşık +%5
 const AUDIO_GAIN_CAP = 0.26;
 let masterSoundVolume = Math.max(0.1, Math.min(1, Number(localStorage.getItem(SOUND_VOLUME_KEY) ?? 0.80)));
-const GRAPHICS_QUALITY_KEY='kd_graphics_quality_v1';
-let graphicsQuality=(localStorage.getItem(GRAPHICS_QUALITY_KEY)==='high')?'high':'low';
-function applyGraphicsQuality(mode){
-graphicsQuality=mode==='high'?'high':'low';
-localStorage.setItem(GRAPHICS_QUALITY_KEY,graphicsQuality);
-document.body.classList.toggle('graphics-high',graphicsQuality==='high');
-document.getElementById('graphics-low')?.classList.toggle('active',graphicsQuality==='low');
-document.getElementById('graphics-high')?.classList.toggle('active',graphicsQuality==='high');
-}
+// v190: tek standart, hafif görsel profil. Kullanıcıya grafik kalite seçeneği sunulmaz.
+const graphicsQuality='low';
 
 function setMasterSoundVolume(v){
 masterSoundVolume = Math.max(0.2, Math.min(1, Number(v)||0.2));
@@ -39826,7 +39804,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v189';
+const GAME_VERSION='v190';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -40153,7 +40131,7 @@ const code=alloc.code, ref=mpDb.ref('rooms/'+code);
 const hostId=getClientToken();
 const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board, readyBoard.words);
 await ref.set({
-schema:20, mode:'invite-only-v4', createdAt:firebase.database.ServerValue.TIMESTAMP,
+schema:21, mode:'invite-only-v5', createdAt:firebase.database.ServerValue.TIMESTAMP,
 dayKey:alloc.dayKey,
 hostId, guestId:null,
 gameState:{status:'waiting',board:readyBoard.board,startAt:0,round:1},
@@ -40162,9 +40140,9 @@ endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0},
 presence:{host:{online:true,clientId:hostId},guest:{online:false}}
 });
 
-mpRoomCode=code; mpRole='host'; mpRoomRef=ref; mpRoomMode='invite-only-v4'; mpRoomData=null; mpEntered=false; mpStarted=false; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId='';
+mpRoomCode=code; mpRole='host'; mpRoomRef=ref; mpRoomMode='invite-only-v5'; mpRoomData=null; mpEntered=false; mpStarted=false; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId='';
 setRoomUrl(code); await markPresence();
-setMpPanelRoom(code,'2. oyuncunun yanıtı bekleniyor…');
+setMpPanelRoom(code,'Bağlantıyı kopyala ve arkadaşına gönder.');
 document.getElementById('btn-close-room')?.classList.remove('hidden');
 document.getElementById('btn-enter-room')?.classList.remove('hidden');
 setMpState(MP_STATES.WAITING);
@@ -40721,6 +40699,25 @@ const randomBtn=document.getElementById('btn-random-match'); if(randomBtn){rando
 setRandomStatus('',false);
 }
 
+
+async function discardCurrentPrivateRoom(){
+const oldRef=mpRoomRef, oldRole=mpRole, oldMode=mpRoomMode;
+if(oldRef && oldRole==='host' && /^invite-only-/.test(String(oldMode||''))){
+  detachMultiplayerListeners();
+  try{ await oldRef.remove(); }catch(_){ }
+}
+if(mpPresenceRef){ try{ await mpPresenceRef.onDisconnect().cancel(); }catch(_){ } }
+resetMultiplayerClientState();
+clearInviteFromUrl();
+}
+async function openFreshPrivateRoom(){
+if(randomSearchActive) await cleanupRandomQueue(true);
+await discardCurrentPrivateRoom();
+document.getElementById('friend-invite-panel')?.classList.remove('hidden');
+document.getElementById('mp-create-view')?.classList.remove('hidden');
+document.getElementById('mp-room-view')?.classList.add('hidden');
+await createRoom();
+}
 const difficultyPanel = document.getElementById('bot-settings-panel');
 const soloArrow = document.getElementById('solo-arrow');
 function setDifficultyOpen(open) {
@@ -40732,22 +40729,34 @@ document.getElementById('friend-invite-panel').classList.add('hidden');
 setDifficultyOpen(difficultyPanel.classList.contains('hidden'));
 };
 document.getElementById('btn-close-difficulty').onclick = (e) => { e.stopPropagation(); setDifficultyOpen(false); };
-document.getElementById('btn-friend-mode').onclick = () => {
+document.getElementById('btn-friend-mode').onclick = async() => {
 setDifficultyOpen(false);
-document.getElementById('friend-invite-panel').classList.toggle('hidden');
+await openFreshPrivateRoom();
 };
 document.getElementById('btn-close-friend').onclick = async() => {
 if(randomSearchActive) await cleanupRandomQueue(true);
 document.getElementById('friend-invite-panel').classList.add('hidden');
 };
-document.getElementById('btn-create-room').onclick = createRoom;
 document.getElementById('btn-random-match')?.addEventListener('click',searchRandomOpponent);
+document.getElementById('btn-random-match-room')?.addEventListener('click',async()=>{ await discardCurrentPrivateRoom(); document.getElementById('friend-invite-panel')?.classList.remove('hidden'); await searchRandomOpponent(); });
 document.getElementById('btn-copy-link').onclick = async()=>{
 if(!mpRoomCode)return;
 const url=inviteUrl(mpRoomCode);
 try{
 await navigator.clipboard.writeText(url);
 showCopyLinkPopup();
+const copiedRoom=mpRoomCode;
+setTimeout(async()=>{
+  if(mpRole!=='host' || !mpRoomRef || mpRoomCode!==copiedRoom || !/^invite-only-/.test(String(mpRoomMode||''))) return;
+  try{
+    const gs=(await mpRoomRef.child('gameState').once('value')).val()||{};
+    if(gs.status!=='waiting') return;
+    await enterMultiplayerRoom();
+    isMatchActive=false;
+    const st=document.getElementById('mp-status'); if(st) st.textContent='DAVETE YANIT BEKLENİYOR';
+    document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
+  }catch(_){ }
+},2000);
 }catch(e){ showToast('Bağlantı kopyalanamadı.','rose'); }
 };
 document.getElementById('btn-share-link').onclick = async()=>{
@@ -40853,10 +40862,7 @@ document.getElementById('screen-settings').classList.remove('hidden');
 document.getElementById('btn-settings-back').onclick = () => document.getElementById('screen-settings').classList.add('hidden');
 document.querySelectorAll('.sound-level-dot').forEach(dot=>dot.addEventListener('click',()=>{setMasterSoundVolume(Number(dot.dataset.soundLevel)/5);playCorrectChime();}));
 document.getElementById('btn-sound-test').onclick = () => { ensureGameAudio(); playLetterPickSound(3); setTimeout(playCorrectChime,110); };
-document.getElementById('graphics-low')?.addEventListener('click',()=>applyGraphicsQuality('low'));
-document.getElementById('graphics-high')?.addEventListener('click',()=>applyGraphicsQuality('high'));
 setMasterSoundVolume(masterSoundVolume);
-applyGraphicsQuality(graphicsQuality);
 
 updateFullscreenUi();
 
@@ -41551,7 +41557,7 @@ function showCopyLinkPopup(){
 const el=document.getElementById('copy-link-popup');
 if(!el) return;
 clearTimeout(el._hideTimer);
-el.textContent='Bağlantıyı arkadaşına gönder ve odaya gidip size katılmasını bekleyin';
+el.textContent='Bağlantı kopyalandı. Arkadaşına gönder; 2 saniye sonra odada beklenecek.';
 el.classList.remove('show');
 void el.offsetWidth;
 el.classList.add('show');
@@ -41838,9 +41844,11 @@ const presence=mpPresenceRef;
 if(presence){
 await presence.set({online:false,clientId:getClientToken(),at:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
 }
-const msg=reason==='invite-declined' && mpRole==='host' ? 'DAVET REDDEDİLDİ' : 'OYUN İPTAL OLDU';
-showRoomExitNotice(msg);
-await new Promise(r=>setTimeout(r,900));
+const exitingRef=mpRoomRef;
+const shouldDeleteRoom=!!(exitingRef && mpRole==='host' && /^invite-only-/.test(String(mpRoomMode||'')));
+showRoomExitNotice('OYUN İPTAL OLDU');
+if(shouldDeleteRoom){ try{ await exitingRef.remove(); }catch(_){ } }
+await new Promise(r=>setTimeout(r,2000));
 returnToHomeFromMultiplayer();
 hideRoomExitNotice();
 }
@@ -42020,7 +42028,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v189: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Kelime Düellosu optimize motor v190: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
