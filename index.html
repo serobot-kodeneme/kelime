@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v208</title>
-<meta name="game-version" content="v208">
+<title>Kelime Düellosu v209</title>
+<meta name="game-version" content="v209">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -346,7 +346,7 @@ text-shadow:0 2px 8px rgba(0,0,0,.22); filter:saturate(.96); will-change:transfo
 .score-fly.go { transform: translate3d(var(--dx),var(--dy),0) scale(1.22); opacity:0; }
 
 
-/* v208: hafif ödül efektleri — tahta hattından bağımsız */
+/* v209: hafif ödül efektleri — tahta hattından bağımsız */
 @keyframes kdScorePop{0%{transform:scale(1)}42%{transform:scale(1.13)}100%{transform:scale(1)}}
 .kd-score-pop{animation:kdScorePop .24s ease-out;will-change:transform}
 @keyframes kdAvatarRing{0%{box-shadow:0 0 0 0 rgba(255,255,255,.9),0 2px 6px rgba(0,0,0,.24)}55%{box-shadow:0 0 0 5px rgba(255,255,255,.18),0 2px 6px rgba(0,0,0,.24)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0),0 2px 6px rgba(0,0,0,.24)}}
@@ -39863,7 +39863,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v208';
+const GAME_VERSION='v209';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -40498,9 +40498,9 @@ const [gsSnap,scoreSnap]=await Promise.all([mpRoomRef.child('gameState').once('v
 const gameState=gsSnap.val()||{}; if(gameState.status!=='playing') return;
 const sc=scoreSnap.val()||{host:0,guest:0}; const hs=Number(sc.host||0),guestScore=Number(sc.guest||0);
 await mpRoomRef.update({'finalWinner':hs===guestScore?'tie':(hs>guestScore?'host':'guest'),'gameState/status':'finished','gameState/startAt':0,'rematch':{host:false,guest:false,expiresAt:serverNow()+30000},'pendingRound':null});
-// Kutlama ekranı görünür görünmez bir sonraki turu arka planda hazırla.
-// Oyun başlamaz; iki oyuncu da YENİDEN OYNA diyene kadar pendingRound içinde bekler.
-hostPrepareNextRound().catch(()=>{});
+// Özel davetli odalarda bir sonraki tur arka planda hazırlanır.
+// Rastgele rakipte rövanş yok; oda 3 saniye içinde kapatılacaktır.
+if(!isRandomHumanRoom()) hostPrepareNextRound().catch(()=>{});
 }
 function showMultiplayerSeriesResult(d){
 if(!d||d.status!=='finished') return;
@@ -40529,12 +40529,16 @@ if(isRandomHumanRoom()){
     exitBtn.textContent='ÇIKIŞ';
   }
   if(randomResultAutoExitTimer) clearTimeout(randomResultAutoExitTimer);
-  randomResultAutoExitTimer=setTimeout(()=>{
-    randomResultAutoExitTimer=null;
-    const ref=mpRoomRef, role=mpRole;
-    returnToHomeFromMultiplayer();
-    if(role==='host' && ref) ref.remove().catch(()=>{});
-  },3000);
+  // Rastgele maçta ortak kapanışın sahibi hosttur. Maç sonucu göründükten 3 sn sonra
+  // roomExit sinyali gönderilir; iki oyuncu da aynı anda ana sayfaya döner.
+  if(mpRole==='host'){
+    randomResultAutoExitTimer=setTimeout(()=>{
+      randomResultAutoExitTimer=null;
+      if(mpRoomRef && mpRole==='host' && isRandomHumanRoom() && !mpExitHandling){
+        requestSynchronizedRoomExit('random-result-timeout');
+      }
+    },3000);
+  }
 }else{
   if(replay){replay.disabled=false;replay.textContent='YENİDEN OYNA';replay.classList.remove('hidden');replay.classList.add('rematch-pulse');}
   if(exitBtn){exitBtn.disabled=false;exitBtn.classList.remove('hidden');exitBtn.className='w-full mt-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs py-2.5 rounded-xl uppercase border border-slate-200';exitBtn.textContent='ÇIKIŞ';}
@@ -42171,10 +42175,19 @@ if(presence){
 await presence.set({online:false,clientId:getClientToken(),at:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
 }
 const exitingRef=mpRoomRef;
-const shouldDeleteRoom=!!(exitingRef && mpRole==='host' && /^invite-only-/.test(String(mpRoomMode||'')));
+const randomResultExit=(reason==='random-result-timeout'||reason==='random-result-exit');
+const shouldDeletePrivate=!!(exitingRef && mpRole==='host' && /^invite-only-/.test(String(mpRoomMode||'')));
+const shouldDeleteRandom=!!(exitingRef && mpRole==='host' && randomResultExit && /^random-match-/.test(String(mpRoomMode||'')));
+if(randomResultExit){
+  if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
+  if(shouldDeleteRandom){ try{ await exitingRef.remove(); }catch(_){ } }
+  returnToHomeFromMultiplayer();
+  hideRoomExitNotice();
+  return;
+}
 const exitMessage=(reason==='rematch-timeout'||reason==='invite-timeout')?'OYUN İPTAL OLDU':'OYUNDAN ÇIKIŞ YAPILDI';
 showRoomExitNotice(exitMessage);
-if(shouldDeleteRoom){ try{ await closeAndLockPrivateRoom(exitingRef,mpRoomCode,reason||'player-exit'); }catch(_){ } }
+if(shouldDeletePrivate){ try{ await closeAndLockPrivateRoom(exitingRef,mpRoomCode,reason||'player-exit'); }catch(_){ } }
 await new Promise(r=>setTimeout(r,2000));
 returnToHomeFromMultiplayer();
 hideRoomExitNotice();
@@ -42241,9 +42254,7 @@ else exitCurrentGameToHome();
 document.getElementById('btn-game-exit')?.addEventListener('click', ()=>{
 if(isRandomHumanRoom()){
   if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
-  const ref=mpRoomRef, role=mpRole;
-  returnToHomeFromMultiplayer();
-  if(role==='host' && ref) ref.remove().catch(()=>{});
+  requestSynchronizedRoomExit('random-result-exit');
   return;
 }
 if(mpRoomRef && mpRole) requestSynchronizedRoomExit('player-exit');
@@ -42355,7 +42366,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v208: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Kelime Düellosu optimize motor v209: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
