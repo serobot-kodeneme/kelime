@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v176</title>
-<meta name="game-version" content="v176">
+<title>Kelime Düellosu v178</title>
+<meta name="game-version" content="v178">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -287,7 +287,7 @@ border-radius: 11px !important;
 90%{transform:translate3d(1px,0,0) rotate(1deg)}
 }
 .longest-player-shake{animation:longestPlayerShake .62s ease-in-out 1;will-change:transform;}
-.score-orb { width:56px; height:56px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex:none; font-size:29px; line-height:1; font-weight:1000; box-shadow:0 3px 9px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.22); border:2px solid rgba(255,255,255,.18); }
+.score-orb { width:56px; height:56px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex:none; font-size:34px; line-height:.92; font-weight:1000; box-shadow:0 3px 9px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.22); border:2px solid rgba(255,255,255,.18); }
 .score-orb-p1 { background:#facc15; color:#4a2b12; border-color:#fde68a; }
 .score-orb-p2 { background:#0b3a67; color:#ffffff; border-color:#60a5fa; }
 .compact-timer { display:flex; flex-direction:column; align-items:center; justify-content:center; width:56px; height:56px; min-width:56px; border-radius:10px; background:#ef4444; border:2px solid #fecaca; box-shadow:0 5px 14px rgba(127,29,29,.28),inset 0 1px 0 rgba(255,255,255,.28); }
@@ -307,7 +307,7 @@ border-radius: 11px !important;
 .compact-avatar { width:21px !important; height:21px !important; font-size:10px !important; margin:0 !important; }
 .compact-name { font-size:8px !important; line-height:9px !important; max-width:82px; }
 .compact-score { font-size:14px !important; line-height:14px !important; }
-.score-orb { width:51px; height:51px; border-radius:9px; font-size:24px; }
+.score-orb { width:51px; height:51px; border-radius:9px; font-size:31px; line-height:.92; }
 #compact-game-header #game-timer { font-size:24px !important; line-height:24px !important; }
 .compact-timer{width:51px;height:51px;min-width:51px;border-radius:9px;}
 #words-ticker { min-height:18px; }
@@ -320,7 +320,7 @@ border-radius: 11px !important;
 .compact-avatar { width:19px !important; height:19px !important; font-size:9px !important; }
 #compact-game-header #game-timer { font-size:22px !important; line-height:22px !important; }
 .compact-timer{width:47px;height:47px;min-width:47px;border-radius:8px;}
-.score-orb { width:47px; height:47px; border-radius:8px; font-size:22px; }
+.score-orb { width:47px; height:47px; border-radius:8px; font-size:28px; line-height:.92; }
 #scrabble-grid { width:min(calc(100vw - 6px), calc(100dvh - 170px), 440px) !important; }
 }
 
@@ -678,7 +678,7 @@ body.graphics-high #gameover-heading{animation:highWinnerBounce .85s ease-in-out
 <div id="mp-room-view" class="hidden mt-2 text-center">
 <div class="text-[9px] font-black text-slate-500 uppercase text-left mb-1">ODA KODU</div>
 <div class="flex items-stretch gap-1.5">
-<input id="mp-room-code" readonly inputmode="numeric" value="------" class="w-[118px] shrink-0 text-center text-lg font-black tracking-[.18em] text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-xl px-2 py-2 select-all cursor-text" />
+<input id="mp-room-code" readonly inputmode="text" autocapitalize="none" autocomplete="off" spellcheck="false" value="-----" class="w-[118px] shrink-0 text-center text-lg font-black tracking-[.18em] text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-xl px-2 py-2 select-all cursor-text" />
 <button id="btn-copy-link" class="flex-1 min-w-0 px-2 min-h-[40px] rounded-xl bg-sky-100 border border-sky-300 text-sky-900 font-black text-[10px] leading-tight">🔗 BAĞLANTIYI KOPYALA</button>
 </div>
 <div id="mp-status" class="mt-2 rounded-lg bg-slate-100 px-2.5 py-1.5 text-[10px] font-bold text-slate-600">Oda hazırlanıyor…</div>
@@ -805,7 +805,7 @@ Bir harfe basılı tutup sürükle; bıraktığında sözcük otomatik kontrol e
 </div>
 <div class="bg-gradient-to-br from-sky-50 to-cyan-100 rounded-3xl p-4 shadow-lg border border-sky-200">
 <div class="font-black text-sky-950 mb-2">👥 Çok Oyunculu — KAPMACA</div>
-<p class="text-xs text-sky-950/80 leading-relaxed">Özel odayı kuran kişi 1. oyuncu olur. Sistem 6 haneli oda kodu ve paylaşılabilir bağlantı verir. Rakip bağlanınca oyun senkronize edilir ve 3 saniyelik geri sayımdan sonra aynı tahta üzerinde kapışma başlar. Rastgele Rakip seçeneğinde çevrimiçi rakip 5 saniye aranır; bulunamazsa AI rakiple oyun başlar.</p>
+<p class="text-xs text-sky-950/80 leading-relaxed">Özel odayı kuran kişi 1. oyuncu olur. Sistem her gün yenilenen 5 küçük harfli oda kodu ve paylaşılabilir bağlantı verir. Rakip bağlanınca oyun senkronize edilir ve 3 saniyelik geri sayımdan sonra aynı tahta üzerinde kapışma başlar. Rastgele Rakip seçeneğinde çevrimiçi rakip 5 saniye aranır; bulunamazsa AI rakiple oyun başlar.</p>
 <div class="mt-2 rounded-2xl bg-white/75 border border-sky-200 p-3 text-[11px] font-bold text-sky-900 leading-relaxed">Kapmaca kuralı: Bir sözcüğü ilk bulan puanı alır. Rakip aynı sözcükten tekrar puan alamaz; fakat o harfleri kullanarak farklı bir sözcük oluşturabilir. Maçın en uzun geçerli sözcüğünü bulan oyuncu +10 bonus alır. En uzun sözcük uzunluğu eşitse iki oyuncu da +10 alır.</div>
 </div>
 <div class="bg-white rounded-3xl p-4 shadow-lg border border-emerald-100">
@@ -39528,7 +39528,7 @@ const seriesWordResults = { p1:new Map(), p2:new Map() };
 let singleLongestBonusApplied=false;
 let singleLongestBonus={p1:false,p2:false,maxLen:0};
 function clearPlayerWordShake(){
-['p1-avatar-box','p1-title','p1-score-chip','p2-avatar-box','p2-title','p2-score-chip'].forEach(id=>{
+['p1-score-chip','p2-score-chip'].forEach(id=>{
 const el=document.getElementById(id);
 if(!el) return;
 if(el._wordShakeAnim){ el._wordShakeAnim.cancel(); el._wordShakeAnim=null; }
@@ -39536,7 +39536,7 @@ el.style.transform='';
 });
 }
 function celebrateWordPlayer(isP1){
-const ids=isP1?['p1-avatar-box','p1-title','p1-score-chip']:['p2-avatar-box','p2-title','p2-score-chip'];
+const ids=isP1?['p1-score-chip']:['p2-score-chip'];
 const frames=[
 {transform:'translate3d(0,0,0)'},
 {transform:'translate3d(-2px,0,0)'},
@@ -39822,7 +39822,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v176';
+const GAME_VERSION='v178';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -39896,19 +39896,34 @@ const dayKey=String(y)+String(m+1).padStart(2,'0')+String(d).padStart(2,'0');
 const expiresAt=Date.UTC(y,m,d+1,0,0,0)-3*60*60*1000;
 return {dayKey,expiresAt};
 }
+function randomDailyRoomCode(){
+const alphabet='abcdefghijklmnopqrstuvwxyz';
+const bytes=new Uint8Array(5); crypto.getRandomValues(bytes);
+let code='';
+for(let i=0;i<5;i++) code+=alphabet[bytes[i]%26];
+return code;
+}
 async function allocateDailyRoomCode(){
 if(!mpDb) throw new Error('firebase-not-ready');
-const {dayKey,expiresAt}=turkeyRoomDayInfo();
-const counterRef=mpDb.ref('meta/dailyRoomCounters/'+dayKey);
-const tx=await counterRef.transaction(current=>{
-let n=Number(current);
-if(!Number.isInteger(n) || n<111110) n=111110;
-if(n>=999999) return;
-return n+1;
-});
-if(!tx.committed) throw new Error('daily-room-code-limit');
-const code=String(Number(tx.snapshot.val())).padStart(6,'0');
-return {code,dayKey,expiresAt};
+const {dayKey}=turkeyRoomDayInfo();
+const claimToken=getClientToken()+':'+serverNow()+':'+Math.random().toString(36).slice(2,8);
+for(let attempt=0;attempt<40;attempt++){
+const code=randomDailyRoomCode();
+const claimRef=mpDb.ref('meta/dailyRoomCodes/'+dayKey+'/'+code);
+const claim=await claimRef.transaction(current=>current==null?claimToken:undefined);
+if(!claim.committed) continue;
+const roomRef=mpDb.ref('rooms/'+code);
+const snap=await roomRef.once('value');
+if(!snap.exists()) return {code,dayKey};
+const room=snap.val()||{};
+const oldDay=String(room.dayKey||'')!==dayKey;
+const active=isOnline(room.presence?.host)||isOnline(room.presence?.guest)||['countdown','playing'].includes(String(room.status||''));
+if(oldDay && !active){
+try{ await roomRef.remove(); return {code,dayKey}; }catch(_){ }
+}
+await claimRef.transaction(current=>current===claimToken?null:current).catch(()=>{});
+}
+throw new Error('daily-room-code-allocation-failed');
 }
 function inviteUrl(code){
 const u=new URL(location.href); u.searchParams.set('room',code); u.searchParams.delete('join'); u.searchParams.delete('as'); u.hash=''; return u.toString();
@@ -39975,8 +39990,8 @@ const alloc=await allocateDailyRoomCode();
 const code=alloc.code, ref=mpDb.ref('rooms/'+code);
 const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board, readyBoard.words);
 await ref.set({
-schema:16, mode:'random-match-v2', createdAt:firebase.database.ServerValue.TIMESTAMP,
-dayKey:alloc.dayKey, expiresAt:alloc.expiresAt,
+schema:17, mode:'random-match-v3', createdAt:firebase.database.ServerValue.TIMESTAMP,
+dayKey:alloc.dayKey,
 hostId, guestId, status:'waiting',
 board:readyBoard.board, startAt:0,
 scores:{host:0,guest:0}, words:{}, longestBonus:null, bonusApplied:false,
@@ -40128,8 +40143,8 @@ const code=alloc.code, ref=mpDb.ref('rooms/'+code);
 const hostId=getClientToken();
 const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board, readyBoard.words);
 await ref.set({
-schema:16, mode:'invite-only-v2', createdAt:firebase.database.ServerValue.TIMESTAMP,
-dayKey:alloc.dayKey, expiresAt:alloc.expiresAt,
+schema:17, mode:'invite-only-v3', createdAt:firebase.database.ServerValue.TIMESTAMP,
+dayKey:alloc.dayKey,
 hostId, guestId:null, status:'waiting',
 board:readyBoard.board, startAt:0,
 scores:{host:0,guest:0}, words:{}, longestBonus:null, bonusApplied:false,
@@ -40139,7 +40154,7 @@ presence:{host:{online:true,clientId:hostId},guest:{online:false}}
 
 mpRoomCode=code; mpRole='host'; mpRoomRef=ref; mpRoomData=null; mpEntered=false; mpStarted=false; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId='';
 setRoomUrl(code); await markPresence();
-setMpPanelRoom(code,'1. oyuncusun. 6 haneli oda kodunu paylaş; 2. oyuncu gelince oyun otomatik başlayacak.');
+setMpPanelRoom(code,'1. oyuncusun. 5 harfli oda kodunu paylaş; 2. oyuncu gelince oyun otomatik başlayacak.');
 document.getElementById('btn-close-room')?.classList.remove('hidden');
 document.getElementById('btn-enter-room')?.classList.remove('hidden');
 setMpState(MP_STATES.WAITING);
@@ -40147,20 +40162,13 @@ attachRoomListener();
 }
 
 async function joinRoom(code){
-code=String(code||'').replace(/\D/g,'').slice(0,6);
-if(!/^\d{6}$/.test(code)) return false;
-if(!code) return false;
+code=String(code||'').toLowerCase().replace(/[^a-z]/g,'').slice(0,5);
+if(!/^[a-z]{5}$/.test(code)) return false;
 if(!await waitFirebaseConnected()){ showToast('Sunucuya bağlanılamadı.','rose'); return false; }
 const ref=mpDb.ref('rooms/'+code); const snap=await ref.once('value');
 if(!snap.exists()){ showToast('Davet odası bulunamadı veya kapatılmış.','rose'); clearInviteFromUrl(); return false; }
 const d=snap.val()||{}; const clientId=getClientToken();
-const today=turkeyRoomDayInfo();
-if(d.dayKey!==today.dayKey || Number(d.expiresAt||0)<=serverNow()){
-showToast('Bu oda kodunun süresi dolmuş. Yeni bir oda oluştur.','rose');
-clearInviteFromUrl();
-ref.remove().catch(()=>{});
-return false;
-}
+// Gün değişimi aktif odayı kapatmaz. dayKey yalnızca yeni oda kodu havuzunu ayırır.
 let role=null;
 if(d.hostId===clientId){
 role='host';
@@ -40689,7 +40697,7 @@ document.getElementById('btn-countdown-fullscreen')?.addEventListener('click',()
 window.addEventListener('load',async()=>{
 if(window.firebase && ensureFirebase()) initGlobalOnlinePresence();
 const u=new URL(location.href);
-const code=String(u.searchParams.get('room')||'').replace(/\D/g,'').slice(0,6);
+const code=String(u.searchParams.get('room')||'').toLowerCase().replace(/[^a-z]/g,'').slice(0,5);
 if(!code) return;
 armInviteFullscreen();
 document.getElementById('screen-game')?.classList.add('hidden');
