@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v184</title>
-<meta name="game-version" content="v184">
+<title>Kelime Düellosu v185</title>
+<meta name="game-version" content="v185">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -914,9 +914,9 @@ Bir harfe basılı tutup sürükle; bıraktığında sözcük otomatik kontrol e
 <div class="mx-auto mb-4 w-16 h-16 rounded-full bg-indigo-50 border-2 border-indigo-100 flex items-center justify-center text-3xl">⚔️</div>
 <div class="text-xl font-black text-slate-800">Oyuna davet edildiniz</div>
 <div id="invite-room-code" class="mt-2 text-xs font-black tracking-[.18em] text-indigo-600"></div>
-<div class="mt-5 grid grid-cols-2 gap-3">
+<div class="mt-5 grid grid-cols-1 gap-3">
 <button id="btn-invite-start" class="py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 text-white text-sm font-black shadow-md">BAŞLA</button>
-<button id="btn-invite-cancel" class="py-3 rounded-xl bg-slate-100 text-slate-600 text-sm font-black border border-slate-200">İPTAL</button>
+<button id="btn-invite-cancel" class="py-3 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 text-white text-sm font-black shadow-md border border-rose-300">ÇIK</button>
 </div>
 </div>
 </div>
@@ -927,7 +927,7 @@ Bir harfe basılı tutup sürükle; bıraktığında sözcük otomatik kontrol e
 <div class="mx-auto mb-4 w-16 h-16 rounded-full bg-sky-50 border-2 border-sky-100 flex items-center justify-center">
 <div class="w-8 h-8 rounded-full border-4 border-sky-200 border-t-sky-600 animate-spin"></div>
 </div>
-<div class="text-lg font-black text-slate-800">2. oyuncunun odaya katılması bekleniyor</div>
+<div class="text-lg font-black text-slate-800">2. oyuncunun yanıtı bekleniyor</div>
 <div class="mt-2 text-xs font-bold text-slate-500">Arkadaşın bağlantıyı açtığında senkronizasyon otomatik başlayacak.</div>
 </div>
 </div>
@@ -39825,7 +39825,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v184';
+const GAME_VERSION='v185';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -39993,12 +39993,12 @@ const alloc=await allocateDailyRoomCode();
 const code=alloc.code, ref=mpDb.ref('rooms/'+code);
 const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board, readyBoard.words);
 await ref.set({
-schema:19, mode:'random-match-v5', createdAt:firebase.database.ServerValue.TIMESTAMP,
+schema:20, mode:'random-match-v5', createdAt:firebase.database.ServerValue.TIMESTAMP,
 dayKey:alloc.dayKey,
 hostId, guestId,
 gameState:{status:'waiting',board:readyBoard.board,startAt:0,round:1},
 scores:{host:0,guest:0}, words:{}, longestBonus:null, bonusApplied:false,
-endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0}, pendingRound:null, randomRematchRequest:null,
+endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0}, pendingRound:null, randomRematchRequest:null, invite:{guest:'accepted'},
 presence:{host:{online:false,clientId:hostId},guest:{online:false,clientId:guestId}}
 });
 return code;
@@ -40146,18 +40146,18 @@ const code=alloc.code, ref=mpDb.ref('rooms/'+code);
 const hostId=getClientToken();
 const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board, readyBoard.words);
 await ref.set({
-schema:19, mode:'invite-only-v4', createdAt:firebase.database.ServerValue.TIMESTAMP,
+schema:20, mode:'invite-only-v4', createdAt:firebase.database.ServerValue.TIMESTAMP,
 dayKey:alloc.dayKey,
 hostId, guestId:null,
 gameState:{status:'waiting',board:readyBoard.board,startAt:0,round:1},
 scores:{host:0,guest:0}, words:{}, longestBonus:null, bonusApplied:false,
-endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0}, pendingRound:null,
+endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0}, pendingRound:null, invite:{guest:'pending'},
 presence:{host:{online:true,clientId:hostId},guest:{online:false}}
 });
 
 mpRoomCode=code; mpRole='host'; mpRoomRef=ref; mpRoomMode='invite-only-v4'; mpRoomData=null; mpEntered=false; mpStarted=false; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId='';
 setRoomUrl(code); await markPresence();
-setMpPanelRoom(code,'1. oyuncusun. 5 harfli oda kodunu paylaş; 2. oyuncu gelince oyun otomatik başlayacak.');
+setMpPanelRoom(code,'2. oyuncunun yanıtı bekleniyor…');
 document.getElementById('btn-close-room')?.classList.remove('hidden');
 document.getElementById('btn-enter-room')?.classList.remove('hidden');
 setMpState(MP_STATES.WAITING);
@@ -40186,15 +40186,17 @@ role='guest';
 }
 
 mpRoomCode=code; mpRole=role; mpRoomRef=ref; mpRoomMode=String(d.mode||'');
-const [gsSnap,scoreSnap]=await Promise.all([ref.child('gameState').once('value'),ref.child('scores').once('value')]);
-mpRoomData={...(gsSnap.val()||{}),scores:scoreSnap.val()||{host:0,guest:0}}; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId=''; mpEntered=false; mpStarted=false;
+const [gsSnap,scoreSnap,inviteSnap]=await Promise.all([ref.child('gameState').once('value'),ref.child('scores').once('value'),ref.child('invite/guest').once('value')]);
+const gs0=gsSnap.val()||{};
+if(role==='guest' && /^invite-only-/.test(String(d.mode||'')) && gs0.status==='waiting'){ await ref.child('invite/guest').set('pending'); }
+mpRoomData={...gs0,scores:scoreSnap.val()||{host:0,guest:0},inviteGuest:(role==='guest' && /^invite-only-/.test(String(d.mode||'')) && gs0.status==='waiting')?'pending':(inviteSnap.val()||null)}; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId=''; mpEntered=false; mpStarted=false;
 await markPresence(); setRoomUrl(code);
 setMpPanelRoom(code,role==='host'?'1. oyuncu olarak odana yeniden bağlandın.':'2. oyuncu olarak davet odasına bağlandın.');
 document.getElementById('btn-close-room')?.classList.toggle('hidden',role!=='host');
 document.getElementById('btn-enter-room')?.classList.toggle('hidden',role!=='host');
 setMpState(mpRoomData.status||MP_STATES.WAITING);
 attachRoomListener();
-if(role==='guest') await enterMultiplayerRoom();
+if(role==='guest' && /^random-match-/.test(String(mpRoomMode||''))) await enterMultiplayerRoom();
 return true;
 }
 
@@ -40261,26 +40263,20 @@ if(mpRole!=='host'||mpRematchBusy||!mpRoomRef) return;
 mpRematchBusy=true;
 try{
 const now=serverNow();
-const [gsSnap,rSnap]=await Promise.all([
-mpRoomRef.child('gameState').once('value'),
-mpRoomRef.child('rematch').once('value')
-]);
-const gs=gsSnap.val()||{}, r=rSnap.val()||{}, exp=Number(r.expiresAt||0);
-if(gs.status!=='finished'||!r.host||!r.guest||!exp||exp<now) return;
-let pending=(await mpRoomRef.child('pendingRound').once('value')).val();
+const [gsSnap,rSnap]=await Promise.all([mpRoomRef.child('gameState').once('value'),mpRoomRef.child('rematch').once('value')]);
+const gs=gsSnap.val()||{}, r=rSnap.val()||{};
+if(gs.status!=='finished'||!r.host||!r.guest) return;
 const nextRound=Number(gs.round||1)+1;
-if(!pending || Number(pending.round||0)!==nextRound || !Array.isArray(pending.board) || pending.board.length!==9){
-pending=await hostPrepareNextRound();
-}
-if(!pending || !Array.isArray(pending.board)) throw new Error('pending-round-missing');
-// Firebase local event'i update() promise'inden önce gelebilir; host yeni countdown'u kaçırmasın.
+const ready=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null;
+rememberBoard(ready.board, ready.words);
 mpStarted=false; mpEntered=false; isMatchActive=false;
 clearInterval(timerInterval); timerInterval=null;
 await mpRoomRef.update({
-'gameState':{status:'countdown',board:pending.board,startAt:now+3200,round:nextRound},
+'gameState':{status:'countdown',board:ready.board,startAt:now+3200,round:nextRound},
 'scores':{host:0,guest:0},'words':null,'longestBonus':null,'bonusApplied':false,'finalWinner':null,
-'endReady':{host:false,guest:false},'rematch':{host:false,guest:false,expiresAt:0},'randomRematchRequest':null,'pendingRound':null
+'endReady':{host:false,guest:false},'rematch':{host:false,guest:false,expiresAt:0},'pendingRound':null
 });
+scheduleBoardPrewarm();
 }catch(e){console.error('Rematch start error',e);showToast('Yeni oyun başlatılamadı. Tekrar deneyin.','rose');}
 finally{mpRematchBusy=false;}
 }
@@ -40291,19 +40287,19 @@ return activeGameMode==='multi' && /^random-match-/.test(String(mpRoomMode||''))
 }
 
 async function hostStartRandomRematch(){
-// v183: Rastgele ve davetli maçlar aynı çift-onaylı rövanş motorunu kullanır.
+// Rastgele ve davetli maçlar aynı çift-onaylı rövanş motorunu kullanır.
 return hostStartRematch();
 }
 
 async function requestRandomImmediateRematch(){
-// Geriye dönük isim korunuyor; v183'te rastgele rakip de karşılıklı onay ister.
+// Geriye dönük isim korunuyor; rastgele rakip de karşılıklı onay ister.
 if(!mpRoomRef||!mpRole||!isRandomHumanRoom()) return false;
 const rematchRef=mpRoomRef.child('rematch');
 const res=await rematchRef.transaction(current=>{
 const now=serverNow();
 let r=current||{host:false,guest:false,expiresAt:0};
 const exp=Number(r.expiresAt||0);
-if(!exp || exp<now) r={host:false,guest:false,expiresAt:now+30000};
+if(!exp || exp<now) r={host:false,guest:false,expiresAt:now+300000};
 r[mpRole]=true;
 return r;
 });
@@ -40401,6 +40397,7 @@ const ref=mpRoomRef.child(path); ref.on(event,handler); mpControlListeners.push(
 
 mpListener=async snap=>{
 const gs=snap.val();
+const previousRound=Number(mpRoomData?.round||0);
 if(!gs){ if(mpRole){showToast('Oda kapatıldı.','rose'); returnToHomeFromMultiplayer();} return; }
 mpRoomData={...(mpRoomData||{}),...gs};
 const roomBoardSig=Array.isArray(gs.board)?boardSignature(gs.board):'';
@@ -40410,23 +40407,28 @@ mpLastRoomMetaSig=metaSig;
 
 if(gs.status==='waiting'){
 setMpState(MP_STATES.WAITING);
+const inviteAccepted = /^random-match-/.test(String(mpRoomMode||'')) || mpRoomData.inviteGuest==='accepted';
 if(mpRole==='host'){
-if(!mpRoomData.guestId || !mpRoomData.guestOnline){
+if(!mpRoomData.guestId || !mpRoomData.guestOnline || !inviteAccepted){
 if(mpEntered) document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
 else document.getElementById('modal-mp-waiting')?.classList.add('hidden');
-const st=document.getElementById('mp-status'); if(st)st.textContent='2. oyuncunun odaya katılması bekleniyor…';
+const st=document.getElementById('mp-status');
+if(st) st.textContent = mpRoomData.guestId && mpRoomData.guestOnline ? '2. oyuncunun BAŞLA yanıtı bekleniyor…' : '2. oyuncunun yanıtı bekleniyor…';
 }else{
 document.getElementById('modal-mp-waiting')?.classList.add('hidden');
-const st=document.getElementById('mp-status'); if(st)st.textContent='2. oyuncu bağlandı ✓ Oyun hazırlanıyor…';
+const st=document.getElementById('mp-status'); if(st)st.textContent='2. oyuncu hazır ✓ Senkron başlatılıyor…';
 if(!mpEntered) await enterMultiplayerRoom();
 await hostStartWaitingRound();
 }
-}else if(mpRole==='guest' && !mpEntered) await enterMultiplayerRoom();
+}
 }
 if(gs.status==='countdown'){
 setMpState(MP_STATES.COUNTDOWN); document.getElementById('modal-mp-waiting')?.classList.add('hidden');
+document.getElementById('modal-gameover')?.classList.add('hidden');
+document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
 const localSig=Array.isArray(gridBoard)&&gridBoard.length?boardSignature(gridBoard):'';
-if(roomBoardSig && localSig!==roomBoardSig){mpEntered=false;mpStarted=false;clearInterval(timerInterval);timerInterval=null;isMatchActive=false;resetMatchWordResults();resetSeriesWordResults();sessionFoundWords.clear();mpFoundWords.host.clear();mpFoundWords.guest.clear();mpSeenWordEvents.clear();const ticker=document.getElementById('words-ticker');if(ticker)ticker.innerHTML='';}
+const isNewRound=Number(gs.round||1)>previousRound;
+if(isNewRound || (roomBoardSig && localSig!==roomBoardSig)){mpEntered=false;mpStarted=false;clearInterval(timerInterval);timerInterval=null;isMatchActive=false;resetMatchWordResults();resetSeriesWordResults();sessionFoundWords.clear();mpFoundWords.host.clear();mpFoundWords.guest.clear();mpSeenWordEvents.clear();const ticker=document.getElementById('words-ticker');if(ticker)ticker.innerHTML='';}
 if(!mpEntered) await enterMultiplayerRoom();
 if(gs.startAt && !mpStarted) startSyncedMatch(gs);
 }
@@ -40437,17 +40439,17 @@ const d={...(mpRoomData||{}),...gs};
 const bothReady=!!d.rematch?.host && !!d.rematch?.guest && Number(d.rematch?.expiresAt||0)>=serverNow();
 if(bothReady) showImmediateRematchSync(); else showMultiplayerSeriesResult(d);
 await hostExpireRematchIfNeeded(d);
-if(mpRole==='host'&&bothReady) await hostStartRematch();
 }
 };
 mpRoomRef.child('gameState').on('value',mpListener);
 
 bindControl('guestId','value',snap=>{mpRoomData={...(mpRoomData||{}),guestId:snap.val()||null}; if(mpRoomData.status==='waiting'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
 bindControl('presence/guest','value',snap=>{const v=snap.val()||{};mpRoomData={...(mpRoomData||{}),guestOnline:isOnline(v)}; if(mpRoomData.status==='waiting'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
-bindControl('rematch','value',snap=>{mpRoomData={...(mpRoomData||{}),rematch:snap.val()||{}}; if(mpRoomData.status==='finished'){renderRematchState({...mpRoomData,status:'finished'}); if(mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);}});
+bindControl('invite/guest','value',snap=>{mpRoomData={...(mpRoomData||{}),inviteGuest:snap.val()||null}; if(mpRoomData.status==='waiting'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
+bindControl('rematch','value',snap=>{const r=snap.val()||{};mpRoomData={...(mpRoomData||{}),rematch:r}; if(mpRoomData.status==='finished'){renderRematchState({...mpRoomData,status:'finished'}); if(mpRole==='host'&&r.host&&r.guest) hostStartRematch();}});
 bindControl('finalWinner','value',snap=>{mpRoomData={...(mpRoomData||{}),finalWinner:snap.val()||null}; if(mpRoomData.status==='finished'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
 bindControl('longestBonus','value',snap=>{mpRoomData={...(mpRoomData||{}),longestBonus:snap.val()||null}; if(mpRoomData.status==='finished'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
-bindControl('roomExit','value',snap=>{const exitSignal=snap.val(); if(exitSignal?.id&&exitSignal.id!==mpLastExitSignalId&&Number(exitSignal.at||0)>=mpSessionJoinedAt-1000){mpLastExitSignalId=exitSignal.id;handleSynchronizedRoomExit();}});
+bindControl('roomExit','value',snap=>{const exitSignal=snap.val(); if(exitSignal?.id&&exitSignal.id!==mpLastExitSignalId&&Number(exitSignal.at||0)>=mpSessionJoinedAt-1000){mpLastExitSignalId=exitSignal.id;handleSynchronizedRoomExit(exitSignal.reason||'game-cancelled');}});
 mpScoresListener=mpRoomRef.child('scores').on('value',snap=>{
 const sc=snap.val()||{}; mpRoomData={...(mpRoomData||{}),scores:sc};
 if(mpRole==='host'){if(!isOwnMpScorePending())p1Score=Number(sc.host||0);p2Score=Number(sc.guest||0);}else if(mpRole==='guest'){p1Score=Number(sc.host||0);if(!isOwnMpScorePending())p2Score=Number(sc.guest||0);}else{p1Score=Number(sc.host||0);p2Score=Number(sc.guest||0);} updateScores();
@@ -40742,24 +40744,38 @@ armInviteFullscreen();
 document.getElementById('screen-game')?.classList.add('hidden');
 document.getElementById('screen-home')?.classList.remove('hidden');
 document.getElementById('friend-invite-panel')?.classList.remove('hidden');
-showInviteArrivalOverlay();
 const ok=await joinRoom(code);
 if(ok){
-if(mpRole==='guest') {
-armInviteFullscreen();
-requestGameFullscreen(true);
+if(mpRole==='guest' && /^invite-only-/.test(String(mpRoomMode||'')) && mpRoomData?.status==='waiting') {
+const modal=document.getElementById('modal-room-invite');
+const codeEl=document.getElementById('invite-room-code'); if(codeEl) codeEl.textContent=String(mpRoomCode||'').toUpperCase();
+const startBtn=document.getElementById('btn-invite-start'); if(startBtn) startBtn.disabled=false;
+modal?.classList.remove('hidden');
+} else if(mpRole==='guest') {
+await enterMultiplayerRoom();
 } else {
-hideInviteArrivalOverlay();
 inviteFullscreenPending=false; disarmInviteFullscreenGesture(); updateFullscreenUi();
 }
 const st=document.getElementById('mp-status');
-if(st) st.textContent=mpRole==='host'?'Odan yeniden açıldı. Arkadaşını bekliyorsun.':'Davet kabul edildi. 1. oyuncuyla senkronize ediliyor…';
-}else{
-hideInviteArrivalOverlay();
+if(st) st.textContent=mpRole==='host'?'2. oyuncunun yanıtı bekleniyor…':'Kapışma daveti bekliyor.';
 }
 });
 
+document.getElementById('btn-invite-start')?.addEventListener('click',async()=>{
+if(mpRole!=='guest'||!mpRoomRef) return;
+const btn=document.getElementById('btn-invite-start'); if(btn) btn.disabled=true;
+try{
+await mpRoomRef.child('invite/guest').set('accepted');
 document.getElementById('modal-room-invite')?.classList.add('hidden');
+await enterMultiplayerRoom();
+}catch(e){showToast('Oyun başlatılamadı.','rose'); if(btn) btn.disabled=false;}
+});
+document.getElementById('btn-invite-cancel')?.addEventListener('click',async()=>{
+if(mpRole==='guest'&&mpRoomRef){
+await mpRoomRef.child('invite/guest').set('declined').catch(()=>{});
+await requestSynchronizedRoomExit('invite-declined');
+}else returnToHomeFromMultiplayer();
+});
 
 document.getElementById('btn-close-room').onclick=async()=>{
 if(!mpRoomRef || mpRole!=='host') return;
@@ -41680,7 +41696,7 @@ const res=await rematchRef.transaction(current=>{
 const now=serverNow();
 let r=current||{host:false,guest:false,expiresAt:0};
 const exp=Number(r.expiresAt||0);
-if(!exp || exp<now) r={host:false,guest:false,expiresAt:now+30000};
+if(!exp || exp<now) r={host:false,guest:false,expiresAt:now+300000};
 r[role]=true;
 return r;
 });
@@ -41691,7 +41707,6 @@ const d={...(mpRoomData||{}),status:'finished',rematch:r};
 renderRematchState(d);
 
 if(r.host && r.guest && Number(r.expiresAt||0)>=serverNow()) showImmediateRematchSync();
-if(mpRole==='host' && r.host && r.guest && Number(r.expiresAt||0)>=serverNow()) await hostStartRematch();
 }catch(e){
 console.error('Rematch request error',e);
 if(btn){ btn.disabled=false; btn.textContent='YENİDEN OYNA'; }
@@ -41731,15 +41746,16 @@ else {heading.textContent='BERABERE! 🤝'; spawnHighResultPartyFx(); launchLigh
 scheduleBoardPrewarm();
 }
 
-function showRoomExitNotice(){
+function showRoomExitNotice(message='OYUN İPTAL OLDU'){
 let el=document.getElementById('mp-room-exit-notice');
 if(!el){
 el=document.createElement('div');
 el.id='mp-room-exit-notice';
 el.style.cssText='position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.52);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);pointer-events:auto;';
-el.innerHTML='<div style="background:#7f1d1d;color:#fff;font-weight:900;font-size:18px;letter-spacing:.06em;padding:16px 24px;border-radius:18px;box-shadow:0 16px 40px rgba(0,0,0,.28)">ÇIKIŞ YAPILDI</div>';
+el.innerHTML='<div id="mp-room-exit-notice-text" style="background:#7f1d1d;color:#fff;font-weight:900;font-size:18px;letter-spacing:.06em;padding:16px 24px;border-radius:18px;box-shadow:0 16px 40px rgba(0,0,0,.28)">OYUN İPTAL OLDU</div>';
 document.body.appendChild(el);
 }
+const txt=el.querySelector('#mp-room-exit-notice-text'); if(txt) txt.textContent=message;
 el.style.display='flex';
 }
 
@@ -41748,7 +41764,7 @@ const el=document.getElementById('mp-room-exit-notice');
 if(el) el.style.display='none';
 }
 
-async function handleSynchronizedRoomExit(){
+async function handleSynchronizedRoomExit(reason='game-cancelled'){
 if(mpExitHandling) return;
 mpExitHandling=true;
 isMatchActive=false;
@@ -41762,13 +41778,14 @@ const presence=mpPresenceRef;
 if(presence){
 await presence.set({online:false,clientId:getClientToken(),at:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
 }
-showRoomExitNotice();
-await new Promise(r=>setTimeout(r,1000));
+const msg=reason==='invite-declined' && mpRole==='host' ? 'DAVET REDDEDİLDİ' : 'OYUN İPTAL OLDU';
+showRoomExitNotice(msg);
+await new Promise(r=>setTimeout(r,900));
 returnToHomeFromMultiplayer();
 hideRoomExitNotice();
 }
 
-async function requestSynchronizedRoomExit(){
+async function requestSynchronizedRoomExit(reason='game-cancelled'){
 if(!mpRoomRef || !mpRole){
 return exitCurrentGameToHome();
 }
@@ -41777,16 +41794,17 @@ const ref=mpRoomRef;
 const signal={
 id:`${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`,
 at:serverNow(),
-by:mpRole
+by:mpRole,
+reason
 };
 try{
 await ref.child('roomExit').set(signal);
 setTimeout(()=>ref.child('roomExit').transaction(cur=>cur?.id===signal.id?null:cur).catch(()=>{}),2200);
 mpLastExitSignalId=signal.id;
-await handleSynchronizedRoomExit();
+await handleSynchronizedRoomExit(reason);
 }catch(e){
 console.error('Synchronized room exit error',e);
-await handleSynchronizedRoomExit();
+await handleSynchronizedRoomExit(reason);
 }
 }
 
@@ -41935,7 +41953,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v184: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Kelime Düellosu optimize motor v185: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
