@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v256</title>
-<meta name="game-version" content="v256">
+<title>KAPMACA.tr — Sözcük Avı v257</title>
+<meta name="game-version" content="v257">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2155,6 +2155,7 @@
 
 /* Fareyle üzerine gelindiğinde de taş belirginleşir. */
 @media (hover:hover) and (pointer:fine){
+  #scrabble-grid,#scrabble-grid.is-grabbing{cursor:crosshair!important;}
   #scrabble-grid .letter-cell.tile-hover-p1:not(.tile-dragging),
   #scrabble-grid .letter-cell.tile-hover-p2:not(.tile-dragging){
     transform:translate3d(0,-2px,0) scale(1.09)!important;
@@ -2889,7 +2890,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 }
 #screen-home.home-v156 .home-logo-tiles span{
   display:grid;place-items:center;position:relative;flex:none;
-  width:clamp(32px,10.8vw,49px);height:clamp(32px,10.8vw,49px);
+  width:clamp(27px,9.9vw,47px);height:clamp(27px,9.9vw,47px);
   background:#fff;border:1px solid #e2e8f0;
   border-radius:8px;box-shadow:0 3px 0 #cbd5e1,inset 0 1px 0 rgba(255,255,255,.8),0 7px 13px rgba(15,23,42,.15);
   font-size:clamp(23px,7vw,34px);line-height:1;font-weight:900;
@@ -2906,9 +2907,11 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 #screen-home.home-v156 .home-logo-tiles span:nth-child(6){transform:translateY(2px) rotate(7deg)}
 #screen-home.home-v156 .home-logo-tiles span:nth-child(7){transform:translateY(10px) rotate(11deg)}
 #screen-home.home-v156 .home-logo-tiles span.home-domain-tile{
-  width:auto;height:auto;align-self:flex-end;margin-left:1px;margin-bottom:-5px;
-  border:0;background:transparent;box-shadow:none;color:#124c83;
-  font-size:clamp(16px,4.2vw,24px);letter-spacing:-1px;transform:none;
+  width:clamp(27px,9.9vw,47px);height:clamp(27px,9.9vw,47px);
+  margin-left:1px;align-self:auto;border:1px solid #e2e8f0;
+  background:#fff;box-shadow:0 3px 0 #cbd5e1,inset 0 1px 0 rgba(255,255,255,.8),0 7px 13px rgba(15,23,42,.15);
+  color:#124c83;font-size:clamp(16px,4vw,23px);letter-spacing:-1px;
+  transform:translateY(14px) rotate(13deg);
 }
 #screen-home.home-v156 .home-logo-duel{
   display:inline-block;position:relative;z-index:1;margin-top:10px;padding:3px 12px 4px;
@@ -2918,6 +2921,10 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
   color:#fff3cf;text-shadow:0 3px 0 #cc7300,0 5px 8px rgba(0,72,155,.28);
   box-shadow:0 6px 0 #0755ba,0 11px 18px rgba(0,87,170,.22),inset 0 2px 0 rgba(255,255,255,.42);
 }
+.home-hand-art{position:absolute;z-index:1;width:142px;height:124px;pointer-events:none;opacity:.80;filter:drop-shadow(0 7px 9px rgba(31,88,122,.13))}
+.home-hand-art.left{left:-22px;top:37%;transform:rotate(-12deg)}
+.home-hand-art.right{right:-23px;top:49%;transform:scaleX(-1) rotate(-8deg)}
+@media(max-width:380px){.home-hand-art{width:110px;height:97px;opacity:.64}}
 #screen-home.home-v156 #btn-solo-mode{
   background:linear-gradient(180deg,#28b9fb 0%,#1197ed 48%,#0874db 100%) !important;
   border-color:#87e2ff !important;box-shadow:0 7px 0 #075cb8,0 11px 18px rgba(0,111,198,.22),inset 0 2px 0 rgba(255,255,255,.35) !important;
@@ -3010,6 +3017,18 @@ html:fullscreen #scrabble-grid,html:-webkit-full-screen #scrabble-grid{width:min
   .letter-cell.tile-hover-p1:not(.tile-dragging),
   .letter-cell.tile-hover-p2:not(.tile-dragging){transform:translateY(-2px);}
 }
+/* Masaüstünde hareket eden taşlar yakın çevredeki hücreleri örtmesin. */
+@media (hover:hover) and (pointer:fine){
+  #scrabble-grid .letter-cell.tile-hover-p1:not(.tile-dragging),
+  #scrabble-grid .letter-cell.tile-hover-p2:not(.tile-dragging){
+    transform:translateY(-1px)!important;
+    box-shadow:0 3px 7px rgba(15,23,42,.14)!important;
+  }
+  #scrabble-grid .letter-cell.tile-dragging{
+    transform:translate3d(0,-1px,0) scale(1.07)!important;
+    box-shadow:0 4px 9px rgba(15,23,42,.17)!important;
+  }
+}
 .demo-board{position:relative;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;max-width:245px;margin:auto;touch-action:none}
 .demo-board .demo-tile{display:grid;place-items:center;aspect-ratio:1;background:#fff2d4;border:2px solid #e8c78b;border-radius:7px;color:#263b68;font-weight:900;font-size:16px;box-shadow:0 3px 0 #d7ab70;transition:transform .12s ease,background .12s ease,box-shadow .12s ease}
 .demo-board .demo-blank{visibility:hidden}
@@ -3044,6 +3063,8 @@ html:fullscreen #scrabble-grid,html:-webkit-full-screen #scrabble-grid{width:min
 <span class="home-float-dot w-10 h-10 bg-yellow-200 left-[8%] top-[9%]"></span>
 <span class="home-float-dot w-7 h-7 bg-pink-200 right-[12%] top-[11%]"></span>
 <span class="home-float-dot w-12 h-12 bg-white right-[6%] bottom-[16%]"></span>
+<svg class="home-hand-art left" viewBox="0 0 180 150" aria-hidden="true"><rect x="103" y="24" width="50" height="50" rx="9" fill="#fff" stroke="#d7e2ed" stroke-width="3"/><path d="M103 65h50" stroke="#ccd6e3" stroke-width="3"/><text x="128" y="59" text-anchor="middle" font-family="Quicksand,sans-serif" font-weight="900" font-size="35" fill="#123b67">K</text><text x="146" y="70" font-size="9" fill="#64748b">2</text><path d="M-12 124C16 117 42 117 61 104L85 76C90 71 95 75 93 82L86 94L115 67C122 62 127 68 121 75L105 93L137 79C145 76 148 84 140 89L109 108L119 109C128 110 128 119 118 121L75 137C61 144 36 142-12 147Z" fill="#ffd5b1" stroke="#9b604d" stroke-width="3" stroke-linejoin="round"/><path d="M84 113l25-20M91 123l31-18" stroke="#bb816c" stroke-width="2" stroke-linecap="round"/></svg>
+<svg class="home-hand-art right" viewBox="0 0 180 150" aria-hidden="true"><rect x="103" y="24" width="50" height="50" rx="9" fill="#fff" stroke="#d7e2ed" stroke-width="3"/><path d="M103 65h50" stroke="#ccd6e3" stroke-width="3"/><text x="128" y="59" text-anchor="middle" font-family="Quicksand,sans-serif" font-weight="900" font-size="35" fill="#123b67">A</text><text x="146" y="70" font-size="9" fill="#64748b">2</text><path d="M-12 124C16 117 42 117 61 104L85 76C90 71 95 75 93 82L86 94L115 67C122 62 127 68 121 75L105 93L137 79C145 76 148 84 140 89L109 108L119 109C128 110 128 119 118 121L75 137C61 144 36 142-12 147Z" fill="#ffd5b1" stroke="#9b604d" stroke-width="3" stroke-linejoin="round"/><path d="M84 113l25-20M91 123l31-18" stroke="#bb816c" stroke-width="2" stroke-linecap="round"/></svg>
 <div class="absolute inset-0 pointer-events-none opacity-80" style="background:radial-gradient(circle at 18% 15%,rgba(255,255,255,.75),transparent 18%),radial-gradient(circle at 84% 22%,rgba(255,255,255,.6),transparent 16%),linear-gradient(to top,rgba(22,101,52,.30),transparent 34%);"></div>
 <div class="absolute -left-7 top-28 rotate-[-13deg] w-16 h-16 rounded-2xl bg-amber-100 border-4 border-amber-200 shadow-xl flex items-center justify-center text-3xl font-black text-slate-800">K<span class="absolute right-1 bottom-0 text-[9px]">2</span></div>
 <div class="absolute -right-5 top-40 rotate-[14deg] w-16 h-16 rounded-2xl bg-amber-100 border-4 border-amber-200 shadow-xl flex items-center justify-center text-3xl font-black text-slate-800">İ<span class="absolute right-1 bottom-0 text-[9px]">2</span></div>
@@ -43989,7 +44010,7 @@ function startHowtoDemo(){
  if(howtoDemoTimer||document.hidden)return;
  const boards=[...document.querySelectorAll('.demo-board')];
  const visibleBoards=()=>boards.filter(board=>!board.closest('.hidden'));
- const demoScreens=['screen-howto','screen-home','modal-room-invite','modal-mp-waiting'];
+ const demoScreens=['screen-howto','screen-home','modal-room-invite','modal-mp-waiting','modal-rematch-waiting'];
  const demoVisible=()=>demoScreens.some(id=>!document.getElementById(id).classList.contains('hidden'))||(!document.getElementById('modal-countdown').classList.contains('hidden')&&!document.querySelector('#modal-countdown .mp-demo').classList.contains('hidden'));
  const rounds=[
   {word:'KAP',path:[7,8,9],points:10},{word:'KAPMA',path:[7,8,9,10,11],points:15},
@@ -44013,9 +44034,11 @@ function startHowtoDemo(){
 }
 document.getElementById('btn-howto').onclick = () => {document.getElementById('screen-howto').classList.remove('hidden');startHowtoDemo();};
 document.getElementById('btn-howto-back').onclick = () => {document.getElementById('screen-howto').classList.add('hidden');};
+const rematchDemo=document.querySelector('#modal-mp-waiting .mp-demo')?.cloneNode(true);
+if(rematchDemo) document.getElementById('rematch-wait-sub')?.after(rematchDemo);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stopHowtoDemo();else startHowtoDemo();});
 new MutationObserver(()=>{if(!document.getElementById('screen-home').classList.contains('hidden'))startHowtoDemo();}).observe(document.getElementById('screen-home'),{attributes:true,attributeFilter:['class']});
-for(const id of ['modal-room-invite','modal-mp-waiting','modal-countdown'])new MutationObserver(()=>startHowtoDemo()).observe(document.getElementById(id),{attributes:true,attributeFilter:['class']});
+for(const id of ['modal-room-invite','modal-mp-waiting','modal-rematch-waiting','modal-countdown'])new MutationObserver(()=>startHowtoDemo()).observe(document.getElementById(id),{attributes:true,attributeFilter:['class']});
 startHowtoDemo();
 document.getElementById('btn-about').onclick = () => document.getElementById('screen-about').classList.remove('hidden');
 document.getElementById('btn-about-back').onclick = () => document.getElementById('screen-about').classList.add('hidden');
@@ -44059,7 +44082,7 @@ triggerCountdownSequence(() => { isMatchActive = true; startTimer(); planBot(); 
 function triggerCountdownSequence(onComplete) {
 stopLocalCountdown();
 const modal=document.getElementById('modal-countdown');
-modal?.querySelector('.mp-demo')?.classList.add('hidden');
+modal?.querySelector('.mp-demo')?.classList.remove('hidden');
 const numEl=document.getElementById('countdown-number');
 const statusEl=document.getElementById('countdown-status');
 const inviteMsg=document.getElementById('countdown-invite-message');
@@ -44537,6 +44560,8 @@ activePointerId = null;
 }, HOLD_CANCEL_MS);
 activeGridMetrics = hoverGridMetrics || measureGrid();
 activeGridRect = activeGridMetrics.rect; hoverGridMetrics=activeGridMetrics; hoverGridRect=activeGridRect;
+if(hoverLiftCell) hoverLiftCell.classList.remove('tile-hover-p1','tile-hover-p2');
+hoverLiftCell=null;lastHoverCell=-1;
 gridEl.classList.add('is-grabbing');
 try { gridEl.setPointerCapture(e.pointerId); } catch (_) {}
 clearPath();
@@ -44546,19 +44571,13 @@ lastPointerX=e.clientX; lastPointerY=e.clientY;
 
 gridEl.addEventListener('pointermove', (e) => {
 if (!isMatchActive || !isPointerDown || e.pointerId!==activePointerId) return;
-const samples = typeof e.getCoalescedEvents === 'function' ? e.getCoalescedEvents() : null;
-if(!pendingPointer) pendingPointer=[];
-if(samples?.length){
-  const step=Math.max(1,Math.ceil(samples.length/4));
-  for(let i=0;i<samples.length;i+=step) pendingPointer.push({x:samples[i].clientX,y:samples[i].clientY});
-}
-pendingPointer.push({x:e.clientX,y:e.clientY});
-if(pendingPointer.length>12) pendingPointer.splice(0,pendingPointer.length-12);
+if(!pendingPointer) pendingPointer={x:e.clientX,y:e.clientY};
+else {pendingPointer.x=e.clientX;pendingPointer.y=e.clientY;}
 if (pointerFrame) return;
 pointerFrame = requestAnimationFrame(() => {
 pointerFrame = 0; if (!pendingPointer || !isPointerDown) return;
-const queued = pendingPointer; pendingPointer = null;
-for(const p of queued) processPointerSegment(p.x,p.y,activeGridMetrics);
+const x=pendingPointer.x,y=pendingPointer.y;pendingPointer=null;
+processPointerSegment(x,y,activeGridMetrics);
 });
 }, {passive:true});
 
@@ -44568,7 +44587,7 @@ clearTimeout(pointerHoldTimer); pointerHoldTimer = null;
 const heldMs = pointerHoldStartedAt ? (performance.now() - pointerHoldStartedAt) : 0;
 const cancelForLongHold = shouldSubmit && heldMs >= HOLD_CANCEL_MS;
 if(shouldSubmit && !cancelForLongHold && pendingPointer){
-  for(const p of pendingPointer) processPointerSegment(p.x,p.y,activeGridMetrics);
+  processPointerSegment(pendingPointer.x,pendingPointer.y,activeGridMetrics);
 }
 if (shouldSubmit && !cancelForLongHold && activeGridMetrics) processPointerAt(e.clientX, e.clientY, activeGridMetrics);
 isPointerDown = false; pointerHoldStartedAt = 0; pendingPointer = null; activeGridRect = null; activeGridMetrics=null;
@@ -44588,6 +44607,7 @@ if (shouldSubmit && selectedPath.length) {
 
 gridEl.addEventListener('pointerup', (e) => finishPointer(e, true), {passive:true});
 gridEl.addEventListener('pointercancel', (e) => finishPointer(e, false), {passive:true});
+gridEl.addEventListener('lostpointercapture', (e) => finishPointer(e, false), {passive:true});
 
 function processPointerSegment(clientX,clientY,metrics=activeGridMetrics){
 if(lastPointerX===null||lastPointerY===null){processPointerAt(clientX,clientY,metrics);lastPointerX=clientX;lastPointerY=clientY;return;}
@@ -45107,6 +45127,7 @@ return false;
 
 function showImmediateRematchSync(){
 const modal=document.getElementById('modal-countdown');
+modal?.querySelector('.mp-demo')?.classList.remove('hidden');
 const num=document.getElementById('countdown-number');
 const status=document.getElementById('countdown-status');
 const inviteMsg=document.getElementById('countdown-invite-message');
