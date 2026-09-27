@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v264</title>
-<meta name="game-version" content="v264">
+<title>KAPMACA.tr — Sözcük Avı v265</title>
+<meta name="game-version" content="v265">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -3091,6 +3091,18 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
     box-shadow:0 4px 9px rgba(15,23,42,.17)!important;
   }
 }
+/* Masaüstünde isteğe bağlı geniş tahta; telefon düzeni ve tam ekran ayrı kalır. */
+#btn-wide-board{display:none;}
+@media (min-width:900px) and (min-height:760px) and (hover:hover) and (pointer:fine){
+  #btn-wide-board{display:inline-flex;align-items:center;justify-content:center;background:#0f766e!important;color:#fff!important;}
+  body.wide-board #app-container{max-width:760px;}
+  body.wide-board #scrabble-grid{
+    width:min(700px,calc(100vw - 36px),calc(100dvh - 190px))!important;
+    max-width:700px!important;
+  }
+  body.wide-board .game-bottom-controls{width:min(100%,700px);max-width:700px;}
+  body.wide-board #btn-wide-board{background:#155e75!important;}
+}
 .demo-board{position:relative;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;max-width:245px;margin:auto;touch-action:none}
 .demo-board .demo-tile{display:grid;place-items:center;aspect-ratio:1;background:#fff2d4;border:2px solid #e8c78b;border-radius:7px;color:#263b68;font-weight:900;font-size:16px;box-shadow:0 3px 0 #d7ab70;transition:transform .12s ease,background .12s ease,box-shadow .12s ease}
 .demo-board .demo-blank{visibility:hidden}
@@ -3243,6 +3255,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 
 <div class="game-bottom-controls">
 <button id="btn-quick-exit" type="button" class="active:scale-[0.98] uppercase transition flex items-center justify-center gap-1.5"><span aria-hidden="true">✕</span><span>ÇIKIŞ YAP</span></button>
+<button id="btn-wide-board" type="button" class="active:scale-[0.98] uppercase transition" aria-pressed="false" aria-label="Geniş tahtayı aç veya kapat">GENİŞ TAHTA</button>
 <button id="btn-fullscreen-game" type="button" class="active:scale-[0.98] uppercase transition flex items-center justify-center gap-1.5" aria-label="Tam ekranı aç veya kapat">
 <span aria-hidden="true">⛶</span><span id="fullscreen-game-label">TAM EKRAN</span>
 </button>
@@ -44008,6 +44021,19 @@ returnToHomeFromMultiplayer();
 
 document.getElementById('btn-fullscreen-home')?.addEventListener('click',toggleGameFullscreen);
 document.getElementById('btn-fullscreen-game')?.addEventListener('click',toggleGameFullscreen);
+const wideBoardButton=document.getElementById('btn-wide-board');
+function setWideBoard(enabled){
+  document.body.classList.toggle('wide-board',enabled);
+  if(wideBoardButton){
+    wideBoardButton.setAttribute('aria-pressed',String(enabled));
+    wideBoardButton.textContent=enabled?'NORMAL TAHTA':'GENİŞ TAHTA';
+  }
+}
+wideBoardButton?.addEventListener('click',()=>setWideBoard(!document.body.classList.contains('wide-board')));
+const gameScreen=document.getElementById('screen-game');
+new MutationObserver(()=>{if(gameScreen.classList.contains('hidden'))setWideBoard(false);}).observe(gameScreen,{attributes:true,attributeFilter:['class']});
+document.addEventListener('fullscreenchange',()=>{if(isFullscreenActive())setWideBoard(false);});
+document.addEventListener('webkitfullscreenchange',()=>{if(isFullscreenActive())setWideBoard(false);});
 
 window.addEventListener('load',async()=>{
 if(window.firebase && ensureFirebase()) initGlobalOnlinePresence();
