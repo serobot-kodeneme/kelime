@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v273</title>
-<meta name="game-version" content="v273">
+<title>KAPMACA.tr — Sözcük Avı v274</title>
+<meta name="game-version" content="v274">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2273,6 +2273,51 @@
   html:fullscreen #scrabble-grid .letter-cell.tile-dragging,
   html:-webkit-full-screen #scrabble-grid .letter-cell.tile-dragging{
     transform:translate3d(0,-1px,0) scale(1.065)!important;
+  }
+}
+
+/* v274 fullscreen home/countdown lightweight mode */
+@media (hover:hover) and (pointer:fine){
+  /* Ana sayfada sürekli animasyonları tam ekranda durdur. */
+  html:fullscreen #screen-home .support-heart-icon,
+  html:-webkit-full-screen #screen-home .support-heart-icon{
+    animation:none!important;
+    will-change:auto!important;
+  }
+  html:fullscreen #screen-home .home-shortcut,
+  html:fullscreen #screen-home .home-mode-btn,
+  html:-webkit-full-screen #screen-home .home-shortcut,
+  html:-webkit-full-screen #screen-home .home-mode-btn{
+    transition:none!important;
+  }
+  html:fullscreen #screen-home .home-shortcut:hover,
+  html:fullscreen #screen-home .home-mode-btn:hover,
+  html:-webkit-full-screen #screen-home .home-shortcut:hover,
+  html:-webkit-full-screen #screen-home .home-mode-btn:hover{
+    transform:none!important;
+    filter:none!important;
+  }
+
+  /* Geri sayımda fullscreen backdrop blur maliyetini kaldır. */
+  html:fullscreen #modal-countdown,
+  html:fullscreen #modal-countdown > div,
+  html:-webkit-full-screen #modal-countdown,
+  html:-webkit-full-screen #modal-countdown > div{
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+  }
+  html:fullscreen #countdown-number,
+  html:-webkit-full-screen #countdown-number{
+    will-change:auto!important;
+  }
+
+  /* Demo görünür kalsın; yalnız geçiş animasyonu çalışmasın. */
+  html:fullscreen #screen-home .demo-tile,
+  html:fullscreen #modal-countdown .demo-tile,
+  html:-webkit-full-screen #screen-home .demo-tile,
+  html:-webkit-full-screen #modal-countdown .demo-tile{
+    transition:none!important;
+    animation:none!important;
   }
 }
 </style>
@@ -44125,7 +44170,7 @@ prepareGame();
 let howtoDemoTimer=null;
 function stopHowtoDemo(){clearTimeout(howtoDemoTimer);howtoDemoTimer=null;}
 function startHowtoDemo(){
- if(howtoDemoTimer||document.hidden)return;
+ if(howtoDemoTimer||document.hidden||isFullscreenActive())return;
  const boards=[...document.querySelectorAll('.demo-board')];
  const visibleBoards=()=>boards.filter(board=>!board.closest('.hidden'));
  const demoScreens=['screen-howto','screen-home','modal-room-invite','modal-mp-waiting','modal-rematch-waiting'];
@@ -44141,7 +44186,9 @@ function startHowtoDemo(){
  ];
  let round=0,step=0;
  function advance(){
-  if(document.hidden||!demoVisible()){stopHowtoDemo();return;}
+  // v274: Tam ekranda ana sayfa / geri sayım demosu CPU ve paint üretmesin.
+  // Demo görünür kalır ama animasyon dondurulur.
+  if(document.hidden||!demoVisible()||isFullscreenActive()){stopHowtoDemo();return;}
   const item=rounds[round];
   if(step===0)for(const board of visibleBoards())board.querySelectorAll('.demo-active').forEach(t=>t.classList.remove('demo-active'));
   if(step<item.path.length){for(const board of visibleBoards())board.querySelectorAll('.demo-tile')[item.path[step]]?.classList.add('demo-active');step++;howtoDemoTimer=setTimeout(advance,145);return;}
