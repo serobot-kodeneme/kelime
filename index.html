@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA — Sözcük Avı v243</title>
-<meta name="game-version" content="v243">
+<title>KAPMACA — Sözcük Avı v244</title>
+<meta name="game-version" content="v244">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2960,10 +2960,11 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 }
 @keyframes online-pulse{0%,100%{opacity:1}50%{opacity:.22}}
 #online-player-count.is-online{animation:online-pulse 1.25s ease-in-out infinite}
-#screen-home .support-card{padding:8px 12px}
-#screen-home .support-card .support-heart{width:38px;height:38px;font-size:20px}
-#screen-home .support-card .support-copy{font-size:10px;line-height:1.2;margin-top:2px}
-#screen-home .support-card .support-action{padding:7px 9px}
+.home-shortcut-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:8px}
+.home-shortcut-grid>button{min-width:0}
+.support-icon-button .support-heart{width:32px;height:32px;border-radius:11px;font-size:19px}
+#screen-home.home-v156 .support-icon-button>.support-heart{background:linear-gradient(145deg,#ff4661,#e51638)!important;color:#fff!important;border-color:#ff8395!important}
+.support-dialog-heart{width:106px;height:106px;margin:auto;border-radius:30px;background:linear-gradient(145deg,#ff5b72,#dc143c);border:4px solid #ffbdc9;display:grid;place-items:center;color:white;font-size:65px;box-shadow:0 8px 0 #b91034,0 15px 26px rgba(190,24,55,.27)}
 @media(max-height:650px){#screen-home.home-v156 .home-title-wrap{margin-top:12px!important}#screen-home.home-v156 .home-modes{margin-top:18px}}
 
 /* v164 9x9 optimum: daha büyük dokunma hedefi ve daha hafif input yolu */
@@ -3091,18 +3092,9 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 
 <div class="mt-auto pt-3 w-full max-w-sm shrink-0">
 
-<a href="https://www.losev.org.tr/tr/bagis" target="_blank" rel="noopener noreferrer" class="home-shortcut support-card block w-full rounded-[20px] bg-gradient-to-r from-rose-50 via-white to-red-50 border-2 border-rose-200 shadow-[0_8px_20px_rgba(127,29,29,.14)] px-4 py-3.5 active:scale-[.99]" aria-label="LÖSEV resmi bağış sayfasını aç">
-<div class="flex items-center gap-2.5">
-<div class="support-heart w-12 h-12 shrink-0 rounded-[14px] bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center text-2xl shadow-sm"><span class="support-heart-icon" aria-hidden="true">❤</span></div>
-<div class="min-w-0 flex-1 text-left">
-<div class="text-[15px] leading-tight font-black text-rose-950">LÖSEV’e Destek Ol</div>
-<div class="support-copy text-[10.5px] leading-snug font-bold text-rose-800/80 mt-1">Oyunu sevdiysen, lösemili çocuklara umut olmak için bağış yapabilirsin.</div>
-</div>
-<div class="support-action shrink-0 rounded-xl bg-rose-600 text-white px-3 py-2.5 text-[10px] font-black shadow-sm">BAĞIŞ YAP ›</div>
-</div>
-</a>
 
-<div class="grid grid-cols-4 gap-1.5 mt-2">
+
+<div class="home-shortcut-grid">
 <button id="btn-settings" class="home-shortcut min-h-[54px] rounded-[15px] bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-300 shadow-[0_5px_13px_rgba(15,23,42,.10)] flex flex-col items-center justify-center gap-1 text-slate-800 font-black text-[9px] leading-tight active:scale-95">
 <span class="w-8 h-8 rounded-[11px] bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200 text-slate-700 flex items-center justify-center shadow-inner"><svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.55V21h-4v-.08A1.7 1.7 0 0 0 8.97 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1.03H3v-4h.08A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.88L4.2 7l2.83-2.83.06.06a1.7 1.7 0 0 0 1.88.34A1.7 1.7 0 0 0 10 3.08V3h4v.08a1.7 1.7 0 0 0 1.03 1.55 1.7 1.7 0 0 0 1.88-.34l.06-.06L19.8 7l-.06.06a1.7 1.7 0 0 0-.34 1.88 1.7 1.7 0 0 0 1.55 1.03H21v4h-.08A1.7 1.7 0 0 0 19.4 15z"/></svg></span>
 <span>Ayarlar</span>
@@ -3118,6 +3110,10 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <button id="btn-open-dictionary" class="home-shortcut min-h-[54px] rounded-[15px] bg-gradient-to-br from-amber-50 to-yellow-100 border border-amber-200 shadow-[0_5px_13px_rgba(120,53,15,.10)] flex flex-col items-center justify-center gap-1 text-amber-950 font-black text-[9px] leading-tight active:scale-95">
 <span class="w-8 h-8 rounded-[11px] bg-white/90 border border-amber-200 flex items-center justify-center text-base shadow-inner">📚</span>
 <span>Sözlük</span>
+</button>
+<button id="btn-support" type="button" class="support-icon-button home-shortcut min-h-[54px] rounded-[15px] bg-gradient-to-br from-rose-50 to-red-100 border border-rose-300 shadow-[0_5px_13px_rgba(190,24,55,.15)] flex flex-col items-center justify-center gap-1 text-rose-950 font-black text-[9px] leading-tight active:scale-95" aria-label="LÖSEV desteğini aç">
+<span class="support-heart flex items-center justify-center text-white"><span class="support-heart-icon" aria-hidden="true">❤</span></span>
+<span>Destek</span>
 </button>
 </div>
 </div>
@@ -3274,6 +3270,20 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div class="shrink-0 rounded-xl bg-rose-600 text-white px-3 py-2.5 text-[10px] font-black shadow-sm">BAĞIŞ YAP ›</div>
 </div>
 </a>
+</div>
+</div>
+</div>
+
+<div id="modal-support" class="absolute inset-0 z-[85] hidden bg-slate-950/75 backdrop-blur-sm p-4 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="support-title">
+<div class="relative w-full max-w-sm max-h-full overflow-y-auto rounded-[28px] bg-white p-5 text-center shadow-2xl border border-rose-100">
+<button id="btn-close-support" type="button" aria-label="Desteği kapat" class="absolute right-3 top-3 w-9 h-9 rounded-full bg-slate-100 text-slate-700 font-black text-lg">✕</button>
+<div class="support-dialog-heart mt-6" aria-hidden="true"><span class="support-heart-icon">❤</span></div>
+<div class="mt-5 text-[30px] font-black tracking-wide text-rose-700">LÖSEV</div>
+<div class="text-xs font-bold text-rose-900/75">Lösemili Çocuklar Vakfı</div>
+<div class="mt-5 rounded-[20px] bg-gradient-to-r from-rose-50 via-white to-red-50 border-2 border-rose-200 p-4 shadow-md">
+<h2 id="support-title" class="text-lg font-black text-rose-950">LÖSEV’e Destek Ol</h2>
+<p class="text-sm font-bold leading-relaxed text-rose-800 mt-2">Oyunu sevdiysen, lösemili çocuklara umut olmak için bağış yapabilirsin.</p>
+<a href="https://www.losev.org.tr/tr/bagis" target="_blank" rel="noopener noreferrer" class="block mt-4 rounded-xl bg-rose-600 px-4 py-3 text-sm font-black text-white shadow">RESMÎ BAĞIŞ SAYFASINA GİT ›</a>
 </div>
 </div>
 </div>
@@ -43987,6 +43997,11 @@ for(const id of ['modal-room-invite','modal-mp-waiting','modal-countdown'])new M
 startHowtoDemo();
 document.getElementById('btn-about').onclick = () => document.getElementById('screen-about').classList.remove('hidden');
 document.getElementById('btn-about-back').onclick = () => document.getElementById('screen-about').classList.add('hidden');
+const supportDialog=document.getElementById('modal-support');
+document.getElementById('btn-support').onclick=()=>{supportDialog.classList.remove('hidden');document.getElementById('btn-close-support').focus();};
+document.getElementById('btn-close-support').onclick=()=>supportDialog.classList.add('hidden');
+supportDialog.addEventListener('click',event=>{if(event.target===supportDialog)supportDialog.classList.add('hidden');});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!supportDialog.classList.contains('hidden'))supportDialog.classList.add('hidden');});
 document.getElementById('btn-settings').onclick = () => {
 setMasterSoundVolume(masterSoundVolume);
 document.getElementById('screen-settings').classList.remove('hidden');
