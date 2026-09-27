@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA — Sözcük Avı v244</title>
-<meta name="game-version" content="v244">
+<title>KAPMACA — Sözcük Avı v245</title>
+<meta name="game-version" content="v245">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2961,9 +2961,12 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 @keyframes online-pulse{0%,100%{opacity:1}50%{opacity:.22}}
 #online-player-count.is-online{animation:online-pulse 1.25s ease-in-out infinite}
 .home-shortcut-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:8px}
-.home-shortcut-grid>button{min-width:0}
-.support-icon-button .support-heart{width:32px;height:32px;border-radius:11px;font-size:19px}
+.home-shortcut-grid>button,.home-shortcut-grid>a{min-width:0}
+.support-icon-button .support-heart{width:46px;height:46px;border-radius:14px;font-size:28px}
+#screen-home.home-v156 .support-icon-button{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
 #screen-home.home-v156 .support-icon-button>.support-heart{background:linear-gradient(145deg,#ff4661,#e51638)!important;color:#fff!important;border-color:#ff8395!important}
+.support-icon-button:hover .support-heart{filter:brightness(1.08)}
+#modal-support:target{display:flex!important}
 .support-dialog-heart{width:106px;height:106px;margin:auto;border-radius:30px;background:linear-gradient(145deg,#ff5b72,#dc143c);border:4px solid #ffbdc9;display:grid;place-items:center;color:white;font-size:65px;box-shadow:0 8px 0 #b91034,0 15px 26px rgba(190,24,55,.27)}
 @media(max-height:650px){#screen-home.home-v156 .home-title-wrap{margin-top:12px!important}#screen-home.home-v156 .home-modes{margin-top:18px}}
 
@@ -3111,10 +3114,9 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <span class="w-8 h-8 rounded-[11px] bg-white/90 border border-amber-200 flex items-center justify-center text-base shadow-inner">📚</span>
 <span>Sözlük</span>
 </button>
-<button id="btn-support" type="button" class="support-icon-button home-shortcut min-h-[54px] rounded-[15px] bg-gradient-to-br from-rose-50 to-red-100 border border-rose-300 shadow-[0_5px_13px_rgba(190,24,55,.15)] flex flex-col items-center justify-center gap-1 text-rose-950 font-black text-[9px] leading-tight active:scale-95" aria-label="LÖSEV desteğini aç">
+<a id="btn-support" href="#modal-support" class="support-icon-button home-shortcut min-h-[54px] flex items-center justify-center active:scale-95" aria-label="LÖSEV desteğini aç">
 <span class="support-heart flex items-center justify-center text-white"><span class="support-heart-icon" aria-hidden="true">❤</span></span>
-<span>Destek</span>
-</button>
+</a>
 </div>
 </div>
 </div>
@@ -3276,7 +3278,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 
 <div id="modal-support" class="absolute inset-0 z-[85] hidden bg-slate-950/75 backdrop-blur-sm p-4 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="support-title">
 <div class="relative w-full max-w-sm max-h-full overflow-y-auto rounded-[28px] bg-white p-5 text-center shadow-2xl border border-rose-100">
-<button id="btn-close-support" type="button" aria-label="Desteği kapat" class="absolute right-3 top-3 w-9 h-9 rounded-full bg-slate-100 text-slate-700 font-black text-lg">✕</button>
+<a id="btn-close-support" href="#screen-home" aria-label="Desteği kapat" class="absolute right-3 top-3 w-9 h-9 rounded-full bg-slate-100 text-slate-700 font-black text-lg flex items-center justify-center">✕</a>
 <div class="support-dialog-heart mt-6" aria-hidden="true"><span class="support-heart-icon">❤</span></div>
 <div class="mt-5 text-[30px] font-black tracking-wide text-rose-700">LÖSEV</div>
 <div class="text-xs font-bold text-rose-900/75">Lösemili Çocuklar Vakfı</div>
@@ -44000,8 +44002,8 @@ document.getElementById('btn-about-back').onclick = () => document.getElementByI
 const supportDialog=document.getElementById('modal-support');
 document.getElementById('btn-support').onclick=()=>{supportDialog.classList.remove('hidden');document.getElementById('btn-close-support').focus();};
 document.getElementById('btn-close-support').onclick=()=>supportDialog.classList.add('hidden');
-supportDialog.addEventListener('click',event=>{if(event.target===supportDialog)supportDialog.classList.add('hidden');});
-document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!supportDialog.classList.contains('hidden'))supportDialog.classList.add('hidden');});
+supportDialog.addEventListener('click',event=>{if(event.target===supportDialog){supportDialog.classList.add('hidden');if(location.hash==='#modal-support')location.hash='screen-home';}});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&(!supportDialog.classList.contains('hidden')||location.hash==='#modal-support')){supportDialog.classList.add('hidden');if(location.hash==='#modal-support')location.hash='screen-home';}});
 document.getElementById('btn-settings').onclick = () => {
 setMasterSoundVolume(masterSoundVolume);
 document.getElementById('screen-settings').classList.remove('hidden');
