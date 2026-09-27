@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v258</title>
-<meta name="game-version" content="v258">
+<title>KAPMACA.tr — Sözcük Avı v259</title>
+<meta name="game-version" content="v259">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2155,7 +2155,8 @@
 
 /* Fareyle üzerine gelindiğinde de taş belirginleşir. */
 @media (hover:hover) and (pointer:fine){
-  #scrabble-grid,#scrabble-grid.is-grabbing{cursor:crosshair!important;}
+  #scrabble-grid{cursor:grab;}
+  #scrabble-grid.is-grabbing{cursor:grabbing!important;}
   #scrabble-grid .letter-cell.tile-hover-p1:not(.tile-dragging),
   #scrabble-grid .letter-cell.tile-hover-p2:not(.tile-dragging){
     transform:translate3d(0,-2px,0) scale(1.09)!important;
@@ -2602,7 +2603,7 @@ border-radius: 11px !important;
 #scrabble-grid { width:min(calc(100vw - 6px), calc(100dvh - 170px), 440px) !important; }
 }
 
-#scrabble-grid { contain: layout style; overflow:visible; -webkit-tap-highlight-color: transparent; }
+#scrabble-grid { contain: layout paint; -webkit-tap-highlight-color: transparent; }
 .letter-cell { contain: layout paint style; backface-visibility: hidden; }
 #screen-game { overscroll-behavior: none; }
 
@@ -3049,11 +3050,6 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 }
 
 /* v164 9x9 optimum: daha büyük dokunma hedefi ve daha hafif input yolu */
-html:fullscreen,html:-webkit-full-screen{height:100%;}
-html:fullscreen body,html:-webkit-full-screen body{height:100%;background:#020617;}
-html:fullscreen #app-container,html:-webkit-full-screen #app-container{height:100%;box-shadow:none;}
-html:fullscreen #screen-game,html:-webkit-full-screen #screen-game{height:100%;}
-html:fullscreen #scrabble-grid,html:-webkit-full-screen #scrabble-grid{width:min(calc(100% - 10px),calc(100dvh - 200px),440px)!important;}
 #scrabble-grid{isolation:isolate;}
 .letter-cell{font-variant-numeric:tabular-nums;text-rendering:optimizeLegibility;}
 #scrabble-grid .letter-cell{border-radius:8px!important;}
