@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA — Sözcük Avı v235</title>
-<meta name="game-version" content="v235">
+<title>KAPMACA — Sözcük Avı v236</title>
+<meta name="game-version" content="v236">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2861,7 +2861,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 }
 #screen-home.home-v156 .home-float-dot{opacity:.33;filter:none;border:2px solid rgba(255,255,255,.48);box-shadow:inset 0 0 12px rgba(255,255,255,.35)}
 #screen-home.home-v156 .home-content-layer{z-index:2}
-#screen-home.home-v156 .home-title-wrap{position:relative;top:4px;filter:drop-shadow(0 10px 16px rgba(2,80,150,.18))}
+#screen-home.home-v156 .home-title-wrap{position:relative;top:0;margin-top:clamp(20px,7vh,65px)!important;filter:drop-shadow(0 10px 16px rgba(2,80,150,.18))}
 #screen-home.home-v156 .home-crown{display:none}
 #screen-home.home-v156 .home-logo-card{
   transform:none !important;
@@ -2941,6 +2941,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
   box-shadow:0 5px 0 #b80f29,0 8px 14px rgba(186,15,42,.22) !important;
 }
 #screen-home.home-v156 .fullscreen-btn{
+  position:absolute;top:max(4px,env(safe-area-inset-top));right:max(4px,env(safe-area-inset-right));left:auto;z-index:90;
   background:linear-gradient(180deg,rgba(43,174,246,.92),rgba(15,125,224,.92));
   border-color:rgba(173,230,255,.82);color:white;box-shadow:0 5px 12px rgba(0,101,181,.18);
 }
@@ -2957,6 +2958,13 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
   #screen-home.home-v156 .home-logo-tiles span{width:34px;height:37px;font-size:23px;border-radius:9px}
   #screen-home.home-v156 .home-logo-duel{min-width:218px;font-size:26px!important;line-height:26px!important}
 }
+@keyframes online-pulse{0%,100%{opacity:1}50%{opacity:.22}}
+#online-player-count.is-online{animation:online-pulse 1.25s ease-in-out infinite}
+#screen-home .support-card{padding:8px 12px}
+#screen-home .support-card .support-heart{width:38px;height:38px;font-size:20px}
+#screen-home .support-card .support-copy{font-size:10px;line-height:1.2;margin-top:2px}
+#screen-home .support-card .support-action{padding:7px 9px}
+@media(max-height:650px){#screen-home.home-v156 .home-title-wrap{margin-top:12px!important}#screen-home.home-v156 .home-modes{margin-top:18px}}
 
 /* v164 9x9 optimum: daha büyük dokunma hedefi ve daha hafif input yolu */
 #scrabble-grid{isolation:isolate;}
@@ -2981,11 +2989,16 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
   .letter-cell.tile-hover-p1:not(.tile-dragging),
   .letter-cell.tile-hover-p2:not(.tile-dragging){transform:translateY(-2px);}
 }
-#howto-demo-tiles span{display:grid;place-items:center;width:min(12%,39px);aspect-ratio:1;background:#fff2d4;border:2px solid #e8c78b;border-radius:9px;color:#263b68;font-weight:900;font-size:clamp(15px,5vw,22px);box-shadow:0 3px 0 #d7ab70;transition:transform .18s ease,background .18s ease,box-shadow .18s ease}
-#howto-demo-tiles span.demo-active{background:#fbbf24;transform:translateY(-4px) scale(1.08);box-shadow:0 5px 0 #b45309}
+#howto-demo-tiles{position:relative;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;max-width:310px;margin:auto;touch-action:none}
+#howto-demo-tiles .demo-tile{display:grid;place-items:center;aspect-ratio:1;background:#fff2d4;border:2px solid #e8c78b;border-radius:9px;color:#263b68;font-weight:900;font-size:clamp(15px,5vw,22px);box-shadow:0 3px 0 #d7ab70;transition:transform .14s ease,background .14s ease,box-shadow .14s ease}
+#howto-demo-tiles .demo-blank{visibility:hidden}
+#howto-demo-hand{position:absolute;left:0;top:0;z-index:2;font-size:25px;line-height:1;pointer-events:none;opacity:0;transform:translate(-12%,5%);transition:left .19s ease-out,top .19s ease-out,opacity .15s ease;filter:drop-shadow(0 2px 3px #47556980)}
+#howto-demo-hand.is-visible{opacity:1}
+#howto-demo-hand.is-down{transform:translate(-12%,5%) scale(.85)}
+#howto-demo-tiles .demo-tile.demo-active{background:#fbbf24;transform:translateY(-3px) scale(1.06);box-shadow:0 5px 0 #b45309}
 #howto-demo-score.demo-earned{background:#dcfce7;color:#166534;animation:demo-score-pop .36s ease-out}
 @keyframes demo-score-pop{50%{transform:scale(1.16)}}
-@media(prefers-reduced-motion:reduce){#howto-demo-tiles span,#howto-demo-score.demo-earned{transition:none;animation:none}}
+@media(prefers-reduced-motion:reduce){#howto-demo-tiles .demo-tile,#howto-demo-hand,#howto-demo-score.demo-earned{transition:none;animation:none}}
 </style>
 
 <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -2997,7 +3010,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div id="screen-home" class="home-v156 absolute inset-0 z-40 overflow-hidden bg-gradient-to-b from-sky-400 via-sky-200 to-emerald-200">
 <div class="absolute left-[max(4px,env(safe-area-inset-left))] top-[max(4px,env(safe-area-inset-top))] z-[70]" aria-live="polite">
 <div class="inline-flex items-center gap-1 rounded-full bg-black px-1.5 py-0.5 text-[7px] leading-none font-black text-white shadow-sm">
-<span id="online-player-count" class="text-emerald-400 text-[8px] leading-none">●</span><span>BAĞLI</span>
+<span id="online-player-count" class="text-emerald-400 text-[8px] leading-none">●</span><span>Bağlı</span>
 </div>
 </div>
 <button id="btn-fullscreen-home" type="button" class="fullscreen-btn" aria-label="Tam ekranı aç veya kapat" title="Tam ekran">
@@ -3017,10 +3030,10 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <h1 class="home-logo-word home-logo-tiles text-[32px] leading-[30px] font-black uppercase tracking-tight drop-shadow" aria-label="KAPMACA"><span>K</span><span>A</span><span>P</span><span>M</span><span>A</span><span>C</span><span>A</span></h1>
 <h1 class="home-logo-duel text-[30px] leading-[29px] font-black uppercase tracking-tight">SÖZCÜK AVI</h1>
 </div>
-<div class="home-tagline -mt-1 mx-auto text-white font-black text-[9px] tracking-wide px-4 py-1 rounded-full shadow-lg w-max">HARFLERLE DÜŞÜN • KELİMELERLE KAZAN</div>
+<div class="home-tagline -mt-1 mx-auto text-white font-black text-[9px] tracking-wide px-4 py-1 rounded-full shadow-lg w-max">HARFLERİ TOPLA, PUANLARI KATLA!</div>
 </div>
 
-<div class="w-full max-w-sm mt-5 space-y-3 shrink-0">
+<div class="home-modes w-full max-w-sm mt-5 space-y-3 shrink-0">
 <button id="btn-solo-mode" class="home-mode-btn w-full min-h-[76px] flex items-center gap-4 px-5 bg-gradient-to-b from-emerald-400 to-green-600 text-white rounded-[24px] border-4 border-emerald-200/70 shadow-[0_8px_0_#166534] active:translate-y-1 active:shadow-[0_4px_0_#166534] transition">
 <span aria-hidden="true"><svg viewBox="0 0 24 24" class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.3"/><path d="M6.7 19.1c.65-3 2.9-4.8 5.3-4.8s4.65 1.8 5.3 4.8"/></svg></span><span class="text-left flex-1"><b class="block text-xl leading-5 font-black">TEK OYUNCU</b><small class="font-bold text-green-50">Zorluk seç ve hemen başla</small></span><span id="solo-arrow" class="text-3xl font-black transition-transform">›</span>
 </button>
@@ -3066,15 +3079,14 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 
 <div class="mt-auto pt-3 w-full max-w-sm shrink-0">
 
-<a href="https://www.losev.org.tr/tr/bagis" target="_blank" rel="noopener noreferrer" class="home-shortcut block w-full rounded-[20px] bg-gradient-to-r from-rose-50 via-white to-red-50 border-2 border-rose-200 shadow-[0_8px_20px_rgba(127,29,29,.14)] px-4 py-3.5 active:scale-[.99]" aria-label="LÖSEV resmi bağış sayfasını aç">
+<a href="https://www.losev.org.tr/tr/bagis" target="_blank" rel="noopener noreferrer" class="home-shortcut support-card block w-full rounded-[20px] bg-gradient-to-r from-rose-50 via-white to-red-50 border-2 border-rose-200 shadow-[0_8px_20px_rgba(127,29,29,.14)] px-4 py-3.5 active:scale-[.99]" aria-label="LÖSEV resmi bağış sayfasını aç">
 <div class="flex items-center gap-2.5">
 <div class="support-heart w-12 h-12 shrink-0 rounded-[14px] bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center text-2xl shadow-sm"><span class="support-heart-icon" aria-hidden="true">❤</span></div>
 <div class="min-w-0 flex-1 text-left">
-<div class="text-[9px] font-black tracking-[.14em] text-rose-500 uppercase">DESTEK ALANI</div>
 <div class="text-[15px] leading-tight font-black text-rose-950">LÖSEV’e Destek Ol</div>
-<div class="text-[10.5px] leading-snug font-bold text-rose-800/80 mt-1">Oyunu sevdiysen, lösemili çocuklara umut olmak için bağış yapabilirsin.</div>
+<div class="support-copy text-[10.5px] leading-snug font-bold text-rose-800/80 mt-1">Oyunu sevdiysen, lösemili çocuklara umut olmak için bağış yapabilirsin.</div>
 </div>
-<div class="shrink-0 rounded-xl bg-rose-600 text-white px-3 py-2.5 text-[10px] font-black shadow-sm">BAĞIŞ YAP ›</div>
+<div class="support-action shrink-0 rounded-xl bg-rose-600 text-white px-3 py-2.5 text-[10px] font-black shadow-sm">BAĞIŞ YAP ›</div>
 </div>
 </a>
 
@@ -3160,8 +3172,8 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 </div>
 <div class="bg-white rounded-3xl p-4 shadow-lg border border-sky-100 mb-3" aria-label="Örnek oynanış animasyonu">
 <div class="font-black text-indigo-950 mb-1">▶ Harfleri sürükle, sözcüğü kap!</div>
-<p class="text-[11px] text-slate-600 mb-3">Komşu harfleri sırayla seç ve bırak. Ters yönde de ilerleyebilirsin.</p>
-<div id="howto-demo-tiles" class="flex justify-center gap-1" aria-hidden="true"><span>K</span><span>A</span><span>P</span><span>M</span><span>A</span><span>C</span><span>A</span></div>
+<p class="text-[11px] text-slate-600 mb-3">Basılı tutup komşu harflere sürükle ve bırak. Sağa, sola, yukarı veya aşağı ilerleyebilirsin.</p>
+<div id="howto-demo-tiles" aria-hidden="true"><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-blank"></span><span class="demo-blank"></span><span class="demo-blank"></span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-blank"></span><span class="demo-blank"></span><span id="howto-demo-hand">👆</span></div>
 <div class="mt-3 flex justify-between items-center gap-2 text-xs font-black"><span id="howto-demo-word" class="text-indigo-900" aria-live="off">K → A → P</span><span id="howto-demo-score" class="rounded-xl bg-amber-100 text-amber-900 px-2 py-1">Örnek seçim</span></div>
 <p class="text-[10px] text-slate-500 mt-2">Animasyon öğretim amaçlıdır; gerçek puan ve sözcük geçerliliği oyun sözlüğüne göre belirlenir.</p>
 </div>
@@ -42720,7 +42732,8 @@ el.textContent='●';
 el.classList.toggle('text-emerald-400',online);
 el.classList.toggle('text-rose-400',!online);
 }
-if(label) label.textContent=online?'BAĞLI':'ÇEVRİMDIŞI';
+if(label) label.textContent=online?'Bağlı':'Çevrimdışı';
+el?.classList.toggle('is-online',online);
 const reconnected=online && firebaseWasConnected===false;
 firebaseWasConnected=online;
 if(reconnected && mpRoomRef && mpRole && !mpExitHandling && !reconnectPresenceBusy){
@@ -43923,18 +43936,20 @@ let howtoDemoTimer=null;
 function stopHowtoDemo(){clearTimeout(howtoDemoTimer);howtoDemoTimer=null;}
 function startHowtoDemo(){
  stopHowtoDemo();
- const tiles=[...document.querySelectorAll('#howto-demo-tiles span')];
+ const board=document.getElementById('howto-demo-tiles');
+ const tiles=[...board.querySelectorAll('.demo-tile')];
+ const hand=document.getElementById('howto-demo-hand');
  const label=document.getElementById('howto-demo-word');
  const score=document.getElementById('howto-demo-score');
- const rounds=[{word:'KAP',path:[0,1,2]},{word:'KAPMA',path:[0,1,2,3,4]},{word:'KAPMACA',path:[0,1,2,3,4,5,6]},{word:'CAM',path:[5,4,3]}];
+ const rounds=[{word:'KAP',path:[0,1,2],points:8},{word:'KAPMA',path:[0,1,2,3,4],points:15},{word:'KAPMACA',path:[0,1,2,3,4,5,6],points:25},{word:'CAM',path:[5,4,3],points:9},{word:'PAK',path:[2,1,0],points:8},{word:'Mİ',path:[3,7],points:6},{word:'İŞ',path:[7,8],points:7}];
  let round=0,step=0;
  function advance(){
   if(document.getElementById('screen-howto').classList.contains('hidden')||document.hidden){stopHowtoDemo();return;}
   const item=rounds[round];
-  if(step===0){tiles.forEach(t=>t.classList.remove('demo-active'));score.classList.remove('demo-earned');score.textContent='Seçiliyor…';label.textContent='';}
-  if(step<item.path.length){tiles[item.path[step]].classList.add('demo-active');label.textContent=item.path.slice(0,step+1).map(i=>tiles[i].textContent).join(' → ');step++;howtoDemoTimer=setTimeout(advance,430);return;}
-  label.textContent=item.word;score.textContent='✓ Puan kazanıldı!';score.classList.add('demo-earned');
-  round=(round+1)%rounds.length;step=0;howtoDemoTimer=setTimeout(advance,1350);
+  if(step===0){tiles.forEach(t=>t.classList.remove('demo-active'));score.classList.remove('demo-earned');score.textContent='Seçiliyor…';label.textContent='';hand.classList.add('is-visible','is-down');}
+  if(step<item.path.length){const tile=tiles[item.path[step]];tile.classList.add('demo-active');hand.style.left=`${tile.offsetLeft+tile.offsetWidth*.53}px`;hand.style.top=`${tile.offsetTop+tile.offsetHeight*.34}px`;label.textContent=item.path.slice(0,step+1).map(i=>tiles[i].textContent).join(' → ');step++;howtoDemoTimer=setTimeout(advance,step===1?170:245);return;}
+  hand.classList.remove('is-down','is-visible');label.textContent=item.word;score.textContent=`+${item.points} puan ✓`;score.classList.add('demo-earned');
+  round=(round+1)%rounds.length;step=0;howtoDemoTimer=setTimeout(advance,650);
  }
  advance();
 }
