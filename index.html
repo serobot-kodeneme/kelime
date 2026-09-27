@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA — Sözcük Avı v252</title>
-<meta name="game-version" content="v252">
+<title>KAPMACA — Sözcük Avı v253</title>
+<meta name="game-version" content="v253">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2608,7 +2608,7 @@ border-radius: 11px !important;
 
 .word-confetti-layer{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:1001;contain:layout style;}
 .word-confetti-layer i{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:var(--h);border-radius:2px;background:var(--color);opacity:0;will-change:transform,opacity;animation:wordConfettiBurst var(--duration) cubic-bezier(.19,.65,.35,1) forwards;}
-@keyframes wordConfettiBurst{0%{opacity:0;transform:translate3d(0,0,0) rotate(0deg) scale(.65)}12%{opacity:1}42%{opacity:1;transform:translate3d(var(--mid-x),var(--mid-y),0) rotate(calc(var(--rot)*.5)) scale(1)}100%{opacity:0;transform:translate3d(var(--dx),var(--dy),0) rotate(var(--rot)) scale(.8)}}
+@keyframes wordConfettiBurst{0%{opacity:0;transform:translate3d(0,0,0) rotate(0deg) scale(.65)}12%{opacity:1}42%{opacity:1;transform:translate3d(var(--mid-x),var(--mid-y),0) rotate(var(--mid-rot)) scale(1)}100%{opacity:0;transform:translate3d(var(--dx),var(--dy),0) rotate(var(--rot)) scale(.8)}}
 .score-fly { position: fixed; z-index: 90; pointer-events:none; font-weight:900; font-size:18px;
 transform: translate3d(0,0,0) scale(.9); opacity:.58; transition: transform .72s cubic-bezier(.2,.8,.2,1), opacity .72s ease;
 text-shadow:0 2px 8px rgba(0,0,0,.22); filter:saturate(.96); will-change:transform,opacity; }
@@ -2984,6 +2984,8 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 /* v164 9x9 optimum: daha büyük dokunma hedefi ve daha hafif input yolu */
 #scrabble-grid{isolation:isolate;}
 .letter-cell{font-variant-numeric:tabular-nums;text-rendering:optimizeLegibility;}
+#scrabble-grid .letter-cell{border-radius:7px!important;}
+@media(pointer:coarse){#scrabble-grid .letter-cell{border-radius:8px!important;}}
 .selected-preview-tile[hidden]{display:none!important;}
 .tile-dragging{will-change:transform;}
 @media (pointer:coarse){
@@ -3067,12 +3069,11 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 
 <div id="bot-settings-panel" class="hidden w-full bg-white/90 backdrop-blur-sm px-2.5 py-2 rounded-[18px] border-2 border-white shadow-lg shrink-0">
 <div class="flex items-center justify-between mb-1.5 px-1"><b class="text-slate-700 text-[12px] tracking-wide">ZORLUK SEÇ</b><button id="btn-close-difficulty" class="w-7 h-7 rounded-full bg-slate-100 text-lg leading-none font-black text-slate-500">×</button></div>
-<div class="grid grid-cols-5 gap-1">
+<div class="grid grid-cols-4 gap-1.5">
 <button data-diff="easy" class="bot-diff-choice min-h-[48px] flex flex-col items-center justify-center rounded-xl bg-green-100 border-2 border-green-300 active:scale-95 transition-transform"><span class="text-base leading-none">⭐</span><b class="text-green-900 text-[11px] mt-1">KOLAY</b></button>
 <button data-diff="medium" class="bot-diff-choice min-h-[48px] flex flex-col items-center justify-center rounded-xl bg-sky-100 border-2 border-sky-300 active:scale-95 transition-transform"><span class="text-[12px] leading-none">⭐⭐</span><b class="text-sky-900 text-[11px] mt-1">ORTA</b></button>
 <button data-diff="hard" class="bot-diff-choice min-h-[48px] flex flex-col items-center justify-center rounded-xl bg-orange-100 border-2 border-orange-300 active:scale-95 transition-transform"><span class="text-[10px] leading-none">⭐⭐⭐</span><b class="text-orange-900 text-[11px] mt-1">ZOR</b></button>
 <button data-diff="expert" class="bot-diff-choice min-h-[48px] flex flex-col items-center justify-center rounded-xl bg-rose-100 border-2 border-rose-300 active:scale-95 transition-transform"><span class="text-base leading-none">👑</span><b class="text-rose-900 text-[11px] mt-1">UZMAN</b></button>
-<button data-diff="legend" class="bot-diff-choice min-h-[48px] flex flex-col items-center justify-center rounded-xl bg-purple-100 border-2 border-purple-300 active:scale-95 transition-transform"><span class="text-base leading-none">🏆</span><b class="text-purple-900 text-[10px] mt-1">EFSANE</b></button>
 </div>
 </div>
 
@@ -43605,7 +43606,6 @@ if(lastPos){
  const rr=lastEl?.getBoundingClientRect?.();
  if(rr&&rr.width&&rr.height) remoteOrigin={x:rr.left+rr.width/2,y:rr.top+rr.height/2};
 }
-playWordConfetti(String(ev.word||'').length,remoteOrigin,true);
 flyScore(Number(ev.pts||0), ev.role==='host', remoteOrigin);
 rewardWordFx(ev.role==='host');
 showToast(`${ev.role==='host'?'1. Oyuncu':'2. Oyuncu'}: ${ev.word} (+${ev.pts||0})`,ev.role==='host'?'amber':'sky');
@@ -44772,11 +44772,11 @@ el.classList.add(isP1?'tile-claimed-p1':'tile-claimed-p2');
 });
 }
 
-function playWordConfetti(length,originPoint,subtle=false){
+function playWordConfetti(length,originPoint){
 const letters=Math.max(2,Math.min(9,Number(length)||2));
 const count=Math.round((IS_COARSE_POINTER?10:13)+(letters-2)*(IS_COARSE_POINTER?3:4));
 const valid=originPoint&&Number.isFinite(originPoint.x)&&Number.isFinite(originPoint.y);
-confetti({particleCount:subtle?Math.max(5,Math.round(count*.65)):count,
+confetti({particleCount:count,
  spread:65,startVelocity:21,gravity:1.12,decay:.90,ticks:52,scalar:.76,
  origin:valid?{x:Math.max(0,Math.min(1,originPoint.x/innerWidth)),y:Math.max(0,Math.min(1,originPoint.y/innerHeight))}:{y:.6},
  zIndex:88,disableForReducedMotion:true});
@@ -44792,16 +44792,17 @@ const ox=Number(options.origin?.x),oy=Number(options.origin?.y);
 const x=Math.max(.03,Math.min(.97,Number.isFinite(ox)?ox:.5))*innerWidth;
 const y=Math.max(.06,Math.min(.94,Number.isFinite(oy)?oy:.5))*innerHeight;
 const colors=['#fbbf24','#38bdf8','#fb7185','#a78bfa','#34d399','#ffffff'];
-const duration=options.ticks?Math.max(650,Math.min(1350,options.ticks*17)):950;
+const duration=1000;
 for(let i=0;i<count;i++){
 const part=document.createElement('i');
-const angle=(-160+Math.random()*140)*Math.PI/180;
-const reach=35+Math.random()*85;
+const angle=Math.random()*Math.PI*2;
+const reach=65+Math.random()*95;
 part.style.setProperty('--x',x+'px');part.style.setProperty('--y',y+'px');
-const dx=Math.round(Math.cos(angle)*reach),dy=Math.round(Math.sin(angle)*reach+95+Math.random()*90);
+const dx=Math.round(Math.cos(angle)*reach),dy=Math.round(Math.sin(angle)*reach+95+Math.random()*50);
 part.style.setProperty('--dx',dx+'px');part.style.setProperty('--dy',dy+'px');
 part.style.setProperty('--mid-x',Math.round(dx*.58)+'px');part.style.setProperty('--mid-y',Math.round(dy*.38-38)+'px');
-part.style.setProperty('--rot',Math.round((Math.random()-.5)*720)+'deg');
+const rotation=Math.round((Math.random()-.5)*720);
+part.style.setProperty('--rot',rotation+'deg');part.style.setProperty('--mid-rot',Math.round(rotation*.5)+'deg');
 part.style.setProperty('--w',(4+Math.random()*4)+'px');part.style.setProperty('--h',(7+Math.random()*5)+'px');
 part.style.setProperty('--color',colors[i%colors.length]);
 part.style.setProperty('--duration',duration+'ms');frag.appendChild(part);
@@ -44936,7 +44937,7 @@ return Array.from(found.values());
 
 function planBot() {
 if (!isMatchActive) return;
-const delay = Math.round((botDiffLevel === 'legend' ? 1650 : botDiffLevel === 'expert' ? 2200 : botDiffLevel === 'hard' ? 3800 : botDiffLevel === 'medium' ? 6000 : 9000) / 1.1);
+const delay = Math.round((botDiffLevel === 'expert' ? 2200 : botDiffLevel === 'hard' ? 3800 : botDiffLevel === 'medium' ? 6000 : 9000) / 1.1);
 
 botInterval = setTimeout(() => {
 if (!isMatchActive) return;
@@ -44949,7 +44950,6 @@ if (botDiffLevel === 'easy') targetPool = available.filter(w => w.word.length <=
 else if (botDiffLevel === 'medium') targetPool = available.filter(w => w.word.length >= 2 && w.word.length <= 5);
 else if (botDiffLevel === 'hard') targetPool = available.filter(w => w.word.length >= 3 && w.word.length <= 6);
 else if (botDiffLevel === 'expert') targetPool = available.filter(w => w.word.length >= 4);
-else if (botDiffLevel === 'legend') targetPool = available.filter(w => w.word.length >= 5);
 
 if (targetPool.length === 0) targetPool = available;
 
@@ -44957,10 +44957,10 @@ const ranked = targetPool.map(item => ({
 item,
 score: item.word.split('').reduce((sum, ch) => sum + (TILE_SCORE_CACHE[ch] || 1), 0)
 })).sort((a,b) => b.score - a.score || b.item.word.length - a.item.word.length);
-const focusChance = Math.min(1,(botDiffLevel === 'legend' ? 0.90 : botDiffLevel === 'expert' ? 0.78 : botDiffLevel === 'hard' ? 0.62 : botDiffLevel === 'medium' ? 0.38 : 0.12)*1.1);
+const focusChance = Math.min(1,(botDiffLevel === 'expert' ? 0.78 : botDiffLevel === 'hard' ? 0.62 : botDiffLevel === 'medium' ? 0.38 : 0.12)*1.1);
 let matchObj;
 if (Math.random() < focusChance) {
-const topCount = Math.max(1, Math.min(ranked.length, botDiffLevel === 'legend' ? 3 : botDiffLevel === 'expert' ? 5 : botDiffLevel === 'hard' ? 7 : 9));
+const topCount = Math.max(1, Math.min(ranked.length, botDiffLevel === 'expert' ? 5 : botDiffLevel === 'hard' ? 7 : 9));
 matchObj = ranked[Math.floor(Math.random() * topCount)].item;
 } else {
 matchObj = targetPool[Math.floor(Math.random() * targetPool.length)];
@@ -44983,7 +44983,6 @@ cell.classList.add(botIsP2 ? 'tile-claimed-p2' : 'tile-claimed-p1');
 let botOrigin=null;
 const botLast=matchObj.path?.[matchObj.path.length-1];
 if(botLast){const bel=document.getElementById(`cell-${botLast.r}-${botLast.c}`);const br=bel?.getBoundingClientRect?.();if(br&&br.width&&br.height)botOrigin={x:br.left+br.width/2,y:br.top+br.height/2};}
-playWordConfetti(word.length,botOrigin,true);
 flyScore(pts, !botIsP2, botOrigin);
 rewardWordFx(!botIsP2);
 adjustScore(botIsP2 ? 0 : pts, botIsP2 ? pts : 0);
