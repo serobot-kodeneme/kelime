@@ -7,9 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA — Sözcük Avı v251</title>
-<meta name="game-version" content="v251">
-<script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<title>KAPMACA — Sözcük Avı v252</title>
+<meta name="game-version" content="v252">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2607,6 +2606,9 @@ border-radius: 11px !important;
 #screen-game { overscroll-behavior: none; }
 
 
+.word-confetti-layer{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:1001;contain:layout style;}
+.word-confetti-layer i{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:var(--h);border-radius:2px;background:var(--color);opacity:0;will-change:transform,opacity;animation:wordConfettiBurst var(--duration) cubic-bezier(.19,.65,.35,1) forwards;}
+@keyframes wordConfettiBurst{0%{opacity:0;transform:translate3d(0,0,0) rotate(0deg) scale(.65)}12%{opacity:1}42%{opacity:1;transform:translate3d(var(--mid-x),var(--mid-y),0) rotate(calc(var(--rot)*.5)) scale(1)}100%{opacity:0;transform:translate3d(var(--dx),var(--dy),0) rotate(var(--rot)) scale(.8)}}
 .score-fly { position: fixed; z-index: 90; pointer-events:none; font-weight:900; font-size:18px;
 transform: translate3d(0,0,0) scale(.9); opacity:.58; transition: transform .72s cubic-bezier(.2,.8,.2,1), opacity .72s ease;
 text-shadow:0 2px 8px rgba(0,0,0,.22); filter:saturate(.96); will-change:transform,opacity; }
@@ -44771,14 +44773,41 @@ el.classList.add(isP1?'tile-claimed-p1':'tile-claimed-p2');
 }
 
 function playWordConfetti(length,originPoint,subtle=false){
-if(typeof confetti!=='function')return;
 const letters=Math.max(2,Math.min(9,Number(length)||2));
-const count=Math.round((IS_COARSE_POINTER?7:10)+(letters-2)*(IS_COARSE_POINTER?2.5:3.5));
+const count=Math.round((IS_COARSE_POINTER?10:13)+(letters-2)*(IS_COARSE_POINTER?3:4));
 const valid=originPoint&&Number.isFinite(originPoint.x)&&Number.isFinite(originPoint.y);
 confetti({particleCount:subtle?Math.max(5,Math.round(count*.65)):count,
  spread:65,startVelocity:21,gravity:1.12,decay:.90,ticks:52,scalar:.76,
  origin:valid?{x:Math.max(0,Math.min(1,originPoint.x/innerWidth)),y:Math.max(0,Math.min(1,originPoint.y/innerHeight))}:{y:.6},
  zIndex:88,disableForReducedMotion:true});
+}
+
+// Harici dosya gerektirmeyen konfeti: oyun içi ve sonuç ekranı aynı efekt motorunu kullanır.
+function confetti(options={}){
+const count=Math.max(0,Math.min(48,Math.round(Number(options.particleCount)||0)));
+if(!count||document.hidden)return;
+const layer=document.createElement('div');layer.className='word-confetti-layer';
+const frag=document.createDocumentFragment();
+const ox=Number(options.origin?.x),oy=Number(options.origin?.y);
+const x=Math.max(.03,Math.min(.97,Number.isFinite(ox)?ox:.5))*innerWidth;
+const y=Math.max(.06,Math.min(.94,Number.isFinite(oy)?oy:.5))*innerHeight;
+const colors=['#fbbf24','#38bdf8','#fb7185','#a78bfa','#34d399','#ffffff'];
+const duration=options.ticks?Math.max(650,Math.min(1350,options.ticks*17)):950;
+for(let i=0;i<count;i++){
+const part=document.createElement('i');
+const angle=(-160+Math.random()*140)*Math.PI/180;
+const reach=35+Math.random()*85;
+part.style.setProperty('--x',x+'px');part.style.setProperty('--y',y+'px');
+const dx=Math.round(Math.cos(angle)*reach),dy=Math.round(Math.sin(angle)*reach+95+Math.random()*90);
+part.style.setProperty('--dx',dx+'px');part.style.setProperty('--dy',dy+'px');
+part.style.setProperty('--mid-x',Math.round(dx*.58)+'px');part.style.setProperty('--mid-y',Math.round(dy*.38-38)+'px');
+part.style.setProperty('--rot',Math.round((Math.random()-.5)*720)+'deg');
+part.style.setProperty('--w',(4+Math.random()*4)+'px');part.style.setProperty('--h',(7+Math.random()*5)+'px');
+part.style.setProperty('--color',colors[i%colors.length]);
+part.style.setProperty('--duration',duration+'ms');frag.appendChild(part);
+}
+layer.appendChild(frag);document.body.appendChild(layer);
+setTimeout(()=>layer.remove(),duration+80);
 }
 
 function flyScore(pts, isP1, originPoint=null) {
