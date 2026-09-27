@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v269</title>
-<meta name="game-version" content="v269">
+<title>KAPMACA.tr — Sözcük Avı v270</title>
+<meta name="game-version" content="v270">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2245,34 +2245,36 @@
 }
 
 
-/* v269 fullscreen v233 legacy profile */
+/* v270 fullscreen final mouse polish */
 @media (hover:hover) and (pointer:fine){
   html:fullscreen #scrabble-grid,
   html:-webkit-full-screen #scrabble-grid{
     overflow:visible!important;
-    cursor:grab!important;
+    cursor:default!important;
     contain:layout paint!important;
   }
   html:fullscreen #scrabble-grid.is-grabbing,
   html:-webkit-full-screen #scrabble-grid.is-grabbing{
-    cursor:grabbing!important;
+    cursor:default!important;
   }
+
+  /* Pointer motoru v233 olarak kalır; yalnız görsel hareket maliyeti sıfırlanır. */
   html:fullscreen #scrabble-grid .letter-cell,
   html:-webkit-full-screen #scrabble-grid .letter-cell{
     contain:layout paint style!important;
     backface-visibility:hidden!important;
     will-change:auto!important;
-    transition:transform .08s ease-out,box-shadow .08s ease-out,background-color .07s linear,color .07s linear!important;
+    transition:none!important;
   }
+
   html:fullscreen #scrabble-grid .letter-cell.tile-hover-p1:not(.tile-dragging),
   html:fullscreen #scrabble-grid .letter-cell.tile-hover-p2:not(.tile-dragging),
   html:-webkit-full-screen #scrabble-grid .letter-cell.tile-hover-p1:not(.tile-dragging),
-  html:-webkit-full-screen #scrabble-grid .letter-cell.tile-hover-p2:not(.tile-dragging){
-    transform:translateY(-2px)!important;
-  }
+  html:-webkit-full-screen #scrabble-grid .letter-cell.tile-hover-p2:not(.tile-dragging),
   html:fullscreen #scrabble-grid .letter-cell.tile-dragging,
   html:-webkit-full-screen #scrabble-grid .letter-cell.tile-dragging{
-    transform:translate3d(0,-1px,0) scale(1.065)!important;
+    transform:none!important;
+    filter:none!important;
   }
 }
 </style>
