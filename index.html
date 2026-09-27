@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA — Sözcük Avı v245</title>
-<meta name="game-version" content="v245">
+<title>KAPMACA — Sözcük Avı v246</title>
+<meta name="game-version" content="v246">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2188,7 +2188,8 @@
    Ana sayfa DOM'da kalır; yeni ekran hissi yerine tek overlay kullanılır. */
 #screen-howto,
 #screen-settings,
-#screen-about{
+#screen-about,
+#screen-support{
   position:absolute!important;
   inset:0!important;
   z-index:80!important;
@@ -2201,12 +2202,14 @@
 }
 #screen-howto.hidden,
 #screen-settings.hidden,
-#screen-about.hidden{
+#screen-about.hidden,
+#screen-support.hidden{
   display:none!important;
 }
 #screen-howto>div,
 #screen-settings>div,
-#screen-about>div{
+#screen-about>div,
+#screen-support>div{
   width:min(100%,390px)!important;
   max-width:390px!important;
   max-height:min(88dvh,720px)!important;
@@ -2221,15 +2224,18 @@
 }
 #screen-howto>div::-webkit-scrollbar,
 #screen-settings>div::-webkit-scrollbar,
-#screen-about>div::-webkit-scrollbar{display:none}
+#screen-about>div::-webkit-scrollbar,
+#screen-support>div::-webkit-scrollbar{display:none}
 #screen-howto>div{padding-bottom:16px!important}
 #screen-settings>div,
-#screen-about>div{padding-bottom:18px!important}
+#screen-about>div,
+#screen-support>div{padding-bottom:18px!important}
 
 /* Modal başlıkları daha kompakt; içeriğe dokunulmaz. */
 #screen-howto>div>div:first-child,
 #screen-settings>div>div:first-child,
-#screen-about>div>div:first-child{
+#screen-about>div>div:first-child,
+#screen-support>div>div:first-child{
   position:sticky;
   top:-14px;
   z-index:3;
@@ -2962,12 +2968,12 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 #online-player-count.is-online{animation:online-pulse 1.25s ease-in-out infinite}
 .home-shortcut-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:8px}
 .home-shortcut-grid>button,.home-shortcut-grid>a{min-width:0}
-.support-icon-button .support-heart{width:46px;height:46px;border-radius:14px;font-size:28px}
 #screen-home.home-v156 .support-icon-button{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
-#screen-home.home-v156 .support-icon-button>.support-heart{background:linear-gradient(145deg,#ff4661,#e51638)!important;color:#fff!important;border-color:#ff8395!important}
-.support-icon-button:hover .support-heart{filter:brightness(1.08)}
-#modal-support:target{display:flex!important}
-.support-dialog-heart{width:106px;height:106px;margin:auto;border-radius:30px;background:linear-gradient(145deg,#ff5b72,#dc143c);border:4px solid #ffbdc9;display:grid;place-items:center;color:white;font-size:65px;box-shadow:0 8px 0 #b91034,0 15px 26px rgba(190,24,55,.27)}
+#screen-home.home-v156 .support-icon-button>span:first-child{background:transparent!important;border:0!important;box-shadow:none!important;color:inherit!important}
+.support-icon-button svg{width:43px;height:43px;filter:drop-shadow(0 3px 3px rgba(159,18,57,.32))}
+.support-icon-button:hover svg{filter:drop-shadow(0 5px 5px rgba(159,18,57,.4)) brightness(1.06)}
+#screen-support:target{display:flex!important}
+.support-official-logo{display:block;width:min(82%,270px);height:110px;object-fit:contain;margin:8px auto 0}
 @media(max-height:650px){#screen-home.home-v156 .home-title-wrap{margin-top:12px!important}#screen-home.home-v156 .home-modes{margin-top:18px}}
 
 /* v164 9x9 optimum: daha büyük dokunma hedefi ve daha hafif input yolu */
@@ -3114,8 +3120,8 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <span class="w-8 h-8 rounded-[11px] bg-white/90 border border-amber-200 flex items-center justify-center text-base shadow-inner">📚</span>
 <span>Sözlük</span>
 </button>
-<a id="btn-support" href="#modal-support" class="support-icon-button home-shortcut min-h-[54px] flex items-center justify-center active:scale-95" aria-label="LÖSEV desteğini aç">
-<span class="support-heart flex items-center justify-center text-white"><span class="support-heart-icon" aria-hidden="true">❤</span></span>
+<a id="btn-support" href="#screen-support" class="support-icon-button home-shortcut min-h-[54px] flex items-center justify-center active:scale-95" aria-label="LÖSEV desteğini aç">
+<span class="support-heart-icon" aria-hidden="true"><svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M24 42C20 38 4 27 4 16 4 7 16 3 24 13 32 3 44 7 44 16 44 27 28 38 24 42Z" fill="#e11d48" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/></svg></span>
 </a>
 </div>
 </div>
@@ -3276,16 +3282,16 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 </div>
 </div>
 
-<div id="modal-support" class="absolute inset-0 z-[85] hidden bg-slate-950/75 backdrop-blur-sm p-4 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="support-title">
-<div class="relative w-full max-w-sm max-h-full overflow-y-auto rounded-[28px] bg-white p-5 text-center shadow-2xl border border-rose-100">
-<a id="btn-close-support" href="#screen-home" aria-label="Desteği kapat" class="absolute right-3 top-3 w-9 h-9 rounded-full bg-slate-100 text-slate-700 font-black text-lg flex items-center justify-center">✕</a>
-<div class="support-dialog-heart mt-6" aria-hidden="true"><span class="support-heart-icon">❤</span></div>
-<div class="mt-5 text-[30px] font-black tracking-wide text-rose-700">LÖSEV</div>
-<div class="text-xs font-bold text-rose-900/75">Lösemili Çocuklar Vakfı</div>
+<div id="screen-support" class="absolute inset-0 z-[80] hidden bg-gradient-to-b from-rose-100 to-white p-4">
+<div class="max-w-sm mx-auto">
+<div class="flex items-center justify-between"><a id="btn-close-support" href="#screen-home" aria-label="Desteği kapat" class="w-10 h-10 rounded-full bg-white shadow font-black text-xl flex items-center justify-center">‹</a><h2 class="font-black text-xl text-indigo-950">DESTEK</h2><div class="w-10"></div></div>
+<div class="mt-5 bg-white/95 border-2 border-rose-200 rounded-3xl p-5 shadow-lg text-center">
+<img class="support-official-logo" src="https://www.losev.org.tr/_next/static/media/losev_dark_logo.c35ca8f1.svg" alt="LÖSEV logosu" loading="lazy" />
 <div class="mt-5 rounded-[20px] bg-gradient-to-r from-rose-50 via-white to-red-50 border-2 border-rose-200 p-4 shadow-md">
-<h2 id="support-title" class="text-lg font-black text-rose-950">LÖSEV’e Destek Ol</h2>
+<h3 class="text-lg font-black text-rose-950">LÖSEV’e Destek Ol</h3>
 <p class="text-sm font-bold leading-relaxed text-rose-800 mt-2">Oyunu sevdiysen, lösemili çocuklara umut olmak için bağış yapabilirsin.</p>
 <a href="https://www.losev.org.tr/tr/bagis" target="_blank" rel="noopener noreferrer" class="block mt-4 rounded-xl bg-rose-600 px-4 py-3 text-sm font-black text-white shadow">RESMÎ BAĞIŞ SAYFASINA GİT ›</a>
+</div>
 </div>
 </div>
 </div>
@@ -43999,11 +44005,11 @@ for(const id of ['modal-room-invite','modal-mp-waiting','modal-countdown'])new M
 startHowtoDemo();
 document.getElementById('btn-about').onclick = () => document.getElementById('screen-about').classList.remove('hidden');
 document.getElementById('btn-about-back').onclick = () => document.getElementById('screen-about').classList.add('hidden');
-const supportDialog=document.getElementById('modal-support');
-document.getElementById('btn-support').onclick=()=>{supportDialog.classList.remove('hidden');document.getElementById('btn-close-support').focus();};
-document.getElementById('btn-close-support').onclick=()=>supportDialog.classList.add('hidden');
-supportDialog.addEventListener('click',event=>{if(event.target===supportDialog){supportDialog.classList.add('hidden');if(location.hash==='#modal-support')location.hash='screen-home';}});
-document.addEventListener('keydown',event=>{if(event.key==='Escape'&&(!supportDialog.classList.contains('hidden')||location.hash==='#modal-support')){supportDialog.classList.add('hidden');if(location.hash==='#modal-support')location.hash='screen-home';}});
+const supportScreen=document.getElementById('screen-support');
+document.getElementById('btn-support').onclick=()=>supportScreen.classList.remove('hidden');
+document.getElementById('btn-close-support').onclick=()=>supportScreen.classList.add('hidden');
+supportScreen.addEventListener('click',event=>{if(event.target===supportScreen){supportScreen.classList.add('hidden');if(location.hash==='#screen-support')location.hash='screen-home';}});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&(!supportScreen.classList.contains('hidden')||location.hash==='#screen-support')){supportScreen.classList.add('hidden');if(location.hash==='#screen-support')location.hash='screen-home';}});
 document.getElementById('btn-settings').onclick = () => {
 setMasterSoundVolume(masterSoundVolume);
 document.getElementById('screen-settings').classList.remove('hidden');
