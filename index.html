@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v263</title>
-<meta name="game-version" content="v263">
+<title>KAPMACA.tr — Sözcük Avı v264</title>
+<meta name="game-version" content="v264">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -45034,35 +45034,41 @@ visited[r][c]=true; dfs(r,c,board[r][c],[{r,c}]); visited[r][c]=false;
 return Array.from(found.values());
 }
 
+const BOT_LEVELS = {
+easy:   {delay:6500, focus:.22, top:8, minLen:2, maxLen:3},
+medium: {delay:4200, focus:.50, top:7, minLen:2, maxLen:5},
+hard:   {delay:2600, focus:.76, top:5, minLen:3, maxLen:6},
+expert: {delay:1650, focus:.91, top:3, minLen:4, maxLen:9}
+};
+let botRankedBoard=null, botRankedWords=[];
+function getBotRankedWords(){
+if(botRankedBoard!==boardFoundWords){
+botRankedBoard=boardFoundWords;
+botRankedWords=boardFoundWords.map(item=>({
+item,score:item.word.split('').reduce((sum,ch)=>sum+(TILE_SCORE_CACHE[ch]||1),0)
+})).sort((a,b)=>b.score-a.score||b.item.word.length-a.item.word.length);
+}
+return botRankedWords;
+}
+
 function planBot() {
 if (!isMatchActive) return;
-const delay = Math.round((botDiffLevel === 'expert' ? 2200 : botDiffLevel === 'hard' ? 3800 : botDiffLevel === 'medium' ? 6000 : 9000) / 1.1);
+const level=BOT_LEVELS[botDiffLevel]||BOT_LEVELS.easy;
 
 botInterval = setTimeout(() => {
 if (!isMatchActive) return;
 
-const available = boardFoundWords.filter(item => !sessionFoundWords.has(item.word));
+const available=getBotRankedWords().filter(({item})=>!sessionFoundWords.has(item.word));
 
 if (available.length > 0) {
-let targetPool = available;
-if (botDiffLevel === 'easy') targetPool = available.filter(w => w.word.length <= 3);
-else if (botDiffLevel === 'medium') targetPool = available.filter(w => w.word.length >= 2 && w.word.length <= 5);
-else if (botDiffLevel === 'hard') targetPool = available.filter(w => w.word.length >= 3 && w.word.length <= 6);
-else if (botDiffLevel === 'expert') targetPool = available.filter(w => w.word.length >= 4);
-
-if (targetPool.length === 0) targetPool = available;
-
-const ranked = targetPool.map(item => ({
-item,
-score: item.word.split('').reduce((sum, ch) => sum + (TILE_SCORE_CACHE[ch] || 1), 0)
-})).sort((a,b) => b.score - a.score || b.item.word.length - a.item.word.length);
-const focusChance = Math.min(1,(botDiffLevel === 'expert' ? 0.78 : botDiffLevel === 'hard' ? 0.62 : botDiffLevel === 'medium' ? 0.38 : 0.12)*1.1);
+let ranked=available.filter(({item})=>item.word.length>=level.minLen&&item.word.length<=level.maxLen);
+if(!ranked.length)ranked=available;
 let matchObj;
-if (Math.random() < focusChance) {
-const topCount = Math.max(1, Math.min(ranked.length, botDiffLevel === 'expert' ? 5 : botDiffLevel === 'hard' ? 7 : 9));
+if (Math.random() < level.focus) {
+const topCount=Math.min(ranked.length,level.top);
 matchObj = ranked[Math.floor(Math.random() * topCount)].item;
 } else {
-matchObj = targetPool[Math.floor(Math.random() * targetPool.length)];
+matchObj = ranked[Math.floor(Math.random() * ranked.length)].item;
 }
 const word = matchObj.word;
 const pts = word.split('').reduce((s, c) => s + (TILE_SCORES[c] || 1), 0);
@@ -45089,7 +45095,7 @@ addTickerBadge(word, !botIsP2);
 showToast(`2. OYUNCU: ${word} (+${pts})`, botIsP2 ? 'sky' : 'amber');
 }
 planBot();
-}, delay);
+}, level.delay);
 }
 
 function spawnHighResultPartyFx(){ return; }
