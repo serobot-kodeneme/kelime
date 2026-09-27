@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v268</title>
-<meta name="game-version" content="v268">
+<title>KAPMACA.tr — Sözcük Avı v269</title>
+<meta name="game-version" content="v269">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2244,71 +2244,35 @@
   padding:4px 0 8px;
 }
 
-/* v267 fullscreen mouse stability */
+
+/* v269 fullscreen v233 legacy profile */
 @media (hover:hover) and (pointer:fine){
-  /* Tam ekranda tarayıcı/GPU imleç bozulmasını ve ağırlaşmayı önle. */
   html:fullscreen #scrabble-grid,
   html:-webkit-full-screen #scrabble-grid{
-    cursor:default!important;
+    overflow:visible!important;
+    cursor:grab!important;
+    contain:layout paint!important;
   }
   html:fullscreen #scrabble-grid.is-grabbing,
   html:-webkit-full-screen #scrabble-grid.is-grabbing{
-    cursor:default!important;
+    cursor:grabbing!important;
   }
-
-  /* Hover yalnız renk değiştirir; hücreyi hareket ettirme/büyütme yok. */
+  html:fullscreen #scrabble-grid .letter-cell,
+  html:-webkit-full-screen #scrabble-grid .letter-cell{
+    contain:layout paint style!important;
+    backface-visibility:hidden!important;
+    will-change:auto!important;
+    transition:transform .08s ease-out,box-shadow .08s ease-out,background-color .07s linear,color .07s linear!important;
+  }
   html:fullscreen #scrabble-grid .letter-cell.tile-hover-p1:not(.tile-dragging),
   html:fullscreen #scrabble-grid .letter-cell.tile-hover-p2:not(.tile-dragging),
   html:-webkit-full-screen #scrabble-grid .letter-cell.tile-hover-p1:not(.tile-dragging),
   html:-webkit-full-screen #scrabble-grid .letter-cell.tile-hover-p2:not(.tile-dragging){
-    transform:none!important;
-    transition:background-color .04s linear,color .04s linear!important;
-    box-shadow:0 2px 0 #cbd5e1!important;
+    transform:translateY(-2px)!important;
   }
-
-  /* Sürükleme sırasında 81 hücre üzerinde GPU katmanı üretme.
-     Seçili harf rengi korunur; yalnız geometrik animasyon kaldırılır. */
   html:fullscreen #scrabble-grid .letter-cell.tile-dragging,
   html:-webkit-full-screen #scrabble-grid .letter-cell.tile-dragging{
-    transform:none!important;
-    will-change:auto!important;
-    transition:background-color .035s linear,color .035s linear!important;
-    box-shadow:inset 0 0 0 2px rgba(255,255,255,.72)!important;
-  }
-
-  html:fullscreen #scrabble-grid .letter-cell,
-  html:-webkit-full-screen #scrabble-grid .letter-cell{
-    backface-visibility:visible!important;
-  }
-}
-
-/* v268 fullscreen bare-input path */
-@media (hover:hover) and (pointer:fine){
-  html:fullscreen #scrabble-grid,
-  html:-webkit-full-screen #scrabble-grid{
-    /* v233 davranışı: hareketli hücreleri tüm tahta yüzeyinde kırpıp yeniden boyama. */
-    overflow:visible!important;
-  }
-
-  html:fullscreen #scrabble-grid .letter-cell,
-  html:-webkit-full-screen #scrabble-grid .letter-cell{
-    /* Tam ekranda hücre hareketinde transition/compositor işi yok. */
-    transition:none!important;
-    will-change:auto!important;
-    text-rendering:auto!important;
-  }
-
-  html:fullscreen #scrabble-grid .letter-cell.tile-hover-p1,
-  html:fullscreen #scrabble-grid .letter-cell.tile-hover-p2,
-  html:-webkit-full-screen #scrabble-grid .letter-cell.tile-hover-p1,
-  html:-webkit-full-screen #scrabble-grid .letter-cell.tile-hover-p2{
-    transform:none!important;
-  }
-
-  html:fullscreen #scrabble-grid .letter-cell.tile-dragging,
-  html:-webkit-full-screen #scrabble-grid .letter-cell.tile-dragging{
-    transform:none!important;
-    filter:none!important;
+    transform:translate3d(0,-1px,0) scale(1.065)!important;
   }
 }
 </style>
@@ -44652,30 +44616,15 @@ const col=Math.max(0,Math.min(BOARD_SIZE-1,Math.round((x-metrics.cellW/2)/stepX)
 const row=Math.max(0,Math.min(BOARD_SIZE-1,Math.round((y-metrics.cellH/2)/stepY)));
 return {row,col};
 }
-function invalidateGridMetrics(){
-  hoverGridRect=null; hoverGridMetrics=null;
-  if(isPointerDown){
-    activeGridMetrics=measureGrid(); activeGridRect=activeGridMetrics.rect;
-    lastPointerX=null; lastPointerY=null;
-  } else { activeGridRect=null; activeGridMetrics=null; }
-}
+function invalidateGridMetrics(){ hoverGridRect=null; hoverGridMetrics=null; activeGridRect=null; activeGridMetrics=null; }
 const refreshGridRect=()=>{ hoverGridMetrics=measureGrid(); hoverGridRect=hoverGridMetrics.rect; };
 gridEl.addEventListener('pointerenter',refreshGridRect,{passive:true});
 window.addEventListener('resize',invalidateGridMetrics,{passive:true});
-document.addEventListener('fullscreenchange',invalidateGridMetrics);
-document.addEventListener('webkitfullscreenchange',invalidateGridMetrics);
 if('ResizeObserver' in window){ new ResizeObserver(invalidateGridMetrics).observe(gridEl); }
 
 let lastHoverCell=-1;
 gridEl.addEventListener('pointermove', (e) => {
 if(e.pointerType==='touch' || isPointerDown) return;
-// v268: gerçek tam ekranda salt hover için DOM sınıfı/paint üretme.
-if(isFullscreenActive()){
-  lastHoverCell=-1;
-  if(hoverLiftCell) hoverLiftCell.classList.remove('tile-hover-p1','tile-hover-p2');
-  hoverLiftCell=null;
-  return;
-}
 const metrics=hoverGridMetrics || (hoverGridMetrics=measureGrid()); hoverGridRect=metrics.rect;
 const pos=pointToCell(e.clientX,e.clientY,metrics); if(!pos) return;
 const idx=pos.row*BOARD_SIZE+pos.col;
@@ -44713,8 +44662,6 @@ activePointerId = null;
 }, HOLD_CANCEL_MS);
 activeGridMetrics = hoverGridMetrics || measureGrid();
 activeGridRect = activeGridMetrics.rect; hoverGridMetrics=activeGridMetrics; hoverGridRect=activeGridRect;
-if(hoverLiftCell) hoverLiftCell.classList.remove('tile-hover-p1','tile-hover-p2');
-hoverLiftCell=null;lastHoverCell=-1;
 gridEl.classList.add('is-grabbing');
 try { gridEl.setPointerCapture(e.pointerId); } catch (_) {}
 clearPath();
@@ -44723,35 +44670,26 @@ lastPointerX=e.clientX; lastPointerY=e.clientY;
 }, {passive:false});
 
 gridEl.addEventListener('pointermove', (e) => {
-if (!isMatchActive || !isPointerDown || e.pointerId!==activePointerId) return;
-// Fare hareketinin tarayıcı tarafından birleştirilen ara noktalarını geciktirmeden işle.
+if (!isMatchActive || !isPointerDown) return;
 const samples = typeof e.getCoalescedEvents === 'function' ? e.getCoalescedEvents() : null;
 if (samples && samples.length > 1) {
 const step=Math.max(1,Math.ceil(samples.length/4));
-for (let i=0;i<samples.length;i+=step) {
-  const sample=samples[i]; processPointerSegment(sample.clientX,sample.clientY,activeGridMetrics);
+for (let i=0;i<samples.length;i+=step) { const sample=samples[i]; processPointerSegment(sample.clientX,sample.clientY,activeGridMetrics); }
+const last=samples[samples.length-1]; processPointerSegment(last.clientX,last.clientY,activeGridMetrics);
 }
-const last=samples[samples.length-1];
-processPointerSegment(last.clientX,last.clientY,activeGridMetrics);
-}
-if(!pendingPointer) pendingPointer={x:e.clientX,y:e.clientY};
-else {pendingPointer.x=e.clientX;pendingPointer.y=e.clientY;}
+pendingPointer = {x:e.clientX, y:e.clientY};
 if (pointerFrame) return;
 pointerFrame = requestAnimationFrame(() => {
 pointerFrame = 0; if (!pendingPointer || !isPointerDown) return;
-const x=pendingPointer.x,y=pendingPointer.y;pendingPointer=null;
-processPointerSegment(x,y,activeGridMetrics);
+const p = pendingPointer; pendingPointer = null; processPointerSegment(p.x, p.y, activeGridMetrics);
 });
 }, {passive:true});
 
 const finishPointer = (e, shouldSubmit = true) => {
-if (!isPointerDown || e.pointerId!==activePointerId) return;
+if (!isPointerDown) return;
 clearTimeout(pointerHoldTimer); pointerHoldTimer = null;
 const heldMs = pointerHoldStartedAt ? (performance.now() - pointerHoldStartedAt) : 0;
 const cancelForLongHold = shouldSubmit && heldMs >= HOLD_CANCEL_MS;
-if(shouldSubmit && !cancelForLongHold && pendingPointer){
-  processPointerSegment(pendingPointer.x,pendingPointer.y,activeGridMetrics);
-}
 if (shouldSubmit && !cancelForLongHold && activeGridMetrics) processPointerAt(e.clientX, e.clientY, activeGridMetrics);
 isPointerDown = false; pointerHoldStartedAt = 0; pendingPointer = null; activeGridRect = null; activeGridMetrics=null;
 lastPointerX=null; lastPointerY=null;
@@ -44770,7 +44708,6 @@ if (shouldSubmit && selectedPath.length) {
 
 gridEl.addEventListener('pointerup', (e) => finishPointer(e, true), {passive:true});
 gridEl.addEventListener('pointercancel', (e) => finishPointer(e, false), {passive:true});
-gridEl.addEventListener('lostpointercapture', (e) => finishPointer(e, false), {passive:true});
 
 function processPointerSegment(clientX,clientY,metrics=activeGridMetrics){
 if(lastPointerX===null||lastPointerY===null){processPointerAt(clientX,clientY,metrics);lastPointerX=clientX;lastPointerY=clientY;return;}
