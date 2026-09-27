@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA — Sözcük Avı v253</title>
-<meta name="game-version" content="v253">
+<title>KAPMACA — Sözcük Avı v254</title>
+<meta name="game-version" content="v254">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2146,7 +2146,7 @@
   transform:translate3d(0,-2px,0) scale(1.13)!important;
   z-index:45!important;
   box-shadow:0 8px 18px rgba(15,23,42,.24),0 0 0 2px rgba(255,255,255,.72)!important;
-  filter:brightness(1.06) saturate(1.08);
+  filter:none;
 }
 #scrabble-grid .letter-cell.tile-dragging .tile-score{
   font-size:clamp(.60rem,2.25vw,.78rem)!important;
@@ -2412,7 +2412,7 @@ white-space: nowrap;
 
 #screen-game { height: 100dvh; min-height: 0; }
 #screen-game > header { min-height: 0; }
-#screen-game > div:last-child { min-height: 0; overflow: hidden; }
+#screen-game > div:last-child { min-height: 0; overflow: hidden; padding-top:9px!important; }
 
 /* Seçilen harf önizlemesi: her ekran ve tam ekran modunda daima yatay */
 #selected-preview-bar{
@@ -2601,7 +2601,7 @@ border-radius: 11px !important;
 #scrabble-grid { width:min(calc(100vw - 6px), calc(100dvh - 170px), 440px) !important; }
 }
 
-#scrabble-grid { contain: layout paint; -webkit-tap-highlight-color: transparent; }
+#scrabble-grid { contain: layout style; overflow:visible; -webkit-tap-highlight-color: transparent; }
 .letter-cell { contain: layout paint style; backface-visibility: hidden; }
 #screen-game { overscroll-behavior: none; }
 
@@ -2969,8 +2969,6 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
   #screen-home.home-v156 .home-logo-tiles span{width:34px;height:37px;font-size:23px;border-radius:9px}
   #screen-home.home-v156 .home-logo-duel{min-width:175px;font-size:17px!important;line-height:18px!important}
 }
-@keyframes online-pulse{0%,100%{opacity:1}50%{opacity:.22}}
-#online-player-count.is-online{animation:online-pulse 1.25s ease-in-out infinite}
 .home-shortcut-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:8px}
 .home-shortcut-grid>button,.home-shortcut-grid>a{min-width:0}
 #screen-home.home-v156 .support-icon-button{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
@@ -2982,10 +2980,15 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 @media(max-height:650px){#screen-home.home-v156 .home-title-wrap{margin-top:12px!important}#screen-home.home-v156 .home-modes{margin-top:18px}}
 
 /* v164 9x9 optimum: daha büyük dokunma hedefi ve daha hafif input yolu */
+html:fullscreen,html:-webkit-full-screen{height:100%;}
+html:fullscreen body,html:-webkit-full-screen body{height:100%;background:#020617;}
+html:fullscreen #app-container,html:-webkit-full-screen #app-container{height:100%;box-shadow:none;}
+html:fullscreen #screen-game,html:-webkit-full-screen #screen-game{height:100%;}
+html:fullscreen #scrabble-grid,html:-webkit-full-screen #scrabble-grid{width:min(calc(100vw - 10px),calc(100vh - 200px),440px)!important;}
 #scrabble-grid{isolation:isolate;}
 .letter-cell{font-variant-numeric:tabular-nums;text-rendering:optimizeLegibility;}
-#scrabble-grid .letter-cell{border-radius:7px!important;}
-@media(pointer:coarse){#scrabble-grid .letter-cell{border-radius:8px!important;}}
+#scrabble-grid .letter-cell{border-radius:8px!important;}
+@media(pointer:coarse){#scrabble-grid .letter-cell{border-radius:9px!important;}}
 .selected-preview-tile[hidden]{display:none!important;}
 .tile-dragging{will-change:transform;}
 @media (pointer:coarse){
@@ -3033,11 +3036,6 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div id="app-container">
 
 <div id="screen-home" class="home-v156 absolute inset-0 z-40 overflow-hidden bg-gradient-to-b from-sky-400 via-sky-200 to-emerald-200">
-<div class="absolute left-[max(4px,env(safe-area-inset-left))] top-[max(4px,env(safe-area-inset-top))] z-[70]" aria-live="polite">
-<div class="inline-flex items-center gap-1 rounded-full bg-black px-1.5 py-0.5 text-[7px] leading-none font-black text-white shadow-sm">
-<span id="online-player-count" class="text-emerald-400 text-[8px] leading-none">●</span><span>Bağlı</span>
-</div>
-</div>
 <button id="btn-fullscreen-home" type="button" class="fullscreen-btn" aria-label="Tam ekranı aç veya kapat" title="Tam ekran">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg>
 <span id="fullscreen-label">TAM EKRAN</span>
@@ -3088,6 +3086,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <button id="btn-create-room" class="w-full min-h-[40px] rounded-xl bg-gradient-to-b from-sky-400 to-blue-600 text-white text-xs font-black shadow-md border border-sky-200">ÖZEL ODA OLUŞTUR</button>
 <button id="btn-random-match" class="home-mode-btn w-full min-h-[40px] rounded-xl bg-gradient-to-b from-violet-400 to-indigo-600 text-white text-xs font-black shadow-md border border-violet-200">🎲 RASTGELE RAKİP</button>
 <div id="mp-random-status" class="hidden rounded-lg bg-violet-50 border border-violet-100 px-2.5 py-1.5 text-[10px] font-bold text-violet-900">Çevrimiçi rakip aranıyor…</div>
+<div id="mp-online-count" class="hidden text-[10px] font-bold text-indigo-900" aria-live="polite"></div>
 <div class="rounded-lg bg-slate-50 border border-slate-200 px-2.5 py-1.5 text-[9px] font-bold text-slate-500">Çevrimiçi Rastgele Rakip düğmesine basan oyuncular sırayla eşleştirilir. İlk basan 1. oyuncu, sonra eşleşen 2. oyuncu olur.</div>
 </div>
 <div id="mp-room-view" class="hidden mt-2 text-center">
@@ -42760,17 +42759,8 @@ return t;
 }
 function initGlobalOnlinePresence(){
 if(!mpDb) return;
-const el=document.getElementById('online-player-count');
-const label=el?.nextElementSibling;
 mpDb.ref('.info/connected').on('value',snap=>{
 const online=snap.val()===true;
-if(el){
-el.textContent='●';
-el.classList.toggle('text-emerald-400',online);
-el.classList.toggle('text-rose-400',!online);
-}
-if(label) label.textContent=online?'Bağlı':'Çevrimdışı';
-el?.classList.toggle('is-online',online);
 const reconnected=online && firebaseWasConnected===false;
 firebaseWasConnected=online;
 if(reconnected && mpRoomRef && mpRole && !mpExitHandling && !reconnectPresenceBusy){
@@ -42959,7 +42949,7 @@ await requestSynchronizedRoomExit('opponent-disconnected');
 },MP_DISCONNECT_GRACE_MS);
 }
 
-let randomQueueRef=null, randomQueueListener=null, randomSearchActive=false, randomSearchTicket=null, randomWaitCancel=null;
+let randomQueueRef=null, randomQueueListener=null, randomOpponentCountListener=null, randomSearchActive=false, randomSearchTicket=null, randomWaitCancel=null;
 let randomResultAutoExitTimer=null, randomResultAutoExitKey='';
 let inviteWaitCountdownTimer=null;
 let inviteWaitDeadlineAt=0;
@@ -42976,7 +42966,25 @@ function randomTicket(){
 const a=new Uint32Array(3); crypto.getRandomValues(a);
 return Array.from(a,n=>n.toString(36)).join('');
 }
+function stopRandomOpponentCount(){
+if(randomQueueRef&&randomOpponentCountListener)randomQueueRef.off('value',randomOpponentCountListener);
+randomOpponentCountListener=null;
+const el=document.getElementById('mp-online-count');if(el){el.classList.add('hidden');el.textContent='';}
+}
+function startRandomOpponentCount(myId){
+stopRandomOpponentCount();
+const ref=randomQueueRef,el=document.getElementById('mp-online-count');
+if(!ref||!el)return;
+el.textContent='Çevrimiçi bekleyen rakip aranıyor…';el.classList.remove('hidden');
+randomOpponentCountListener=snap=>{
+const q=snap.val()||{};
+const available=(q.clientId&&q.clientId!==myId&&!q.claimedBy&&!q.roomCode&&Number(q.expiresAt||0)>serverNow())?1:0;
+el.textContent=`Çevrimiçi bekleyen rakip: ${available}`;
+};
+ref.on('value',randomOpponentCountListener);
+}
 function releaseRandomSearchLocal(){
+stopRandomOpponentCount();
 if(randomWaitCancel){const cancel=randomWaitCancel;randomWaitCancel=null;try{cancel();}catch(_){}}
 if(randomQueueRef && randomQueueListener){try{randomQueueRef.off('value',randomQueueListener);}catch(_){} }
 randomQueueListener=null;
@@ -42985,6 +42993,7 @@ randomSearchTicket=null;
 randomQueueRef=null;
 }
 async function cleanupRandomQueue(onlyIfMine=true){
+stopRandomOpponentCount();
 const ref=randomQueueRef, ticket=randomSearchTicket;
 if(randomWaitCancel){const cancel=randomWaitCancel;randomWaitCancel=null;try{cancel();}catch(_){}}
 if(ref && randomQueueListener){try{ref.off('value',randomQueueListener);}catch(_){} randomQueueListener=null;}
@@ -43058,6 +43067,7 @@ randomQueueRef=mpDb.ref('matchmaking/random/waiting');
 const ticket=randomTicket();
 randomSearchTicket=ticket;
 const myId=getClientToken(), started=serverNow(), deadline=started+RANDOM_SEARCH_MS;
+startRandomOpponentCount(myId);
 
 while(randomSearchActive && randomSearchTicket===ticket && serverNow()<deadline){
 const now=serverNow();
@@ -44046,7 +44056,7 @@ const numEl=document.getElementById('countdown-number');
 const statusEl=document.getElementById('countdown-status');
 const inviteMsg=document.getElementById('countdown-invite-message');
 if(inviteMsg) inviteMsg.classList.add('hidden');
-if(statusEl){ statusEl.textContent='KELİMELERİ YAKALA!'; statusEl.className='text-slate-800 font-black text-xs tracking-widest uppercase mt-3 bg-white px-4 py-1.5 rounded-full border border-slate-200 shadow-sm'; statusEl.classList.remove('hidden'); }
+if(statusEl){ statusEl.textContent='SÖZCÜKLERİ YAKALA!'; statusEl.className='text-slate-800 font-black text-xs tracking-widest uppercase mt-3 bg-white px-4 py-1.5 rounded-full border border-slate-200 shadow-sm'; statusEl.classList.remove('hidden'); }
 modal?.classList.remove('hidden');
 let n=3;
 const paint=()=>{
@@ -44757,7 +44767,7 @@ p.el.classList.add(isP1 ? 'tile-claimed-p1' : 'tile-claimed-p2');
 });
 
 addTickerBadge(word, isP1);
-// Konfeti sadece kelimeyi bu cihazda bulan oyuncuda görünür.
+// Konfeti sadece sözcüğü bu cihazda bulan oyuncuda görünür.
 flyScore(pts, isP1, scoreFxOrigin);
 rewardWordFx(isP1);
 adjustScore(isP1 ? pts : 0, !isP1 ? pts : 0);
@@ -45578,7 +45588,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v233: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Sözcük Düellosu optimize motor v233: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
