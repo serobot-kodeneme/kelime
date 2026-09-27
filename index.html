@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v266</title>
-<meta name="game-version" content="v266">
+<title>KAPMACA.tr — Sözcük Avı v267</title>
+<meta name="game-version" content="v267">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2242,6 +2242,44 @@
   z-index:3;
   background:rgba(248,251,255,.97);
   padding:4px 0 8px;
+}
+
+/* v267 fullscreen mouse stability */
+@media (hover:hover) and (pointer:fine){
+  /* Tam ekranda tarayıcı/GPU imleç bozulmasını ve ağırlaşmayı önle. */
+  html:fullscreen #scrabble-grid,
+  html:-webkit-full-screen #scrabble-grid{
+    cursor:default!important;
+  }
+  html:fullscreen #scrabble-grid.is-grabbing,
+  html:-webkit-full-screen #scrabble-grid.is-grabbing{
+    cursor:default!important;
+  }
+
+  /* Hover yalnız renk değiştirir; hücreyi hareket ettirme/büyütme yok. */
+  html:fullscreen #scrabble-grid .letter-cell.tile-hover-p1:not(.tile-dragging),
+  html:fullscreen #scrabble-grid .letter-cell.tile-hover-p2:not(.tile-dragging),
+  html:-webkit-full-screen #scrabble-grid .letter-cell.tile-hover-p1:not(.tile-dragging),
+  html:-webkit-full-screen #scrabble-grid .letter-cell.tile-hover-p2:not(.tile-dragging){
+    transform:none!important;
+    transition:background-color .04s linear,color .04s linear!important;
+    box-shadow:0 2px 0 #cbd5e1!important;
+  }
+
+  /* Sürükleme sırasında 81 hücre üzerinde GPU katmanı üretme.
+     Seçili harf rengi korunur; yalnız geometrik animasyon kaldırılır. */
+  html:fullscreen #scrabble-grid .letter-cell.tile-dragging,
+  html:-webkit-full-screen #scrabble-grid .letter-cell.tile-dragging{
+    transform:none!important;
+    will-change:auto!important;
+    transition:background-color .035s linear,color .035s linear!important;
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.72)!important;
+  }
+
+  html:fullscreen #scrabble-grid .letter-cell,
+  html:-webkit-full-screen #scrabble-grid .letter-cell{
+    backface-visibility:visible!important;
+  }
 }
 </style>
 
