@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v221</title>
-<meta name="game-version" content="v221">
+<title>Kelime Düellosu v222</title>
+<meta name="game-version" content="v222">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2501,7 +2501,7 @@ text-shadow:0 2px 8px rgba(0,0,0,.22); filter:saturate(.96); will-change:transfo
 .score-fly.go { transform: translate3d(var(--dx),var(--dy),0) scale(1.22); opacity:0; }
 
 
-/* v221: hafif ödül efektleri — tahta hattından bağımsız */
+/* v222: hafif ödül efektleri — tahta hattından bağımsız */
 @keyframes kdScorePop{0%{transform:scale(1)}42%{transform:scale(1.13)}100%{transform:scale(1)}}
 .kd-score-pop{animation:kdScorePop .24s ease-out;will-change:transform}
 @keyframes kdAvatarRing{0%{box-shadow:0 0 0 0 rgba(255,255,255,.9),0 2px 6px rgba(0,0,0,.24)}55%{box-shadow:0 0 0 5px rgba(255,255,255,.18),0 2px 6px rgba(0,0,0,.24)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0),0 2px 6px rgba(0,0,0,.24)}}
@@ -2586,7 +2586,7 @@ background: radial-gradient(circle at 35% 35%, rgba(45,212,191,.58) 0 10%, rgba(
 .fullscreen-btn svg{width:15px;height:15px;stroke-width:2.2}
 @supports (height:100dvh){#app-container{height:100dvh}}
 .dict-letter-active{background:#f59e0b!important;color:#0f172a!important;border-color:#f59e0b!important}
-/* v221: Sözlük — tam Türk alfabesi, dikey kelime listesi ve satır içi TDK anlamı. */
+/* v222: Sözlük — tam Türk alfabesi, dikey kelime listesi ve satır içi TDK anlamı. */
 #alphabet-bar{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;padding:5px;background:#f1f5f9;border-radius:12px}
 .dict-letter-btn{width:100%!important;height:28px!important;min-width:0!important;padding:0!important}
 .dict-word-entry{display:block;width:100%;border-bottom:1px solid #e2e8f0;background:#fff}
@@ -2648,6 +2648,7 @@ button:not(:disabled):active{filter:brightness(.96) saturate(1.12);}
 @keyframes resultCardConfetti{0%{opacity:0;transform:translate3d(0,-8px,0) rotate(0deg) scale(.8)}10%{opacity:1}100%{opacity:0;transform:translate3d(var(--dx),calc(100% + var(--dy)),0) rotate(var(--rot,320deg)) scale(1.02)}}
 .result-global-confetti{position:fixed;inset:0;pointer-events:none;z-index:998;overflow:hidden;}
 .result-global-confetti i{position:absolute;top:-20px;width:9px;height:14px;border-radius:2px;opacity:.98;animation:globalResultConfetti var(--dur,2.2s) cubic-bezier(.2,.7,.25,1) forwards;will-change:transform,opacity;}
+body[data-random-match-active="1"] #gameover-actions{display:none!important;}
 @keyframes globalResultConfetti{0%{opacity:0;transform:translate3d(0,-16px,0) rotate(0deg)}8%{opacity:1}86%{opacity:.95}100%{opacity:0;transform:translate3d(var(--dx),105vh,0) rotate(var(--rot,540deg))}}
 @media (prefers-reduced-motion:reduce){.result-card-party i{animation:none!important;opacity:0!important}}
 .countdown-sync-ok{font-size:10px;font-weight:1000;letter-spacing:.12em;color:#047857;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:9999px;padding:5px 10px;margin-top:8px}
@@ -42540,12 +42541,13 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v221';
+const GAME_VERSION='v222';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
 let mpState=MP_STATES.IDLE;
 let mpDb=null, mpRoomRef=null, mpRoomCode=null, mpRole=null, mpRoomData=null, mpRoomMode='';
+let mpRandomMatchSession=false; // v222: rastgele maç kimliği sonuç ekranı kapanana kadar yerelde kilitli kalır.
 let mpSessionJoinedAt=0, mpExitHandling=false, mpLastExitSignalId='';
 let mpListener=null, mpWordsListener=null, mpScoresListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null;
 let mpScoreSyncTimer=null, mpScoreSyncInFlight=false, mpScoreDesired=null;
@@ -42959,7 +42961,7 @@ endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0},
 presence:{host:{online:true,clientId:hostId},guest:{online:false}}
 });
 
-mpRoomCode=code; mpRole='host'; mpRoomRef=ref; mpRoomMode='invite-only-v5'; mpRoomData=null; mpEntered=false; mpStarted=false; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId='';
+mpRoomCode=code; mpRole='host'; mpRoomRef=ref; mpRoomMode='invite-only-v5'; mpRandomMatchSession=false; delete document.body.dataset.randomMatchActive; mpRoomData=null; mpEntered=false; mpStarted=false; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId='';
 setRoomUrl(code); await markPresence();
 setMpPanelRoom(code,'Bağlantıyı kopyala ve arkadaşına gönder.');
 document.getElementById('btn-close-room')?.classList.remove('hidden');
@@ -43006,6 +43008,8 @@ role='guest';
 }
 
 mpRoomCode=code; mpRole=role; mpRoomRef=ref; mpRoomMode=String(d.mode||'');
+mpRandomMatchSession=/^random-match-/.test(String(mpRoomMode||''));
+if(mpRandomMatchSession) document.body.dataset.randomMatchActive='1'; else delete document.body.dataset.randomMatchActive;
 const [gsSnap,scoreSnap,inviteSnap]=await Promise.all([ref.child('gameState').once('value'),ref.child('scores').once('value'),ref.child('invite/guest').once('value')]);
 const gs0=gsSnap.val()||{};
 if(role==='guest' && /^invite-only-/.test(String(d.mode||'')) && gs0.status==='waiting'){ await ref.child('invite/guest').set('pending'); }
@@ -43118,7 +43122,7 @@ finally{mpRematchBusy=false;}
 
 
 function isRandomHumanRoom(){
-return /^random-match-/.test(String(mpRoomMode||''));
+return mpRandomMatchSession || /^random-match-/.test(String(mpRoomMode||''));
 }
 
 async function hostExpireRematchIfNeeded(d){
@@ -43236,13 +43240,14 @@ const replay=document.getElementById('btn-play-again');
 const exitBtn=document.getElementById('btn-game-exit');
 const inline=document.getElementById('rematch-inline-status');
 const actions=document.getElementById('gameover-actions');
-if(isRandomHumanRoom()){
-  // v221: Rastgele maç TEK maçtır. Sonuç ekranında hiçbir eylem düğmesi yoktur.
+const randomResultSession=isRandomHumanRoom();
+if(randomResultSession){
+  // v222: Rastgele maç TEK maçtır. Sonuç ekranında hiçbir eylem düğmesi yoktur.
   // İlk sonuç render'ında 3 saniyelik sayaç bir kez kurulur; sonraki Firebase
   // güncellemeleri bu sayacı ASLA sıfırlamaz veya yeniden başlatmaz.
-  actions?.classList.add('hidden');
-  if(replay){replay.disabled=true;replay.classList.add('hidden');replay.classList.remove('rematch-pulse');}
-  if(exitBtn){exitBtn.disabled=true;exitBtn.classList.add('hidden');}
+  if(actions){actions.classList.add('hidden');actions.style.setProperty('display','none','important');}
+  if(replay){replay.disabled=true;replay.classList.add('hidden');replay.style.setProperty('display','none','important');replay.classList.remove('rematch-pulse');}
+  if(exitBtn){exitBtn.disabled=true;exitBtn.classList.add('hidden');exitBtn.style.setProperty('display','none','important');}
   if(inline){inline.classList.add('hidden');inline.textContent='';}
   const autoKey=`${mpRoomCode||''}|${Number(d.round||1)}`;
   if(randomResultAutoExitKey!==autoKey || !randomResultAutoExitTimer){
@@ -43254,9 +43259,9 @@ if(isRandomHumanRoom()){
     },3000);
   }
 }else{
-  actions?.classList.remove('hidden');
-  if(replay){replay.disabled=false;replay.textContent='YENİDEN OYNA';replay.classList.remove('hidden');replay.classList.add('rematch-pulse');}
-  if(exitBtn){exitBtn.disabled=false;exitBtn.classList.remove('hidden');exitBtn.className='w-full mt-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs py-2.5 rounded-xl uppercase border border-slate-200';exitBtn.textContent='ÇIKIŞ';}
+  if(actions){actions.style.removeProperty('display');actions.classList.remove('hidden');}
+  if(replay){replay.style.removeProperty('display');replay.disabled=false;replay.textContent='YENİDEN OYNA';replay.classList.remove('hidden');replay.classList.add('rematch-pulse');}
+  if(exitBtn){exitBtn.style.removeProperty('display');exitBtn.disabled=false;exitBtn.classList.remove('hidden');exitBtn.className='w-full mt-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs py-2.5 rounded-xl uppercase border border-slate-200';exitBtn.textContent='ÇIKIŞ';}
   if(inline){inline.classList.add('hidden');inline.textContent='';}
   renderRematchState(d);
 }
@@ -43544,7 +43549,10 @@ if(pointerFrame){ cancelAnimationFrame(pointerFrame); pointerFrame=0; }
 isPointerDown=false; pointerHoldStartedAt=0; clearTimeout(pointerHoldTimer); pointerHoldTimer=null; activePointerId=null; pendingPointer=null; activeGridRect=null; activeGridMetrics=null; isMatchActive=false;
 try{ clearPath(); }catch(_){ selectedPath=[]; }
 mpEntered=false; mpStarted=false; mpStartBusy=false; mpRematchBusy=false;
-mpRoomRef=null; mpRoomCode=null; mpRole=null; mpRoomData=null; mpRoomMode=''; mpPresenceRef=null; mpLastRoomMetaSig='';
+mpRoomRef=null; mpRoomCode=null; mpRole=null; mpRoomData=null; mpRoomMode=''; mpRandomMatchSession=false; delete document.body.dataset.randomMatchActive; mpPresenceRef=null; mpLastRoomMetaSig='';
+const _ga=document.getElementById('gameover-actions'); if(_ga){_ga.style.removeProperty('display');_ga.classList.remove('hidden');}
+const _rp=document.getElementById('btn-play-again'); if(_rp)_rp.style.removeProperty('display');
+const _ex=document.getElementById('btn-game-exit'); if(_ex)_ex.style.removeProperty('display');
 mpSessionJoinedAt=0; mpExitHandling=false; mpLastExitSignalId=''; reconnectPresenceBusy=false;
 mpSeenWordEvents.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear(); mpLastResultRenderSig='';
 setMpState(MP_STATES.IDLE);
@@ -44939,7 +44947,7 @@ const shouldDeletePrivate=!!(exitingRef && /^invite-only-/.test(String(mpRoomMod
 const shouldDeleteRandom=!!(exitingRef && randomRoomAtExit && (roleAtExit==='host'||forceCloseForDisconnect));
 if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
 
-// v221 — Rastgele maçın normal bitişi otomatik kapanır; sonuç ekranında düğme yoktur:
+// v222 — Rastgele maçın normal bitişi otomatik kapanır; sonuç ekranında düğme yoktur:
 // host/guest ayrımı olmadan anında ana sayfaya dönülür. Odayı host tarafı
 // arka planda temizler; guest sinyal gönderirse host aynı sinyali alıp temizler.
 if(randomRoomAtExit && (isAutomaticRandomTimeout||isRandomResultManualExit)){
@@ -44949,10 +44957,11 @@ if(randomRoomAtExit && (isAutomaticRandomTimeout||isRandomResultManualExit)){
   return;
 }
 
-// Rastgele maç devam ederken ÇIKIŞ'a basan oyuncu kendi ekranında beklemez.
-// Karşı oyuncu ise roomExit sinyalinden "OYUNDAN ÇIKIŞ YAPILDI" uyarısını görür.
+// v222: Rastgele maçta oyunculardan biri ÇIKIŞ yaptığında iki tarafta da
+// kısa "OYUNDAN ÇIKIŞ YAPILDI" bildirimi görünür ve ardından ana sayfaya dönülür.
 if(randomRoomAtExit && isManualPlayerExit && initiatedBySelf){
-  if(shouldDeleteRandom) setTimeout(()=>exitingRef?.remove().catch(()=>{}),120);
+  showRoomExitNotice('OYUNDAN ÇIKIŞ YAPILDI');
+  await new Promise(r=>setTimeout(r,700));
   returnToHomeFromMultiplayer();
   hideRoomExitNotice();
   return;
@@ -44983,11 +44992,15 @@ reason
 mpLastExitSignalId=signal.id;
 const randomImmediate=isRandomHumanRoom() && ['player-exit','random-result-exit','random-result-timeout'].includes(reason);
 if(randomImmediate){
-  // Rastgele modda yerel çıkış ağ gecikmesini beklemez. Sinyal diğer oyuncuya
-  // arka planda gider; oda temizliği host tarafında güvenli şekilde tamamlanır.
+  // Rastgele maç tek kullanımlıktır. Manuel çıkış sinyalini önce diğer oyuncuya
+  // ulaştırmaya çalışırız; ardından oda host/guest ayrımı olmadan temizlenir.
   ref.child('roomExit').set(signal).then(()=>{
-    setTimeout(()=>ref.child('roomExit').transaction(cur=>cur?.id===signal.id?null:cur).catch(()=>{}),2200);
-  }).catch(e=>console.warn('Random room exit signal error',e));
+    if(reason==='player-exit') setTimeout(()=>ref.remove().catch(()=>{}),1100);
+    else setTimeout(()=>ref.child('roomExit').transaction(cur=>cur?.id===signal.id?null:cur).catch(()=>{}),2200);
+  }).catch(e=>{
+    console.warn('Random room exit signal error',e);
+    if(reason==='player-exit') setTimeout(()=>ref.remove().catch(()=>{}),1100);
+  });
   await handleSynchronizedRoomExit(reason,role);
   return;
 }
@@ -45227,7 +45240,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v221: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Kelime Düellosu optimize motor v222: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
