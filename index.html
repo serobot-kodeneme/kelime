@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA — Sözcük Avı v248</title>
-<meta name="game-version" content="v248">
+<title>KAPMACA — Sözcük Avı v249</title>
+<meta name="game-version" content="v249">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -43649,9 +43649,10 @@ function startMultiplayerTimer(startAt){
 clearInterval(timerInterval);
 lastHeartbeatSecond = null;
 lastGongSecond = null;
+let lastRenderedSecond = null;
 const tick=()=>{
 const elapsed=Math.max(0,Math.floor((serverNow()-startAt)/1000)); remainingSeconds=Math.max(0,60-elapsed);
-updateGameTimerUI(remainingSeconds);
+if(remainingSeconds!==lastRenderedSecond){updateGameTimerUI(remainingSeconds);lastRenderedSecond=remainingSeconds;}
 maybeHeartbeat(remainingSeconds);
 maybeFinalGong(remainingSeconds);
 if(remainingSeconds<=0){clearInterval(timerInterval);endGame();}
