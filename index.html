@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v272</title>
-<meta name="game-version" content="v272">
+<title>KAPMACA.tr — Sözcük Avı v273</title>
+<meta name="game-version" content="v273">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -44713,7 +44713,14 @@ function processPointerSegment(clientX,clientY,metrics=activeGridMetrics){
 if(lastPointerX===null||lastPointerY===null){processPointerAt(clientX,clientY,metrics);lastPointerX=clientX;lastPointerY=clientY;return;}
 const dx=clientX-lastPointerX,dy=clientY-lastPointerY;
 const cellPx=metrics?Math.min(metrics.cellW,metrics.cellH):40;
-const steps=Math.min(10,Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/Math.max(6.5,cellPx*.38))));
+
+// v273: Masaüstünde coalesced pointer örnekleri zaten gerçek fare yolunu veriyor.
+// Küçük hücrelerde gereksiz 8-10 ara hesap üretmek fullscreen'de tutukluk yapıyordu.
+// Dokunmatik yolu eski hassasiyetinde kalır; fine-pointer yolu daha hafif çalışır.
+const finePointer=!IS_COARSE_POINTER;
+const maxSteps=finePointer?5:10;
+const stepDivisor=finePointer?Math.max(8,cellPx*.56):Math.max(6.5,cellPx*.38);
+const steps=Math.min(maxSteps,Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/stepDivisor)));
 for(let i=1;i<=steps;i++) processPointerAt(lastPointerX+dx*i/steps,lastPointerY+dy*i/steps,metrics);
 lastPointerX=clientX;lastPointerY=clientY;
 }
