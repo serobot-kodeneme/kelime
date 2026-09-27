@@ -7,8 +7,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA — Sözcük Avı v250</title>
-<meta name="game-version" content="v250">
+<title>KAPMACA — Sözcük Avı v251</title>
+<meta name="game-version" content="v251">
+<script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2606,10 +2607,6 @@ border-radius: 11px !important;
 #screen-game { overscroll-behavior: none; }
 
 
-.word-stars{position:fixed;inset:0;pointer-events:none;z-index:89;overflow:hidden}
-.word-stars span{position:absolute;left:var(--x);top:var(--y);color:var(--star-color);font-size:14px;line-height:1;opacity:0;text-shadow:0 0 5px currentColor;animation:wordStarBurst .62s ease-out forwards}
-@keyframes wordStarBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.35)}18%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.8)}}
-@media(prefers-reduced-motion:reduce){.word-stars span{animation-duration:.15s}}
 .score-fly { position: fixed; z-index: 90; pointer-events:none; font-weight:900; font-size:18px;
 transform: translate3d(0,0,0) scale(.9); opacity:.58; transition: transform .72s cubic-bezier(.2,.8,.2,1), opacity .72s ease;
 text-shadow:0 2px 8px rgba(0,0,0,.22); filter:saturate(.96); will-change:transform,opacity; }
@@ -2801,10 +2798,20 @@ button:not(:disabled):active{filter:brightness(.96) saturate(1.12);}
 @keyframes crownFloat{0%,100%{transform:translateX(-50%) translateY(0) rotate(-5deg)}50%{transform:translateX(-50%) translateY(-3px) rotate(4deg)}}
 @media (prefers-reduced-motion:reduce){.victory-card::before,.victory-badge,.victory-avatar-crown{animation:none!important}}
 
+.result-party-fx{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2;}
+.result-party-fx span{position:absolute;top:-12%;font-size:clamp(22px,6vw,38px);animation:resultPartyFall var(--dur,2.7s) linear forwards;filter:drop-shadow(0 3px 3px rgba(0,0,0,.18));}
+@keyframes resultPartyFall{to{transform:translate3d(var(--drift,0),120vh,0) rotate(var(--rot,360deg));opacity:.15;}}
+.result-card-party{position:absolute;inset:-6px;pointer-events:none;overflow:hidden;border-radius:18px;z-index:4;}
+.result-card-party i{position:absolute;top:-8%;width:8px;height:12px;border-radius:2px;opacity:.96;animation:resultCardConfetti var(--dur,1.5s) ease-out forwards;will-change:transform,opacity;}
+@keyframes resultCardConfetti{0%{opacity:0;transform:translate3d(0,-8px,0) rotate(0deg) scale(.8)}10%{opacity:1}100%{opacity:0;transform:translate3d(var(--dx),calc(100% + var(--dy)),0) rotate(var(--rot,320deg)) scale(1.02)}}
+.result-global-confetti{position:fixed;inset:0;pointer-events:none;z-index:998;overflow:hidden;}
+.result-global-confetti i{position:absolute;top:-20px;width:9px;height:14px;border-radius:2px;opacity:.98;animation:globalResultConfetti var(--dur,2.2s) cubic-bezier(.2,.7,.25,1) forwards;will-change:transform,opacity;}
 body[data-random-match-active="1"] #gameover-actions{display:none!important;}
 body[data-private-friend-active="1"] #gameover-actions{display:block!important;}
 body[data-private-friend-active="1"] #btn-play-again,
 body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
+@keyframes globalResultConfetti{0%{opacity:0;transform:translate3d(0,-16px,0) rotate(0deg)}8%{opacity:1}86%{opacity:.95}100%{opacity:0;transform:translate3d(var(--dx),105vh,0) rotate(var(--rot,540deg))}}
+@media (prefers-reduced-motion:reduce){.result-card-party i{animation:none!important;opacity:0!important}}
 .countdown-sync-ok{font-size:10px;font-weight:1000;letter-spacing:.12em;color:#047857;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:9999px;padding:5px 10px;margin-top:8px}
 .longest-bonus{display:none;margin-top:4px;font-size:9px;font-weight:1000;color:#7c3aed;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:9999px;padding:3px 7px}
 
@@ -42433,8 +42440,22 @@ el.style.transform='';
 });
 }
 function spawnWinnerCardParty(cardId,tone='amber'){
-const card=document.getElementById(cardId);const r=card?.getBoundingClientRect();
-if(r)spawnWordStars({x:r.left+r.width/2,y:r.top+r.height/2},tone!=='sky',8);
+const card=document.getElementById(cardId); if(!card) return;
+card.querySelectorAll('.result-card-party').forEach(el=>el.remove());
+const wrap=document.createElement('div'); wrap.className='result-card-party';
+const colors=tone==='sky'?['#38bdf8','#0ea5e9','#bae6fd','#ffffff']:['#fbbf24','#f59e0b','#fde68a','#ffffff'];
+for(let i=0;i<18;i++){
+const part=document.createElement('i');
+part.style.left=`${5+Math.random()*90}%`;
+part.style.background=colors[i%colors.length];
+part.style.setProperty('--dx',`${Math.round((Math.random()-.5)*26)}px`);
+part.style.setProperty('--dy',`${24+Math.round(Math.random()*38)}px`);
+part.style.setProperty('--rot',`${Math.round((Math.random()-.5)*420)}deg`);
+part.style.setProperty('--dur',`${1.05+Math.random()*0.6}s`);
+wrap.appendChild(part);
+}
+card.appendChild(wrap);
+setTimeout(()=>wrap.remove(),1900);
 }
 function celebrateWordPlayer(isP1,wordLen=0){
 const ids=isP1?['p1-score-chip']:['p2-score-chip'];
@@ -43582,7 +43603,7 @@ if(lastPos){
  const rr=lastEl?.getBoundingClientRect?.();
  if(rr&&rr.width&&rr.height) remoteOrigin={x:rr.left+rr.width/2,y:rr.top+rr.height/2};
 }
-spawnWordStars(remoteOrigin,ev.role==='host');
+playWordConfetti(String(ev.word||'').length,remoteOrigin,true);
 flyScore(Number(ev.pts||0), ev.role==='host', remoteOrigin);
 rewardWordFx(ev.role==='host');
 showToast(`${ev.role==='host'?'1. Oyuncu':'2. Oyuncu'}: ${ev.word} (+${ev.pts||0})`,ev.role==='host'?'amber':'sky');
@@ -44727,7 +44748,7 @@ recordMatchWord(word,pts,isP1);
 playCorrectChime();
 flashWordFeedback(true);
 showToast(`${word} (+${pts})`, isP1 ? 'amber' : 'sky');
-spawnWordStars(scoreFxOrigin,isP1);
+playWordConfetti(word.length,scoreFxOrigin);
 
 selectedPath.forEach(p => {
 p.el.classList.add(isP1 ? 'tile-claimed-p1' : 'tile-claimed-p2');
@@ -44749,20 +44770,15 @@ el.classList.add(isP1?'tile-claimed-p1':'tile-claimed-p2');
 });
 }
 
-function spawnWordStars(originPoint,isP1,count=6){
-if(!originPoint||!Number.isFinite(originPoint.x)||!Number.isFinite(originPoint.y))return;
-const wrap=document.createElement('div');wrap.className='word-stars';
-const color=isP1?'#fbbf24':'#38bdf8';
-for(let i=0;i<count;i++){
-const star=document.createElement('span');star.textContent='✦';
-const angle=(i/count)*Math.PI*2-.5, distance=20+(i%2)*9;
-star.style.setProperty('--x',originPoint.x+'px');star.style.setProperty('--y',originPoint.y+'px');
-star.style.setProperty('--dx',Math.round(Math.cos(angle)*distance)+'px');
-star.style.setProperty('--dy',Math.round(Math.sin(angle)*distance)+'px');
-star.style.setProperty('--star-color',i%3===0?'#fff':color);
-wrap.appendChild(star);
-}
-document.body.appendChild(wrap);setTimeout(()=>wrap.remove(),680);
+function playWordConfetti(length,originPoint,subtle=false){
+if(typeof confetti!=='function')return;
+const letters=Math.max(2,Math.min(9,Number(length)||2));
+const count=Math.round((IS_COARSE_POINTER?7:10)+(letters-2)*(IS_COARSE_POINTER?2.5:3.5));
+const valid=originPoint&&Number.isFinite(originPoint.x)&&Number.isFinite(originPoint.y);
+confetti({particleCount:subtle?Math.max(5,Math.round(count*.65)):count,
+ spread:65,startVelocity:21,gravity:1.12,decay:.90,ticks:52,scalar:.76,
+ origin:valid?{x:Math.max(0,Math.min(1,originPoint.x/innerWidth)),y:Math.max(0,Math.min(1,originPoint.y/innerHeight))}:{y:.6},
+ zIndex:88,disableForReducedMotion:true});
 }
 
 function flyScore(pts, isP1, originPoint=null) {
@@ -44938,7 +44954,7 @@ cell.classList.add(botIsP2 ? 'tile-claimed-p2' : 'tile-claimed-p1');
 let botOrigin=null;
 const botLast=matchObj.path?.[matchObj.path.length-1];
 if(botLast){const bel=document.getElementById(`cell-${botLast.r}-${botLast.c}`);const br=bel?.getBoundingClientRect?.();if(br&&br.width&&br.height)botOrigin={x:br.left+br.width/2,y:br.top+br.height/2};}
-spawnWordStars(botOrigin,!botIsP2);
+playWordConfetti(word.length,botOrigin,true);
 flyScore(pts, !botIsP2, botOrigin);
 rewardWordFx(!botIsP2);
 adjustScore(botIsP2 ? 0 : pts, botIsP2 ? pts : 0);
@@ -44949,13 +44965,72 @@ planBot();
 }, delay);
 }
 
-function spawnHighResultPartyFx(){}
-function launchLightResultConfetti(x=0.5){spawnWordStars({x:innerWidth*x,y:innerHeight*.48},true,8);}
-function stopGrandCelebrationFx(){}
-function stopWinnerConfettiWaterfall(){}
-function launchGrandCelebration(winnerSide=null){
-const x=winnerSide==='p1'?.28:winnerSide==='p2'?.72:.5;
-spawnWordStars({x:innerWidth*x,y:innerHeight*.45},winnerSide!=='p2',10);
+function spawnHighResultPartyFx(){ return; }
+function launchLightResultConfetti(x=.5){if(typeof confetti==='function')confetti({particleCount:28,spread:70,origin:{x,y:.56},zIndex:999,disableForReducedMotion:true});}
+function spawnGlobalResultConfetti(winnerSide=null){
+ document.querySelectorAll('.result-global-confetti').forEach(el=>el.remove());
+ const wrap=document.createElement('div');wrap.className='result-global-confetti';
+ const colors=winnerSide==='p2'?['#38bdf8','#0ea5e9','#bae6fd','#f8fafc']:winnerSide==='p1'?['#fbbf24','#f59e0b','#fde68a','#f8fafc']:['#fbbf24','#38bdf8','#fb7185','#a78bfa','#f8fafc'];
+ const count=58;
+ for(let i=0;i<count;i++){
+   const part=document.createElement('i');
+   const focus=winnerSide==='p1'?.28:winnerSide==='p2'?.72:.5;
+   const spread=(Math.random()-.5)*.56;
+   part.style.left=`${Math.max(3,Math.min(97,(focus+spread)*100))}%`;
+   part.style.background=colors[i%colors.length];
+   part.style.setProperty('--dx',`${Math.round((Math.random()-.5)*130)}px`);
+   part.style.setProperty('--rot',`${Math.round((Math.random()-.5)*900)}deg`);
+   part.style.setProperty('--dur',`${1.45+Math.random()*1.15}s`);
+   part.style.animationDelay=`${Math.random()*.35}s`;
+   wrap.appendChild(part);
+ }
+ document.body.appendChild(wrap); setTimeout(()=>wrap.remove(),3300);
+}
+
+let winnerWaterfallTimer=null, grandCelebrationInterval=null, grandCelebrationTimeouts=[];
+function stopGrandCelebrationFx(){
+if(grandCelebrationInterval){clearInterval(grandCelebrationInterval);grandCelebrationInterval=null;}
+for(const t of grandCelebrationTimeouts.splice(0)) clearTimeout(t);
+}
+function stopWinnerConfettiWaterfall(){
+ if(winnerWaterfallTimer){clearInterval(winnerWaterfallTimer);winnerWaterfallTimer=null;}
+}
+function startWinnerConfettiWaterfall(winnerSide=null){
+ stopWinnerConfettiWaterfall();
+ if(typeof confetti!=='function'||!winnerSide) return;
+ const modal=document.getElementById('modal-gameover');
+ const avatarId=winnerSide==='p1'?'final-p1-avatar':'final-p2-avatar';
+ const shoot=()=>{
+   if(!modal||modal.classList.contains('hidden')){stopWinnerConfettiWaterfall();return;}
+   const avatar=document.getElementById(avatarId);
+   const r=avatar?.getBoundingClientRect?.();
+   if(!r||!r.width||!r.height) return;
+   const x=Math.max(.04,Math.min(.96,(r.left+r.width/2)/innerWidth));
+   const y=Math.max(.03,Math.min(.92,(r.top+r.height*.12)/innerHeight));
+   confetti({particleCount:3,angle:270,spread:26,startVelocity:8,gravity:.62,decay:.96,ticks:92,scalar:.58,origin:{x,y},zIndex:1000,disableForReducedMotion:true});
+ };
+ shoot();
+ winnerWaterfallTimer=setInterval(shoot,180);
+}
+
+function launchGrandCelebration(winnerSide=null) {
+stopGrandCelebrationFx();
+spawnHighResultPartyFx();
+spawnGlobalResultConfetti(winnerSide);
+const baseX = winnerSide==='p1' ? 0.22 : winnerSide==='p2' ? 0.78 : 0.5;
+launchLightResultConfetti(baseX);
+if (typeof confetti !== 'function') return;
+const duration = (mpRole ? 2.6 : 3.6) * 1000;
+const animationEnd = Date.now() + duration;
+grandCelebrationInterval = setInterval(function() {
+const timeLeft = animationEnd - Date.now();
+if (timeLeft <= 0){clearInterval(grandCelebrationInterval);grandCelebrationInterval=null;return;}
+const baseCount=mpRole ? 24 : 38;
+confetti({particleCount:baseCount*(timeLeft/duration),startVelocity:34,spread:72,origin:{x:Math.max(.08,Math.min(.92,baseX+(Math.random()-.5)*.12)),y:.68},zIndex:999});
+},250);
+grandCelebrationTimeouts.push(setTimeout(()=>confetti({particleCount:mpRole?65:105,spread:95,startVelocity:34,origin:{x:baseX,y:.52},zIndex:999}),220));
+grandCelebrationTimeouts.push(setTimeout(()=>confetti({particleCount:mpRole?80:135,spread:115,startVelocity:34,origin:{x:baseX,y:.42},zIndex:999}),780));
+startWinnerConfettiWaterfall(winnerSide);
 }
 
 async function waitUntilRoomFinished(timeoutMs=3500){
