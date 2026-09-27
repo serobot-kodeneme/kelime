@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v218</title>
-<meta name="game-version" content="v218">
+<title>Kelime Düellosu v219</title>
+<meta name="game-version" content="v219">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2501,7 +2501,7 @@ text-shadow:0 2px 8px rgba(0,0,0,.22); filter:saturate(.96); will-change:transfo
 .score-fly.go { transform: translate3d(var(--dx),var(--dy),0) scale(1.22); opacity:0; }
 
 
-/* v218: hafif ödül efektleri — tahta hattından bağımsız */
+/* v219: hafif ödül efektleri — tahta hattından bağımsız */
 @keyframes kdScorePop{0%{transform:scale(1)}42%{transform:scale(1.13)}100%{transform:scale(1)}}
 .kd-score-pop{animation:kdScorePop .24s ease-out;will-change:transform}
 @keyframes kdAvatarRing{0%{box-shadow:0 0 0 0 rgba(255,255,255,.9),0 2px 6px rgba(0,0,0,.24)}55%{box-shadow:0 0 0 5px rgba(255,255,255,.18),0 2px 6px rgba(0,0,0,.24)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0),0 2px 6px rgba(0,0,0,.24)}}
@@ -2586,7 +2586,7 @@ background: radial-gradient(circle at 35% 35%, rgba(45,212,191,.58) 0 10%, rgba(
 .fullscreen-btn svg{width:15px;height:15px;stroke-width:2.2}
 @supports (height:100dvh){#app-container{height:100dvh}}
 .dict-letter-active{background:#f59e0b!important;color:#0f172a!important;border-color:#f59e0b!important}
-/* v218: Sözlük — tam Türk alfabesi, dikey kelime listesi ve satır içi TDK anlamı. */
+/* v219: Sözlük — tam Türk alfabesi, dikey kelime listesi ve satır içi TDK anlamı. */
 #alphabet-bar{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;padding:5px;background:#f1f5f9;border-radius:12px}
 .dict-letter-btn{width:100%!important;height:28px!important;min-width:0!important;padding:0!important}
 .dict-word-entry{display:block;width:100%;border-bottom:1px solid #e2e8f0;background:#fff}
@@ -42538,7 +42538,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v218';
+const GAME_VERSION='v219';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -43242,14 +43242,14 @@ if(isRandomHumanRoom()){
     exitBtn.textContent='ÇIKIŞ';
   }
   if(randomResultAutoExitTimer) clearTimeout(randomResultAutoExitTimer);
-  // Host 3. saniyede ortak kapanış sinyalini gönderir. Guest tarafında küçük bir
-  // yerel yedek süre, sinyal gecikirse sonuç ekranında takılı kalmayı önler.
+  // v219: Rastgele maçta host/guest ayrımı yok. Sonuç ekranı tam 3 saniye
+  // görünür; ardından ilk çalışan istemci ortak kapanış sinyalini yollar ve
+  // her iki taraf da ana sayfaya döner.
   randomResultAutoExitTimer=setTimeout(()=>{
     randomResultAutoExitTimer=null;
     if(!mpRoomRef || !isRandomHumanRoom() || mpExitHandling) return;
-    if(mpRole==='host') requestSynchronizedRoomExit('random-result-timeout');
-    else returnToHomeFromMultiplayer();
-  },mpRole==='host'?3000:3300);
+    requestSynchronizedRoomExit('random-result-timeout');
+  },3000);
 }else{
   if(replay){replay.disabled=false;replay.textContent='YENİDEN OYNA';replay.classList.remove('hidden');replay.classList.add('rematch-pulse');}
   if(exitBtn){exitBtn.disabled=false;exitBtn.classList.remove('hidden');exitBtn.className='w-full mt-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs py-2.5 rounded-xl uppercase border border-slate-200';exitBtn.textContent='ÇIKIŞ';}
@@ -43328,7 +43328,7 @@ bindControl('invite/guest','value',snap=>{mpRoomData={...(mpRoomData||{}),invite
 bindControl('rematch','value',snap=>{const r=snap.val()||{};mpRoomData={...(mpRoomData||{}),rematch:r}; if(mpRoomData.status==='finished'&&!isRandomHumanRoom()){const d={...mpRoomData,status:'finished'};renderRematchState(d); if(mpRole==='host'){hostExpireRematchIfNeeded(d); if(r.host&&r.guest&&Number(r.expiresAt||0)>=serverNow()) hostStartRematch();}}});
 bindControl('finalWinner','value',snap=>{mpRoomData={...(mpRoomData||{}),finalWinner:snap.val()||null}; if(mpRoomData.status==='finished'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
 bindControl('longestBonus','value',snap=>{mpRoomData={...(mpRoomData||{}),longestBonus:snap.val()||null}; if(mpRoomData.status==='finished'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
-bindControl('roomExit','value',snap=>{const exitSignal=snap.val(); if(exitSignal?.id&&exitSignal.id!==mpLastExitSignalId&&Number(exitSignal.at||0)>=mpSessionJoinedAt-1000){mpLastExitSignalId=exitSignal.id;handleSynchronizedRoomExit(exitSignal.reason||'game-cancelled');}});
+bindControl('roomExit','value',snap=>{const exitSignal=snap.val(); if(exitSignal?.id&&exitSignal.id!==mpLastExitSignalId&&Number(exitSignal.at||0)>=mpSessionJoinedAt-1000){mpLastExitSignalId=exitSignal.id;handleSynchronizedRoomExit(exitSignal.reason||'game-cancelled',exitSignal.by||'');}});
 mpScoresListener=mpRoomRef.child('scores').on('value',snap=>{
 const sc=snap.val()||{}; mpRoomData={...(mpRoomData||{}),scores:sc};
 if(mpRole==='host'){if(!isOwnMpScorePending())p1Score=Number(sc.host||0);p2Score=Number(sc.guest||0);}else if(mpRole==='guest'){p1Score=Number(sc.host||0);if(!isOwnMpScorePending())p2Score=Number(sc.guest||0);}else{p1Score=Number(sc.host||0);p2Score=Number(sc.guest||0);} updateScores();
@@ -44858,9 +44858,12 @@ const el=document.getElementById('mp-room-exit-notice');
 if(el) el.style.display='none';
 }
 
-async function handleSynchronizedRoomExit(reason='game-cancelled'){
+async function handleSynchronizedRoomExit(reason='game-cancelled',sourceRole=''){
 if(mpExitHandling) return;
 mpExitHandling=true;
+const roleAtExit=mpRole;
+const initiatedBySelf=!!sourceRole && sourceRole===roleAtExit;
+const randomRoomAtExit=/^random-match-/.test(String(mpRoomMode||''));
 clearOpponentDisconnectGrace();
 stopWinnerConfettiWaterfall();
 clearVictoryPresentation();
@@ -44873,54 +44876,80 @@ isPointerDown=false; pointerHoldStartedAt=0; clearTimeout(pointerHoldTimer); poi
 try{ clearPath(); }catch(_){ selectedPath=[]; }
 const presence=mpPresenceRef;
 if(presence){
-await presence.set({online:false,clientId:getClientToken(),at:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
+presence.set({online:false,clientId:getClientToken(),at:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
 }
 const exitingRef=mpRoomRef;
+const exitingCode=mpRoomCode;
 const randomResultExit=(reason==='random-result-timeout'||reason==='random-result-exit');
 const isAutomaticRandomTimeout=(reason==='random-result-timeout');
-const isManualPlayerExit=(reason==='player-exit'||reason==='random-result-exit');
+const isRandomResultManualExit=(reason==='random-result-exit');
+const isManualPlayerExit=(reason==='player-exit');
 const forceCloseForDisconnect=reason==='opponent-disconnected';
-const shouldDeletePrivate=!!(exitingRef && /^invite-only-/.test(String(mpRoomMode||'')) && (mpRole==='host'||forceCloseForDisconnect));
-const shouldDeleteRandom=!!(exitingRef && /^random-match-/.test(String(mpRoomMode||'')) && (mpRole==='host'||forceCloseForDisconnect));
+const shouldDeletePrivate=!!(exitingRef && /^invite-only-/.test(String(mpRoomMode||'')) && (roleAtExit==='host'||forceCloseForDisconnect));
+const shouldDeleteRandom=!!(exitingRef && randomRoomAtExit && (roleAtExit==='host'||forceCloseForDisconnect));
 if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
-if(shouldDeletePrivate){ try{ await lockClosedRoomCode(mpRoomCode,exitingRef,reason||'player-exit'); }catch(_){ } }
-if(isAutomaticRandomTimeout){
-  if(shouldDeleteRandom) setTimeout(()=>exitingRef.remove().catch(()=>{}),450);
+
+// v219 — Rastgele maçın normal bitişi ve sonuç ekranındaki ÇIKIŞ:
+// host/guest ayrımı olmadan anında ana sayfaya dönülür. Odayı host tarafı
+// arka planda temizler; guest sinyal gönderirse host aynı sinyali alıp temizler.
+if(randomRoomAtExit && (isAutomaticRandomTimeout||isRandomResultManualExit)){
+  if(shouldDeleteRandom) setTimeout(()=>exitingRef?.remove().catch(()=>{}),120);
   returnToHomeFromMultiplayer();
   hideRoomExitNotice();
   return;
 }
+
+// Rastgele maç devam ederken ÇIKIŞ'a basan oyuncu kendi ekranında beklemez.
+// Karşı oyuncu ise roomExit sinyalinden "OYUNDAN ÇIKIŞ YAPILDI" uyarısını görür.
+if(randomRoomAtExit && isManualPlayerExit && initiatedBySelf){
+  if(shouldDeleteRandom) setTimeout(()=>exitingRef?.remove().catch(()=>{}),120);
+  returnToHomeFromMultiplayer();
+  hideRoomExitNotice();
+  return;
+}
+
+if(shouldDeletePrivate){ try{ await lockClosedRoomCode(exitingCode,exitingRef,reason||'player-exit'); }catch(_){ } }
 const exitMessage=reason==='opponent-disconnected'?'RAKİBİN BAĞLANTISI KESİLDİ':((reason==='rematch-timeout'||reason==='invite-timeout')?'OYUN İPTAL OLDU':'OYUNDAN ÇIKIŞ YAPILDI');
 if(isManualPlayerExit || !randomResultExit) showRoomExitNotice(exitMessage);
 await new Promise(r=>setTimeout(r,isManualPlayerExit?1250:2000));
-if(shouldDeletePrivate||shouldDeleteRandom){try{await exitingRef.remove();}catch(_){}}
+if(shouldDeletePrivate||shouldDeleteRandom){try{await exitingRef.remove();}catch(_){} }
 returnToHomeFromMultiplayer();
 hideRoomExitNotice();
 }
-
 async function requestSynchronizedRoomExit(reason='game-cancelled'){
 if(!mpRoomRef || !mpRole){
 return exitCurrentGameToHome();
 }
 if(mpExitHandling) return;
 const ref=mpRoomRef;
+const role=mpRole;
 const signal={
 id:`${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`,
 at:serverNow(),
-by:mpRole,
+by:role,
 reason
 };
+// Kendi roomExit listener'ımız aynı sinyali ikinci kez işlememeli.
+mpLastExitSignalId=signal.id;
+const randomImmediate=isRandomHumanRoom() && ['player-exit','random-result-exit','random-result-timeout'].includes(reason);
+if(randomImmediate){
+  // Rastgele modda yerel çıkış ağ gecikmesini beklemez. Sinyal diğer oyuncuya
+  // arka planda gider; oda temizliği host tarafında güvenli şekilde tamamlanır.
+  ref.child('roomExit').set(signal).then(()=>{
+    setTimeout(()=>ref.child('roomExit').transaction(cur=>cur?.id===signal.id?null:cur).catch(()=>{}),2200);
+  }).catch(e=>console.warn('Random room exit signal error',e));
+  await handleSynchronizedRoomExit(reason,role);
+  return;
+}
 try{
 await ref.child('roomExit').set(signal);
 setTimeout(()=>ref.child('roomExit').transaction(cur=>cur?.id===signal.id?null:cur).catch(()=>{}),2200);
-mpLastExitSignalId=signal.id;
-await handleSynchronizedRoomExit(reason);
+await handleSynchronizedRoomExit(reason,role);
 }catch(e){
 console.error('Synchronized room exit error',e);
-await handleSynchronizedRoomExit(reason);
+await handleSynchronizedRoomExit(reason,role);
 }
 }
-
 async function exitCurrentGameToHome(){
 stopLocalCountdown();
 stopWinnerConfettiWaterfall();
@@ -45149,7 +45178,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v218: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Kelime Düellosu optimize motor v219: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
