@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v228</title>
-<meta name="game-version" content="v228">
+<title>Kelime Düellosu v229</title>
+<meta name="game-version" content="v229">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2501,7 +2501,7 @@ text-shadow:0 2px 8px rgba(0,0,0,.22); filter:saturate(.96); will-change:transfo
 .score-fly.go { transform: translate3d(var(--dx),var(--dy),0) scale(1.22); opacity:0; }
 
 
-/* v228: hafif ödül efektleri — tahta hattından bağımsız */
+/* v229: hafif ödül efektleri — tahta hattından bağımsız */
 @keyframes kdScorePop{0%{transform:scale(1)}42%{transform:scale(1.13)}100%{transform:scale(1)}}
 .kd-score-pop{animation:kdScorePop .24s ease-out;will-change:transform}
 @keyframes kdAvatarRing{0%{box-shadow:0 0 0 0 rgba(255,255,255,.9),0 2px 6px rgba(0,0,0,.24)}55%{box-shadow:0 0 0 5px rgba(255,255,255,.18),0 2px 6px rgba(0,0,0,.24)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0),0 2px 6px rgba(0,0,0,.24)}}
@@ -2586,7 +2586,7 @@ background: radial-gradient(circle at 35% 35%, rgba(45,212,191,.58) 0 10%, rgba(
 .fullscreen-btn svg{width:15px;height:15px;stroke-width:2.2}
 @supports (height:100dvh){#app-container{height:100dvh}}
 .dict-letter-active{background:#f59e0b!important;color:#0f172a!important;border-color:#f59e0b!important}
-/* v228: Sözlük — tam Türk alfabesi, dikey kelime listesi ve satır içi TDK anlamı. */
+/* v229: Sözlük — tam Türk alfabesi, dikey kelime listesi ve satır içi TDK anlamı. */
 #alphabet-bar{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;padding:5px;background:#f1f5f9;border-radius:12px}
 .dict-letter-btn{width:100%!important;height:28px!important;min-width:0!important;padding:0!important}
 .dict-word-entry{display:block;width:100%;border-bottom:1px solid #e2e8f0;background:#fff}
@@ -2622,16 +2622,59 @@ button:not(:disabled):active{filter:brightness(.96) saturate(1.12);}
 .letter-cell.tile-hover-p1:not(.tile-dragging){background-color:#fef3c7!important;color:#713f12!important;box-shadow:0 3px 9px rgba(245,158,11,.18)!important;}
 .letter-cell.tile-hover-p2:not(.tile-dragging){background-color:#e0f2fe!important;color:#0c4a6e!important;box-shadow:0 3px 9px rgba(14,165,233,.17)!important;}
 @keyframes winnerPulse {
-0%,100% { opacity:1; transform:scale(1); filter:brightness(1); }
-50% { opacity:.55; transform:scale(1.035); filter:brightness(1.12); }
+0%,100% {
+  opacity:1;
+  transform:scale(1);
+  filter:brightness(1.05) saturate(1.05);
+  text-shadow:0 0 0 rgba(255,255,255,0);
 }
-.winner-pulse { animation:winnerPulse .9s ease-in-out infinite; transform-origin:center; }
-.winner-name-big{font-size:1.25rem!important;line-height:1.1!important;letter-spacing:.02em;}
-.winner-score-big{font-size:2rem!important;line-height:1!important;letter-spacing:-.02em;}
+45% {
+  opacity:.88;
+  transform:scale(1.09);
+  filter:brightness(1.42) saturate(1.38);
+  text-shadow:0 0 9px rgba(255,255,255,.96),0 0 18px rgba(250,204,21,.78);
+}
+65% {
+  opacity:1;
+  transform:scale(1.04);
+  filter:brightness(1.22) saturate(1.22);
+  text-shadow:0 0 5px rgba(255,255,255,.82),0 0 12px rgba(56,189,248,.58);
+}
+}
+.winner-pulse{
+  animation:winnerPulse .72s cubic-bezier(.4,0,.2,1) infinite;
+  transform-origin:center;
+  will-change:transform,filter,opacity;
+}
+.winner-name-big{font-size:1.32rem!important;line-height:1.08!important;letter-spacing:.025em;font-weight:1000!important;}
+.winner-score-big{font-size:2.18rem!important;line-height:1!important;letter-spacing:-.025em;font-weight:1000!important;}
 .final-avatar{width:34px;height:34px;border-radius:999px;display:flex;align-items:center;justify-content:center;margin:0 auto 4px;border:2px solid rgba(255,255,255,.85);box-shadow:0 6px 14px rgba(15,23,42,.12);overflow:hidden;transform:scale(1);transition:transform .22s ease, box-shadow .22s ease, opacity .22s ease;}
 .final-avatar svg{width:22px;height:22px;}
-.winner-avatar-big{width:52px!important;height:52px!important;box-shadow:0 10px 22px rgba(15,23,42,.18),0 0 0 4px rgba(255,255,255,.65);transform:scale(1.04);}
-.winner-avatar-big svg{width:32px!important;height:32px!important;}
+@keyframes winnerAvatarPulse{
+0%,100%{
+  transform:scale(1.04);
+  filter:brightness(1.05) saturate(1.08);
+  box-shadow:0 10px 22px rgba(15,23,42,.18),0 0 0 4px rgba(255,255,255,.65),0 0 0 rgba(250,204,21,0);
+}
+45%{
+  transform:scale(1.18);
+  filter:brightness(1.42) saturate(1.45);
+  box-shadow:0 12px 26px rgba(15,23,42,.22),0 0 0 6px rgba(255,255,255,.92),0 0 26px 9px rgba(250,204,21,.52);
+}
+68%{
+  transform:scale(1.10);
+  filter:brightness(1.25) saturate(1.30);
+  box-shadow:0 11px 24px rgba(15,23,42,.20),0 0 0 5px rgba(255,255,255,.82),0 0 20px 6px rgba(56,189,248,.42);
+}
+}
+.winner-avatar-big{
+  width:54px!important;
+  height:54px!important;
+  animation:winnerAvatarPulse .72s cubic-bezier(.4,0,.2,1) infinite;
+  transform-origin:center;
+  will-change:transform,filter,box-shadow;
+}
+.winner-avatar-big svg{width:34px!important;height:34px!important;}
 .victory-card{position:relative;isolation:isolate;overflow:visible!important;}
 .victory-card::before{content:"";position:absolute;inset:-18px -14px;z-index:-1;border-radius:24px;background:radial-gradient(circle at 50% 38%,rgba(255,255,255,.96) 0 16%,rgba(250,204,21,.28) 36%,rgba(250,204,21,0) 72%);animation:victoryHalo 1.35s ease-in-out infinite;pointer-events:none;}
 .victory-card.victory-sky::before{background:radial-gradient(circle at 50% 38%,rgba(255,255,255,.96) 0 16%,rgba(56,189,248,.28) 36%,rgba(56,189,248,0) 72%);}
@@ -3210,9 +3253,9 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 
 <script>
 const TILE_SCORES = {
-'A':1, 'B':3, 'C':4, 'Ç':4, 'D':3, 'E':1, 'F':7, 'G':5, 'Ğ':8, 'H':5, 'I':2,
-'İ':1, 'J':10, 'K':1, 'L':1, 'M':2, 'N':1, 'O':2, 'Ö':7, 'P':5, 'R':1, 'S':2,
-'Ş':4, 'T':1, 'U':2, 'Ü':3, 'V':7, 'Y':3, 'Z':4
+'A':2, 'B':4, 'C':5, 'Ç':5, 'D':4, 'E':2, 'F':8, 'G':6, 'Ğ':9, 'H':6, 'I':3,
+'İ':2, 'J':11, 'K':2, 'L':2, 'M':3, 'N':2, 'O':3, 'Ö':8, 'P':6, 'R':2, 'S':3,
+'Ş':5, 'T':2, 'U':3, 'Ü':4, 'V':8, 'Y':4, 'Z':5
 };
 const WORD_DB_FC = `0AB
 2A
@@ -42327,7 +42370,7 @@ if(label) label.textContent=active?'TAM EKRANDAN ÇIK':'TAM EKRAN';
 const gameLabel=document.getElementById('fullscreen-game-label');
 if(gameLabel) gameLabel.textContent=active?'TAM EKRANDAN ÇIK':'TAM EKRAN';
 }
-// v228: Tam ekran hiçbir platformda otomatik olarak zorlanmaz.
+// v229: Tam ekran hiçbir platformda otomatik olarak zorlanmaz.
 // Yalnız kullanıcı TAM EKRAN düğmesine kendi isteğiyle bastığında çalışır.
 async function requestGameFullscreen(silent=false){
 if(isFullscreenActive()){ updateFullscreenUi(); return true; }
@@ -42519,13 +42562,13 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v228';
+const GAME_VERSION='v229';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
 let mpState=MP_STATES.IDLE;
 let mpDb=null, mpRoomRef=null, mpRoomCode=null, mpRole=null, mpRoomData=null, mpRoomMode='';
-let mpRandomMatchSession=false; // v228: rastgele maç kimliği sonuç ekranı kapanana kadar yerelde kilitli kalır.
+let mpRandomMatchSession=false; // v229: rastgele maç kimliği sonuç ekranı kapanana kadar yerelde kilitli kalır.
 let mpSessionJoinedAt=0, mpExitHandling=false, mpLastExitSignalId='';
 let mpListener=null, mpWordsListener=null, mpScoresListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null;
 let mpScoreSyncTimer=null, mpScoreSyncInFlight=false, mpScoreDesired=null;
@@ -43144,7 +43187,7 @@ if(inline){inline.classList.add('hidden');inline.textContent='';}
 }
 
 async function hostExpireRematchIfNeeded(d){
-// v228: Özel odada yeniden oynama için ikinci oyuncu onayı veya zaman aşımı yok.
+// v229: Özel odada yeniden oynama için ikinci oyuncu onayı veya zaman aşımı yok.
 // Oda, biri YENİDEN OYNA ya da ÇIKIŞ diyene kadar açık kalır.
 return;
 }
@@ -43248,7 +43291,7 @@ if(!d||d.status!=='finished') return;
 const finalWinner=String(d.finalWinner||'');
 if(!['host','guest','tie'].includes(finalWinner)) return;
 if(isPrivateFriendRoom()) forcePrivateResultActions();
-// v228: otomatik çıkışı görsel sonuç kodundan ÖNCE silahlandır.
+// v229: otomatik çıkışı görsel sonuç kodundan ÖNCE silahlandır.
 armRandomResultAutoExit(d);
 const resultSig=[Number(d.round||1),finalWinner,Number(d.scores?.host||0),Number(d.scores?.guest||0),Number(d.longestBonus?.maxLen||0)].join('|');
 if(resultSig===mpLastResultRenderSig) return;
@@ -43273,7 +43316,7 @@ const inline=document.getElementById('rematch-inline-status');
 const actions=document.getElementById('gameover-actions');
 const randomResultSession=isRandomHumanRoom();
 if(randomResultSession){
-  // v228: butonlar ve bildirim armRandomResultAutoExit tarafından yönetilir.
+  // v229: butonlar ve bildirim armRandomResultAutoExit tarafından yönetilir.
   // Burada yalnız görünümün yanlışlıkla geri açılmamasını garanti ediyoruz.
   armRandomResultAutoExit(d);
 }else{
@@ -43346,7 +43389,7 @@ if(gs.status==='playing'){if(!mpEntered) await enterMultiplayerRoom();activateMu
 if(gs.status==='finished'){
 setMpState(MP_STATES.FINISHED); document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
 const d={...(mpRoomData||{}),...gs};
-// v228: sonuç kesinleştiği anda, render/konfeti kodundan bağımsız otomatik çıkışı kur.
+// v229: sonuç kesinleştiği anda, render/konfeti kodundan bağımsız otomatik çıkışı kur.
 if(isRandomHumanRoom()){
 armRandomResultAutoExit(d);
 showMultiplayerSeriesResult(d);
@@ -44823,7 +44866,7 @@ const finished=await waitUntilRoomFinished();
 if(!finished) throw new Error('room-not-finished');
 if(!mpRoomRef || !mpRole) throw new Error('room-missing');
 
-// v228: Özel odada ilk YENİDEN OYNA basışı yeterlidir.
+// v229: Özel odada ilk YENİDEN OYNA basışı yeterlidir.
 // Host/guest rolleri değişmez; host yeni ve farklı tahtayı hazırlayıp aynı iki oyuncuyla başlatır.
 const role=mpRole;
 const rematchRef=mpRoomRef.child('rematch');
@@ -44906,7 +44949,7 @@ if(el) el.style.display='none';
 }
 
 function finishRandomMatchAfterResult(expectedKey='',capturedRef=null,capturedRole=''){
-// v228: zamanlayıcı kurulduktan sonra canlı oda/mod değişkenlerine bağımlı değiliz.
+// v229: zamanlayıcı kurulduktan sonra canlı oda/mod değişkenlerine bağımlı değiliz.
 // Yalnız aynı sonuç oturumu hâlâ geçerliyse cihaz çıkış komutunu uygular.
 if(expectedKey && randomResultAutoExitKey!==expectedKey) return;
 const ref=capturedRef||mpRoomRef;
@@ -44976,7 +45019,7 @@ const shouldDeletePrivate=!!(exitingRef && /^invite-only-/.test(String(mpRoomMod
 const shouldDeleteRandom=!!(exitingRef && randomRoomAtExit && (roleAtExit==='host'||forceCloseForDisconnect));
 if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
 
-// v228 — Rastgele maçın normal bitişi otomatik kapanır; sonuç ekranında düğme yoktur:
+// v229 — Rastgele maçın normal bitişi otomatik kapanır; sonuç ekranında düğme yoktur:
 // host/guest ayrımı olmadan anında ana sayfaya dönülür. Odayı host tarafı
 // arka planda temizler; guest sinyal gönderirse host aynı sinyali alıp temizler.
 if(randomRoomAtExit && (isAutomaticRandomTimeout||isRandomResultManualExit)){
@@ -44986,7 +45029,7 @@ if(randomRoomAtExit && (isAutomaticRandomTimeout||isRandomResultManualExit)){
   return;
 }
 
-// v228: Rastgele maçta oyunculardan biri ÇIKIŞ yaptığında iki tarafta da
+// v229: Rastgele maçta oyunculardan biri ÇIKIŞ yaptığında iki tarafta da
 // kısa "OYUNDAN ÇIKIŞ YAPILDI" bildirimi görünür ve ardından ana sayfaya dönülür.
 if(randomRoomAtExit && isManualPlayerExit && initiatedBySelf){
   showRoomExitNotice('OYUNDAN ÇIKIŞ YAPILDI');
@@ -45274,7 +45317,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v228: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Kelime Düellosu optimize motor v229: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
