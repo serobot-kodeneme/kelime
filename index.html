@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA — Sözcük Avı v247</title>
-<meta name="game-version" content="v247">
+<title>KAPMACA — Sözcük Avı v248</title>
+<meta name="game-version" content="v248">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2830,6 +2830,8 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 .sound-level-dot{width:24px;height:24px;border-radius:9999px;border:2px solid #94a3b8;background:transparent;box-shadow:inset 0 0 0 3px #fff,0 2px 7px rgba(15,23,42,.08);transition:transform .12s ease,background .12s ease,border-color .12s ease,box-shadow .12s ease;cursor:pointer;}
 .sound-level-dot:hover{transform:scale(1.08);}
 .sound-level-dot.active{background:#22c55e;border-color:#16a34a;box-shadow:inset 0 0 0 3px rgba(255,255,255,.88),0 0 10px rgba(34,197,94,.72);}
+.sound-level-dot[data-sound-level="0"]{border-color:#ef4444;background:#fee2e2;box-shadow:inset 0 0 0 3px #fff,0 2px 7px rgba(239,68,68,.18)}
+.sound-level-dot[data-sound-level="0"].active{background:#ef4444;border-color:#dc2626;box-shadow:inset 0 0 0 3px rgba(255,255,255,.88),0 0 10px rgba(239,68,68,.55)}
 .sound-level-dot:active{transform:scale(.94);}
 @media (max-width:380px){#sound-volume-levels{gap:11px}.sound-level-dot{width:22px;height:22px}}
 .result-party-fx{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2;}
@@ -3062,11 +3064,12 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 
 <div id="bot-settings-panel" class="hidden w-full bg-white/90 backdrop-blur-sm px-2.5 py-2 rounded-[18px] border-2 border-white shadow-lg shrink-0">
 <div class="flex items-center justify-between mb-1.5 px-1"><b class="text-slate-700 text-[12px] tracking-wide">ZORLUK SEÇ</b><button id="btn-close-difficulty" class="w-7 h-7 rounded-full bg-slate-100 text-lg leading-none font-black text-slate-500">×</button></div>
-<div class="grid grid-cols-4 gap-1.5">
+<div class="grid grid-cols-5 gap-1">
 <button data-diff="easy" class="bot-diff-choice min-h-[48px] flex flex-col items-center justify-center rounded-xl bg-green-100 border-2 border-green-300 active:scale-95 transition-transform"><span class="text-base leading-none">⭐</span><b class="text-green-900 text-[11px] mt-1">KOLAY</b></button>
 <button data-diff="medium" class="bot-diff-choice min-h-[48px] flex flex-col items-center justify-center rounded-xl bg-sky-100 border-2 border-sky-300 active:scale-95 transition-transform"><span class="text-[12px] leading-none">⭐⭐</span><b class="text-sky-900 text-[11px] mt-1">ORTA</b></button>
 <button data-diff="hard" class="bot-diff-choice min-h-[48px] flex flex-col items-center justify-center rounded-xl bg-orange-100 border-2 border-orange-300 active:scale-95 transition-transform"><span class="text-[10px] leading-none">⭐⭐⭐</span><b class="text-orange-900 text-[11px] mt-1">ZOR</b></button>
 <button data-diff="expert" class="bot-diff-choice min-h-[48px] flex flex-col items-center justify-center rounded-xl bg-rose-100 border-2 border-rose-300 active:scale-95 transition-transform"><span class="text-base leading-none">👑</span><b class="text-rose-900 text-[11px] mt-1">UZMAN</b></button>
+<button data-diff="legend" class="bot-diff-choice min-h-[48px] flex flex-col items-center justify-center rounded-xl bg-purple-100 border-2 border-purple-300 active:scale-95 transition-transform"><span class="text-base leading-none">🏆</span><b class="text-purple-900 text-[10px] mt-1">EFSANE</b></button>
 </div>
 </div>
 
@@ -3120,8 +3123,8 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <span class="w-8 h-8 rounded-[11px] bg-white/90 border border-amber-200 flex items-center justify-center text-base shadow-inner">📚</span>
 <span>Sözlük</span>
 </button>
-<a id="btn-support" href="#screen-support" class="support-icon-button home-shortcut min-h-[54px] flex items-center justify-center active:scale-95" aria-label="LÖSEV desteğini aç">
-<span class="support-heart-icon" aria-hidden="true"><svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M24 42C20 38 4 27 4 16 4 7 16 3 24 13 32 3 44 7 44 16 44 27 28 38 24 42Z" fill="#e11d48" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/></svg></span>
+<a id="btn-support" href="#screen-support" class="support-icon-button min-h-[54px] flex items-center justify-center active:scale-95" aria-label="LÖSEV desteğini aç">
+<span class="support-heart-icon" aria-hidden="true"><svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M24 42C20 38 4 27 4 16 4 7 16 3 24 13 32 3 44 7 44 16 44 27 28 38 24 42Z" fill="#e11d48"/></svg></span>
 </a>
 </div>
 </div>
@@ -3244,11 +3247,12 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div class="flex items-center justify-between gap-3">
 <div>
 <div class="font-black text-slate-900">Ses Düzeyi</div>
-<div class="text-[11px] font-bold text-slate-500 mt-0.5">5 kademeli ses ayarı.</div>
+<div class="text-[11px] font-bold text-slate-500 mt-0.5">Sessiz dahil 6 kademeli ses ayarı.</div>
 </div>
 <div id="sound-volume-label" class="min-w-[58px] text-center rounded-xl bg-emerald-50 border border-emerald-100 px-2 py-1 text-sm font-black text-emerald-800">4 / 5</div>
 </div>
-<div id="sound-volume-levels" role="group" aria-label="Ses düzeyi 1 ile 5 arası">
+<div id="sound-volume-levels" role="group" aria-label="Ses düzeyi: sessiz veya 1 ile 5 arası">
+<button type="button" class="sound-level-dot" data-sound-level="0" aria-label="Sessiz"></button>
 <button type="button" class="sound-level-dot" data-sound-level="1" aria-label="Ses 1"></button>
 <button type="button" class="sound-level-dot" data-sound-level="2" aria-label="Ses 2"></button>
 <button type="button" class="sound-level-dot" data-sound-level="3" aria-label="Ses 3"></button>
@@ -42598,27 +42602,27 @@ let gameAudioCtx = null;
 let lastHeartbeatSecond = null;
 let lastGongSecond = null;
 const SOUND_VOLUME_KEY = 'kd_sound_volume_v2';
-const AUDIO_GAIN_BOOST = 1.294; // önceki çıkışa göre yaklaşık +%5
-const AUDIO_GAIN_CAP = 0.26;
+const AUDIO_GAIN_BOOST = 1.4234; // önceki çıkışa göre +%10
+const AUDIO_GAIN_CAP = 0.286;
 function safeStorageGet(kind,key){
 try{return (kind==='session'?window.sessionStorage:window.localStorage).getItem(key);}catch(_){return null;}
 }
 function safeStorageSet(kind,key,value){
 try{(kind==='session'?window.sessionStorage:window.localStorage).setItem(key,value);return true;}catch(_){return false;}
 }
-let masterSoundVolume = Math.max(0.1, Math.min(1, Number(safeStorageGet('local',SOUND_VOLUME_KEY) ?? 0.80)));
+let masterSoundVolume = Math.max(0, Math.min(1, Number(safeStorageGet('local',SOUND_VOLUME_KEY) ?? 0.80)));
 // Tek standart, hafif görsel profil. Grafik kalite seçeneği yoktur.
 
 function setMasterSoundVolume(v){
-masterSoundVolume = Math.max(0.2, Math.min(1, Number(v)||0.2));
-const level=Math.max(1,Math.min(5,Math.round(masterSoundVolume*5)));
+masterSoundVolume = Math.max(0, Math.min(1, Number(v)||0));
+const level=Math.max(0,Math.min(5,Math.round(masterSoundVolume*5)));
 masterSoundVolume=level/5;
 safeStorageSet('local',SOUND_VOLUME_KEY,String(masterSoundVolume));
 const label=document.getElementById('sound-volume-label');
-if(label) label.textContent=`${level} / 5`;
+if(label) label.textContent=level===0?'Sessiz':`${level} / 5`;
 document.querySelectorAll('.sound-level-dot').forEach(dot=>{
 const dotLevel=Number(dot.dataset.soundLevel||0);
-dot.classList.toggle('active',dotLevel<=level);
+dot.classList.toggle('active',level===0?dotLevel===0:dotLevel>0&&dotLevel<=level);
 dot.setAttribute('aria-pressed',dotLevel===level?'true':'false');
 });
 }
@@ -44009,7 +44013,7 @@ setMasterSoundVolume(masterSoundVolume);
 document.getElementById('screen-settings').classList.remove('hidden');
 };
 document.getElementById('btn-settings-back').onclick = () => document.getElementById('screen-settings').classList.add('hidden');
-document.querySelectorAll('.sound-level-dot').forEach(dot=>dot.addEventListener('click',()=>{setMasterSoundVolume(Number(dot.dataset.soundLevel)/5);playCorrectChime();}));
+document.querySelectorAll('.sound-level-dot').forEach(dot=>dot.addEventListener('click',()=>{setMasterSoundVolume(Number(dot.dataset.soundLevel)/5);if(masterSoundVolume>0)playCorrectChime();}));
 document.getElementById('btn-sound-test').onclick = () => { ensureGameAudio(); playLetterPickSound(3); setTimeout(playCorrectChime,110); };
 setMasterSoundVolume(masterSoundVolume);
 
@@ -44889,7 +44893,7 @@ return Array.from(found.values());
 
 function planBot() {
 if (!isMatchActive) return;
-const delay = botDiffLevel === 'expert' ? 2200 : botDiffLevel === 'hard' ? 3800 : botDiffLevel === 'medium' ? 6000 : 9000;
+const delay = Math.round((botDiffLevel === 'legend' ? 1650 : botDiffLevel === 'expert' ? 2200 : botDiffLevel === 'hard' ? 3800 : botDiffLevel === 'medium' ? 6000 : 9000) / 1.1);
 
 botInterval = setTimeout(() => {
 if (!isMatchActive) return;
@@ -44902,6 +44906,7 @@ if (botDiffLevel === 'easy') targetPool = available.filter(w => w.word.length <=
 else if (botDiffLevel === 'medium') targetPool = available.filter(w => w.word.length >= 2 && w.word.length <= 5);
 else if (botDiffLevel === 'hard') targetPool = available.filter(w => w.word.length >= 3 && w.word.length <= 6);
 else if (botDiffLevel === 'expert') targetPool = available.filter(w => w.word.length >= 4);
+else if (botDiffLevel === 'legend') targetPool = available.filter(w => w.word.length >= 5);
 
 if (targetPool.length === 0) targetPool = available;
 
@@ -44909,10 +44914,10 @@ const ranked = targetPool.map(item => ({
 item,
 score: item.word.split('').reduce((sum, ch) => sum + (TILE_SCORE_CACHE[ch] || 1), 0)
 })).sort((a,b) => b.score - a.score || b.item.word.length - a.item.word.length);
-const focusChance = botDiffLevel === 'expert' ? 0.78 : botDiffLevel === 'hard' ? 0.62 : botDiffLevel === 'medium' ? 0.38 : 0.12;
+const focusChance = Math.min(1,(botDiffLevel === 'legend' ? 0.90 : botDiffLevel === 'expert' ? 0.78 : botDiffLevel === 'hard' ? 0.62 : botDiffLevel === 'medium' ? 0.38 : 0.12)*1.1);
 let matchObj;
 if (Math.random() < focusChance) {
-const topCount = Math.max(1, Math.min(ranked.length, botDiffLevel === 'expert' ? 5 : botDiffLevel === 'hard' ? 7 : 9));
+const topCount = Math.max(1, Math.min(ranked.length, botDiffLevel === 'legend' ? 3 : botDiffLevel === 'expert' ? 5 : botDiffLevel === 'hard' ? 7 : 9));
 matchObj = ranked[Math.floor(Math.random() * topCount)].item;
 } else {
 matchObj = targetPool[Math.floor(Math.random() * targetPool.length)];
