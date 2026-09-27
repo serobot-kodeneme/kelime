@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v267</title>
-<meta name="game-version" content="v267">
+<title>KAPMACA.tr — Sözcük Avı v268</title>
+<meta name="game-version" content="v268">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2279,6 +2279,36 @@
   html:fullscreen #scrabble-grid .letter-cell,
   html:-webkit-full-screen #scrabble-grid .letter-cell{
     backface-visibility:visible!important;
+  }
+}
+
+/* v268 fullscreen bare-input path */
+@media (hover:hover) and (pointer:fine){
+  html:fullscreen #scrabble-grid,
+  html:-webkit-full-screen #scrabble-grid{
+    /* v233 davranışı: hareketli hücreleri tüm tahta yüzeyinde kırpıp yeniden boyama. */
+    overflow:visible!important;
+  }
+
+  html:fullscreen #scrabble-grid .letter-cell,
+  html:-webkit-full-screen #scrabble-grid .letter-cell{
+    /* Tam ekranda hücre hareketinde transition/compositor işi yok. */
+    transition:none!important;
+    will-change:auto!important;
+    text-rendering:auto!important;
+  }
+
+  html:fullscreen #scrabble-grid .letter-cell.tile-hover-p1,
+  html:fullscreen #scrabble-grid .letter-cell.tile-hover-p2,
+  html:-webkit-full-screen #scrabble-grid .letter-cell.tile-hover-p1,
+  html:-webkit-full-screen #scrabble-grid .letter-cell.tile-hover-p2{
+    transform:none!important;
+  }
+
+  html:fullscreen #scrabble-grid .letter-cell.tile-dragging,
+  html:-webkit-full-screen #scrabble-grid .letter-cell.tile-dragging{
+    transform:none!important;
+    filter:none!important;
   }
 }
 </style>
@@ -44639,6 +44669,13 @@ if('ResizeObserver' in window){ new ResizeObserver(invalidateGridMetrics).observ
 let lastHoverCell=-1;
 gridEl.addEventListener('pointermove', (e) => {
 if(e.pointerType==='touch' || isPointerDown) return;
+// v268: gerçek tam ekranda salt hover için DOM sınıfı/paint üretme.
+if(isFullscreenActive()){
+  lastHoverCell=-1;
+  if(hoverLiftCell) hoverLiftCell.classList.remove('tile-hover-p1','tile-hover-p2');
+  hoverLiftCell=null;
+  return;
+}
 const metrics=hoverGridMetrics || (hoverGridMetrics=measureGrid()); hoverGridRect=metrics.rect;
 const pos=pointToCell(e.clientX,e.clientY,metrics); if(!pos) return;
 const idx=pos.row*BOARD_SIZE+pos.col;
