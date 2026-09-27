@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Kelime Düellosu v226</title>
-<meta name="game-version" content="v226">
+<title>Kelime Düellosu v227</title>
+<meta name="game-version" content="v227">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2501,7 +2501,7 @@ text-shadow:0 2px 8px rgba(0,0,0,.22); filter:saturate(.96); will-change:transfo
 .score-fly.go { transform: translate3d(var(--dx),var(--dy),0) scale(1.22); opacity:0; }
 
 
-/* v226: hafif ödül efektleri — tahta hattından bağımsız */
+/* v227: hafif ödül efektleri — tahta hattından bağımsız */
 @keyframes kdScorePop{0%{transform:scale(1)}42%{transform:scale(1.13)}100%{transform:scale(1)}}
 .kd-score-pop{animation:kdScorePop .24s ease-out;will-change:transform}
 @keyframes kdAvatarRing{0%{box-shadow:0 0 0 0 rgba(255,255,255,.9),0 2px 6px rgba(0,0,0,.24)}55%{box-shadow:0 0 0 5px rgba(255,255,255,.18),0 2px 6px rgba(0,0,0,.24)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0),0 2px 6px rgba(0,0,0,.24)}}
@@ -2586,7 +2586,7 @@ background: radial-gradient(circle at 35% 35%, rgba(45,212,191,.58) 0 10%, rgba(
 .fullscreen-btn svg{width:15px;height:15px;stroke-width:2.2}
 @supports (height:100dvh){#app-container{height:100dvh}}
 .dict-letter-active{background:#f59e0b!important;color:#0f172a!important;border-color:#f59e0b!important}
-/* v226: Sözlük — tam Türk alfabesi, dikey kelime listesi ve satır içi TDK anlamı. */
+/* v227: Sözlük — tam Türk alfabesi, dikey kelime listesi ve satır içi TDK anlamı. */
 #alphabet-bar{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;padding:5px;background:#f1f5f9;border-radius:12px}
 .dict-letter-btn{width:100%!important;height:28px!important;min-width:0!important;padding:0!important}
 .dict-word-entry{display:block;width:100%;border-bottom:1px solid #e2e8f0;background:#fff}
@@ -2837,7 +2837,7 @@ body[data-random-match-active="1"] #gameover-actions{display:none!important;}
 
 <div id="screen-home" class="home-v156 absolute inset-0 z-40 overflow-hidden bg-gradient-to-b from-sky-400 via-sky-200 to-emerald-200">
 <div class="absolute left-[max(4px,env(safe-area-inset-left))] top-[max(4px,env(safe-area-inset-top))] z-[70]" aria-live="polite">
-<div class="inline-flex items-center gap-1 rounded-full bg-black/60 px-1.5 py-0.5 text-[7px] leading-none font-black text-white/95 shadow-sm backdrop-blur-sm">
+<div class="inline-flex items-center gap-1 rounded-full bg-black px-1.5 py-0.5 text-[7px] leading-none font-black text-white shadow-sm">
 <span id="online-player-count" class="text-emerald-400 text-[8px] leading-none">●</span><span>BAĞLI</span>
 </div>
 </div>
@@ -2926,7 +2926,7 @@ body[data-random-match-active="1"] #gameover-actions{display:none!important;}
 </button>
 <button id="btn-howto" class="home-shortcut min-h-[54px] rounded-[15px] bg-gradient-to-br from-sky-100 to-blue-200 border border-sky-300 shadow-[0_5px_13px_rgba(3,105,161,.12)] flex flex-col items-center justify-center gap-1 text-sky-950 font-black text-[9px] leading-tight active:scale-95">
 <span class="w-8 h-8 rounded-[11px] bg-gradient-to-br from-sky-50 to-blue-100 border border-sky-100 text-sky-700 flex items-center justify-center shadow-inner"><svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.4 2.4 0 1 1 3.55 2.1c-.9.52-1.35 1.1-1.35 2.15"/><path d="M12 17h.01"/></svg></span>
-<span>Yardım</span>
+<span>Oynanış</span>
 </button>
 <button id="btn-about" class="home-shortcut min-h-[54px] rounded-[15px] bg-gradient-to-br from-indigo-100 to-violet-200 border border-indigo-300 shadow-[0_5px_13px_rgba(79,70,229,.12)] flex flex-col items-center justify-center gap-1 text-indigo-950 font-black text-[9px] leading-tight active:scale-95">
 <span class="w-8 h-8 rounded-[11px] bg-gradient-to-br from-indigo-50 to-violet-100 border border-indigo-100 text-indigo-700 flex items-center justify-center shadow-inner"><svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.2v6.2"/><path d="M12 17h.01"/></svg></span>
@@ -2994,7 +2994,7 @@ body[data-random-match-active="1"] #gameover-actions{display:none!important;}
 
 <div id="screen-howto" class="absolute inset-0 z-[80] hidden bg-gradient-to-b from-sky-100 to-amber-50 overflow-y-auto hide-scroll p-4">
 <div class="max-w-sm mx-auto pb-6">
-<div class="flex items-center justify-between mb-4"><button id="btn-howto-back" class="w-10 h-10 rounded-full bg-white shadow font-black text-xl">‹</button><h2 class="font-black text-xl text-indigo-950">YARDIM</h2><div class="w-10"></div></div>
+<div class="flex items-center justify-between mb-4"><button id="btn-howto-back" class="w-10 h-10 rounded-full bg-white shadow font-black text-xl">‹</button><h2 class="font-black text-xl text-indigo-950">OYNANIŞ</h2><div class="w-10"></div></div>
 <div class="rounded-3xl bg-indigo-950 text-white p-4 shadow-lg mb-3">
 <div class="text-lg font-black">Kelime Düellosu nasıl oynanır?</div>
 <p class="text-xs text-indigo-100 mt-1 leading-relaxed">9×9 tahtada komşu harfleri birleştir, geçerli Türkçe sözcükleri bul ve 60 saniyelik kapışmada en yüksek puanı toplamaya çalış.</p>
@@ -42324,7 +42324,7 @@ if(label) label.textContent=active?'TAM EKRANDAN ÇIK':'TAM EKRAN';
 const gameLabel=document.getElementById('fullscreen-game-label');
 if(gameLabel) gameLabel.textContent=active?'TAM EKRANDAN ÇIK':'TAM EKRAN';
 }
-// v226: Tam ekran hiçbir platformda otomatik olarak zorlanmaz.
+// v227: Tam ekran hiçbir platformda otomatik olarak zorlanmaz.
 // Yalnız kullanıcı TAM EKRAN düğmesine kendi isteğiyle bastığında çalışır.
 async function requestGameFullscreen(silent=false){
 if(isFullscreenActive()){ updateFullscreenUi(); return true; }
@@ -42516,13 +42516,13 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v226';
+const GAME_VERSION='v227';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
 let mpState=MP_STATES.IDLE;
 let mpDb=null, mpRoomRef=null, mpRoomCode=null, mpRole=null, mpRoomData=null, mpRoomMode='';
-let mpRandomMatchSession=false; // v226: rastgele maç kimliği sonuç ekranı kapanana kadar yerelde kilitli kalır.
+let mpRandomMatchSession=false; // v227: rastgele maç kimliği sonuç ekranı kapanana kadar yerelde kilitli kalır.
 let mpSessionJoinedAt=0, mpExitHandling=false, mpLastExitSignalId='';
 let mpListener=null, mpWordsListener=null, mpScoresListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null;
 let mpScoreSyncTimer=null, mpScoreSyncInFlight=false, mpScoreDesired=null;
@@ -43071,12 +43071,14 @@ if(mpRole!=='host'||mpRematchBusy||!mpRoomRef) return;
 mpRematchBusy=true;
 try{
 const now=serverNow();
-const [gsSnap,rSnap,pSnap]=await Promise.all([
+const [gsSnap,rSnap,pSnap,exitSnap]=await Promise.all([
 mpRoomRef.child('gameState').once('value'),
 mpRoomRef.child('rematch').once('value'),
-mpRoomRef.child('pendingRound').once('value')
+mpRoomRef.child('pendingRound').once('value'),
+mpRoomRef.child('roomExit').once('value')
 ]);
-const gs=gsSnap.val()||{}, r=rSnap.val()||{};
+const gs=gsSnap.val()||{}, r=rSnap.val()||{}, exitSignal=exitSnap.val();
+if(exitSignal?.id && Number(exitSignal.at||0)>=mpSessionJoinedAt-1000) return;
 if(gs.status!=='finished'||!(r.host||r.guest)) return;
 const nextRound=Number(gs.round||1)+1;
 let pending=pSnap.val();
@@ -43104,7 +43106,7 @@ return mpRandomMatchSession || /^random-match-/.test(String(mpRoomMode||''));
 }
 
 async function hostExpireRematchIfNeeded(d){
-// v226: Özel odada yeniden oynama için ikinci oyuncu onayı veya zaman aşımı yok.
+// v227: Özel odada yeniden oynama için ikinci oyuncu onayı veya zaman aşımı yok.
 // Oda, biri YENİDEN OYNA ya da ÇIKIŞ diyene kadar açık kalır.
 return;
 }
@@ -43207,7 +43209,7 @@ function showMultiplayerSeriesResult(d){
 if(!d||d.status!=='finished') return;
 const finalWinner=String(d.finalWinner||'');
 if(!['host','guest','tie'].includes(finalWinner)) return;
-// v226: otomatik çıkışı görsel sonuç kodundan ÖNCE silahlandır.
+// v227: otomatik çıkışı görsel sonuç kodundan ÖNCE silahlandır.
 armRandomResultAutoExit(d);
 const resultSig=[Number(d.round||1),finalWinner,Number(d.scores?.host||0),Number(d.scores?.guest||0),Number(d.longestBonus?.maxLen||0)].join('|');
 if(resultSig===mpLastResultRenderSig) return;
@@ -43232,14 +43234,26 @@ const inline=document.getElementById('rematch-inline-status');
 const actions=document.getElementById('gameover-actions');
 const randomResultSession=isRandomHumanRoom();
 if(randomResultSession){
-  // v226: butonlar ve bildirim armRandomResultAutoExit tarafından yönetilir.
+  // v227: butonlar ve bildirim armRandomResultAutoExit tarafından yönetilir.
   // Burada yalnız görünümün yanlışlıkla geri açılmamasını garanti ediyoruz.
   armRandomResultAutoExit(d);
 }else{
   setRandomAutoExitNotice(false);
-  if(actions){actions.style.removeProperty('display');actions.classList.remove('hidden');}
-  if(replay){replay.style.removeProperty('display');replay.disabled=false;replay.textContent='YENİDEN OYNA';replay.classList.remove('hidden');replay.classList.add('rematch-pulse');}
-  if(exitBtn){exitBtn.style.removeProperty('display');exitBtn.disabled=false;exitBtn.classList.remove('hidden');exitBtn.className='w-full mt-2 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-black text-xs py-2.5 rounded-xl uppercase shadow-md transition';exitBtn.textContent='ÇIKIŞ';}
+  if(actions){actions.style.setProperty('display','block','important');actions.classList.remove('hidden');}
+  if(replay){
+    replay.style.setProperty('display','block','important');
+    replay.disabled=false;
+    replay.textContent='YENİDEN OYNA';
+    replay.classList.remove('hidden');
+    replay.classList.add('rematch-pulse');
+  }
+  if(exitBtn){
+    exitBtn.style.setProperty('display','block','important');
+    exitBtn.disabled=false;
+    exitBtn.classList.remove('hidden');
+    exitBtn.className='w-full mt-2 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-black text-xs py-2.5 rounded-xl uppercase shadow-md transition';
+    exitBtn.textContent='ÇIKIŞ';
+  }
   if(inline){inline.classList.add('hidden');inline.textContent='';}
   renderRematchState(d);
 }
@@ -43308,7 +43322,7 @@ if(gs.status==='playing'){if(!mpEntered) await enterMultiplayerRoom();activateMu
 if(gs.status==='finished'){
 setMpState(MP_STATES.FINISHED); document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
 const d={...(mpRoomData||{}),...gs};
-// v226: sonuç kesinleştiği anda, render/konfeti kodundan bağımsız otomatik çıkışı kur.
+// v227: sonuç kesinleştiği anda, render/konfeti kodundan bağımsız otomatik çıkışı kur.
 if(isRandomHumanRoom()) armRandomResultAutoExit(d);
 const rematchRequested=!isRandomHumanRoom() && (!!d.rematch?.host || !!d.rematch?.guest);
 if(rematchRequested) showImmediateRematchSync(); else showMultiplayerSeriesResult(d);
@@ -44779,7 +44793,7 @@ const finished=await waitUntilRoomFinished();
 if(!finished) throw new Error('room-not-finished');
 if(!mpRoomRef || !mpRole) throw new Error('room-missing');
 
-// v226: Özel odada ilk YENİDEN OYNA basışı yeterlidir.
+// v227: Özel odada ilk YENİDEN OYNA basışı yeterlidir.
 // Host/guest rolleri değişmez; host yeni ve farklı tahtayı hazırlayıp aynı iki oyuncuyla başlatır.
 const role=mpRole;
 const rematchRef=mpRoomRef.child('rematch');
@@ -44861,7 +44875,7 @@ if(el) el.style.display='none';
 }
 
 function finishRandomMatchAfterResult(expectedKey='',capturedRef=null,capturedRole=''){
-// v226: zamanlayıcı kurulduktan sonra canlı oda/mod değişkenlerine bağımlı değiliz.
+// v227: zamanlayıcı kurulduktan sonra canlı oda/mod değişkenlerine bağımlı değiliz.
 // Yalnız aynı sonuç oturumu hâlâ geçerliyse cihaz çıkış komutunu uygular.
 if(expectedKey && randomResultAutoExitKey!==expectedKey) return;
 const ref=capturedRef||mpRoomRef;
@@ -44931,7 +44945,7 @@ const shouldDeletePrivate=!!(exitingRef && /^invite-only-/.test(String(mpRoomMod
 const shouldDeleteRandom=!!(exitingRef && randomRoomAtExit && (roleAtExit==='host'||forceCloseForDisconnect));
 if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
 
-// v226 — Rastgele maçın normal bitişi otomatik kapanır; sonuç ekranında düğme yoktur:
+// v227 — Rastgele maçın normal bitişi otomatik kapanır; sonuç ekranında düğme yoktur:
 // host/guest ayrımı olmadan anında ana sayfaya dönülür. Odayı host tarafı
 // arka planda temizler; guest sinyal gönderirse host aynı sinyali alıp temizler.
 if(randomRoomAtExit && (isAutomaticRandomTimeout||isRandomResultManualExit)){
@@ -44941,7 +44955,7 @@ if(randomRoomAtExit && (isAutomaticRandomTimeout||isRandomResultManualExit)){
   return;
 }
 
-// v226: Rastgele maçta oyunculardan biri ÇIKIŞ yaptığında iki tarafta da
+// v227: Rastgele maçta oyunculardan biri ÇIKIŞ yaptığında iki tarafta da
 // kısa "OYUNDAN ÇIKIŞ YAPILDI" bildirimi görünür ve ardından ana sayfaya dönülür.
 if(randomRoomAtExit && isManualPlayerExit && initiatedBySelf){
   showRoomExitNotice('OYUNDAN ÇIKIŞ YAPILDI');
@@ -44989,6 +45003,7 @@ if(randomImmediate){
   return;
 }
 try{
+if(reason==='player-exit') await ref.child('rematch').set({host:false,guest:false,expiresAt:0}).catch(()=>{});
 await ref.child('roomExit').set(signal);
 setTimeout(()=>ref.child('roomExit').transaction(cur=>cur?.id===signal.id?null:cur).catch(()=>{}),2200);
 await handleSynchronizedRoomExit(reason,role);
@@ -45228,7 +45243,7 @@ document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePl
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
 scheduleBoardPrewarm();
-console.info(`Kelime Düellosu optimize motor v226: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
+console.info(`Kelime Düellosu optimize motor v227: ${WORD_LIST.length} sözcük | düşük RAM önek araması | idle tahta ön-hazırlama aktif.`);
 </script>
 </body>
 </html>
