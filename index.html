@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v265</title>
-<meta name="game-version" content="v265">
+<title>KAPMACA.tr — Sözcük Avı v266</title>
+<meta name="game-version" content="v266">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -3413,7 +3413,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div id="modal-room-invite" class="absolute inset-0 bg-slate-950/45 backdrop-blur-[2px] flex items-center justify-center z-[80] hidden">
 <div class="relative w-11/12 max-w-sm bg-white/95 border border-indigo-100 p-7 rounded-[30px] shadow-2xl text-center">
 <div class="mx-auto mb-4 w-16 h-16 rounded-full bg-indigo-50 border-2 border-indigo-100 flex items-center justify-center text-3xl">⚔️</div>
-<div class="text-xl font-black text-slate-800">KAPIŞMA OYUNUNA DAVET EDİLDİNİZ</div>
+<div class="text-xl font-black text-slate-800">KAPMACA oyununa davet edildiniz</div>
 <div id="invite-room-code" class="mt-2 text-xs font-black tracking-[.18em] text-indigo-600"></div>
 <div class="mp-demo" aria-label="Oynanış örneği"><div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div></div>
 <div class="mt-5 grid grid-cols-1 gap-3">
@@ -44649,6 +44649,16 @@ lastPointerX=e.clientX; lastPointerY=e.clientY;
 
 gridEl.addEventListener('pointermove', (e) => {
 if (!isMatchActive || !isPointerDown || e.pointerId!==activePointerId) return;
+// Fare hareketinin tarayıcı tarafından birleştirilen ara noktalarını geciktirmeden işle.
+const samples = typeof e.getCoalescedEvents === 'function' ? e.getCoalescedEvents() : null;
+if (samples && samples.length > 1) {
+const step=Math.max(1,Math.ceil(samples.length/4));
+for (let i=0;i<samples.length;i+=step) {
+  const sample=samples[i]; processPointerSegment(sample.clientX,sample.clientY,activeGridMetrics);
+}
+const last=samples[samples.length-1];
+processPointerSegment(last.clientX,last.clientY,activeGridMetrics);
+}
 if(!pendingPointer) pendingPointer={x:e.clientX,y:e.clientY};
 else {pendingPointer.x=e.clientX;pendingPointer.y=e.clientY;}
 if (pointerFrame) return;
