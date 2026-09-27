@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v257</title>
-<meta name="game-version" content="v257">
+<title>KAPMACA.tr — Sözcük Avı v258</title>
+<meta name="game-version" content="v258">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2987,6 +2987,67 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 .support-official-logo{display:block;width:min(82%,270px);height:110px;object-fit:contain;margin:8px auto 0}
 @media(max-height:650px){#screen-home.home-v156 .home-title-wrap{margin-top:12px!important}#screen-home.home-v156 .home-modes{margin-top:18px}}
 
+/* v258: Seçilen 4. üst panel. Oyun tahtası ve alt alanlar aynen kalır. */
+#compact-game-header.game-header-v4{
+  display:grid!important;grid-template-columns:minmax(0,1fr) 70px minmax(0,1fr)!important;
+  align-items:center!important;gap:6px!important;padding:5px 7px!important;
+  min-height:80px!important;background:#eaf7f2!important;
+  border-bottom:2px solid #a9dbd3!important;box-shadow:0 3px 9px rgba(5,79,85,.16)!important;
+}
+#compact-game-header.game-header-v4 .game-player-card{
+  position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  min-width:0;height:68px;padding:3px 5px 4px;border-radius:18px;overflow:hidden;
+}
+#compact-game-header.game-header-v4 .game-player-card-p1{background:#ffedd0;color:#795008}
+#compact-game-header.game-header-v4 .game-player-card-p2{background:#c9f2ef;color:#065f71}
+#compact-game-header.game-header-v4 .compact-avatar{
+  position:absolute;top:6px;left:7px;width:27px!important;height:27px!important;
+  margin:0!important;border:2px solid #fff!important;box-shadow:0 2px 5px rgba(15,23,42,.12)!important;
+}
+#compact-game-header.game-header-v4 .game-player-card-p2 .compact-avatar{left:auto;right:7px}
+#compact-game-header.game-header-v4 .compact-name{
+  display:block;width:100%;max-width:none;margin:0 0 1px;padding:0 2px!important;
+  font-size:10px!important;line-height:12px!important;font-weight:900;
+  text-align:center;color:inherit!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+#compact-game-header.game-header-v4 .score-orb{
+  display:flex;justify-content:center;align-items:center;width:100%!important;height:36px!important;
+  min-width:0;margin:0!important;padding:0;border:0!important;border-radius:0!important;
+  background:none!important;box-shadow:none!important;color:inherit!important;
+  font-size:32px!important;line-height:36px!important;font-weight:1000;
+}
+#compact-game-header.game-header-v4 #p1-score-val,
+#compact-game-header.game-header-v4 #p2-score-val{font-size:inherit!important;line-height:inherit!important}
+#compact-game-header.game-header-v4 .compact-timer{
+  width:70px!important;height:68px!important;min-width:0!important;
+  border:0!important;border-radius:18px!important;background:#075458!important;
+  box-shadow:0 3px 0 #064043!important;color:#fff!important;
+}
+#compact-game-header.game-header-v4 .timer-label{font-size:9px!important;line-height:11px!important;color:#e9ffff!important;opacity:1}
+#compact-game-header.game-header-v4 #game-timer{font-size:32px!important;line-height:36px!important;color:#fff!important;text-shadow:none!important}
+#compact-game-header.game-header-v4 #game-timer.timer-warning{color:#ffe697!important}
+@media(max-width:600px){
+  #compact-game-header.game-header-v4{grid-template-columns:minmax(0,1fr) 56px minmax(0,1fr)!important;gap:4px!important;min-height:68px!important;padding:4px 5px!important}
+  #compact-game-header.game-header-v4 .game-player-card{height:58px;border-radius:14px;padding:2px 3px 3px}
+  #compact-game-header.game-header-v4 .compact-avatar{width:22px!important;height:22px!important;top:4px;left:5px}
+  #compact-game-header.game-header-v4 .game-player-card-p2 .compact-avatar{right:5px}
+  #compact-game-header.game-header-v4 .compact-name{font-size:8px!important;line-height:10px!important}
+  #compact-game-header.game-header-v4 .score-orb{height:31px!important;font-size:28px!important;line-height:31px!important}
+  #compact-game-header.game-header-v4 .compact-timer{width:56px!important;height:58px!important;border-radius:14px!important}
+  #compact-game-header.game-header-v4 .timer-label{font-size:8px!important;line-height:10px!important}
+  #compact-game-header.game-header-v4 #game-timer{font-size:28px!important;line-height:31px!important}
+}
+@media(max-height:680px){
+  #compact-game-header.game-header-v4{grid-template-columns:minmax(0,1fr) 46px minmax(0,1fr)!important;min-height:49px!important;padding:3px 5px!important}
+  #compact-game-header.game-header-v4 .game-player-card{height:43px;padding:2px 3px}
+  #compact-game-header.game-header-v4 .compact-avatar{width:17px!important;height:17px!important;top:3px;left:4px}
+  #compact-game-header.game-header-v4 .game-player-card-p2 .compact-avatar{right:4px}
+  #compact-game-header.game-header-v4 .compact-name{font-size:7px!important;line-height:8px!important}
+  #compact-game-header.game-header-v4 .score-orb{height:23px!important;font-size:22px!important;line-height:23px!important}
+  #compact-game-header.game-header-v4 .compact-timer{width:46px!important;height:43px!important}
+  #compact-game-header.game-header-v4 #game-timer{font-size:22px!important;line-height:23px!important}
+}
+
 /* v164 9x9 optimum: daha büyük dokunma hedefi ve daha hafif input yolu */
 html:fullscreen,html:-webkit-full-screen{height:100%;}
 html:fullscreen body,html:-webkit-full-screen body{height:100%;background:#020617;}
@@ -3158,29 +3219,18 @@ html:fullscreen #scrabble-grid,html:-webkit-full-screen #scrabble-grid{width:min
 <div id="screen-game" class="absolute inset-0 flex flex-col bg-slate-900 z-30 hidden">
 <div id="toast-layer" class="absolute inset-0 pointer-events-none z-50 overflow-hidden"></div>
 
-<header id="compact-game-header" class="grid items-center bg-slate-950 w-full px-2 py-1 shrink-0 shadow-lg border-b border-slate-800 z-10 gap-1.5">
-<div id="p1-score-chip" class="score-orb score-orb-p1 justify-self-start" aria-label="1. oyuncu puanı"><span id="p1-score-val">0</span></div>
-
-<div class="compact-player justify-self-end items-end">
-<div class="compact-identity">
+<header id="compact-game-header" class="game-header-v4" aria-label="Maç puanı ve süre">
+<div id="p1-player-card" class="game-player-card game-player-card-p1">
 <div id="p1-avatar-box" class="compact-avatar bg-yellow-200 border-yellow-400 text-amber-600" aria-label="1. oyuncu avatarı: güneş"><svg viewBox="0 0 24 24" class="w-4 h-4" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor" opacity=".95"/><g stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2.7v2.4"/><path d="M12 18.9v2.4"/><path d="M2.7 12h2.4"/><path d="M18.9 12h2.4"/><path d="M5.45 5.45l1.7 1.7"/><path d="M16.85 16.85l1.7 1.7"/><path d="M18.55 5.45l-1.7 1.7"/><path d="M7.15 16.85l-1.7 1.7"/></g></svg></div>
-<div id="p1-title" class="compact-name text-amber-200 text-right">1. OYUNCU</div>
+<div id="p1-title" class="compact-name" aria-label="Birinci oyuncu">1. OYUNCU</div>
+<div id="p1-score-chip" class="score-orb score-orb-p1" aria-label="1. oyuncu puanı"><span id="p1-score-val">0</span></div>
 </div>
-</div>
-
-<div class="compact-timer justify-self-center">
-<span class="timer-label">SÜRE</span>
-<div id="game-timer">60</div>
-</div>
-
-<div class="compact-player justify-self-start">
-<div class="compact-identity flex-row-reverse">
+<div class="compact-timer" aria-label="Kalan süre"><span class="timer-label">SÜRE</span><div id="game-timer">60</div></div>
+<div id="p2-player-card" class="game-player-card game-player-card-p2">
 <div id="p2-avatar-box" class="compact-avatar bg-sky-200 border-sky-400 text-sky-700" aria-label="2. oyuncu avatarı: deniz"><svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" aria-hidden="true"><path d="M2.5 14.3c1.5 0 1.5.8 3 .8s1.5-.8 3-.8 1.5.8 3 .8 1.5-.8 3-.8 1.5.8 3 .8 1.5-.8 3-.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.5 17.4c1.5 0 1.5.8 3 .8s1.5-.8 3-.8 1.5.8 3 .8 1.5-.8 3-.8 1.5.8 3 .8 1.5-.8 3-.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.2 10.6c1.1-.9 2.3-1.3 3.7-1.3 1.6 0 2.8.7 4.1.7 1.1 0 2.2-.4 3.7-1.5" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" opacity=".9"/></svg></div>
-<div id="p2-title" class="compact-name text-sky-200">2. OYUNCU</div>
+<div id="p2-title" class="compact-name" aria-label="İkinci oyuncu">2. OYUNCU</div>
+<div id="p2-score-chip" class="score-orb score-orb-p2" aria-label="2. oyuncu puanı"><span id="p2-score-val">0</span></div>
 </div>
-</div>
-
-<div id="p2-score-chip" class="score-orb score-orb-p2 justify-self-end" aria-label="2. oyuncu puanı"><span id="p2-score-val">0</span></div>
 </header>
 
 <div class="w-full bg-slate-900 flex items-center h-6 px-2 shrink-0 border-b border-slate-800">
@@ -42456,7 +42506,7 @@ const seriesWordResults = { p1:new Map(), p2:new Map() };
 let singleLongestBonusApplied=false;
 let singleLongestBonus={p1:false,p2:false,maxLen:0};
 function clearPlayerWordShake(){
-['p1-score-chip','p2-score-chip'].forEach(id=>{
+['p1-player-card','p2-player-card'].forEach(id=>{
 const el=document.getElementById(id);
 if(!el) return;
 if(el._wordShakeAnim){ el._wordShakeAnim.cancel(); el._wordShakeAnim=null; }
@@ -42482,7 +42532,7 @@ card.appendChild(wrap);
 setTimeout(()=>wrap.remove(),1900);
 }
 function celebrateWordPlayer(isP1,wordLen=0){
-const ids=isP1?['p1-score-chip']:['p2-score-chip'];
+const ids=isP1?['p1-player-card']:['p2-player-card'];
 const frames=[
 {transform:'translate3d(0,0,0)'},
 {transform:'translate3d(-2px,0,0)'},
