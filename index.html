@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v262</title>
-<meta name="game-version" content="v262">
+<title>KAPMACA.tr — Sözcük Avı v263</title>
+<meta name="game-version" content="v263">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -3334,14 +3334,14 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div class="mt-8 bg-white/90 border-2 border-sky-200 rounded-3xl p-5 shadow-lg text-center">
 <div class="text-left rounded-2xl border border-amber-200 bg-amber-50 p-4 mb-4 text-[11px] leading-relaxed text-slate-700 space-y-3">
 <h3 class="text-sm font-black text-amber-950">YASAL BİLGİLENDİRME VE TELİF HAKKI BİLDİRİMİ</h3>
-<p>© 2026 Serdar B. / kapmaca.tr. Tüm Hakları Saklıdır.</p>
+<p>© 2026 kapmaca.tr. Tüm Hakları Saklıdır.</p>
 <p>Bu yazılım, oyun mekanikleri, kaynak kodları, görsel tasarımlar, karakter çizimleri, kullanıcı arayüzü (UI/UX), ses efektleri, müzikler, grafikler ve "Kapmaca" markası; 5846 sayılı Fikir ve Sanat Eserleri Kanunu, 6769 sayılı Sınai Mülkiyet Kanunu, Türk Ceza Kanunu ve ilgili uluslararası fikir ve sanat eserleri sözleşmeleri kapsamında yasal koruma altındadır.</p>
 <h4 class="font-black text-amber-950">YAZILIM VE İÇERİK KULLANIM ŞARTLARI:</h4>
 <p><strong>1. İzin Alınmadan Kullanım Yasağı:</strong> Yazılımın tamamının veya herhangi bir parçasının, kaynak kodunun, grafik veya görsel materyalinin; eser sahibinin önceden yazılı açık izni olmaksızın kopyalanması, çoğaltılması, dağıtılması, yeniden yayımlanması, tersine mühendislik (reverse engineering) işlemlerine tabi tutulması veya kaynak koda dönüştürülmesi (decompilation) kesinlikle yasaktır.</p>
 <p><strong>2. Fikri Mülkiyet İhlali:</strong> Bu yazılıma ve tasarımlara ait bileşenlerin haksız kullanımı, izinsiz klonlanması veya ticari/gayriticari amaçla üçüncü taraflarca taklit edilmesi halinde; eser sahibi cezai takibat başlatma, haksız fiilin durdurulması, men'i ve maddi/manevi tazminat davası açma haklarını saklı tutar.</p>
+<p class="font-bold">Telif ve iletişim için: <a href="mailto:kapmaca@proton.me" class="text-indigo-700 underline underline-offset-2">kapmaca@proton.me</a></p>
 </div>
-<button id="btn-about-feedback" type="button" class="block w-full mb-4 rounded-2xl bg-indigo-600 text-white font-black text-sm py-3 shadow active:scale-[.99]">Soru / öneri</button>
-<div id="about-feedback-notice" role="status" aria-live="polite" class="hidden mb-4 rounded-xl bg-amber-100 border border-amber-300 px-3 py-2 text-sm font-black text-amber-950">Öneri ve görüşlere kapalıyız :D</div>
+<a id="btn-about-feedback" href="mailto:kapmaca@proton.me" class="block w-full mb-4 rounded-2xl bg-indigo-600 text-white font-black text-sm py-3 shadow active:scale-[.99]">Soru / öneri</a>
 <p class="text-sm font-black text-slate-700">Geliştirilmeye devam ediyor.</p>
 
 </div>
@@ -44101,13 +44101,6 @@ for(const id of ['modal-room-invite','modal-mp-waiting','modal-rematch-waiting',
 startHowtoDemo();
 document.getElementById('btn-about').onclick = () => document.getElementById('screen-about').classList.remove('hidden');
 document.getElementById('btn-about-back').onclick = () => document.getElementById('screen-about').classList.add('hidden');
-let aboutFeedbackTimer;
-document.getElementById('btn-about-feedback').onclick = () => {
-  const notice = document.getElementById('about-feedback-notice');
-  clearTimeout(aboutFeedbackTimer);
-  notice.classList.remove('hidden');
-  aboutFeedbackTimer = setTimeout(() => notice.classList.add('hidden'), 3000);
-};
 const supportScreen=document.getElementById('screen-support');
 document.getElementById('btn-support').onclick=()=>supportScreen.classList.remove('hidden');
 document.getElementById('btn-close-support').onclick=()=>supportScreen.classList.add('hidden');
