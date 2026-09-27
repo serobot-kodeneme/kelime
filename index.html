@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA — Sözcük Avı v238</title>
-<meta name="game-version" content="v238">
+<title>KAPMACA — Sözcük Avı v239</title>
+<meta name="game-version" content="v239">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2989,13 +2989,13 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
   .letter-cell.tile-hover-p1:not(.tile-dragging),
   .letter-cell.tile-hover-p2:not(.tile-dragging){transform:translateY(-2px);}
 }
-.demo-board{position:relative;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;max-width:310px;margin:auto;touch-action:none}
-.demo-board .demo-tile{display:grid;place-items:center;aspect-ratio:1;background:#fff2d4;border:2px solid #e8c78b;border-radius:9px;color:#263b68;font-weight:900;font-size:clamp(15px,5vw,22px);box-shadow:0 3px 0 #d7ab70;transition:transform .12s ease,background .12s ease,box-shadow .12s ease}
+.demo-board{position:relative;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;max-width:245px;margin:auto;touch-action:none}
+.demo-board .demo-tile{display:grid;place-items:center;aspect-ratio:1;background:#fff2d4;border:2px solid #e8c78b;border-radius:7px;color:#263b68;font-weight:900;font-size:16px;box-shadow:0 3px 0 #d7ab70;transition:transform .12s ease,background .12s ease,box-shadow .12s ease}
 .demo-board .demo-blank{visibility:hidden}
 .demo-board .demo-tile.demo-active{background:#fbbf24;transform:translateY(-3px) scale(1.06);box-shadow:0 5px 0 #b45309}
 .demo-score.demo-earned{background:#dcfce7;color:#166534;animation:demo-score-pop .32s ease-out}
-#home-demo .demo-board{max-width:254px;gap:3px}
-#home-demo .demo-board .demo-tile{font-size:17px;border-radius:7px}
+#home-demo .demo-board{max-width:210px;gap:2px}
+#home-demo .demo-board .demo-tile{font-size:14px;border-radius:6px}
 #home-demo{background:rgba(255,255,255,.78);border:1px solid rgba(255,255,255,.95);box-shadow:0 7px 15px rgba(25,77,131,.12)}
 @keyframes demo-score-pop{50%{transform:scale(1.16)}}
 @media(prefers-reduced-motion:reduce){.demo-board .demo-tile,.demo-score.demo-earned{transition:none;animation:none}}
@@ -3035,8 +3035,8 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 
 <div class="home-modes w-full max-w-sm mt-5 space-y-3 shrink-0">
 <div id="home-demo" class="rounded-2xl px-3 py-2" aria-label="Örnek sözcük seçimi animasyonu">
-<div class="demo-board" aria-hidden="true"><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-blank"></span><span class="demo-blank"></span><span class="demo-blank"></span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-blank"></span><span class="demo-blank"></span></div>
-<div class="mt-1 flex justify-between items-center text-[11px] font-black"><span class="demo-word text-indigo-900">KAP</span><span class="demo-score rounded-lg bg-amber-100 text-amber-900 px-2 py-0.5">+8 puan</span></div>
+<div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div>
+<div class="mt-1 flex justify-between items-center text-[11px] font-black"><span class="demo-word text-indigo-900">KAP</span><span class="demo-score rounded-lg bg-amber-100 text-amber-900 px-2 py-0.5">+10 puan</span></div>
 </div>
 <button id="btn-solo-mode" class="home-mode-btn w-full min-h-[76px] flex items-center gap-4 px-5 bg-gradient-to-b from-emerald-400 to-green-600 text-white rounded-[24px] border-4 border-emerald-200/70 shadow-[0_8px_0_#166534] active:translate-y-1 active:shadow-[0_4px_0_#166534] transition">
 <span aria-hidden="true"><svg viewBox="0 0 24 24" class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.3"/><path d="M6.7 19.1c.65-3 2.9-4.8 5.3-4.8s4.65 1.8 5.3 4.8"/></svg></span><span class="text-left flex-1"><b class="block text-xl leading-5 font-black">TEK OYUNCU</b><small class="font-bold text-green-50">Zorluk seç ve hemen başla</small></span><span id="solo-arrow" class="text-3xl font-black transition-transform">›</span>
@@ -3177,7 +3177,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div class="bg-white rounded-3xl p-4 shadow-lg border border-sky-100 mb-3" aria-label="Örnek oynanış animasyonu">
 <div class="font-black text-indigo-950 mb-1">▶ Harfleri sürükle, sözcüğü kap!</div>
 <p class="text-[11px] text-slate-600 mb-3">Basılı tutup komşu harflere sürükle ve bırak. Sağa, sola, yukarı veya aşağı ilerleyebilirsin.</p>
-<div class="demo-board" aria-hidden="true"><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-blank"></span><span class="demo-blank"></span><span class="demo-blank"></span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-blank"></span><span class="demo-blank"></span></div>
+<div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div>
 <div class="mt-3 flex justify-between items-center gap-2 text-xs font-black"><span class="demo-word text-indigo-900" aria-live="off">K → A → P</span><span class="demo-score rounded-xl bg-amber-100 text-amber-900 px-2 py-1">Örnek seçim</span></div>
 <p class="text-[10px] text-slate-500 mt-2">Animasyon öğretim amaçlıdır; gerçek puan ve sözcük geçerliliği oyun sözlüğüne göre belirlenir.</p>
 </div>
@@ -43942,7 +43942,14 @@ function stopHowtoDemo(){clearTimeout(howtoDemoTimer);howtoDemoTimer=null;}
 function startHowtoDemo(){
  if(howtoDemoTimer||document.hidden)return;
  const boards=[...document.querySelectorAll('.demo-board')];
- const rounds=[{word:'KAP',path:[0,1,2],points:8},{word:'KAPMA',path:[0,1,2,3,4],points:15},{word:'KAPMACA',path:[0,1,2,3,4,5,6],points:25},{word:'CAM',path:[5,4,3],points:9},{word:'PAK',path:[2,1,0],points:8},{word:'Mİ',path:[3,7],points:6},{word:'İŞ',path:[7,8],points:7}];
+ const rounds=[
+  {word:'KAP',path:[7,8,9],points:10},{word:'KAPMA',path:[7,8,9,10,11],points:15},
+  {word:'KAPMACA',path:[7,8,9,10,11,12,13],points:22},{word:'CAM',path:[12,11,10],points:10},
+  {word:'PAK',path:[9,8,7],points:10},{word:'YAŞ',path:[1,8,15],points:11},
+  {word:'TAŞ',path:[18,11,4],points:9},{word:'SAL',path:[6,13,20],points:7},
+  {word:'İP',path:[2,9],points:8},{word:'Mİ',path:[10,17],points:5},
+  {word:'İŞ',path:[17,16],points:7},{word:'AK',path:[0,7],points:4},{word:'AL',path:[13,20],points:4}
+ ];
  let round=0,step=0;
  function advance(){
   if(document.hidden||(document.getElementById('screen-howto').classList.contains('hidden')&&document.getElementById('screen-home').classList.contains('hidden'))){stopHowtoDemo();return;}
