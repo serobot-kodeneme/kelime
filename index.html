@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v255</title>
-<meta name="game-version" content="v255">
+<title>KAPMACA.tr — Sözcük Avı v256</title>
+<meta name="game-version" content="v256">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2850,10 +2850,12 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 #screen-home.home-v156{
   font-family:'Quicksand',Calibri,'Segoe UI',sans-serif;
   background:
-    radial-gradient(ellipse at 14% 10%,rgba(255,255,255,.94) 0 7%,rgba(255,255,255,.42) 8% 15%,transparent 16%),
-    radial-gradient(ellipse at 88% 19%,rgba(255,255,255,.86) 0 6%,rgba(255,255,255,.34) 7% 14%,transparent 15%),
-    radial-gradient(ellipse at 42% 92%,rgba(255,245,228,.88) 0 17%,transparent 38%),
-    linear-gradient(180deg,#24adf5 0%,#84d8ff 34%,#dff5ff 68%,#fff7ea 100%) !important;
+    radial-gradient(ellipse at 50% 22%,rgba(255,246,190,.86) 0 8%,rgba(255,246,190,.22) 28%,transparent 55%),
+    radial-gradient(ellipse at 12% 12%,rgba(255,255,255,.82),transparent 32%),
+    radial-gradient(ellipse at 91% 33%,rgba(181,238,255,.82),transparent 30%),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.085) 0 1px,transparent 1px 40px),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.085) 0 1px,transparent 1px 40px),
+    linear-gradient(155deg,#168fe5 0%,#52c7f3 37%,#b6ecdf 74%,#ffe2a3 100%) !important;
   isolation:isolate;
 }
 #screen-home.home-v156::before,
@@ -2861,16 +2863,16 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
   content:"";position:absolute;pointer-events:none;z-index:0;border-radius:999px;
 }
 #screen-home.home-v156::before{
-  width:230px;height:78px;left:-54px;bottom:6%;
-  background:radial-gradient(ellipse at 50% 45%,rgba(255,255,255,.72),rgba(255,255,255,.18) 63%,transparent 68%);
-  filter:blur(.2px);transform:rotate(-5deg);
+  width:135%;height:35%;left:-17%;bottom:-19%;
+  background:linear-gradient(140deg,rgba(53,179,157,.50),rgba(9,129,146,.35));
+  border-radius:48% 52% 0 0;transform:rotate(-6deg);
 }
 #screen-home.home-v156::after{
-  width:210px;height:70px;right:-45px;bottom:13%;
-  background:radial-gradient(ellipse at 50% 45%,rgba(255,255,255,.64),rgba(255,255,255,.16) 63%,transparent 68%);
-  filter:blur(.2px);transform:rotate(7deg);
+  width:120%;height:24%;right:-25%;bottom:-13%;
+  background:linear-gradient(135deg,rgba(255,227,160,.75),rgba(255,170,112,.30));
+  border-radius:48% 52% 0 0;transform:rotate(8deg);
 }
-#screen-home.home-v156 .home-float-dot{opacity:.33;filter:none;border:2px solid rgba(255,255,255,.48);box-shadow:inset 0 0 12px rgba(255,255,255,.35)}
+#screen-home.home-v156 .home-float-dot{opacity:.78;filter:none;border:2px solid rgba(255,255,255,.72);box-shadow:0 8px 18px rgba(20,100,150,.10),inset 0 0 10px rgba(255,255,255,.48)}
 #screen-home.home-v156 .home-content-layer{z-index:2}
 #screen-home.home-v156 .home-title-wrap{position:relative;top:0;margin-top:clamp(20px,7vh,65px)!important;filter:drop-shadow(0 10px 16px rgba(2,80,150,.18))}
 #screen-home.home-v156 .home-crown{display:none}
@@ -2882,26 +2884,32 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
   padding:5px 4px 8px !important;
 }
 #screen-home.home-v156 .home-logo-tiles{
-  display:flex;align-items:flex-end;justify-content:center;gap:2px;margin:0 auto 0;
-  color:#123b78;text-shadow:0 1px 0 #fff;
+  display:flex;align-items:center;justify-content:center;gap:2px;margin:0 auto;
+  color:#0f172a;text-shadow:none;text-transform:none;
 }
 #screen-home.home-v156 .home-logo-tiles span{
-  display:grid;place-items:center;width:39px;height:42px;
-  background:linear-gradient(180deg,#fffaf0 0%,#ffedcf 72%,#f5d6a9 100%);
-  border:2px solid rgba(255,255,255,.92);border-bottom-color:#d6b68e;
-  border-radius:10px;box-shadow:0 5px 0 #d8b78d,0 8px 13px rgba(74,55,32,.18),inset 0 2px 1px rgba(255,255,255,.9);
-  font-size:26px;line-height:1;font-weight:900;
+  display:grid;place-items:center;position:relative;flex:none;
+  width:clamp(32px,10.8vw,49px);height:clamp(32px,10.8vw,49px);
+  background:#fff;border:1px solid #e2e8f0;
+  border-radius:8px;box-shadow:0 3px 0 #cbd5e1,inset 0 1px 0 rgba(255,255,255,.8),0 7px 13px rgba(15,23,42,.15);
+  font-size:clamp(23px,7vw,34px);line-height:1;font-weight:900;
 }
-#screen-home.home-v156 .home-logo-tiles span:nth-child(1){transform:rotate(-9deg) translateY(7px);background:linear-gradient(#fff6ef,#ffd9d2)}
-#screen-home.home-v156 .home-logo-tiles span:nth-child(2){transform:rotate(-6deg) translateY(2px);background:linear-gradient(#fff8ec,#ffe7bf)}
-#screen-home.home-v156 .home-logo-tiles span:nth-child(3){transform:rotate(-3deg) translateY(-2px);background:linear-gradient(#fffcec,#fff0ba)}
-#screen-home.home-v156 .home-logo-tiles span:nth-child(4){transform:translateY(-5px);background:linear-gradient(#f6fff1,#d6f3d1)}
-#screen-home.home-v156 .home-logo-tiles span:nth-child(5){transform:rotate(3deg) translateY(-2px);background:linear-gradient(#effcff,#cceef7)}
-#screen-home.home-v156 .home-logo-tiles span:nth-child(6){transform:rotate(6deg) translateY(2px);background:linear-gradient(#f5f4ff,#dedcfb)}
-#screen-home.home-v156 .home-logo-tiles span:nth-child(7){transform:rotate(9deg) translateY(7px);background:linear-gradient(#fff1ff,#f3d7f4)}
-#screen-home.home-v156 .home-logo-tiles span.home-domain-tile{width:38px;font-size:17px;letter-spacing:-1px;color:#a32054;transform:rotate(12deg) translateY(13px);background:linear-gradient(#fff,#ffd3e2)}
-#screen-home.home-v156 .home-logo-tiles{gap:1px}
-#screen-home.home-v156 .home-logo-tiles span{width:36px;height:39px;font-size:24px}
+#screen-home.home-v156 .home-logo-tiles .home-logo-tile::after{
+  content:attr(data-score);position:absolute;bottom:2px;right:3px;
+  font-size:clamp(7px,1.65vw,10px);font-weight:800;color:#64748b;
+}
+#screen-home.home-v156 .home-logo-tiles span:nth-child(1){transform:translateY(10px) rotate(-11deg)}
+#screen-home.home-v156 .home-logo-tiles span:nth-child(2){transform:translateY(2px) rotate(-7deg)}
+#screen-home.home-v156 .home-logo-tiles span:nth-child(3){transform:translateY(-5px) rotate(-4deg)}
+#screen-home.home-v156 .home-logo-tiles span:nth-child(4){transform:translateY(-10px)}
+#screen-home.home-v156 .home-logo-tiles span:nth-child(5){transform:translateY(-5px) rotate(4deg)}
+#screen-home.home-v156 .home-logo-tiles span:nth-child(6){transform:translateY(2px) rotate(7deg)}
+#screen-home.home-v156 .home-logo-tiles span:nth-child(7){transform:translateY(10px) rotate(11deg)}
+#screen-home.home-v156 .home-logo-tiles span.home-domain-tile{
+  width:auto;height:auto;align-self:flex-end;margin-left:1px;margin-bottom:-5px;
+  border:0;background:transparent;box-shadow:none;color:#124c83;
+  font-size:clamp(16px,4.2vw,24px);letter-spacing:-1px;transform:none;
+}
 #screen-home.home-v156 .home-logo-duel{
   display:inline-block;position:relative;z-index:1;margin-top:10px;padding:3px 12px 4px;
   min-width:185px;border-radius:12px;font-size:18px!important;line-height:19px!important;
@@ -2909,11 +2917,6 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
   border:2px solid rgba(115,211,255,.9);border-bottom-color:#0649a5;
   color:#fff3cf;text-shadow:0 3px 0 #cc7300,0 5px 8px rgba(0,72,155,.28);
   box-shadow:0 6px 0 #0755ba,0 11px 18px rgba(0,87,170,.22),inset 0 2px 0 rgba(255,255,255,.42);
-}
-#screen-home.home-v156 .home-tagline{
-  margin-top:-2px !important;background:rgba(255,255,255,.82) !important;color:#13518c !important;
-  border:1px solid rgba(255,255,255,.9) !important;box-shadow:0 5px 13px rgba(25,114,180,.13) !important;
-  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
 }
 #screen-home.home-v156 #btn-solo-mode{
   background:linear-gradient(180deg,#28b9fb 0%,#1197ed 48%,#0874db 100%) !important;
@@ -2966,10 +2969,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
   background:linear-gradient(180deg,#fffaf0,#ffe9c9) !important;border-color:#fff6e7 !important;color:#123b78 !important;
   box-shadow:0 5px 0 #d8b78d,0 10px 17px rgba(58,85,116,.16) !important;
 }
-@media(max-width:380px){
-  #screen-home.home-v156 .home-logo-tiles span{width:34px;height:37px;font-size:23px;border-radius:9px}
-  #screen-home.home-v156 .home-logo-duel{min-width:175px;font-size:17px!important;line-height:18px!important}
-}
+@media(max-width:380px){#screen-home.home-v156 .home-logo-duel{min-width:175px;font-size:17px!important;line-height:18px!important}}
 .home-shortcut-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:8px}
 .home-shortcut-grid>button,.home-shortcut-grid>a{min-width:0}
 #screen-home.home-v156 .support-icon-button{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
@@ -2985,7 +2985,7 @@ html:fullscreen,html:-webkit-full-screen{height:100%;}
 html:fullscreen body,html:-webkit-full-screen body{height:100%;background:#020617;}
 html:fullscreen #app-container,html:-webkit-full-screen #app-container{height:100%;box-shadow:none;}
 html:fullscreen #screen-game,html:-webkit-full-screen #screen-game{height:100%;}
-html:fullscreen #scrabble-grid,html:-webkit-full-screen #scrabble-grid{width:min(calc(100vw - 10px),calc(100vh - 200px),440px)!important;}
+html:fullscreen #scrabble-grid,html:-webkit-full-screen #scrabble-grid{width:min(calc(100% - 10px),calc(100dvh - 200px),440px)!important;}
 #scrabble-grid{isolation:isolate;}
 .letter-cell{font-variant-numeric:tabular-nums;text-rendering:optimizeLegibility;}
 #scrabble-grid .letter-cell{border-radius:8px!important;}
@@ -3045,16 +3045,15 @@ html:fullscreen #scrabble-grid,html:-webkit-full-screen #scrabble-grid{width:min
 <span class="home-float-dot w-7 h-7 bg-pink-200 right-[12%] top-[11%]"></span>
 <span class="home-float-dot w-12 h-12 bg-white right-[6%] bottom-[16%]"></span>
 <div class="absolute inset-0 pointer-events-none opacity-80" style="background:radial-gradient(circle at 18% 15%,rgba(255,255,255,.75),transparent 18%),radial-gradient(circle at 84% 22%,rgba(255,255,255,.6),transparent 16%),linear-gradient(to top,rgba(22,101,52,.30),transparent 34%);"></div>
-<div class="absolute -left-7 top-28 rotate-[-13deg] w-16 h-16 rounded-2xl bg-amber-100 border-4 border-amber-200 shadow-xl flex items-center justify-center text-3xl font-black text-slate-800">K<span class="absolute right-1 bottom-0 text-[9px]">5</span></div>
-<div class="absolute -right-5 top-40 rotate-[14deg] w-16 h-16 rounded-2xl bg-amber-100 border-4 border-amber-200 shadow-xl flex items-center justify-center text-3xl font-black text-slate-800">İ<span class="absolute right-1 bottom-0 text-[9px]">1</span></div>
+<div class="absolute -left-7 top-28 rotate-[-13deg] w-16 h-16 rounded-2xl bg-amber-100 border-4 border-amber-200 shadow-xl flex items-center justify-center text-3xl font-black text-slate-800">K<span class="absolute right-1 bottom-0 text-[9px]">2</span></div>
+<div class="absolute -right-5 top-40 rotate-[14deg] w-16 h-16 rounded-2xl bg-amber-100 border-4 border-amber-200 shadow-xl flex items-center justify-center text-3xl font-black text-slate-800">İ<span class="absolute right-1 bottom-0 text-[9px]">2</span></div>
 <div class="home-content-layer h-full flex flex-col items-center px-4 pt-5 pb-3 overflow-y-auto hide-scroll">
 <div class="home-title-wrap shrink-0 text-center mt-1">
 <div class="home-crown text-3xl mb-[-10px] drop-shadow-lg">👑</div>
 <div class="home-logo-card bg-indigo-950/90 border-4 border-indigo-800 rounded-[28px] px-5 py-2 shadow-2xl -rotate-1">
-<h1 class="home-logo-word home-logo-tiles text-[32px] leading-[30px] font-black uppercase tracking-tight drop-shadow" aria-label="KAPMACA.tr"><span>K</span><span>A</span><span>P</span><span>M</span><span>A</span><span>C</span><span>A</span><span class="home-domain-tile">.tr</span></h1>
+<h1 class="home-logo-word home-logo-tiles font-black tracking-tight" aria-label="KAPMACA.tr"><span class="home-logo-tile" data-score="2">K</span><span class="home-logo-tile" data-score="2">A</span><span class="home-logo-tile" data-score="6">P</span><span class="home-logo-tile" data-score="3">M</span><span class="home-logo-tile" data-score="2">A</span><span class="home-logo-tile" data-score="5">C</span><span class="home-logo-tile" data-score="2">A</span><span class="home-domain-tile">.tr</span></h1>
 <h1 class="home-logo-duel text-[30px] leading-[29px] font-black uppercase tracking-tight">SÖZCÜK AVI</h1>
 </div>
-<div class="home-tagline -mt-1 mx-auto text-white font-black text-[9px] tracking-wide px-4 py-1 rounded-full shadow-lg w-max">HARFLERİ TOPLA, PUANLARI KATLA!</div>
 </div>
 
 <div class="home-modes w-full max-w-sm mt-5 space-y-3 shrink-0">
@@ -44484,10 +44483,18 @@ const col=Math.max(0,Math.min(BOARD_SIZE-1,Math.round((x-metrics.cellW/2)/stepX)
 const row=Math.max(0,Math.min(BOARD_SIZE-1,Math.round((y-metrics.cellH/2)/stepY)));
 return {row,col};
 }
-function invalidateGridMetrics(){ hoverGridRect=null; hoverGridMetrics=null; activeGridRect=null; activeGridMetrics=null; }
+function invalidateGridMetrics(){
+  hoverGridRect=null; hoverGridMetrics=null;
+  if(isPointerDown){
+    activeGridMetrics=measureGrid(); activeGridRect=activeGridMetrics.rect;
+    lastPointerX=null; lastPointerY=null;
+  } else { activeGridRect=null; activeGridMetrics=null; }
+}
 const refreshGridRect=()=>{ hoverGridMetrics=measureGrid(); hoverGridRect=hoverGridMetrics.rect; };
 gridEl.addEventListener('pointerenter',refreshGridRect,{passive:true});
 window.addEventListener('resize',invalidateGridMetrics,{passive:true});
+document.addEventListener('fullscreenchange',invalidateGridMetrics);
+document.addEventListener('webkitfullscreenchange',invalidateGridMetrics);
 if('ResizeObserver' in window){ new ResizeObserver(invalidateGridMetrics).observe(gridEl); }
 
 let lastHoverCell=-1;
@@ -44538,26 +44545,31 @@ lastPointerX=e.clientX; lastPointerY=e.clientY;
 }, {passive:false});
 
 gridEl.addEventListener('pointermove', (e) => {
-if (!isMatchActive || !isPointerDown) return;
+if (!isMatchActive || !isPointerDown || e.pointerId!==activePointerId) return;
 const samples = typeof e.getCoalescedEvents === 'function' ? e.getCoalescedEvents() : null;
-if (samples && samples.length > 1) {
-const step=Math.max(1,Math.ceil(samples.length/4));
-for (let i=0;i<samples.length;i+=step) { const sample=samples[i]; processPointerSegment(sample.clientX,sample.clientY,activeGridMetrics); }
-const last=samples[samples.length-1]; processPointerSegment(last.clientX,last.clientY,activeGridMetrics);
+if(!pendingPointer) pendingPointer=[];
+if(samples?.length){
+  const step=Math.max(1,Math.ceil(samples.length/4));
+  for(let i=0;i<samples.length;i+=step) pendingPointer.push({x:samples[i].clientX,y:samples[i].clientY});
 }
-pendingPointer = {x:e.clientX, y:e.clientY};
+pendingPointer.push({x:e.clientX,y:e.clientY});
+if(pendingPointer.length>12) pendingPointer.splice(0,pendingPointer.length-12);
 if (pointerFrame) return;
 pointerFrame = requestAnimationFrame(() => {
 pointerFrame = 0; if (!pendingPointer || !isPointerDown) return;
-const p = pendingPointer; pendingPointer = null; processPointerSegment(p.x, p.y, activeGridMetrics);
+const queued = pendingPointer; pendingPointer = null;
+for(const p of queued) processPointerSegment(p.x,p.y,activeGridMetrics);
 });
 }, {passive:true});
 
 const finishPointer = (e, shouldSubmit = true) => {
-if (!isPointerDown) return;
+if (!isPointerDown || e.pointerId!==activePointerId) return;
 clearTimeout(pointerHoldTimer); pointerHoldTimer = null;
 const heldMs = pointerHoldStartedAt ? (performance.now() - pointerHoldStartedAt) : 0;
 const cancelForLongHold = shouldSubmit && heldMs >= HOLD_CANCEL_MS;
+if(shouldSubmit && !cancelForLongHold && pendingPointer){
+  for(const p of pendingPointer) processPointerSegment(p.x,p.y,activeGridMetrics);
+}
 if (shouldSubmit && !cancelForLongHold && activeGridMetrics) processPointerAt(e.clientX, e.clientY, activeGridMetrics);
 isPointerDown = false; pointerHoldStartedAt = 0; pendingPointer = null; activeGridRect = null; activeGridMetrics=null;
 lastPointerX=null; lastPointerY=null;
