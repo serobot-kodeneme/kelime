@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA — Sözcük Avı v239</title>
-<meta name="game-version" content="v239">
+<title>KAPMACA — Sözcük Avı v240</title>
+<meta name="game-version" content="v240">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2871,7 +2871,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
   padding:5px 4px 8px !important;
 }
 #screen-home.home-v156 .home-logo-tiles{
-  display:flex;align-items:flex-end;justify-content:center;gap:2px;margin:0 auto 3px;
+  display:flex;align-items:flex-end;justify-content:center;gap:2px;margin:0 auto 0;
   color:#123b78;text-shadow:0 1px 0 #fff;
 }
 #screen-home.home-v156 .home-logo-tiles span{
@@ -2891,15 +2891,15 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 #screen-home.home-v156 .home-logo-tiles{gap:1px}
 #screen-home.home-v156 .home-logo-tiles span{width:36px;height:39px;font-size:24px}
 #screen-home.home-v156 .home-logo-duel{
-  display:inline-block;position:relative;z-index:-1;margin-top:-5px;padding:7px 18px 8px;
-  min-width:246px;border-radius:17px;
+  display:inline-block;position:relative;z-index:-1;margin-top:-9px;padding:5px 14px 5px;
+  min-width:210px;border-radius:14px;font-size:22px!important;line-height:23px!important;
   background:linear-gradient(180deg,#159ef4,#096fe5 64%,#085bc2);
   border:2px solid rgba(115,211,255,.9);border-bottom-color:#0649a5;
   color:#fff3cf;text-shadow:0 3px 0 #cc7300,0 5px 8px rgba(0,72,155,.28);
   box-shadow:0 6px 0 #0755ba,0 11px 18px rgba(0,87,170,.22),inset 0 2px 0 rgba(255,255,255,.42);
 }
 #screen-home.home-v156 .home-tagline{
-  margin-top:4px !important;background:rgba(255,255,255,.82) !important;color:#13518c !important;
+  margin-top:-2px !important;background:rgba(255,255,255,.82) !important;color:#13518c !important;
   border:1px solid rgba(255,255,255,.9) !important;box-shadow:0 5px 13px rgba(25,114,180,.13) !important;
   backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
 }
@@ -2956,7 +2956,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 }
 @media(max-width:380px){
   #screen-home.home-v156 .home-logo-tiles span{width:34px;height:37px;font-size:23px;border-radius:9px}
-  #screen-home.home-v156 .home-logo-duel{min-width:218px;font-size:26px!important;line-height:26px!important}
+  #screen-home.home-v156 .home-logo-duel{min-width:200px;font-size:21px!important;line-height:22px!important}
 }
 @keyframes online-pulse{0%,100%{opacity:1}50%{opacity:.22}}
 #online-player-count.is-online{animation:online-pulse 1.25s ease-in-out infinite}
@@ -2997,6 +2997,10 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 #home-demo .demo-board{max-width:210px;gap:2px}
 #home-demo .demo-board .demo-tile{font-size:14px;border-radius:6px}
 #home-demo{background:rgba(255,255,255,.78);border:1px solid rgba(255,255,255,.95);box-shadow:0 7px 15px rgba(25,77,131,.12)}
+.demo-preview{display:flex;justify-content:space-between;align-items:center;gap:8px;max-width:245px;margin:0 auto 8px;padding:5px 8px;min-height:32px;border-radius:10px;background:#0f172a;color:#e0e7ff;box-shadow:inset 0 1px 4px rgba(0,0,0,.25)}
+.demo-preview .demo-word{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1;letter-spacing:.04em}
+.demo-preview .demo-score{flex-shrink:0}
+#home-demo .demo-preview{max-width:210px;margin-bottom:6px;min-height:27px;padding:3px 6px}
 @keyframes demo-score-pop{50%{transform:scale(1.16)}}
 @media(prefers-reduced-motion:reduce){.demo-board .demo-tile,.demo-score.demo-earned{transition:none;animation:none}}
 </style>
@@ -3035,8 +3039,8 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 
 <div class="home-modes w-full max-w-sm mt-5 space-y-3 shrink-0">
 <div id="home-demo" class="rounded-2xl px-3 py-2" aria-label="Örnek sözcük seçimi animasyonu">
+<div class="demo-preview text-[11px] font-black"><span class="demo-word">KAP</span><span class="demo-score rounded-lg bg-amber-100 text-amber-900 px-2 py-0.5">+10 puan</span></div>
 <div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div>
-<div class="mt-1 flex justify-between items-center text-[11px] font-black"><span class="demo-word text-indigo-900">KAP</span><span class="demo-score rounded-lg bg-amber-100 text-amber-900 px-2 py-0.5">+10 puan</span></div>
 </div>
 <button id="btn-solo-mode" class="home-mode-btn w-full min-h-[76px] flex items-center gap-4 px-5 bg-gradient-to-b from-emerald-400 to-green-600 text-white rounded-[24px] border-4 border-emerald-200/70 shadow-[0_8px_0_#166534] active:translate-y-1 active:shadow-[0_4px_0_#166534] transition">
 <span aria-hidden="true"><svg viewBox="0 0 24 24" class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.3"/><path d="M6.7 19.1c.65-3 2.9-4.8 5.3-4.8s4.65 1.8 5.3 4.8"/></svg></span><span class="text-left flex-1"><b class="block text-xl leading-5 font-black">TEK OYUNCU</b><small class="font-bold text-green-50">Zorluk seç ve hemen başla</small></span><span id="solo-arrow" class="text-3xl font-black transition-transform">›</span>
@@ -3177,8 +3181,8 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div class="bg-white rounded-3xl p-4 shadow-lg border border-sky-100 mb-3" aria-label="Örnek oynanış animasyonu">
 <div class="font-black text-indigo-950 mb-1">▶ Harfleri sürükle, sözcüğü kap!</div>
 <p class="text-[11px] text-slate-600 mb-3">Basılı tutup komşu harflere sürükle ve bırak. Sağa, sola, yukarı veya aşağı ilerleyebilirsin.</p>
+<div class="demo-preview text-xs font-black"><span class="demo-word" aria-live="off">K → A → P</span><span class="demo-score rounded-xl bg-amber-100 text-amber-900 px-2 py-1">Örnek seçim</span></div>
 <div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div>
-<div class="mt-3 flex justify-between items-center gap-2 text-xs font-black"><span class="demo-word text-indigo-900" aria-live="off">K → A → P</span><span class="demo-score rounded-xl bg-amber-100 text-amber-900 px-2 py-1">Örnek seçim</span></div>
 <p class="text-[10px] text-slate-500 mt-2">Animasyon öğretim amaçlıdır; gerçek puan ve sözcük geçerliliği oyun sözlüğüne göre belirlenir.</p>
 </div>
 <div class="space-y-3">
