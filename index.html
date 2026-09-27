@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v259</title>
-<meta name="game-version" content="v259">
+<title>KAPMACA.tr — Sözcük Avı v260</title>
+<meta name="game-version" content="v260">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2159,7 +2159,7 @@
   #scrabble-grid.is-grabbing{cursor:grabbing!important;}
   #scrabble-grid .letter-cell.tile-hover-p1:not(.tile-dragging),
   #scrabble-grid .letter-cell.tile-hover-p2:not(.tile-dragging){
-    transform:translate3d(0,-2px,0) scale(1.09)!important;
+    transform:translate3d(0,-1px,0) scale(1.015)!important;
     z-index:35!important;
     box-shadow:0 7px 15px rgba(15,23,42,.18),0 0 0 1.5px rgba(255,255,255,.62)!important;
   }
@@ -2419,12 +2419,12 @@ white-space: nowrap;
 /* Seçilen harf önizlemesi: her ekran ve tam ekran modunda daima yatay */
 #selected-preview-bar{
   position:relative;
-  height:40px!important;
-  min-height:40px!important;
+  height:36px!important;
+  min-height:36px!important;
   display:flex!important;
   align-items:center!important;
   justify-content:space-between!important;
-  gap:8px;
+  gap:5px;
   padding-left:8px!important;
   padding-right:8px!important;
 }
@@ -2432,7 +2432,7 @@ white-space: nowrap;
   min-width:0;
   width:auto;
   flex:1 1 auto;
-  min-height:33px;
+  min-height:29px;
   display:flex;
   flex-direction:row;
   flex-wrap:nowrap;
@@ -2447,18 +2447,18 @@ white-space: nowrap;
   align-items:center;
   justify-content:flex-start;
   gap:3px;
-  min-height:33px;
+  min-height:29px;
   max-width:100%;
   white-space:nowrap;
   overflow:hidden;
 }
 .letter-cell.selected-preview-tile{
-  width:31px!important;
-  height:31px!important;
-  min-width:31px!important;
-  min-height:31px!important;
-  flex:0 0 31px!important;
-  font-size:clamp(1.05rem,5vw,1.32rem)!important;
+  width:27px!important;
+  height:27px!important;
+  min-width:27px!important;
+  min-height:27px!important;
+  flex:0 0 27px!important;
+  font-size:clamp(.96rem,4.5vw,1.17rem)!important;
   border-radius:6px!important;
   box-shadow:0 2px 0 #cbd5e1!important;
   transform:none!important;
@@ -2492,16 +2492,16 @@ white-space: nowrap;
 #selected-preview-bar.preview-valid #selected-preview-status{display:inline-flex;color:#4ade80;}
 #selected-preview-bar.preview-invalid #selected-preview-status{display:inline-flex;color:#fca5a5;}
 @media (pointer:coarse){
-  .letter-cell.selected-preview-tile{font-size:clamp(1.12rem,5.75vw,1.52rem)!important;}
+  .letter-cell.selected-preview-tile{font-size:clamp(.98rem,4.8vw,1.2rem)!important;}
 }
 @media(max-width:380px){
   #selected-preview-bar{gap:5px;padding-left:5px!important;padding-right:5px!important;}
   .selected-preview-tiles{gap:2px}
-  .letter-cell.selected-preview-tile{width:27px!important;height:27px!important;min-width:27px!important;min-height:27px!important;flex-basis:27px!important;font-size:clamp(1.08rem,5.7vw,1.34rem)!important}
+  .letter-cell.selected-preview-tile{width:24px!important;height:24px!important;min-width:24px!important;min-height:24px!important;flex-basis:24px!important;font-size:1rem!important}
   #selected-preview-status{font-size:8.5px;}
 }
 @media(max-width:340px){
-  .letter-cell.selected-preview-tile{width:25px!important;height:25px!important;min-width:25px!important;min-height:25px!important;flex-basis:25px!important;font-size:1.05rem!important}
+  .letter-cell.selected-preview-tile{width:22px!important;height:22px!important;min-width:22px!important;min-height:22px!important;flex-basis:22px!important;font-size:.94rem!important}
   #selected-preview-status{font-size:8px;}
 }
 @media (max-width: 600px), (max-height: 760px) {
@@ -3078,8 +3078,8 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 @media (hover:hover) and (pointer:fine){
   #scrabble-grid .letter-cell.tile-hover-p1:not(.tile-dragging),
   #scrabble-grid .letter-cell.tile-hover-p2:not(.tile-dragging){
-    transform:translateY(-1px)!important;
-    box-shadow:0 3px 7px rgba(15,23,42,.14)!important;
+    transform:translateY(-.5px)!important;
+    box-shadow:0 2px 5px rgba(15,23,42,.12)!important;
   }
   #scrabble-grid .letter-cell.tile-dragging{
     transform:translate3d(0,-1px,0) scale(1.07)!important;
@@ -3090,20 +3090,13 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 .demo-board .demo-tile{display:grid;place-items:center;aspect-ratio:1;background:#fff2d4;border:2px solid #e8c78b;border-radius:7px;color:#263b68;font-weight:900;font-size:16px;box-shadow:0 3px 0 #d7ab70;transition:transform .12s ease,background .12s ease,box-shadow .12s ease}
 .demo-board .demo-blank{visibility:hidden}
 .demo-board .demo-tile.demo-active{background:#fbbf24;transform:translateY(-3px) scale(1.06);box-shadow:0 5px 0 #b45309}
-.demo-score.demo-earned{background:#dcfce7;color:#166534;animation:demo-score-pop .32s ease-out}
 #home-demo .demo-board{max-width:210px;gap:2px}
 #home-demo .demo-board .demo-tile{font-size:14px;border-radius:6px}
 #home-demo{background:rgba(255,255,255,.78);border:1px solid rgba(255,255,255,.95);box-shadow:0 7px 15px rgba(25,77,131,.12)}
-.demo-preview{display:flex;justify-content:space-between;align-items:center;gap:8px;max-width:245px;margin:0 auto 8px;padding:5px 8px;min-height:32px;border-radius:10px;background:#0f172a;color:#e0e7ff;box-shadow:inset 0 1px 4px rgba(0,0,0,.25)}
-.demo-preview .demo-word{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1;letter-spacing:.04em}
-.demo-preview .demo-score{flex-shrink:0}
-#home-demo .demo-preview{max-width:210px;margin-bottom:6px;min-height:27px;padding:3px 6px}
 .mp-demo{margin:10px auto;max-width:250px;padding:8px;border-radius:16px;background:rgba(239,246,255,.9);border:1px solid #dbeafe}
 .mp-demo .demo-board{max-width:210px;gap:2px}
 .mp-demo .demo-board .demo-tile{font-size:14px;border-radius:6px}
-.mp-demo .demo-preview{max-width:210px;min-height:27px;margin-bottom:6px;padding:3px 6px}
-@keyframes demo-score-pop{50%{transform:scale(1.16)}}
-@media(prefers-reduced-motion:reduce){.demo-board .demo-tile,.demo-score.demo-earned{transition:none;animation:none}}
+@media(prefers-reduced-motion:reduce){.demo-board .demo-tile{transition:none;animation:none}}
 </style>
 
 <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -3136,7 +3129,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 
 <div class="home-modes w-full max-w-sm mt-5 space-y-3 shrink-0">
 <div id="home-demo" class="rounded-2xl px-3 py-2" aria-label="Örnek sözcük seçimi animasyonu">
-<div class="demo-preview text-[11px] font-black"><span class="demo-word">YAŞ</span><span class="demo-score rounded-lg bg-amber-100 text-amber-900 px-2 py-0.5">+11 puan</span></div>
+
 <div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div>
 </div>
 <button id="btn-solo-mode" class="home-mode-btn w-full min-h-[76px] flex items-center gap-4 px-5 bg-gradient-to-b from-emerald-400 to-green-600 text-white rounded-[24px] border-4 border-emerald-200/70 shadow-[0_8px_0_#166534] active:translate-y-1 active:shadow-[0_4px_0_#166534] transition">
@@ -3260,11 +3253,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <p class="text-xs text-indigo-100 mt-1 leading-relaxed">9×9 tahtada komşu harfleri birleştir, geçerli Türkçe sözcükleri bul ve 60 saniyelik kapışmada en yüksek puanı toplamaya çalış.</p>
 </div>
 <div class="bg-white rounded-3xl p-4 shadow-lg border border-sky-100 mb-3" aria-label="Örnek oynanış animasyonu">
-<div class="font-black text-indigo-950 mb-1">▶ Harfleri sürükle, sözcüğü kap!</div>
-<p class="text-[11px] text-slate-600 mb-3">Basılı tutup komşu harflere sürükle ve bırak. Sağa, sola, yukarı veya aşağı ilerleyebilirsin.</p>
-<div class="demo-preview text-xs font-black"><span class="demo-word" aria-live="off">K → A → P</span><span class="demo-score rounded-xl bg-amber-100 text-amber-900 px-2 py-1">Örnek seçim</span></div>
 <div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div>
-<p class="text-[10px] text-slate-500 mt-2">Animasyon öğretim amaçlıdır; gerçek puan ve sözcük geçerliliği oyun sözlüğüne göre belirlenir.</p>
 </div>
 <div class="space-y-3">
 <div class="bg-white rounded-3xl p-4 shadow-lg border border-sky-100">
@@ -3404,7 +3393,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div class="mx-auto mb-4 w-16 h-16 rounded-full bg-indigo-50 border-2 border-indigo-100 flex items-center justify-center text-3xl">⚔️</div>
 <div class="text-xl font-black text-slate-800">KAPIŞMA OYUNUNA DAVET EDİLDİNİZ</div>
 <div id="invite-room-code" class="mt-2 text-xs font-black tracking-[.18em] text-indigo-600"></div>
-<div class="mp-demo" aria-label="Oynanış örneği"><div class="demo-preview text-[11px] font-black"><span class="demo-word">YAŞ</span><span class="demo-score rounded-lg bg-amber-100 text-amber-900 px-2 py-0.5">+11 puan</span></div><div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div></div>
+<div class="mp-demo" aria-label="Oynanış örneği"><div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div></div>
 <div class="mt-5 grid grid-cols-1 gap-3">
 <button id="btn-invite-start" class="py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 text-white text-sm font-black shadow-md">BAŞLA</button>
 <button id="btn-invite-cancel" class="py-3 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 text-white text-sm font-black shadow-md border border-rose-300">ÇIK</button>
@@ -3419,7 +3408,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div class="w-8 h-8 rounded-full border-4 border-sky-200 border-t-sky-600 animate-spin"></div>
 </div>
 <div class="text-lg font-black text-slate-800">DAVET EDİLEN OYUNCUDAN YANIT BEKLENİYOR</div>
-<div class="mp-demo" aria-label="Oynanış örneği"><div class="demo-preview text-[11px] font-black"><span class="demo-word">YAŞ</span><span class="demo-score rounded-lg bg-amber-100 text-amber-900 px-2 py-0.5">+11 puan</span></div><div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div></div>
+<div class="mp-demo" aria-label="Oynanış örneği"><div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div></div>
 <div id="invite-wait-countdown" class="mt-2 text-3xl font-black tabular-nums text-sky-600">60</div>
 <div class="mt-1 text-xs font-bold text-slate-500">60 saniye içinde BAŞLA yanıtı gelmezse oda otomatik kapatılır.</div>
 </div>
@@ -3443,7 +3432,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div id="modal-countdown" class="absolute inset-0 bg-slate-950/45 backdrop-blur-[7px] flex items-center justify-center z-50 hidden">
 <div class="flex flex-col items-center justify-center bg-white/90 border border-slate-200/80 p-6 rounded-3xl shadow-2xl backdrop-blur-md">
 <div id="countdown-invite-message" class="hidden mb-3 max-w-[260px] text-center text-[12px] leading-snug font-black text-indigo-950 bg-indigo-50 border border-indigo-200 px-4 py-2.5 rounded-2xl shadow-sm">Kapışmaya davet aldınız<br><span class="text-indigo-600">Karşılaşma birazdan başlayacak</span></div>
-<div class="mp-demo hidden" aria-label="Oynanış örneği"><div class="demo-preview text-[11px] font-black"><span class="demo-word">YAŞ</span><span class="demo-score rounded-lg bg-amber-100 text-amber-900 px-2 py-0.5">+11 puan</span></div><div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div></div>
+<div class="mp-demo hidden" aria-label="Oynanış örneği"><div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div></div>
 <div id="countdown-number" class="text-7xl font-black text-amber-500 drop-shadow-sm" style="transition:transform .18s ease-out, filter .16s ease-out, opacity .14s ease-out; will-change:transform;">3</div>
 <div id="countdown-status" class="countdown-sync-ok">✓ SENKRON</div>
 </div>
@@ -42514,7 +42503,7 @@ const card=document.getElementById(cardId); if(!card) return;
 card.querySelectorAll('.result-card-party').forEach(el=>el.remove());
 const wrap=document.createElement('div'); wrap.className='result-card-party';
 const colors=tone==='sky'?['#38bdf8','#0ea5e9','#bae6fd','#ffffff']:['#fbbf24','#f59e0b','#fde68a','#ffffff'];
-for(let i=0;i<18;i++){
+for(let i=0;i<9;i++){
 const part=document.createElement('i');
 part.style.left=`${5+Math.random()*90}%`;
 part.style.background=colors[i%colors.length];
@@ -44071,9 +44060,8 @@ function startHowtoDemo(){
  function advance(){
   if(document.hidden||!demoVisible()){stopHowtoDemo();return;}
   const item=rounds[round];
-  if(step===0)for(const board of visibleBoards()){board.querySelectorAll('.demo-tile').forEach(t=>t.classList.remove('demo-active'));const score=board.parentElement.querySelector('.demo-score');score.classList.remove('demo-earned');score.textContent='Seçiliyor…';board.parentElement.querySelector('.demo-word').textContent='';}
-  if(step<item.path.length){for(const board of visibleBoards()){const tiles=[...board.querySelectorAll('.demo-tile')];tiles[item.path[step]].classList.add('demo-active');board.parentElement.querySelector('.demo-word').textContent=item.path.slice(0,step+1).map(i=>tiles[i].textContent).join(' → ');}step++;howtoDemoTimer=setTimeout(advance,145);return;}
-  for(const board of visibleBoards()){board.parentElement.querySelector('.demo-word').textContent=item.word;const score=board.parentElement.querySelector('.demo-score');score.textContent=`+${item.points} puan ✓`;score.classList.add('demo-earned');}
+  if(step===0)for(const board of visibleBoards())board.querySelectorAll('.demo-active').forEach(t=>t.classList.remove('demo-active'));
+  if(step<item.path.length){for(const board of visibleBoards())board.querySelectorAll('.demo-tile')[item.path[step]]?.classList.add('demo-active');step++;howtoDemoTimer=setTimeout(advance,145);return;}
   round=(round+1)%rounds.length;step=0;howtoDemoTimer=setTimeout(advance,380);
  }
  advance();
@@ -44871,7 +44859,7 @@ el.classList.add(isP1?'tile-claimed-p1':'tile-claimed-p2');
 
 function playWordConfetti(length,originPoint){
 const letters=Math.max(2,Math.min(9,Number(length)||2));
-const count=Math.round((IS_COARSE_POINTER?10:13)+(letters-2)*(IS_COARSE_POINTER?3:4));
+const count=Math.round((IS_COARSE_POINTER?8:10)+(letters-2)*(IS_COARSE_POINTER?2.5:3));
 const valid=originPoint&&Number.isFinite(originPoint.x)&&Number.isFinite(originPoint.y);
 confetti({particleCount:count,
  spread:65,startVelocity:21,gravity:1.12,decay:.90,ticks:52,scalar:.76,
@@ -45091,7 +45079,7 @@ planBot();
 }
 
 function spawnHighResultPartyFx(){ return; }
-function launchLightResultConfetti(x=.5){if(typeof confetti==='function')confetti({particleCount:28,spread:70,origin:{x,y:.56},zIndex:999,disableForReducedMotion:true});}
+function launchLightResultConfetti(x=.5){if(typeof confetti==='function')confetti({particleCount:20,spread:70,origin:{x,y:.56},zIndex:999,disableForReducedMotion:true});}
 function spawnGlobalResultConfetti(winnerSide=null){
  document.querySelectorAll('.result-global-confetti').forEach(el=>el.remove());
  const wrap=document.createElement('div');wrap.className='result-global-confetti';
@@ -45140,22 +45128,10 @@ function startWinnerConfettiWaterfall(winnerSide=null){
 
 function launchGrandCelebration(winnerSide=null) {
 stopGrandCelebrationFx();
+stopWinnerConfettiWaterfall();
 spawnHighResultPartyFx();
-spawnGlobalResultConfetti(winnerSide);
 const baseX = winnerSide==='p1' ? 0.22 : winnerSide==='p2' ? 0.78 : 0.5;
 launchLightResultConfetti(baseX);
-if (typeof confetti !== 'function') return;
-const duration = (mpRole ? 2.6 : 3.6) * 1000;
-const animationEnd = Date.now() + duration;
-grandCelebrationInterval = setInterval(function() {
-const timeLeft = animationEnd - Date.now();
-if (timeLeft <= 0){clearInterval(grandCelebrationInterval);grandCelebrationInterval=null;return;}
-const baseCount=mpRole ? 24 : 38;
-confetti({particleCount:baseCount*(timeLeft/duration),startVelocity:34,spread:72,origin:{x:Math.max(.08,Math.min(.92,baseX+(Math.random()-.5)*.12)),y:.68},zIndex:999});
-},250);
-grandCelebrationTimeouts.push(setTimeout(()=>confetti({particleCount:mpRole?65:105,spread:95,startVelocity:34,origin:{x:baseX,y:.52},zIndex:999}),220));
-grandCelebrationTimeouts.push(setTimeout(()=>confetti({particleCount:mpRole?80:135,spread:115,startVelocity:34,origin:{x:baseX,y:.42},zIndex:999}),780));
-startWinnerConfettiWaterfall(winnerSide);
 }
 
 async function waitUntilRoomFinished(timeoutMs=3500){
