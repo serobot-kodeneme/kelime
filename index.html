@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v275</title>
-<meta name="game-version" content="v275">
+<title>KAPMACA.tr — Sözcük Avı v276</title>
+<meta name="game-version" content="v276">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -3187,9 +3187,14 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 #home-demo .demo-board{max-width:210px;gap:2px}
 #home-demo .demo-board .demo-tile{font-size:14px;border-radius:6px}
 #home-demo{background:rgba(255,255,255,.78);border:1px solid rgba(255,255,255,.95);box-shadow:0 7px 15px rgba(25,77,131,.12)}
-.mp-demo{margin:10px auto;max-width:250px;padding:8px;border-radius:16px;background:rgba(239,246,255,.9);border:1px solid #dbeafe}
-.mp-demo .demo-board{max-width:210px;gap:2px}
-.mp-demo .demo-board .demo-tile{font-size:14px;border-radius:6px}
+.demo-picked{min-height:30px;display:flex;align-items:center;justify-content:center;gap:3px;margin:0 auto 7px;padding:3px 6px;border-radius:12px;background:rgba(255,255,255,.82);border:1px solid rgba(203,213,225,.82)}
+.demo-picked:empty{background:transparent;border-color:transparent}
+.demo-picked-tile{width:25px;height:25px;display:grid;place-items:center;border-radius:7px;background:#fff2d4;border:2px solid #e8c78b;color:#263b68;font-weight:900;font-size:14px;box-shadow:0 2px 0 #d7ab70}
+.mp-demo{margin:10px auto;max-width:280px;padding:10px;border-radius:17px;background:rgba(239,246,255,.9);border:1px solid #dbeafe}
+.mp-demo .demo-board{max-width:236px;gap:3px}
+.mp-demo .demo-board .demo-tile{font-size:15px;border-radius:7px}
+#home-demo .demo-board{max-width:228px;gap:3px}
+#home-demo .demo-board .demo-tile{font-size:15px;border-radius:7px}
 @media(prefers-reduced-motion:reduce){.demo-board .demo-tile{transition:none;animation:none}}
 </style>
 
@@ -3222,7 +3227,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 </div>
 
 <div class="home-modes w-full max-w-sm mt-5 space-y-3 shrink-0">
-<div id="home-demo" class="rounded-2xl px-3 py-2" aria-label="Örnek sözcük seçimi animasyonu">
+<div id="home-demo" class="rounded-2xl px-3 py-2" aria-label="Örnek sözcük seçimi animasyonu"><div class="demo-picked" aria-hidden="true"></div>
 
 <div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div>
 </div>
@@ -3492,7 +3497,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div class="mx-auto mb-4 w-16 h-16 rounded-full bg-indigo-50 border-2 border-indigo-100 flex items-center justify-center text-3xl">⚔️</div>
 <div class="text-xl font-black text-slate-800">KAPMACA oyununa davet edildiniz</div>
 <div id="invite-room-code" class="mt-2 text-xs font-black tracking-[.18em] text-indigo-600"></div>
-<div class="mp-demo" aria-label="Oynanış örneği"><div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div></div>
+<div class="mp-demo" aria-label="Oynanış örneği"><div class="demo-picked" aria-hidden="true"></div><div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div></div>
 <div class="mt-5 grid grid-cols-1 gap-3">
 <button id="btn-invite-start" class="py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 text-white text-sm font-black shadow-md">BAŞLA</button>
 <button id="btn-invite-cancel" class="py-3 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 text-white text-sm font-black shadow-md border border-rose-300">ÇIK</button>
@@ -3507,7 +3512,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div class="w-8 h-8 rounded-full border-4 border-sky-200 border-t-sky-600 animate-spin"></div>
 </div>
 <div class="text-lg font-black text-slate-800">DAVET EDİLEN OYUNCUDAN YANIT BEKLENİYOR</div>
-<div class="mp-demo" aria-label="Oynanış örneği"><div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div></div>
+<div class="mp-demo" aria-label="Oynanış örneği"><div class="demo-picked" aria-hidden="true"></div><div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div></div>
 <div id="invite-wait-countdown" class="mt-2 text-3xl font-black tabular-nums text-sky-600">60</div>
 <div class="mt-1 text-xs font-bold text-slate-500">60 saniye içinde BAŞLA yanıtı gelmezse oda otomatik kapatılır.</div>
 </div>
@@ -44176,11 +44181,12 @@ function startHowtoDemo(){
  const demoScreens=['screen-howto','screen-home','modal-room-invite','modal-mp-waiting','modal-rematch-waiting'];
  const demoVisible=()=>demoScreens.some(id=>!document.getElementById(id).classList.contains('hidden'))||(!document.getElementById('modal-countdown').classList.contains('hidden')&&!document.querySelector('#modal-countdown .mp-demo').classList.contains('hidden'));
  const rounds=[
-  // v275: Dört kısa öğretici hareket yeterli; gereksiz sürekli DOM güncellemesi yok.
-  {word:'KAP',path:[7,8,9],points:10},      // soldan sağa
-  {word:'TAŞ',path:[18,11,4],points:9},     // aşağıdan yukarı
-  {word:'PAK',path:[9,8,7],points:10},      // sağdan sola
-  {word:'AYAK',path:[0,1,8,7],points:10}    // kare/dirsek: sağ, aşağı, sol
+  // v276: Beş kısa hareket; yalnız komşu harf toplamayı gösterir.
+  {word:'KAP',path:[7,8,9]},        // soldan sağa
+  {word:'PAK',path:[9,8,7]},        // sağdan sola
+  {word:'TAŞ',path:[18,11,4]},      // aşağıdan yukarı
+  {word:'SAL',path:[6,13,20]},      // yukarıdan aşağı
+  {word:'AYAK',path:[0,1,8,7]}      // dirsek/kare benzeri komşu toplama
  ];
  let round=0,step=0;
  function advance(){
@@ -44188,9 +44194,35 @@ function startHowtoDemo(){
   // Demo görünür kalır ama animasyon dondurulur.
   if(document.hidden||!demoVisible()||isFullscreenActive()){stopHowtoDemo();return;}
   const item=rounds[round];
-  if(step===0)for(const board of visibleBoards())board.querySelectorAll('.demo-active').forEach(t=>t.classList.remove('demo-active'));
-  if(step<item.path.length){for(const board of visibleBoards())board.querySelectorAll('.demo-tile')[item.path[step]]?.classList.add('demo-active');step++;howtoDemoTimer=setTimeout(advance,170);return;}
-  round=(round+1)%rounds.length;step=0;howtoDemoTimer=setTimeout(advance,520);
+  const visible=visibleBoards();
+  const setPicked=(count)=>{
+    const chars=Array.from(item.word).slice(0,count);
+    for(const board of visible){
+      const wrap=board.closest('.mp-demo')||board.parentElement;
+      const picked=wrap?.querySelector('.demo-picked');
+      if(!picked) continue;
+      picked.replaceChildren(...chars.map(ch=>{
+        const tile=document.createElement('span');
+        tile.className='demo-picked-tile';
+        tile.textContent=ch;
+        return tile;
+      }));
+    }
+  };
+  if(step===0){
+    for(const board of visible)board.querySelectorAll('.demo-active').forEach(t=>t.classList.remove('demo-active'));
+    setPicked(0);
+  }
+  if(step<item.path.length){
+    for(const board of visible)board.querySelectorAll('.demo-tile')[item.path[step]]?.classList.add('demo-active');
+    step++;
+    setPicked(step);
+    howtoDemoTimer=setTimeout(advance,170);
+    return;
+  }
+  round=(round+1)%rounds.length;
+  step=0;
+  howtoDemoTimer=setTimeout(advance,520);
  }
  advance();
 }
