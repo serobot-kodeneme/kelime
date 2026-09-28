@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v298</title>
-<meta name="game-version" content="v298">
+<title>KAPMACA.tr — Sözcük Avı v299</title>
+<meta name="game-version" content="v299">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -3586,7 +3586,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div id="invite-room-code" class="mt-2 text-xs font-black tracking-[.18em] text-indigo-600"></div>
 <div class="mp-demo" aria-label="Oynanış örneği"><div class="demo-picked" aria-hidden="true"></div><div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div></div>
 <div class="mt-5 grid grid-cols-1 gap-3">
-<div id="invite-decision-countdown" class="text-sm font-black text-indigo-700">10 saniye içinde seçim yapın</div>
+<div id="invite-decision-countdown" class="text-sm font-black text-indigo-700">30 saniye içinde seçim yapın</div>
 <button id="btn-invite-start" class="py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 text-white text-sm font-black shadow-md">OYUNA BAŞLA</button>
 <button id="btn-invite-cancel" class="py-3 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 text-white text-sm font-black shadow-md border border-rose-300">ÇIKIŞ</button>
 </div>
@@ -3601,8 +3601,8 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 </div>
 <div class="text-lg font-black text-slate-800">DAVET EDİLEN OYUNCUDAN YANIT BEKLENİYOR</div>
 <div class="mp-demo" aria-label="Oynanış örneği"><div class="demo-picked" aria-hidden="true"></div><div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div></div>
-<div id="invite-wait-countdown" class="mt-2 text-3xl font-black tabular-nums text-sky-600">10</div>
-<div class="mt-1 text-xs font-bold text-slate-500">10 saniye içinde OYUNA BAŞLA yanıtı gelmezse oyun sonlandırılır.</div>
+<div id="invite-wait-countdown" class="mt-2 text-3xl font-black tabular-nums text-sky-600">30</div>
+<div class="mt-1 text-xs font-bold text-slate-500">30 saniye içinde OYUNA BAŞLA yanıtı gelmezse iki oyuncu da ana sayfaya döner.</div>
 </div>
 </div>
 
@@ -3630,7 +3630,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 </div>
 </div>
 
-<div id="copy-link-popup" class="copy-link-popup" role="status" aria-live="polite">Bu bağlantıyı oynamak istediğiniz kişiye iletin, 10 saniye içinde odaya yönlendirileceksiniz.</div>
+<div id="copy-link-popup" class="copy-link-popup" role="status" aria-live="polite">Bu bağlantıyı oynamak istediğiniz kişiye iletin, 30 saniye içinde odaya yönlendirileceksiniz.</div>
 
 <div id="modal-gameover" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex items-start justify-center z-50 hidden pt-3 sm:pt-5">
 <div class="bg-white border border-slate-200 px-4 pt-3 pb-4 rounded-3xl text-center w-[94%] max-w-md flex flex-col items-center text-slate-900 shadow-2xl max-h-[96%] overflow-hidden">
@@ -43153,7 +43153,7 @@ try{ await ref.remove(); }catch(_){ }
 function stopInviteWaitCountdown(){
 if(inviteWaitCountdownTimer){ clearInterval(inviteWaitCountdownTimer); inviteWaitCountdownTimer=null; }
 inviteWaitDeadlineAt=0;
-const el=document.getElementById('invite-wait-countdown'); if(el) el.textContent='10';
+const el=document.getElementById('invite-wait-countdown'); if(el) el.textContent='30';
 }
 async function expirePrivateInviteRoom(){
 if(mpRole!=='host'||!mpRoomRef||!mpRoomCode||!/^invite-only-/.test(String(mpRoomMode||''))) return;
@@ -43495,8 +43495,9 @@ if(startBtn){ startBtn.disabled=false; startBtn.classList.remove('hidden'); }
 if(cancelBtn){ cancelBtn.disabled=false; cancelBtn.classList.remove('hidden'); }
 modal?.classList.remove('hidden');
 stopInviteDecisionTimer();
-const deadline=serverNow()+10000;
-if(mpRole==='guest'&&mpRoomRef&&/^invite-only-/.test(String(mpRoomMode||''))){
+const existingDeadline=Number(mpRoomData?.inviteExpiresAt||0);
+const deadline=existingDeadline>serverNow()?existingDeadline:serverNow()+30000;
+if(mpRole==='guest'&&mpRoomRef&&/^invite-only-/.test(String(mpRoomMode||'')) && !existingDeadline){
   mpRoomRef.child('invite/expiresAt').set(deadline).catch(()=>{});
 }
 const tick=()=>{
@@ -43550,9 +43551,10 @@ else delete document.body.dataset.privateFriendActive;
 const [gsSnap,scoreSnap,inviteSnap]=await Promise.all([ref.child('gameState').once('value'),ref.child('scores').once('value'),ref.child('invite/guest').once('value')]);
 const gs0=gsSnap.val()||{};
 if(role==='guest' && /^invite-only-/.test(String(d.mode||'')) && gs0.status==='waiting'){
-  await ref.child('invite').update({guest:'pending',expiresAt:serverNow()+10000});
+  await ref.child('invite').update({guest:'pending'});
 }
-mpRoomData={...gs0,scores:scoreSnap.val()||{host:0,guest:0},inviteGuest:(role==='guest' && /^invite-only-/.test(String(d.mode||'')) && gs0.status==='waiting')?'pending':(inviteSnap.val()||null)}; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId=''; mpEntered=false; mpStarted=false;
+const invite0=inviteSnap.val()||{};
+mpRoomData={...gs0,scores:scoreSnap.val()||{host:0,guest:0},inviteGuest:(role==='guest' && /^invite-only-/.test(String(d.mode||'')) && gs0.status==='waiting')?'pending':invite0.guest,inviteExpiresAt:Number(invite0.expiresAt||0)}; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId=''; mpEntered=false; mpStarted=false;
 await markPresence(); setRoomUrl(code);
 setMpPanelRoom(code,role==='host'?'1. oyuncu olarak odana yeniden bağlandın.':'2. oyuncu olarak davet odasına bağlandın.');
 document.getElementById('btn-close-room')?.classList.toggle('hidden',role!=='host');
@@ -44250,6 +44252,11 @@ try{
 await navigator.clipboard.writeText(url);
 showCopyLinkPopup();
 const copiedRoom=mpRoomCode;
+const inviteDeadline=serverNow()+30000;
+if(mpRole==='host' && mpRoomRef && /^invite-only-/.test(String(mpRoomMode||''))){
+  await mpRoomRef.child('invite').update({guest:'pending',expiresAt:inviteDeadline});
+  mpRoomData={...(mpRoomData||{}),inviteGuest:'pending',inviteExpiresAt:inviteDeadline};
+}
 clearTimeout(copyLinkEnterTimer);
 copyLinkEnterTimer=setTimeout(async()=>{
   copyLinkEnterTimer=null;
@@ -44261,8 +44268,8 @@ copyLinkEnterTimer=setTimeout(async()=>{
     let deadline=0;
     if(waiting){
       const currentExpiry=Number((await mpRoomRef.child('invite/expiresAt').once('value')).val()||0);
-      deadline=currentExpiry>serverNow()?currentExpiry:serverNow()+10000;
-      await mpRoomRef.child('invite/expiresAt').set(deadline);
+      deadline=currentExpiry>0?currentExpiry:inviteDeadline;
+      if(currentExpiry<=0) await mpRoomRef.child('invite/expiresAt').set(deadline);
     }
     await enterMultiplayerRoom();
     if(!mpEntered || mpRoomCode!==copiedRoom || mpRole!=='host') return;
@@ -45347,11 +45354,11 @@ function showCopyLinkPopup(){
 const el=document.getElementById('copy-link-popup');
 if(!el) return;
 clearTimeout(el._hideTimer);
-el.textContent='Bu bağlantıyı oynamak istediğiniz kişiye iletin, 10 saniye içinde odaya yönlendirileceksiniz.';
+el.textContent='Bu bağlantıyı oynamak istediğiniz kişiye iletin, 30 saniye içinde odaya yönlendirileceksiniz.';
 el.classList.remove('show');
 void el.offsetWidth;
 el.classList.add('show');
-el._hideTimer=setTimeout(()=>el.classList.remove('show'),10000);
+el._hideTimer=setTimeout(()=>el.classList.remove('show'),30000);
 }
 
 function showToast(msg, color, duration=1600) {
