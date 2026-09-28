@@ -1892,21 +1892,34 @@ supportScreen?.addEventListener('click',event=>{if(event.target===supportScreen)
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&supportScreen&&!supportScreen.classList.contains('hidden')){supportScreen.classList.add('hidden');if(location.hash==='#screen-support')history.replaceState(null,'',location.pathname+location.search);}});
 const soundRange=document.getElementById('sound-volume-range');
 const soundMuted=document.getElementById('sound-muted');
+let soundPreviewAt=0;
+function previewSoundLevel(){
+  if(masterSoundVolume<=0) return;
+  const now=performance.now();
+  if(now-soundPreviewAt<75) return;
+  soundPreviewAt=now;
+  ensureGameAudio();
+  playTone(620,.055,.065,'sine',760);
+}
+soundRange?.addEventListener('pointerdown',()=>{
+  const level=Math.max(1,Math.min(5,Number(soundRange.value||1)));
+  setMasterSoundVolume(level/5);
+  previewSoundLevel();
+});
 soundRange?.addEventListener('input',()=>{
   const level=Math.max(1,Math.min(5,Number(soundRange.value||1)));
   setMasterSoundVolume(level/5);
+  previewSoundLevel();
 });
-soundRange?.addEventListener('change',()=>{if(masterSoundVolume>0) playCorrectChime();});
 soundMuted?.addEventListener('change',()=>{
   if(soundMuted.checked){
     if(masterSoundVolume>0) lastNonMutedSoundVolume=masterSoundVolume;
     setMasterSoundVolume(0);
   }else{
     setMasterSoundVolume(Math.max(1,Math.min(5,Math.round((lastNonMutedSoundVolume>0?lastNonMutedSoundVolume:.8)*5)))/5);
-    playCorrectChime();
+    previewSoundLevel();
   }
 });
-document.getElementById('btn-sound-test').onclick = () => { ensureGameAudio(); playLetterPickSound(3); setTimeout(playCorrectChime,110); };
 setMasterSoundVolume(masterSoundVolume);
 
 updateFullscreenUi();
