@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v293</title>
-<meta name="game-version" content="v293">
+<title>KAPMACA.tr — Sözcük Avı v294</title>
+<meta name="game-version" content="v294">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -42751,7 +42751,7 @@ items.forEach((x,i)=>{
   entry.className=`rounded-lg ${tone==='amber'?'bg-white/75 text-amber-950':'bg-white/75 text-sky-950'}`;
   const button=document.createElement('button');
   button.type='button';
-  button.className='w-full flex items-center justify-between gap-1 px-2 py-1 text-left cursor-pointer';
+  button.className=`w-full flex items-center justify-between gap-1 px-2 py-1.5 text-left cursor-pointer rounded-lg border-2 shadow-sm transition ${tone==='amber'?'border-amber-300 bg-amber-50 hover:bg-amber-100':'border-sky-300 bg-sky-50 hover:bg-sky-100'}`;
   button.title=`${x.word} anlamını göster`;
   button.setAttribute('aria-expanded','false');
   const word=document.createElement('span');
