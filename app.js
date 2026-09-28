@@ -519,8 +519,15 @@ if(!firebaseNetworkOnline){
 return true;
 }
 function disconnectFirebaseNetwork(){
-if(!mpDb || !firebaseNetworkOnline) return;
-try{ mpDb.goOffline(); }catch(_){}
+if(!mpDb) return;
+// Multiplayer kullanılmıyorken Realtime Database üzerinde açık dinleyici bırakma.
+if(serverOffsetListener){
+  try{ mpDb.ref('.info/serverTimeOffset').off('value',serverOffsetListener); }catch(_){}
+  serverOffsetListener=null;
+}
+if(firebaseNetworkOnline){
+  try{ mpDb.goOffline(); }catch(_){}
+}
 firebaseNetworkOnline=false;
 firebaseWasConnected=null;
 reconnectPresenceBusy=false;
@@ -1671,6 +1678,9 @@ setDifficultyOpen(false);
 const panel=document.getElementById('friend-invite-panel');
 const willOpen=panel?.classList.contains('hidden');
 if(willOpen){
+// Çok oyunculu menüsünü açmak tek başına Firebase bağlantısı başlatmaz.
+// Önceki bir oturumdan bağlantı kalmışsa menü nötr durumda açılır.
+if(!mpRoomRef && !randomSearchActive) disconnectFirebaseNetwork();
 panel?.classList.remove('hidden');
 document.getElementById('mp-create-view')?.classList.remove('hidden');
 document.getElementById('mp-room-view')?.classList.add('hidden');
