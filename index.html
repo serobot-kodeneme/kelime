@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v304</title>
-<meta name="game-version" content="v304">
+<title>KAPMACA.tr — Sözcük Avı v305</title>
+<meta name="game-version" content="v305">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -3632,7 +3632,10 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 
 <div id="copy-link-popup" class="copy-link-popup" role="status" aria-live="polite">
 <div id="copy-link-popup-text">Bu bağlantıyı oynamak istediğiniz kişiye iletin, 60 saniye içinde odaya yönlendirileceksiniz.</div>
-<button id="btn-copy-popup-close-room" type="button" class="mt-2 w-full rounded-xl bg-red-600 hover:bg-red-700 active:scale-[0.98] px-3 py-2 text-white text-[11px] font-black shadow-md transition">OYUNU KAPAT</button>
+<div class="mt-2 grid grid-cols-2 gap-2">
+<button id="btn-copy-popup-close-room" type="button" class="w-full rounded-xl bg-red-600 hover:bg-red-700 active:scale-[0.98] px-3 py-2 text-white text-[11px] font-black shadow-md transition">OYUNU KAPAT</button>
+<button id="btn-copy-popup-go-room" type="button" class="w-full rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] px-3 py-2 text-white text-[11px] font-black shadow-md transition">ODAYA GİT</button>
+</div>
 </div>
 
 <div id="modal-gameover" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex items-start justify-center z-50 hidden pt-3 sm:pt-5">
@@ -44277,9 +44280,7 @@ if(mpRole==='host' && mpRoomRef && /^invite-only-/.test(String(mpRoomMode||'')))
   await mpRoomRef.child('invite').update({guest:'pending',expiresAt:inviteDeadline});
   mpRoomData={...(mpRoomData||{}),inviteGuest:'pending',inviteExpiresAt:inviteDeadline};
 }
-clearTimeout(copyLinkEnterTimer);
-copyLinkEnterTimer=setTimeout(async()=>{
-  copyLinkEnterTimer=null;
+const enterCopiedInviteRoom=async()=>{
   if(mpRole!=='host' || !mpRoomRef || mpRoomCode!==copiedRoom || !/^invite-only-/.test(String(mpRoomMode||''))) return;
   try{
     const gs=(await mpRoomRef.child('gameState').once('value')).val()||{};
@@ -44291,6 +44292,7 @@ copyLinkEnterTimer=setTimeout(async()=>{
       deadline=currentExpiry>0?currentExpiry:inviteDeadline;
       if(currentExpiry<=0) await mpRoomRef.child('invite/expiresAt').set(deadline);
     }
+    hideCopyLinkPopup();
     await enterMultiplayerRoom();
     if(!mpEntered || mpRoomCode!==copiedRoom || mpRole!=='host') return;
     if(mpRoomData?.status!=='waiting') return;
@@ -44299,6 +44301,16 @@ copyLinkEnterTimer=setTimeout(async()=>{
     document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
     startInviteWaitCountdown(deadline);
   }catch(_){ }
+};
+const goBtn=document.getElementById('btn-copy-popup-go-room');
+if(goBtn) goBtn.onclick=async()=>{
+  clearTimeout(copyLinkEnterTimer); copyLinkEnterTimer=null;
+  await enterCopiedInviteRoom();
+};
+clearTimeout(copyLinkEnterTimer);
+copyLinkEnterTimer=setTimeout(async()=>{
+  copyLinkEnterTimer=null;
+  await enterCopiedInviteRoom();
 },60000);
 }catch(e){ showToast('Bağlantı kopyalanamadı.','rose'); }
 };
