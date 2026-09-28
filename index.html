@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <title>KAPMACA — Ücretsiz Türkçe Online Kelime Oyunu</title>
-<meta name="game-version" content="v339">
+<meta name="game-version" content="v340">
 <meta name="description" content="KAPMACA, 60 saniyede aynı harflerden en çok Türkçe sözcüğü bulmaya çalıştığın ücretsiz online kelime oyunudur. Tek başına oyna veya arkadaşına meydan oku.">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" content="#075458">
@@ -2982,9 +2982,46 @@ button:not(:disabled):active{filter:brightness(.96) saturate(1.12);}
 .result-global-confetti{position:fixed;inset:0;pointer-events:none;z-index:998;overflow:hidden;}
 .result-global-confetti i{position:absolute;top:-20px;width:9px;height:14px;border-radius:2px;opacity:.98;animation:globalResultConfetti var(--dur,2.2s) cubic-bezier(.2,.7,.25,1) forwards;will-change:transform,opacity;}
 body[data-random-match-active="1"] #gameover-actions{display:none!important;}
-body[data-private-friend-active="1"] #gameover-actions{display:block!important;}
+#gameover-actions{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px 12px;
+  justify-items:center;
+  align-items:start;
+}
+body[data-private-friend-active="1"] #gameover-actions{display:grid!important;}
 body[data-private-friend-active="1"] #btn-play-again,
-body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
+body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
+#btn-challenge-share{grid-column:1/-1!important;width:100%!important;margin-bottom:0!important;}
+#rematch-inline-status{grid-column:1/-1!important;}
+#btn-play-again,
+#btn-game-exit,
+#btn-random-result-exit{
+  width:92px!important;
+  height:92px!important;
+  min-width:92px!important;
+  margin:0!important;
+  padding:9px 6px!important;
+  border-radius:22px!important;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  line-height:1.05!important;
+  font-size:10px!important;
+  letter-spacing:.035em;
+  text-align:center;
+}
+#btn-play-again::before{content:"↻";font-size:30px;line-height:1;font-weight:1000;}
+#btn-game-exit::before,
+#btn-random-result-exit::before{content:"↪";font-size:29px;line-height:1;font-weight:1000;}
+#btn-random-result-exit{margin:10px auto 0!important;}
+@media (max-width:380px){
+  #btn-play-again,#btn-game-exit,#btn-random-result-exit{
+    width:86px!important;height:86px!important;min-width:86px!important;border-radius:20px!important;
+  }
+}
 @keyframes globalResultConfetti{0%{opacity:0;transform:translate3d(0,-16px,0) rotate(0deg)}8%{opacity:1}86%{opacity:.95}100%{opacity:0;transform:translate3d(var(--dx),105vh,0) rotate(var(--rot,540deg))}}
 @media (prefers-reduced-motion:reduce){.result-card-party i{animation:none!important;opacity:0!important}}
 .countdown-sync-ok{font-size:10px;font-weight:1000;letter-spacing:.12em;color:#047857;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:9999px;padding:5px 10px;margin-top:8px}
@@ -3511,7 +3548,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <label class="sound-mute-row" for="sound-muted"><input id="sound-muted" type="checkbox"> Sessiz</label>
 </div>
 <button id="btn-sound-test" type="button" class="w-full mt-5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-[.99] text-white font-black text-xs py-3 shadow">SESİ DENE</button>
-<div class="mt-2 text-center text-[10px] font-black text-slate-400">v339</div>
+<div class="mt-2 text-center text-[10px] font-black text-slate-400">v340</div>
 </div>
 </div>
 </div>
