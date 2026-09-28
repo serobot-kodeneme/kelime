@@ -39651,7 +39651,7 @@ try{ await ref.onDisconnect().cancel(); }catch(_){}
 }
 if(randomQueueRef===ref){randomSearchActive=false;randomSearchTicket=null;randomQueueRef=null;randomQueueListener=null;}
 const btn=document.getElementById('btn-random-match');
-if(btn){ btn.disabled=false; btn.textContent='🎲 RASTGELE RAKİP'; }
+if(btn){ btn.disabled=false; btn.textContent='🎲 HODRİ MEYDAN!'; }
 }
 async function createRandomMatchedRoom(hostId,guestId){
 const alloc=await allocateDailyRoomCode();
@@ -39699,7 +39699,7 @@ const btn=document.getElementById('btn-random-match');
 if(btn){ btn.disabled=true; btn.textContent='RAKİP ARANIYOR…'; }
 setRandomStatus('Çevrimiçi rakip aranıyor…',true);
 if(!await waitFirebaseConnected()){
-if(btn){btn.disabled=false;btn.textContent='🎲 RASTGELE RAKİP';}
+if(btn){btn.disabled=false;btn.textContent='🎲 HODRİ MEYDAN!';}
 setRandomStatus('Sunucuya bağlanılamadı.',true);
 return;
 }
