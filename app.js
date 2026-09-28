@@ -693,7 +693,7 @@ function restoreHodriMeydanButton(){
 const btn=document.getElementById('btn-random-match');
 if(!btn) return;
 btn.disabled=false;
-btn.innerHTML='<span class="text-[82px] leading-none shrink-0 drop-shadow-md" aria-hidden="true">🎲</span><span class="min-w-0 flex flex-col justify-center"><span class="text-[12px] leading-tight">HODRİ MEYDAN!</span><span class="mt-1 text-[9px] leading-snug font-bold text-amber-950">Sürpriz bir rakiple oyna</span></span>';
+btn.innerHTML='<span class="text-[88px] leading-none drop-shadow-md" aria-hidden="true">🎲</span><span class="text-[14px] leading-tight">HODRİ MEYDAN!</span><span class="text-[10.5px] leading-snug font-bold text-amber-950">Sürpriz bir rakiple oyna</span>';
 }
 async function cleanupRandomQueue(onlyIfMine=true){
 const ref=randomQueueRef, ticket=randomSearchTicket;
