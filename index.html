@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <title>KAPMACA — Ücretsiz Türkçe Online Kelime Oyunu</title>
-<meta name="game-version" content="v336">
+<meta name="game-version" content="v337">
 <meta name="description" content="KAPMACA, 60 saniyede aynı harflerden en çok Türkçe sözcüğü bulmaya çalıştığın ücretsiz online kelime oyunudur. Tek başına oyna veya arkadaşına meydan oku.">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" content="#075458">
@@ -3005,9 +3005,14 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 }
 .rematch-pulse{animation:rematchPulse 1.15s ease-in-out infinite; transform-origin:center;}
 
-#sound-volume-control{margin-top:18px}
-#sound-volume-range{width:100%;height:6px;accent-color:#2563eb;cursor:pointer}
-.sound-mute-row{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:10px;font-size:12px;font-weight:900;color:#475569}
+#sound-volume-control{margin-top:14px}
+#sound-volume-range{width:100%;height:28px;appearance:none;-webkit-appearance:none;background:transparent;cursor:pointer;touch-action:pan-x}
+#sound-volume-range::-webkit-slider-runnable-track{height:7px;border-radius:999px;background:#cbd5e1}
+#sound-volume-range::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#2563eb;border:3px solid #fff;box-shadow:0 1px 5px rgba(15,23,42,.28);margin-top:-8.5px}
+#sound-volume-range::-moz-range-track{height:7px;border-radius:999px;background:#cbd5e1}
+#sound-volume-range::-moz-range-progress{height:7px;border-radius:999px;background:#2563eb}
+#sound-volume-range::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#2563eb;border:3px solid #fff;box-shadow:0 1px 5px rgba(15,23,42,.28)}
+.sound-mute-row{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:6px;font-size:12px;font-weight:900;color:#475569}
 #sound-muted{width:18px;height:18px;accent-color:#ef4444;cursor:pointer}
 @keyframes highResultPop{0%{transform:scale(.78) rotate(-1.8deg);opacity:.45}70%{transform:scale(1.035) rotate(.5deg)}100%{transform:scale(1);opacity:1}}
 @keyframes highWinnerBounce{from{transform:scale(1)}to{transform:scale(1.055) rotate(.4deg)}}
@@ -3495,19 +3500,16 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <button id="btn-settings-back" aria-label="Ayarları kapat" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-black">✕</button>
 </div>
 <div class="mt-8 bg-white/95 border-2 border-sky-200 rounded-3xl p-5 shadow-lg">
-<div class="flex items-center justify-between gap-3">
 <div>
 <div class="font-black text-slate-900">Ses Düzeyi</div>
-<div class="text-[11px] font-bold text-slate-500 mt-0.5">Basit yatay ses ayarı.</div>
-</div>
-<div id="sound-volume-label" class="min-w-[58px] text-center rounded-xl bg-emerald-50 border border-emerald-100 px-2 py-1 text-sm font-black text-emerald-800">80%</div>
+<div class="text-[11px] font-bold text-slate-500 mt-0.5">Sürükleyerek ayarla.</div>
 </div>
 <div id="sound-volume-control">
 <input id="sound-volume-range" type="range" min="0" max="100" step="5" value="80" aria-label="Ses düzeyi">
 <label class="sound-mute-row" for="sound-muted"><input id="sound-muted" type="checkbox"> Sessiz</label>
 </div>
 <button id="btn-sound-test" type="button" class="w-full mt-5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-[.99] text-white font-black text-xs py-3 shadow">SESİ DENE</button>
-<div class="mt-2 text-center text-[10px] font-black text-slate-400">v336</div>
+<div class="mt-2 text-center text-[10px] font-black text-slate-400">v337</div>
 </div>
 </div>
 </div>
