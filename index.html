@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v302</title>
-<meta name="game-version" content="v302">
+<title>KAPMACA.tr — Sözcük Avı v303</title>
+<meta name="game-version" content="v303">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -43665,7 +43665,7 @@ finally{mpRematchBusy=false;}
 
 
 function isRandomHumanRoom(){
-return mpRandomMatchSession || /^random-match-/.test(String(mpRoomMode||''));
+return mpRandomMatchSession || /^random-match-/.test(String(mpRoomMode||'')) || /^random-match-/.test(String(mpRoomData?.mode||''));
 }
 function isPrivateFriendRoom(){
 return /^invite-only-/.test(String(mpRoomMode||''));
@@ -43788,6 +43788,15 @@ function emphasizeWinner(side){
   launchGrandCelebration(side);
   startWinnerConfettiWaterfall(side);
 }
+function showRandomResultExitButton(){
+const btn=document.getElementById('btn-random-result-exit');
+if(!btn) return;
+btn.disabled=false;
+btn.classList.remove('hidden');
+btn.style.setProperty('display','block','important');
+btn.style.setProperty('visibility','visible','important');
+btn.style.setProperty('opacity','1','important');
+}
 function setRandomAutoExitNotice(visible){
 const el=document.getElementById('random-auto-exit-note');
 if(!el) return;
@@ -43807,7 +43816,7 @@ const randomExitBtn=document.getElementById('btn-random-result-exit');
 if(actions){actions.classList.add('hidden');actions.style.setProperty('display','none','important');}
 if(replay){replay.disabled=true;replay.classList.add('hidden');replay.style.setProperty('display','none','important');replay.classList.remove('rematch-pulse');}
 if(exitBtn){exitBtn.disabled=true;exitBtn.classList.add('hidden');exitBtn.style.setProperty('display','none','important');}
-if(randomExitBtn){randomExitBtn.disabled=false;randomExitBtn.classList.remove('hidden');randomExitBtn.style.removeProperty('display');}
+if(randomExitBtn) showRandomResultExitButton();
 if(inline){inline.classList.add('hidden');inline.textContent='';}
 setRandomAutoExitNotice(true);
 // Kritik: sayaç sonuç ekranının çiziminden ve kutlama efektlerinden bağımsızdır.
@@ -43935,6 +43944,7 @@ setMpState(MP_STATES.FINISHED); document.getElementById('modal-rematch-waiting')
 const d={...(mpRoomData||{}),...gs};
 // v233: sonuç kesinleştiği anda, render/konfeti kodundan bağımsız otomatik çıkışı kur.
 if(isRandomHumanRoom()){
+showRandomResultExitButton();
 showMultiplayerSeriesResult(d);
 }else{
 forcePrivateResultActions();
@@ -44177,6 +44187,8 @@ mpSeenWordEvents.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear();
 setMpState(MP_STATES.IDLE);
 }
 function returnToHomeFromMultiplayer(){
+const randomExitBtn=document.getElementById('btn-random-result-exit');
+if(randomExitBtn){randomExitBtn.disabled=true;randomExitBtn.classList.add('hidden');randomExitBtn.style.removeProperty('display');randomExitBtn.style.removeProperty('visibility');randomExitBtn.style.removeProperty('opacity');}
 hideCopyLinkPopup();
 stopInviteDecisionTimer();
 if(randomSearchActive) cleanupRandomQueue(true).catch(()=>{}); else releaseRandomSearchLocal();
