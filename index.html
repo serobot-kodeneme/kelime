@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v306</title>
-<meta name="game-version" content="v306">
+<title>KAPMACA.tr — Sözcük Avı v307</title>
+<meta name="game-version" content="v307">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -3344,6 +3344,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 </div>
 <div id="mp-room-view" class="hidden mt-2 text-center">
 <div class="text-[9px] font-black text-slate-500 uppercase text-left mb-1">ODA KODU</div>
+<div class="mb-1.5 rounded-lg bg-sky-50 border border-sky-200 px-2.5 py-1.5 text-[10px] font-black text-sky-900">Bağlantıyı kopyalayıp oynamak istediğiniz kişiye iletiniz!</div>
 <div class="flex items-stretch gap-1.5">
 <input id="mp-room-code" readonly inputmode="text" autocapitalize="none" autocomplete="off" spellcheck="false" value="-----" class="w-[118px] shrink-0 text-center text-lg font-black tracking-[.18em] text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-xl px-2 py-2 select-all cursor-text" />
 <button id="btn-copy-link" class="flex-1 min-w-0 px-2 min-h-[40px] rounded-xl bg-sky-100 border border-sky-300 text-sky-900 font-black text-[10px] leading-tight">🔗 BAĞLANTIYI KOPYALA</button>
@@ -3602,10 +3603,10 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div class="mx-auto mb-4 w-16 h-16 rounded-full bg-sky-50 border-2 border-sky-100 flex items-center justify-center">
 <div class="w-8 h-8 rounded-full border-4 border-sky-200 border-t-sky-600 animate-spin"></div>
 </div>
-<div class="text-lg font-black text-slate-800">DAVET EDİLEN OYUNCUDAN YANIT BEKLENİYOR</div>
+<div class="text-lg font-black text-slate-800">Oyun bağlantısı verdiğiniz kişinin yanıtı bekleniyor</div>
 <div class="mp-demo" aria-label="Oynanış örneği"><div class="demo-picked" aria-hidden="true"></div><div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div></div>
 <div id="invite-wait-countdown" class="mt-2 text-3xl font-black tabular-nums text-sky-600">60</div>
-<div class="mt-1 text-xs font-bold text-slate-500">60 saniye içinde OYUNA BAŞLA yanıtı gelmezse iki oyuncu da ana sayfaya döner.</div>
+<div class="mt-1 text-xs font-bold text-slate-500">Süre dolarsa oda kapanır ve oyuncular ana sayfaya döner.</div>
 </div>
 </div>
 
@@ -3630,14 +3631,6 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div class="mp-demo hidden" aria-label="Oynanış örneği"><div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div></div>
 <div id="countdown-number" class="text-7xl font-black text-amber-500 drop-shadow-sm" style="transition:transform .18s ease-out, filter .16s ease-out, opacity .14s ease-out; will-change:transform;">3</div>
 <div id="countdown-status" class="countdown-sync-ok">✓ SENKRON</div>
-</div>
-</div>
-
-<div id="copy-link-popup" class="copy-link-popup" role="status" aria-live="polite">
-<div id="copy-link-popup-text">Bu bağlantıyı oynamak istediğiniz kişiye iletin, 60 saniye içinde odaya yönlendirileceksiniz.</div>
-<div class="mt-2 grid grid-cols-2 gap-2">
-<button id="btn-copy-popup-close-room" type="button" class="w-full rounded-xl bg-red-600 hover:bg-red-700 active:scale-[0.98] px-3 py-2 text-white text-[11px] font-black shadow-md transition">OYUNU KAPAT</button>
-<button id="btn-copy-popup-go-room" type="button" style="background:#2563eb;color:#fff;border:1px solid #60a5fa;" class="w-full rounded-xl active:scale-[0.98] px-3 py-2 text-[11px] font-black shadow-md transition">ODAYA GİT</button>
 </div>
 </div>
 
@@ -43922,7 +43915,7 @@ if(!mpRoomData.guestId || !mpRoomData.guestOnline || !inviteAccepted){
 if(mpEntered) document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
 else document.getElementById('modal-mp-waiting')?.classList.add('hidden');
 const st=document.getElementById('mp-status');
-if(st) st.textContent = mpRoomData.guestId && mpRoomData.guestOnline ? 'Bağlantıyı kopyalayıp oynamak istediğiniz kişiye gönderiniz.' : 'Bağlantıyı kopyalayıp oynamak istediğiniz kişiye gönderiniz.';
+if(st) st.textContent = mpRoomData.guestId && mpRoomData.guestOnline ? 'Oyun bağlantısı verdiğiniz kişinin yanıtı bekleniyor' : 'Oyun bağlantısı verdiğiniz kişinin yanıtı bekleniyor';
 }else{
 stopInviteWaitCountdown();
 document.getElementById('modal-mp-waiting')?.classList.add('hidden');
@@ -44276,46 +44269,20 @@ if(!mpRoomCode)return;
 const url=inviteUrl(mpRoomCode);
 try{
 await navigator.clipboard.writeText(url);
-showCopyLinkPopup();
 const copiedRoom=mpRoomCode;
 const inviteDeadline=serverNow()+60000;
-if(mpRole==='host' && mpRoomRef && /^invite-only-/.test(String(mpRoomMode||''))){
-  await mpRoomRef.child('invite').update({guest:'pending',expiresAt:inviteDeadline});
-  mpRoomData={...(mpRoomData||{}),inviteGuest:'pending',inviteExpiresAt:inviteDeadline};
-}
-const enterCopiedInviteRoom=async()=>{
-  if(mpRole!=='host' || !mpRoomRef || mpRoomCode!==copiedRoom || !/^invite-only-/.test(String(mpRoomMode||''))) return;
-  try{
-    const gs=(await mpRoomRef.child('gameState').once('value')).val()||{};
-    if(!['waiting','countdown','playing'].includes(gs.status)) return;
-    const waiting=gs.status==='waiting';
-    let deadline=0;
-    if(waiting){
-      const currentExpiry=Number((await mpRoomRef.child('invite/expiresAt').once('value')).val()||0);
-      deadline=currentExpiry>0?currentExpiry:inviteDeadline;
-      if(currentExpiry<=0) await mpRoomRef.child('invite/expiresAt').set(deadline);
-    }
-    hideCopyLinkPopup();
-    setRoomUrl(copiedRoom);
-    await enterMultiplayerRoom();
-    if(!mpEntered || mpRoomCode!==copiedRoom || mpRole!=='host') return;
-    if(mpRoomData?.status!=='waiting') return;
-    isMatchActive=false;
-    const st=document.getElementById('mp-status'); if(st) st.textContent='Bağlantıyı kopyalayıp oynamak istediğiniz kişiye gönderiniz.';
-    document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
-    startInviteWaitCountdown(deadline);
-  }catch(_){ }
-};
-const goBtn=document.getElementById('btn-copy-popup-go-room');
-if(goBtn) goBtn.onclick=async()=>{
-  clearTimeout(copyLinkEnterTimer); copyLinkEnterTimer=null;
-  await enterCopiedInviteRoom();
-};
-clearTimeout(copyLinkEnterTimer);
-copyLinkEnterTimer=setTimeout(async()=>{
-  copyLinkEnterTimer=null;
-  await enterCopiedInviteRoom();
-},60000);
+if(mpRole!=='host' || !mpRoomRef || !/^invite-only-/.test(String(mpRoomMode||''))) return;
+await mpRoomRef.child('invite').update({guest:'pending',expiresAt:inviteDeadline});
+mpRoomData={...(mpRoomData||{}),inviteGuest:'pending',inviteExpiresAt:inviteDeadline};
+clearTimeout(copyLinkEnterTimer); copyLinkEnterTimer=null;
+setRoomUrl(copiedRoom);
+await enterMultiplayerRoom();
+if(!mpEntered || mpRoomCode!==copiedRoom || mpRole!=='host') return;
+isMatchActive=false;
+const st=document.getElementById('mp-status');
+if(st) st.textContent='Oyun bağlantısı verdiğiniz kişinin yanıtı bekleniyor';
+document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
+startInviteWaitCountdown(inviteDeadline);
 }catch(e){ showToast('Bağlantı kopyalanamadı.','rose'); }
 };
 document.getElementById('btn-share-link').onclick = async()=>{
@@ -44370,7 +44337,7 @@ await enterMultiplayerRoom();
 updateFullscreenUi();
 }
 const st=document.getElementById('mp-status');
-if(st) st.textContent=mpRole==='host'?'Bağlantıyı kopyalayıp oynamak istediğiniz kişiye gönderiniz.':'Kapışma daveti bekliyor.';
+if(st) st.textContent=mpRole==='host'?'Oyun bağlantısı verdiğiniz kişinin yanıtı bekleniyor':'Kapışma daveti bekliyor.';
 }
 });
 
@@ -44399,12 +44366,6 @@ document.getElementById('btn-close-room').onclick=async()=>{
 if(!mpRoomRef || mpRole!=='host') return;
 await requestSynchronizedRoomExit('player-exit');
 };
-document.getElementById('btn-copy-popup-close-room')?.addEventListener('click',async()=>{
-if(!mpRoomRef || mpRole!=='host' || !/^invite-only-/.test(String(mpRoomMode||''))) return;
-hideCopyLinkPopup();
-clearTimeout(copyLinkEnterTimer); copyLinkEnterTimer=null;
-await requestSynchronizedRoomExit('host-close');
-});
 
 document.querySelectorAll('.bot-diff-choice').forEach(btn => {
 btn.onclick = () => {
@@ -45393,24 +45354,8 @@ ticker.appendChild(badge);
 return badge;
 }
 
-function hideCopyLinkPopup(){
-const el=document.getElementById('copy-link-popup');
-if(!el) return;
-clearTimeout(el._hideTimer);
-el._hideTimer=null;
-el.classList.remove('show');
-}
-function showCopyLinkPopup(){
-const el=document.getElementById('copy-link-popup');
-if(!el) return;
-clearTimeout(el._hideTimer);
-const textEl=document.getElementById('copy-link-popup-text');
-if(textEl) textEl.textContent='Bu bağlantıyı oynamak istediğiniz kişiye iletin, 60 saniye içinde odaya yönlendirileceksiniz.';
-el.classList.remove('show');
-void el.offsetWidth;
-el.classList.add('show');
-el._hideTimer=setTimeout(()=>el.classList.remove('show'),60000);
-}
+function hideCopyLinkPopup(){}
+function showCopyLinkPopup(){}
 
 function showToast(msg, color, duration=1600) {
 const toast = document.createElement('div');
