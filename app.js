@@ -39389,40 +39389,6 @@ safeStorageSet('local','kd_client_token',t);
 runtimeClientToken=t;
 return t;
 }
-let globalPresenceRef=null;
-function initGlobalOnlinePresence(){
-if(!mpDb) return;
-if(!globalPresenceRef) globalPresenceRef=mpDb.ref('meta/onlineSessions').push();
-mpDb.ref('.info/connected').on('value',snap=>{
-const connectedNow=snap.val()===true;
-if(connectedNow && globalPresenceRef){
-  const payload={clientId:getClientToken(),at:firebase.database.ServerValue.TIMESTAMP};
-  globalPresenceRef.set(payload).catch(()=>{});
-  try{globalPresenceRef.onDisconnect().remove();}catch(_){}
-}
-const online=snap.val()===true;
-const reconnected=online && firebaseWasConnected===false;
-firebaseWasConnected=online;
-if(reconnected && mpRoomRef && mpRole && !mpExitHandling && !reconnectPresenceBusy){
-reconnectPresenceBusy=true;
-const ref=mpRoomRef;
-(async()=>{
-try{
-const roomSnap=await ref.once('value');
-if(ref!==mpRoomRef) return;
-if(!roomSnap.exists()){
-showToast('Oda kapanmış. Ana sayfaya dönülüyor.','slate');
-returnToHomeFromMultiplayer();
-return;
-}
-await markPresence();
-}catch(_){ }
-finally{ reconnectPresenceBusy=false; }
-})();
-}
-});
-}
-
 function ensureFirebase(){
 if(mpDb) return true;
 if(!window.firebase){ showToast('Firebase yüklenemedi. İnternet bağlantını kontrol et.','rose'); return false; }
@@ -39588,7 +39554,7 @@ await requestSynchronizedRoomExit('opponent-disconnected');
 },MP_DISCONNECT_GRACE_MS);
 }
 
-let randomQueueRef=null, randomQueueListener=null, randomOpponentCountListener=null, randomOnlineCountRef=null, randomSearchActive=false, randomSearchTicket=null, randomWaitCancel=null;
+let randomQueueRef=null, randomQueueListener=null, randomSearchActive=false, randomSearchTicket=null, randomWaitCancel=null;
 let randomResultAutoExitTimer=null, randomResultAutoExitKey='';
 let inviteWaitCountdownTimer=null;
 let inviteWaitDeadlineAt=0;
@@ -39605,28 +39571,7 @@ function randomTicket(){
 const a=new Uint32Array(3); crypto.getRandomValues(a);
 return Array.from(a,n=>n.toString(36)).join('');
 }
-function stopRandomOpponentCount(){
-if(randomOnlineCountRef&&randomOpponentCountListener)randomOnlineCountRef.off('value',randomOpponentCountListener);
-randomOpponentCountListener=null;randomOnlineCountRef=null;
-const el=document.getElementById('mp-online-count');if(el){el.classList.add('hidden');el.textContent='';}
-}
-function startRandomOpponentCount(myId){
-stopRandomOpponentCount();
-const el=document.getElementById('mp-online-count');
-if(!mpDb||!el)return;
-randomOnlineCountRef=mpDb.ref('meta/onlineSessions');
-el.textContent='Çevrimiçi oyuncu sayısı: hesaplanıyor…';el.classList.remove('hidden');
-randomOpponentCountListener=snap=>{
-  const data=snap.val()||{};
-  const count=Object.keys(data).length;
-  el.textContent=`Çevrimiçi oyuncu sayısı: ${count}`;
-};
-randomOnlineCountRef.on('value',randomOpponentCountListener,()=>{
-  el.textContent='Çevrimiçi oyuncu sayısı: —';
-});
-}
 function releaseRandomSearchLocal(){
-stopRandomOpponentCount();
 if(randomWaitCancel){const cancel=randomWaitCancel;randomWaitCancel=null;try{cancel();}catch(_){}}
 if(randomQueueRef && randomQueueListener){try{randomQueueRef.off('value',randomQueueListener);}catch(_){} }
 randomQueueListener=null;
@@ -39641,7 +39586,6 @@ btn.disabled=false;
 btn.innerHTML='<span class="text-6xl leading-none mb-2" aria-hidden="true">🎲</span><span class="text-[13px] leading-tight">HODRİ MEYDAN!</span><span class="mt-1 text-[10px] leading-snug font-bold text-amber-950">Sürpriz bir rakiple oyna</span>';
 }
 async function cleanupRandomQueue(onlyIfMine=true){
-stopRandomOpponentCount();
 const ref=randomQueueRef, ticket=randomSearchTicket;
 if(randomWaitCancel){const cancel=randomWaitCancel;randomWaitCancel=null;try{cancel();}catch(_){}}
 if(ref && randomQueueListener){try{ref.off('value',randomQueueListener);}catch(_){} randomQueueListener=null;}
@@ -39698,6 +39642,27 @@ ref.on('value',randomQueueListener);
 timer=setTimeout(()=>finish(null),Math.max(1,timeoutMs||RANDOM_SEARCH_MS));
 });
 }
+function waitForRandomQueueOpportunity(timeoutMs){
+return new Promise(resolve=>{
+const ref=randomQueueRef;
+if(!ref) return resolve(false);
+let done=false,timer=null;
+const finish=v=>{
+if(done) return; done=true;
+if(timer) clearTimeout(timer);
+try{ref.off('value',onValue);}catch(_){}
+resolve(v);
+};
+const onValue=snap=>{
+const d=snap.val();
+const now=serverNow();
+if(!d || Number(d.expiresAt||0)<now || (!d.claimedBy && d.clientId!==getClientToken())) finish(true);
+};
+ref.on('value',onValue);
+timer=setTimeout(()=>finish(false),Math.max(1,timeoutMs||RANDOM_SEARCH_MS));
+});
+}
+
 async function searchRandomOpponent(){
 if(randomSearchActive) return;
 const btn=document.getElementById('btn-random-match');
@@ -39714,7 +39679,6 @@ randomQueueRef=mpDb.ref('matchmaking/random/waiting');
 const ticket=randomTicket();
 randomSearchTicket=ticket;
 const myId=getClientToken(), started=serverNow(), deadline=started+RANDOM_SEARCH_MS;
-startRandomOpponentCount(myId);
 
 while(randomSearchActive && randomSearchTicket===ticket && serverNow()<deadline){
 const now=serverNow();
@@ -39726,8 +39690,7 @@ return {ticket,clientId:myId,createdAt:now,expiresAt:now+RANDOM_QUEUE_TTL,claime
 }
 if(cur.clientId===myId) return cur;
 if(!cur.claimedBy){
-cur.claimedBy=myId; cur.claimedAt=now; cur.expiresAt=now+RANDOM_QUEUE_TTL;
-return cur;
+return {...cur,claimedBy:myId,claimedAt:now,expiresAt:now+RANDOM_QUEUE_TTL};
 }
 return;
 });
@@ -39735,6 +39698,7 @@ return;
 
 if(!randomSearchActive || randomSearchTicket!==ticket) break;
 if(serverNow()>=deadline) break;
+
 if(tx?.committed){
 const q=tx.snapshot.val()||{};
 if(q.clientId===myId){
@@ -39746,7 +39710,7 @@ if(room){
 try{ await randomQueueRef?.onDisconnect().cancel(); }catch(_){}
 releaseRandomSearchLocal();
 const ok=await joinRoom(room);
-if(ok){ const rb=document.getElementById('btn-random-match'); if(rb){rb.disabled=false;rb.textContent='🎲 RASTGELE RAKİP';} setRandomStatus('Rakip bulundu ✓ Senkronize ediliyor…',true);}
+if(ok){ restoreHodriMeydanButton(); setRandomStatus('Rakip bulundu ✓ Senkronize ediliyor…',true); }
 return;
 }
 break;
@@ -39768,7 +39732,7 @@ return;
 });
 }catch(_){}
 },2500);
-if(ok){ const rb=document.getElementById('btn-random-match'); if(rb){rb.disabled=false;rb.textContent='🎲 RASTGELE RAKİP';} setRandomStatus('Rakip bulundu ✓ Senkronize ediliyor…',true);}
+if(ok){ restoreHodriMeydanButton(); setRandomStatus('Rakip bulundu ✓ Senkronize ediliyor…',true); }
 return;
 }catch(e){
 console.error('Random match room error',e);
@@ -39776,19 +39740,20 @@ break;
 }
 }
 }
-await new Promise(r=>setTimeout(r,450));
+
+// Başka bir istemci kuyruğu kullanıyorsa 450 ms polling yapma.
+// Kuyruk boşaldığında/değiştiğinde Firebase value olayı bizi uyandırsın.
+const opportunity=await waitForRandomQueueOpportunity(Math.max(1,deadline-serverNow()));
+if(!opportunity) break;
 }
 
-// Kullanıcı paneli kapatıp aramayı iptal ettiyse sessizce çık.
 if(randomSearchTicket!==ticket){
-const rb=document.getElementById('btn-random-match');
-if(rb){rb.disabled=false;rb.textContent='🎲 RASTGELE RAKİP';}
+restoreHodriMeydanButton();
 setRandomStatus('',false);
 return;
 }
 await cleanupRandomQueue(true);
-const rb=document.getElementById('btn-random-match');
-if(rb){rb.disabled=false;rb.textContent='🎲 RASTGELE RAKİP';}
+restoreHodriMeydanButton();
 setRandomStatus('45 saniye içinde rakip bulunamadı.',true);
 showToast('Rakip bulunamadı. Tekrar deneyebilirsin.','slate');
 setTimeout(()=>setRandomStatus('',false),1800);
@@ -40543,7 +40508,7 @@ const soloArrowHome=document.getElementById('solo-arrow'); if(soloArrowHome) sol
 document.getElementById('mp-room-view')?.classList.add('hidden');
 document.getElementById('mp-create-view')?.classList.remove('hidden');
 document.getElementById('btn-close-room')?.classList.add('hidden');
-const randomBtn=document.getElementById('btn-random-match'); if(randomBtn){randomBtn.disabled=false;randomBtn.textContent='🎲 RASTGELE RAKİP';}
+const randomBtn=document.getElementById('btn-random-match'); if(randomBtn){randomBtn.disabled=false;randomBtn.innerHTML='<span class="text-6xl leading-none mb-2" aria-hidden="true">🎲</span><span class="text-[13px] leading-tight">HODRİ MEYDAN!</span><span class="mt-1 text-[10px] leading-snug font-bold text-amber-950">Sürpriz bir rakiple oyna</span>';}
 setRandomStatus('',false);
 }
 
@@ -40582,6 +40547,7 @@ setDifficultyOpen(false);
 const panel=document.getElementById('friend-invite-panel');
 const willOpen=panel?.classList.contains('hidden');
 if(willOpen){
+ensureFirebase();
 panel?.classList.remove('hidden');
 document.getElementById('mp-create-view')?.classList.remove('hidden');
 document.getElementById('mp-room-view')?.classList.add('hidden');
@@ -40636,8 +40602,7 @@ returnToHomeFromMultiplayer();
 
 document.getElementById('btn-fullscreen-home')?.addEventListener('click',toggleGameFullscreen);
 document.getElementById('btn-fullscreen-game')?.addEventListener('click',toggleGameFullscreen);
-window.addEventListener('load',async()=>{
-if(window.firebase && ensureFirebase()) initGlobalOnlinePresence();
+window.addEventListener('DOMContentLoaded',async()=>{
 const u=new URL(location.href);
 const code=String(u.searchParams.get('room')||'').toLowerCase().replace(/[^a-z]/g,'').slice(0,5);
 if(!code) return;
