@@ -7,8 +7,24 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v312</title>
-<meta name="game-version" content="v312">
+<title>KAPMACA — Ücretsiz Türkçe Online Kelime Oyunu</title>
+<meta name="game-version" content="v313">
+<meta name="description" content="KAPMACA, 60 saniyede aynı harflerden en çok Türkçe sözcüğü bulmaya çalıştığın ücretsiz online kelime oyunudur. Tek başına oyna veya arkadaşına meydan oku.">
+<meta name="keywords" content="kelime oyunu, online kelime oyunu, Türkçe kelime oyunu, 2 kişilik kelime oyunu, arkadaşla kelime oyunu, ücretsiz kelime oyunu, sözcük oyunu, kelime bulmaca">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#075458">
+<link rel="canonical" href="https://serobot-kodeneme.github.io/kelime/">
+<link rel="manifest" href="manifest.webmanifest">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="KAPMACA">
+<meta property="og:title" content="KAPMACA — 60 Saniyede Kaç Kelime Bulabilirsin?">
+<meta property="og:description" content="Aynı harfler, 60 saniye. Tek başına oyna veya arkadaşına meydan oku. Ücretsiz Türkçe online kelime oyunu.">
+<meta property="og:url" content="https://serobot-kodeneme.github.io/kelime/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="KAPMACA — 60 Saniyede Kaç Kelime Bulabilirsin?">
+<meta name="twitter:description" content="Aynı harfler, 60 saniye. Arkadaşına meydan oku ve en çok kelimeyi sen bul.">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"KAPMACA","description":"60 saniyede aynı harflerden en çok Türkçe sözcüğü bulmaya dayalı ücretsiz online kelime oyunu.","url":"https://serobot-kodeneme.github.io/kelime/","inLanguage":"tr","applicationCategory":"Game","gamePlatform":["Web Browser","Mobile Web"],"playMode":["SinglePlayer","MultiPlayer"]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -3294,6 +3310,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 </head>
 <body class="flex justify-center items-center w-screen h-screen">
+<div class="sr-only" aria-hidden="true"><h1>KAPMACA Türkçe Online Kelime Oyunu</h1><p>60 saniyede aynı harflerden en çok Türkçe sözcüğü bul. Ücretsiz oyna, bilgisayara karşı yarış veya arkadaşına bağlantı göndererek iki kişilik kelime düellosuna katıl.</p></div>
 <div id="app-container">
 
 <div id="screen-home" class="home-v156 absolute inset-0 z-40 overflow-hidden bg-gradient-to-b from-sky-400 via-sky-200 to-emerald-200">
@@ -3665,6 +3682,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 </div>
 <div id="random-auto-exit-note" role="status" aria-live="polite" style="display:none;width:100%;margin:2px 0 8px;padding:10px 12px;border-radius:14px;background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3;font-size:11px;font-weight:900;letter-spacing:.045em;text-align:center;">3 SANİYE İÇİNDE ÇIKIŞ YAPILACAK</div>
 <div id="gameover-actions" class="w-full">
+<button id="btn-challenge-share" type="button" class="w-full mb-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 text-white font-black text-xs py-2.5 rounded-xl uppercase shadow-md active:scale-[0.98] transition">🔥 ARKADAŞINA MEYDAN OKU</button>
 <button id="btn-play-again" onclick="handlePlayAgain()" class="w-full bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 text-amber-950 font-black text-xs py-2.5 rounded-xl uppercase shadow-md">YENİDEN OYNA</button>
 <div id="rematch-inline-status" class="hidden mt-2 w-full rounded-xl bg-slate-100 border border-slate-200 px-3 py-2 text-[11px] font-bold text-slate-600">Rakip bekleniyor…</div>
 <button id="btn-game-exit" class="w-full mt-2 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-black text-xs py-2.5 rounded-xl uppercase shadow-md transition">ÇIKIŞ</button>
@@ -44292,7 +44310,7 @@ document.getElementById('btn-share-link').onclick = async()=>{
 if(!mpRoomCode) return;
 const url=inviteUrl(mpRoomCode);
 try{
-if(navigator.share) await navigator.share({title:'KAPMACA Sözcük Avı',text:'KAPMACA Sözcük Avı daveti — bağlantıya dokun ve odaya katıl.',url});
+if(navigator.share) await navigator.share({title:'KAPMACA — Meydan Okuma',text:'🔥 60 saniye. Aynı harfler. Kim daha çok kelime bulacak? KAPMACA\'da bana karşı oyna!',url});
 else { await navigator.clipboard.writeText(url); showToast('Davet bağlantısı kopyalandı.','emerald'); }
 }catch(e){}
 };
@@ -45354,6 +45372,27 @@ badge.textContent = word;
 ticker.appendChild(badge);
 return badge;
 }
+
+function getChallengeShareData(){
+const p1=Number(document.getElementById('final-score-val-p1')?.textContent||0);
+const p2=Number(document.getElementById('final-score-val-p2')?.textContent||0);
+const myScore=mpRole==='guest'?p2:p1;
+const ownWords=mpRole==='guest'?Array.from(roundWordResults.p2.values()):Array.from(roundWordResults.p1.values());
+const longest=ownWords.reduce((best,x)=>String(x?.word||'').length>String(best||'').length?String(x.word):best,'');
+const scoreLine=myScore>0?`KAPMACA'da ${myScore} puan yaptım!`:`KAPMACA'da kapışmaya var mısın?`;
+const longestLine=longest?` En uzun sözcüğüm: ${longest} (${longest.length} harf).`:'';
+return {title:'KAPMACA — Meydan Okuma',text:`🔥 ${scoreLine}${longestLine} 60 saniyede beni geçebilir misin?`,url:location.origin+location.pathname};
+}
+async function shareChallengeResult(){
+const data=getChallengeShareData();
+try{
+if(navigator.share){await navigator.share(data);return;}
+const plain=`${data.text} ${data.url}`;
+await navigator.clipboard.writeText(plain);
+showToast('Meydan okuma metni kopyalandı!','emerald',2200);
+}catch(e){if(e?.name!=='AbortError') showToast('Paylaşım açılamadı.','rose');}
+}
+document.getElementById('btn-challenge-share')?.addEventListener('click',shareChallengeResult);
 
 function showToast(msg, color, duration=1600) {
 const toast = document.createElement('div');
