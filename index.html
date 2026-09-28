@@ -3405,14 +3405,12 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 </div>
 <div id="mp-room-view" class="hidden mt-2 text-center">
 <div class="mb-2 rounded-xl bg-sky-50 border border-sky-200 px-3 py-2.5 text-[14px] leading-snug font-black text-sky-950 shadow-sm">Bağlantıyı kopyalayıp oynamak istediğiniz kişiye iletiniz!</div>
-<div class="flex items-stretch gap-1.5">
-<input id="mp-room-code" readonly inputmode="text" autocapitalize="none" autocomplete="off" spellcheck="false" value="-----" class="w-[118px] shrink-0 text-center text-lg font-black tracking-[.18em] text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-xl px-2 py-2 select-all cursor-text" />
-<button id="btn-copy-link" class="flex-1 min-w-0 px-2 min-h-[42px] rounded-xl bg-gradient-to-r from-violet-600 to-purple-700 border-2 border-violet-300 text-white font-black text-[12px] leading-tight shadow-md active:scale-[.98]"><span class="text-[16px] leading-none align-[-1px]" aria-hidden="true">🔗</span> BAĞLANTIYI KOPYALA</button>
+<input id="mp-room-code" readonly inputmode="text" autocapitalize="none" autocomplete="off" spellcheck="false" value="https://kapmaca.tr/?room=-----" aria-label="Oyun davet bağlantısı" class="w-full text-left text-[13px] font-black tracking-normal text-indigo-800 bg-indigo-50 border border-indigo-200 rounded-xl px-3 py-2.5 select-all cursor-text" />
+<button id="btn-copy-link" class="w-full mt-2 min-h-[46px] rounded-xl bg-gradient-to-r from-violet-600 to-purple-700 border-2 border-violet-300 text-white font-black text-[13px] leading-tight shadow-md active:scale-[.98]"><span class="text-[19px] leading-none align-[-2px]" aria-hidden="true">🔗</span> BAĞLANTIYI KOPYALA</button>
+<div class="mt-2 grid grid-cols-2 gap-2">
+<button id="btn-share-link" class="aspect-square rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-900 font-black text-[11px] flex flex-col items-center justify-center gap-2 active:scale-[.98]"><span class="text-[28px] leading-none" aria-hidden="true">✉️</span><span>DAVET ET</span></button>
+<button id="btn-close-room" class="hidden aspect-square rounded-xl bg-rose-50 border border-rose-200 text-rose-700 font-black text-[11px] flex-col items-center justify-center gap-2 active:scale-[.98]"><span class="text-[28px] leading-none" aria-hidden="true">✕</span><span>ODAYI KAPAT</span></button>
 </div>
-<div class="mt-2 grid grid-cols-1 gap-1.5">
-<button id="btn-share-link" class="min-h-[40px] rounded-lg bg-emerald-100 border border-emerald-300 text-emerald-900 font-black text-[10px]">📨 DAVETİYE GÖNDER</button>
-</div>
-<button id="btn-close-room" class="hidden w-full mt-1.5 min-h-[34px] rounded-lg bg-rose-50 border border-rose-200 text-rose-700 font-black text-[10px]">ODAYI KAPAT</button>
 </div>
 </div>
 
