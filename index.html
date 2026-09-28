@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v282</title>
-<meta name="game-version" content="v282">
+<title>KAPMACA.tr — Sözcük Avı v283</title>
+<meta name="game-version" content="v283">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -3517,8 +3517,9 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div id="invite-room-code" class="mt-2 text-xs font-black tracking-[.18em] text-indigo-600"></div>
 <div class="mp-demo" aria-label="Oynanış örneği"><div class="demo-picked" aria-hidden="true"></div><div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div></div>
 <div class="mt-5 grid grid-cols-1 gap-3">
-<button id="btn-invite-start" class="py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 text-white text-sm font-black shadow-md">BAŞLA</button>
-<button id="btn-invite-cancel" class="py-3 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 text-white text-sm font-black shadow-md border border-rose-300">ÇIK</button>
+<div id="invite-decision-countdown" class="text-sm font-black text-indigo-700">10 saniye içinde seçim yapın</div>
+<button id="btn-invite-start" class="py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 text-white text-sm font-black shadow-md">OYUNA BAŞLA</button>
+<button id="btn-invite-cancel" class="py-3 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 text-white text-sm font-black shadow-md border border-rose-300">ÇIKIŞ</button>
 </div>
 </div>
 </div>
@@ -3531,8 +3532,8 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 </div>
 <div class="text-lg font-black text-slate-800">DAVET EDİLEN OYUNCUDAN YANIT BEKLENİYOR</div>
 <div class="mp-demo" aria-label="Oynanış örneği"><div class="demo-picked" aria-hidden="true"></div><div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div></div>
-<div id="invite-wait-countdown" class="mt-2 text-3xl font-black tabular-nums text-sky-600">60</div>
-<div class="mt-1 text-xs font-bold text-slate-500">60 saniye içinde BAŞLA yanıtı gelmezse oda otomatik kapatılır.</div>
+<div id="invite-wait-countdown" class="mt-2 text-3xl font-black tabular-nums text-sky-600">10</div>
+<div class="mt-1 text-xs font-bold text-slate-500">10 saniye içinde OYUNA BAŞLA yanıtı gelmezse oyun sonlandırılır.</div>
 </div>
 </div>
 
@@ -43048,7 +43049,7 @@ try{ await ref.remove(); }catch(_){ }
 function stopInviteWaitCountdown(){
 if(inviteWaitCountdownTimer){ clearInterval(inviteWaitCountdownTimer); inviteWaitCountdownTimer=null; }
 inviteWaitDeadlineAt=0;
-const el=document.getElementById('invite-wait-countdown'); if(el) el.textContent='60';
+const el=document.getElementById('invite-wait-countdown'); if(el) el.textContent='10';
 }
 async function expirePrivateInviteRoom(){
 if(mpRole!=='host'||!mpRoomRef||!mpRoomCode||!/^invite-only-/.test(String(mpRoomMode||''))) return;
@@ -43375,15 +43376,35 @@ setMpState(MP_STATES.WAITING);
 attachRoomListener();
 }
 
+let inviteDecisionTimer=null;
+function stopInviteDecisionTimer(){
+  if(inviteDecisionTimer){clearInterval(inviteDecisionTimer);inviteDecisionTimer=null;}
+}
 function showInviteDecisionModal(){
 const modal=document.getElementById('modal-room-invite');
 const codeEl=document.getElementById('invite-room-code');
 const startBtn=document.getElementById('btn-invite-start');
 const cancelBtn=document.getElementById('btn-invite-cancel');
+const countdownEl=document.getElementById('invite-decision-countdown');
 if(codeEl) codeEl.textContent=String(mpRoomCode||'').toUpperCase();
 if(startBtn){ startBtn.disabled=false; startBtn.classList.remove('hidden'); }
 if(cancelBtn){ cancelBtn.disabled=false; cancelBtn.classList.remove('hidden'); }
 modal?.classList.remove('hidden');
+stopInviteDecisionTimer();
+const deadline=serverNow()+10000;
+if(mpRole==='guest'&&mpRoomRef&&/^invite-only-/.test(String(mpRoomMode||''))){
+  mpRoomRef.child('invite/expiresAt').set(deadline).catch(()=>{});
+}
+const tick=()=>{
+  const left=Math.max(0,Math.ceil((deadline-serverNow())/1000));
+  if(countdownEl) countdownEl.textContent=`${left} saniye içinde seçim yapın`;
+  if(left<=0){
+    stopInviteDecisionTimer();
+    if(mpRole==='guest'&&mpRoomRef) requestSynchronizedRoomExit('invite-timeout').catch(()=>{});
+  }
+};
+tick();
+inviteDecisionTimer=setInterval(tick,250);
 }
 
 async function joinRoom(code){
@@ -43424,12 +43445,13 @@ else delete document.body.dataset.privateFriendActive;
 }
 const [gsSnap,scoreSnap,inviteSnap]=await Promise.all([ref.child('gameState').once('value'),ref.child('scores').once('value'),ref.child('invite/guest').once('value')]);
 const gs0=gsSnap.val()||{};
-if(role==='guest' && /^invite-only-/.test(String(d.mode||'')) && gs0.status==='waiting'){ await ref.child('invite/guest').set('pending'); }
+if(role==='guest' && /^invite-only-/.test(String(d.mode||'')) && gs0.status==='waiting'){
+  await ref.child('invite').update({guest:'pending',expiresAt:serverNow()+10000});
+}
 mpRoomData={...gs0,scores:scoreSnap.val()||{host:0,guest:0},inviteGuest:(role==='guest' && /^invite-only-/.test(String(d.mode||'')) && gs0.status==='waiting')?'pending':(inviteSnap.val()||null)}; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId=''; mpEntered=false; mpStarted=false;
 await markPresence(); setRoomUrl(code);
 setMpPanelRoom(code,role==='host'?'1. oyuncu olarak odana yeniden bağlandın.':'2. oyuncu olarak davet odasına bağlandın.');
 document.getElementById('btn-close-room')?.classList.toggle('hidden',role!=='host');
-document.getElementById('btn-enter-room')?.classList.toggle('hidden',role!=='host');
 setMpState(mpRoomData.status||MP_STATES.WAITING);
 attachRoomListener();
 if(role==='guest' && /^invite-only-/.test(String(mpRoomMode||'')) && mpRoomData.status==='waiting'){
@@ -44030,6 +44052,7 @@ mpSeenWordEvents.clear(); mpFoundWords.host.clear(); mpFoundWords.guest.clear();
 setMpState(MP_STATES.IDLE);
 }
 function returnToHomeFromMultiplayer(){
+stopInviteDecisionTimer();
 if(randomSearchActive) cleanupRandomQueue(true).catch(()=>{}); else releaseRandomSearchLocal();
 resetMultiplayerClientState();
 clearInviteFromUrl();
@@ -44116,8 +44139,12 @@ copyLinkEnterTimer=setTimeout(async()=>{
     const gs=(await mpRoomRef.child('gameState').once('value')).val()||{};
     if(!['waiting','countdown','playing'].includes(gs.status)) return;
     const waiting=gs.status==='waiting';
-    const deadline=waiting?serverNow()+60000:0;
-    if(waiting) await mpRoomRef.child('invite/expiresAt').set(deadline);
+    let deadline=0;
+    if(waiting){
+      const currentExpiry=Number((await mpRoomRef.child('invite/expiresAt').once('value')).val()||0);
+      deadline=currentExpiry>serverNow()?currentExpiry:serverNow()+10000;
+      await mpRoomRef.child('invite/expiresAt').set(deadline);
+    }
     await enterMultiplayerRoom();
     if(!mpEntered || mpRoomCode!==copiedRoom || mpRole!=='host') return;
     if(mpRoomData?.status!=='waiting') return;
@@ -44136,13 +44163,6 @@ try{
 if(navigator.share) await navigator.share({title:'KAPMACA Sözcük Avı',text:'KAPMACA Sözcük Avı daveti — bağlantıya dokun ve odaya katıl.',url});
 else { await navigator.clipboard.writeText(url); showToast('Davet bağlantısı kopyalandı.','emerald'); }
 }catch(e){}
-};
-document.getElementById('btn-enter-room').onclick=async()=>{
-if(mpRole!=='host' || !mpRoomRef) return;
-clearTimeout(copyLinkEnterTimer);copyLinkEnterTimer=null;
-await enterMultiplayerRoom();
-isMatchActive=false;
-document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
 };
 document.getElementById('btn-close-mp-waiting').onclick=async()=>{
 if(mpRoomRef && mpRole){
@@ -44194,6 +44214,7 @@ if(st) st.textContent=mpRole==='host'?'2. oyuncunun yanıtı bekleniyor…':'Kap
 
 document.getElementById('btn-invite-start')?.addEventListener('click',async()=>{
 if(mpRole!=='guest'||!mpRoomRef) return;
+stopInviteDecisionTimer();
 const btn=document.getElementById('btn-invite-start'); if(btn) btn.disabled=true;
 try{
 const inv=(await mpRoomRef.child('invite').once('value')).val()||{};
@@ -44204,6 +44225,7 @@ await enterMultiplayerRoom();
 }catch(e){showToast('Oyun başlatılamadı.','rose'); if(btn) btn.disabled=false;}
 });
 document.getElementById('btn-invite-cancel')?.addEventListener('click',async()=>{
+stopInviteDecisionTimer();
 if(mpRole==='guest'&&mpRoomRef){
 await mpRoomRef.child('invite/guest').set('declined').catch(()=>{});
 await requestSynchronizedRoomExit('player-exit');
@@ -45618,7 +45640,7 @@ if(shouldDeletePrivate){ try{ await lockClosedRoomCode(exitingCode,exitingRef,re
 const exitMessage=reason==='opponent-disconnected'
 ?'RAKİBİN BAĞLANTISI KESİLDİ'
 :(reason==='invite-timeout'
-?'OYUNDAN ÇIKIŞ YAPILDI'
+?'OYUN SONLANDIRILDI'
 :(reason==='player-exit'
 ?'OYUN SONLANDIRILDI'
 :(reason==='rematch-timeout'?'OYUN İPTAL OLDU':'OYUN SONLANDIRILDI')));
@@ -45669,6 +45691,7 @@ await handleSynchronizedRoomExit(reason,role);
 }
 async function exitCurrentGameToHome(){
 stopLocalCountdown();
+stopInviteDecisionTimer();
 stopWinnerConfettiWaterfall();
 clearVictoryPresentation();
 isMatchActive=false;
