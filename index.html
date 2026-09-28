@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v301</title>
-<meta name="game-version" content="v301">
+<title>KAPMACA.tr — Sözcük Avı v302</title>
+<meta name="game-version" content="v302">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -3661,6 +3661,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div id="rematch-inline-status" class="hidden mt-2 w-full rounded-xl bg-slate-100 border border-slate-200 px-3 py-2 text-[11px] font-bold text-slate-600">Rakip bekleniyor…</div>
 <button id="btn-game-exit" class="w-full mt-2 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-black text-xs py-2.5 rounded-xl uppercase shadow-md transition">ÇIKIŞ</button>
 </div>
+<button id="btn-random-result-exit" type="button" class="hidden w-full mt-2 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-black text-xs py-2.5 rounded-xl uppercase shadow-md transition">ÇIKIŞ</button>
 </div>
 </div>
 </div>
@@ -43802,15 +43803,11 @@ const actions=document.getElementById('gameover-actions');
 const replay=document.getElementById('btn-play-again');
 const exitBtn=document.getElementById('btn-game-exit');
 const inline=document.getElementById('rematch-inline-status');
-if(actions){actions.classList.remove('hidden');actions.style.removeProperty('display');}
+const randomExitBtn=document.getElementById('btn-random-result-exit');
+if(actions){actions.classList.add('hidden');actions.style.setProperty('display','none','important');}
 if(replay){replay.disabled=true;replay.classList.add('hidden');replay.style.setProperty('display','none','important');replay.classList.remove('rematch-pulse');}
-if(exitBtn){
-  exitBtn.disabled=false;
-  exitBtn.classList.remove('hidden');
-  exitBtn.style.removeProperty('display');
-  exitBtn.className='w-full mt-2 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-black text-xs py-2.5 rounded-xl uppercase shadow-md transition';
-  exitBtn.textContent='ÇIKIŞ';
-}
+if(exitBtn){exitBtn.disabled=true;exitBtn.classList.add('hidden');exitBtn.style.setProperty('display','none','important');}
+if(randomExitBtn){randomExitBtn.disabled=false;randomExitBtn.classList.remove('hidden');randomExitBtn.style.removeProperty('display');}
 if(inline){inline.classList.add('hidden');inline.textContent='';}
 setRandomAutoExitNotice(true);
 // Kritik: sayaç sonuç ekranının çiziminden ve kutlama efektlerinden bağımsızdır.
@@ -45991,6 +45988,11 @@ document.getElementById('screen-home')?.classList.remove('hidden');
 document.getElementById('btn-quick-exit')?.addEventListener('click', ()=>{
 if(activeGameMode==='multi' && mpRoomRef && mpRole) requestSynchronizedRoomExit('player-exit');
 else exitCurrentGameToHome();
+});
+
+document.getElementById('btn-random-result-exit')?.addEventListener('click', ()=>{
+  if(isRandomHumanRoom()) exitRandomResultImmediately();
+  else returnToHomeFromMultiplayer();
 });
 
 document.getElementById('btn-game-exit')?.addEventListener('click', ()=>{
