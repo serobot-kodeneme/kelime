@@ -1,0 +1,16 @@
+{
+  "name": "KAPMACA — Türkçe Kelime Oyunu",
+  "short_name": "KAPMACA",
+  "description": "60 saniyede aynı harflerden en çok Türkçe sözcüğü bul. Tek başına oyna veya arkadaşına meydan oku.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#eaf7f2",
+  "theme_color": "#075458",
+  "lang": "tr",
+  "categories": [
+    "games",
+    "word"
+  ]
+}
