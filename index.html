@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <title>KAPMACA — Ücretsiz Türkçe Online Kelime Oyunu</title>
-<meta name="game-version" content="v341">
+<meta name="game-version" content="v342">
 <meta name="description" content="KAPMACA, 60 saniyede aynı harflerden en çok Türkçe sözcüğü bulmaya çalıştığın ücretsiz online kelime oyunudur. Tek başına oyna veya arkadaşına meydan oku.">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" content="#075458">
@@ -2963,11 +2963,7 @@ button:not(:disabled):active{filter:brightness(.96) saturate(1.12);}
 @keyframes victoryHalo{0%,100%{transform:scale(.96);opacity:.72}50%{transform:scale(1.06);opacity:1}}
 .victory-badge{display:inline-flex;align-items:center;justify-content:center;gap:4px;margin:2px auto 5px;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:1000;letter-spacing:.12em;color:#fff;background:linear-gradient(135deg,#f59e0b,#facc15);box-shadow:0 5px 14px rgba(245,158,11,.28);animation:victoryBadgePop .45s cubic-bezier(.2,.8,.2,1) both;}
 .victory-badge.sky{background:linear-gradient(135deg,#0284c7,#38bdf8);box-shadow:0 5px 14px rgba(14,165,233,.28)}
-.gameover-medal{width:74px;height:74px;flex:none;margin:3px auto 6px;display:grid;place-items:center;border-radius:50%;border:5px solid #fff;background:linear-gradient(145deg,#fff0af,#e9b848);color:#80520a;box-shadow:0 4px 0 #ba8938,0 9px 17px rgba(43,70,99,.17);font-size:39px;font-weight:900;line-height:1;animation:victoryBadgePop .45s ease-out both;}
-.gameover-medal.loss{background:linear-gradient(145deg,#f2f5fa,#bdc9d7);color:#66778b;box-shadow:0 3px 0 #9ba9ba,0 7px 14px rgba(43,70,99,.12);}
-.gameover-medal.tie{background:linear-gradient(145deg,#e0f2fe,#93c5fd);color:#2563a3;box-shadow:0 3px 0 #68a0d1,0 7px 14px rgba(43,70,99,.12);}
 #gameover-heading{font-size:clamp(16px,5vw,22px);line-height:1.16;}
-@media(max-height:680px){.gameover-medal{width:51px;height:51px;margin:0 auto 4px;font-size:27px;}}
 @keyframes victoryBadgePop{0%{opacity:0;transform:translateY(7px) scale(.72)}70%{opacity:1;transform:translateY(-1px) scale(1.08)}100%{opacity:1;transform:translateY(0) scale(1)}}
 .victory-avatar-crown{position:absolute;left:50%;top:-17px;transform:translateX(-50%) rotate(-5deg);font-size:24px;filter:drop-shadow(0 4px 5px rgba(0,0,0,.18));animation:crownFloat 1.2s ease-in-out 4;pointer-events:none;z-index:6}
 @keyframes crownFloat{0%,100%{transform:translateX(-50%) translateY(0) rotate(-5deg)}50%{transform:translateX(-50%) translateY(-3px) rotate(4deg)}}
@@ -2981,7 +2977,6 @@ button:not(:disabled):active{filter:brightness(.96) saturate(1.12);}
 @keyframes resultCardConfetti{0%{opacity:0;transform:translate3d(0,-8px,0) rotate(0deg) scale(.8)}10%{opacity:1}100%{opacity:0;transform:translate3d(var(--dx),calc(100% + var(--dy)),0) rotate(var(--rot,320deg)) scale(1.02)}}
 .result-global-confetti{position:fixed;inset:0;pointer-events:none;z-index:998;overflow:hidden;}
 .result-global-confetti i{position:absolute;top:-20px;width:9px;height:14px;border-radius:2px;opacity:.98;animation:globalResultConfetti var(--dur,2.2s) cubic-bezier(.2,.7,.25,1) forwards;will-change:transform,opacity;}
-body[data-random-match-active="1"] #gameover-actions{display:none!important;}
 #gameover-actions{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
@@ -2992,34 +2987,37 @@ body[data-random-match-active="1"] #gameover-actions{display:none!important;}
 body[data-private-friend-active="1"] #gameover-actions{display:grid!important;}
 body[data-private-friend-active="1"] #btn-play-again,
 body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
-#btn-challenge-share{grid-column:1/-1!important;width:100%!important;margin-bottom:0!important;}
 #rematch-inline-status{grid-column:1/-1!important;}
 #btn-play-again,
-#btn-game-exit,
-#btn-random-result-exit{
-  width:92px!important;
-  height:92px!important;
-  min-width:92px!important;
+#btn-game-exit{
+  width:98px!important;
+  height:88px!important;
+  min-width:98px!important;
   margin:0!important;
-  padding:9px 6px!important;
+  padding:9px 7px!important;
   border-radius:22px!important;
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  gap:5px;
+  gap:6px;
   line-height:1.05!important;
   font-size:10px!important;
-  letter-spacing:.035em;
+  letter-spacing:.04em;
   text-align:center;
+  border:1px solid rgba(255,255,255,.58)!important;
+  box-shadow:0 8px 18px rgba(15,23,42,.18),inset 0 1px 0 rgba(255,255,255,.45)!important;
+  transition:transform .12s ease,filter .12s ease,box-shadow .12s ease!important;
 }
-#btn-play-again::before{content:"↻";font-size:30px;line-height:1;font-weight:1000;}
-#btn-game-exit::before,
-#btn-random-result-exit::before{content:"↪";font-size:29px;line-height:1;font-weight:1000;}
-#btn-random-result-exit{margin:10px auto 0!important;}
+#btn-play-again{background:linear-gradient(145deg,#fcd34d,#f59e0b)!important;color:#78350f!important;}
+#btn-game-exit{background:linear-gradient(145deg,#fb7185,#dc2626)!important;color:#fff!important;}
+#btn-play-again:hover,#btn-game-exit:hover{filter:brightness(1.05)}
+#btn-play-again:active,#btn-game-exit:active{transform:translateY(2px) scale(.98)}
+#btn-play-again::before{content:"↻";display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:rgba(255,255,255,.48);font-size:27px;line-height:1;font-weight:1000;}
+#btn-game-exit::before{content:"↪";display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:rgba(255,255,255,.18);font-size:26px;line-height:1;font-weight:1000;}
 @media (max-width:380px){
-  #btn-play-again,#btn-game-exit,#btn-random-result-exit{
-    width:86px!important;height:86px!important;min-width:86px!important;border-radius:20px!important;
+  #btn-play-again,#btn-game-exit{
+    width:92px!important;height:84px!important;min-width:92px!important;border-radius:20px!important;
   }
 }
 @keyframes globalResultConfetti{0%{opacity:0;transform:translate3d(0,-16px,0) rotate(0deg)}8%{opacity:1}86%{opacity:.95}100%{opacity:0;transform:translate3d(var(--dx),105vh,0) rotate(var(--rot,540deg))}}
@@ -3547,7 +3545,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 <div class="sound-step-marks" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
 <label class="sound-mute-row" for="sound-muted"><input id="sound-muted" type="checkbox"> Sessiz</label>
 </div>
-<div class="mt-2 text-center text-[10px] font-black text-slate-400">v341</div>
+<div class="mt-2 text-center text-[10px] font-black text-slate-400">v342</div>
 </div>
 </div>
 </div>
@@ -3672,9 +3670,8 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 </div>
 </div>
 
-<div id="modal-gameover" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex items-start justify-center z-50 hidden pt-3 sm:pt-5">
+<div id="modal-gameover" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex items-start justify-center z-50 hidden pt-0 sm:pt-1">
 <div class="bg-white border border-slate-200 px-4 pt-3 pb-4 rounded-3xl text-center w-[94%] max-w-md flex flex-col items-center text-slate-900 shadow-2xl max-h-[96%] overflow-hidden">
-<div id="gameover-medal" class="gameover-medal" aria-hidden="true">★</div>
 <h2 id="gameover-heading" class="font-black mb-1 text-amber-600 leading-tight">KUTLARIM KAZANDIN!</h2>
 <div class="flex justify-between items-center w-full mt-1 mb-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-2xl">
 <div id="final-p1-card" class="relative w-[45%] text-center transition-all">
@@ -3697,12 +3694,10 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 </div>
 <div id="random-auto-exit-note" role="status" aria-live="polite" style="display:none;width:100%;margin:2px 0 8px;padding:10px 12px;border-radius:14px;background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3;font-size:11px;font-weight:900;letter-spacing:.045em;text-align:center;">3 SANİYE İÇİNDE ÇIKIŞ YAPILACAK</div>
 <div id="gameover-actions" class="w-full">
-<button id="btn-challenge-share" type="button" class="w-full mb-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 text-white font-black text-xs py-2.5 rounded-xl uppercase shadow-md active:scale-[0.98] transition">🔥 ARKADAŞINA MEYDAN OKU</button>
 <button id="btn-play-again" onclick="handlePlayAgain()" class="w-full bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 text-amber-950 font-black text-xs py-2.5 rounded-xl uppercase shadow-md">YENİDEN OYNA</button>
 <div id="rematch-inline-status" class="hidden mt-2 w-full rounded-xl bg-slate-100 border border-slate-200 px-3 py-2 text-[11px] font-bold text-slate-600">Rakip bekleniyor…</div>
 <button id="btn-game-exit" class="w-full mt-2 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-black text-xs py-2.5 rounded-xl uppercase shadow-md transition">ÇIKIŞ</button>
 </div>
-<button id="btn-random-result-exit" type="button" class="hidden w-full mt-2 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-black text-xs py-2.5 rounded-xl uppercase shadow-md transition">ÇIKIŞ</button>
 </div>
 </div>
 </div>
