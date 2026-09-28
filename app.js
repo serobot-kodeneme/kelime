@@ -1417,7 +1417,7 @@ if(lastPos){
 }
 flyScore(Number(ev.pts||0), ev.role==='host', remoteOrigin);
 rewardWordFx(ev.role==='host');
-showToast(`${ev.role==='host'?'1. Oyuncu':'2. Oyuncu'}: ${ev.word} (+${ev.pts||0})`,ev.role==='host'?'amber':'sky');
+showToast(`${String(ev.word).toLocaleUpperCase('tr-TR')} (+${ev.pts||0})`,ev.role==='host'?'amber':'sky');
 }
 
 function playCountdownBeep(n){
@@ -2638,7 +2638,7 @@ if (isArgoWord(word)) {
 playErrorBuzzer();
 flashWordFeedback(false);
 breakCombo(isP1);
-showToast('ARGO -3 CEZA', 'rose');
+showToast(`${word} (-3) ARGO/KÜFÜR`, 'rose');
 adjustScore(isP1 ? -3 : 0, !isP1 ? -3 : 0);
 clearPath();
 return;
@@ -2670,7 +2670,7 @@ at: firebase.database.ServerValue.TIMESTAMP
 };
 });
 if (!tx.committed) {
-showToast('Rakip tarafından bulundu :(', 'sky', 1500);
+showToast(`${word} (DAHA ÖNCE BULUNDU)`, 'rose', 1500);
 clearPath();
 return;
 }
@@ -2680,7 +2680,7 @@ clearPath();
 return;
 }
 } else if (sessionFoundWords.has(word)) {
-showToast('Rakip tarafından bulundu :(', 'sky', 1500);
+showToast(`${word} (DAHA ÖNCE BULUNDU)`, 'rose', 1500);
 clearPath();
 return;
 }
@@ -2974,7 +2974,7 @@ rewardWordFx(!botIsP2);
 adjustScore(botIsP2 ? 0 : pts, botIsP2 ? pts : 0);
 const botBadge=addTickerBadge(word, !botIsP2);
 flashOpponentWord(matchObj.path,!botIsP2,botBadge);
-showToast(`2. OYUNCU: ${word} (+${pts})`, botIsP2 ? 'sky' : 'amber');
+showToast(`${word} (+${pts})`, botIsP2 ? 'sky' : 'amber');
 }
 planBot();
 }, level.delay);
