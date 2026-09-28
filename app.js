@@ -40181,10 +40181,10 @@ if(isPrivateFriendRoom()) forcePrivateResultActions();
 const resultSig=[Number(d.round||1),finalWinner,Number(d.scores?.host||0),Number(d.scores?.guest||0),Number(d.longestBonus?.maxLen||0)].join('|');
 if(resultSig===mpLastResultRenderSig) return;
 const previewKey=`mp|${mpRoomCode||''}|${resultSig}`;
-if(!missedPreviewDoneKeys.has(previewKey)){
-  missedPreviewDoneKeys.add(previewKey);
+if(!resultPreviewDoneKeys.has(previewKey)){
+  resultPreviewDoneKeys.add(previewKey);
   isMatchActive=false;clearInterval(timerInterval);clearInterval(mpClock);clearTimeout(botInterval);
-  showTimeUpPreview(()=>showMissedWordsBeforeResult(d,()=>showMultiplayerSeriesResult(d)));
+  showTimeUpPreview(()=>showMultiplayerSeriesResult(d));
   return;
 }
 mpLastResultRenderSig=resultSig;
@@ -41866,90 +41866,7 @@ function showTimeUpPreview(done){
   timeUpPreviewTimer=setTimeout(()=>{clearTimeUpPreview();done();},1150);
 }
 
-let missedPreviewTimer=null;
-const missedPreviewDoneKeys=new Set();
-function clearMissedWordPreview(){
-  if(missedPreviewTimer){clearTimeout(missedPreviewTimer);missedPreviewTimer=null;}
-  document.querySelectorAll('#scrabble-grid .missed-word-cell,#scrabble-grid .missed-word-pick').forEach(el=>el.classList.remove('missed-word-cell','missed-word-pick'));
-  document.getElementById('missed-word-banner')?.remove();
-}
-function getFoundWordsForMissed(resultData=null){
-  const found=new Set();
-  if(resultData?.words){
-    for(const ev of Object.values(resultData.words)){
-      const w=String(ev?.word||'').toLocaleUpperCase('tr-TR');
-      if(w)found.add(w);
-    }
-  }
-  for(const w of sessionFoundWords)found.add(String(w).toLocaleUpperCase('tr-TR'));
-  return found;
-}
-function getMissedWordSamples(resultData=null){
-  let solved=boardFoundWords;
-  if(!Array.isArray(solved)||!solved.length) solved=solveBoardWords(gridBoard);
-  const found=getFoundWordsForMissed(resultData);
-  return solved
-    .filter(item=>item?.word&&Array.isArray(item.path)&&!found.has(item.word))
-    .map(item=>({item,score:item.word.split('').reduce((sum,ch)=>sum+(TILE_SCORE_CACHE[ch]||1),0)}))
-    .sort((a,b)=>b.score-a.score||b.item.word.length-a.item.word.length||a.item.word.localeCompare(b.item.word,'tr'))
-    .slice(0,3)
-    .map(x=>x.item);
-}
-function showMissedWordsBeforeResult(resultData,done){
-  clearMissedWordPreview();
-  const words=getMissedWordSamples(resultData);
-  if(!words.length){done();return;}
-  const board=document.getElementById('scrabble-grid');
-  const parent=board?.parentElement;
-  if(!board||!parent){done();return;}
-  let banner=document.createElement('div');
-  banner.id='missed-word-banner';banner.className='missed-word-banner';
-  banner.textContent='KAÇIRILAN SÖZCÜKLER';
-  parent.appendChild(banner);
-  let wordIndex=0;
-
-  const clearPicked=()=>{
-    document.querySelectorAll('#scrabble-grid .missed-word-cell,#scrabble-grid .missed-word-pick')
-      .forEach(el=>el.classList.remove('missed-word-cell','missed-word-pick'));
-  };
-
-  const showNextWord=()=>{
-    clearPicked();
-    if(wordIndex>=words.length){
-      missedPreviewTimer=setTimeout(()=>{clearMissedWordPreview();done();},260);
-      return;
-    }
-    const item=words[wordIndex++];
-    const path=Array.isArray(item.path)?item.path:[];
-    let letterIndex=0;
-
-    const pickNextLetter=()=>{
-      if(letterIndex>=path.length){
-        banner.textContent=`KAÇIRILAN: ${item.word}`;
-        banner.classList.remove('collecting');
-        void banner.offsetWidth;
-        banner.classList.add('collecting');
-        missedPreviewTimer=setTimeout(showNextWord,420);
-        return;
-      }
-      const pt=path[letterIndex++];
-      const cell=domCells[pt.r*BOARD_SIZE+pt.c];
-      if(cell){
-        cell.classList.add('missed-word-cell');
-        cell.classList.remove('missed-word-pick');
-        void cell.offsetWidth;
-        cell.classList.add('missed-word-pick');
-      }
-      // Oynanış öğretme demosuna yakın, harf harf "elle toplama" temposu.
-      missedPreviewTimer=setTimeout(pickNextLetter,125);
-    };
-
-    banner.textContent='KAÇIRILAN SÖZCÜK';
-    pickNextLetter();
-  };
-
-  showNextWord();
-}
+const resultPreviewDoneKeys=new Set();
 
 function spawnHighResultPartyFx(){ return; }
 function launchLightResultConfetti(x=.5){if(typeof confetti==='function')confetti({particleCount:20,spread:70,origin:{x,y:.56},zIndex:999,disableForReducedMotion:true});}
@@ -42087,7 +42004,7 @@ mpEndResolveTimer=setTimeout(()=>{mpEndResolveTimer=null;hostResolveMatchEnd().c
 return;
 }
 const longestBonus=applySingleLongestWordBonus();
-showTimeUpPreview(()=>showMissedWordsBeforeResult(null,()=>{
+showTimeUpPreview(()=>{
 document.getElementById('modal-gameover').classList.remove('hidden');
 const singleActions=document.getElementById('gameover-actions');
 if(singleActions){ singleActions.style.removeProperty('display'); singleActions.classList.remove('hidden'); }
@@ -42119,7 +42036,7 @@ else {setGameoverOutcome(null);}
 if(p1Score>p2Score)emphasizeWinner('p1');
 else if(p2Score>p1Score)emphasizeWinner('p2');
 scheduleBoardPrewarm();
-}));
+});
 }
 
 function showRoomExitNotice(message='OYUNDAN ÇIKIŞ YAPILDI'){
