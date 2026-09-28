@@ -1104,14 +1104,14 @@ const inline=document.getElementById('rematch-inline-status');
 if(actions){actions.classList.remove('hidden');actions.style.setProperty('display','block','important');}
 if(replay){
 replay.classList.remove('hidden');
-replay.style.setProperty('display','block','important');
+replay.style.setProperty('display','flex','important');
 replay.disabled=false;
 replay.textContent='YENİDEN OYNA';
 replay.classList.add('rematch-pulse');
 }
 if(exitBtn){
 exitBtn.classList.remove('hidden');
-exitBtn.style.setProperty('display','block','important');
+exitBtn.style.setProperty('display','flex','important');
 exitBtn.disabled=false;
 exitBtn.className='w-full mt-2 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-black text-xs py-2.5 rounded-xl uppercase shadow-md transition';
 exitBtn.textContent='ÇIKIŞ';
@@ -1217,7 +1217,7 @@ const btn=document.getElementById('btn-random-result-exit');
 if(!btn) return;
 btn.disabled=false;
 btn.classList.remove('hidden');
-btn.style.setProperty('display','block','important');
+btn.style.setProperty('display','flex','important');
 btn.style.setProperty('visibility','visible','important');
 btn.style.setProperty('opacity','1','important');
 }
