@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <title>KAPMACA — Ücretsiz Türkçe Online Kelime Oyunu</title>
-<meta name="game-version" content="v334">
+<meta name="game-version" content="v335">
 <meta name="description" content="KAPMACA, 60 saniyede aynı harflerden en çok Türkçe sözcüğü bulmaya çalıştığın ücretsiz online kelime oyunudur. Tek başına oyna veya arkadaşına meydan oku.">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" content="#075458">
@@ -3005,14 +3005,10 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 }
 .rematch-pulse{animation:rematchPulse 1.15s ease-in-out infinite; transform-origin:center;}
 
-#sound-volume-levels{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:18px;}
-.sound-level-dot{width:24px;height:24px;border-radius:9999px;border:2px solid #94a3b8;background:transparent;box-shadow:inset 0 0 0 3px #fff,0 2px 7px rgba(15,23,42,.08);transition:transform .12s ease,background .12s ease,border-color .12s ease,box-shadow .12s ease;cursor:pointer;}
-.sound-level-dot:hover{transform:scale(1.08);}
-.sound-level-dot.active{background:#22c55e;border-color:#16a34a;box-shadow:inset 0 0 0 3px rgba(255,255,255,.88),0 0 10px rgba(34,197,94,.72);}
-.sound-level-dot[data-sound-level="0"]{border-color:#ef4444;background:#fee2e2;box-shadow:inset 0 0 0 3px #fff,0 2px 7px rgba(239,68,68,.18)}
-.sound-level-dot[data-sound-level="0"].active{background:#ef4444;border-color:#dc2626;box-shadow:inset 0 0 0 3px rgba(255,255,255,.88),0 0 10px rgba(239,68,68,.55)}
-.sound-level-dot:active{transform:scale(.94);}
-@media (max-width:380px){#sound-volume-levels{gap:11px}.sound-level-dot{width:22px;height:22px}}
+#sound-volume-control{margin-top:18px}
+#sound-volume-range{width:100%;height:6px;accent-color:#2563eb;cursor:pointer}
+.sound-mute-row{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:10px;font-size:12px;font-weight:900;color:#475569}
+#sound-muted{width:18px;height:18px;accent-color:#ef4444;cursor:pointer}
 @keyframes highResultPop{0%{transform:scale(.78) rotate(-1.8deg);opacity:.45}70%{transform:scale(1.035) rotate(.5deg)}100%{transform:scale(1);opacity:1}}
 @keyframes highWinnerBounce{from{transform:scale(1)}to{transform:scale(1.055) rotate(.4deg)}}
 
@@ -3502,20 +3498,16 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div class="flex items-center justify-between gap-3">
 <div>
 <div class="font-black text-slate-900">Ses Düzeyi</div>
-<div class="text-[11px] font-bold text-slate-500 mt-0.5">Sessiz dahil 6 kademeli ses ayarı.</div>
+<div class="text-[11px] font-bold text-slate-500 mt-0.5">Basit yatay ses ayarı.</div>
 </div>
-<div id="sound-volume-label" class="min-w-[58px] text-center rounded-xl bg-emerald-50 border border-emerald-100 px-2 py-1 text-sm font-black text-emerald-800">4 / 5</div>
+<div id="sound-volume-label" class="min-w-[58px] text-center rounded-xl bg-emerald-50 border border-emerald-100 px-2 py-1 text-sm font-black text-emerald-800">80%</div>
 </div>
-<div id="sound-volume-levels" role="group" aria-label="Ses düzeyi: sessiz veya 1 ile 5 arası">
-<button type="button" class="sound-level-dot" data-sound-level="0" aria-label="Sessiz"></button>
-<button type="button" class="sound-level-dot" data-sound-level="1" aria-label="Ses 1"></button>
-<button type="button" class="sound-level-dot" data-sound-level="2" aria-label="Ses 2"></button>
-<button type="button" class="sound-level-dot" data-sound-level="3" aria-label="Ses 3"></button>
-<button type="button" class="sound-level-dot" data-sound-level="4" aria-label="Ses 4"></button>
-<button type="button" class="sound-level-dot" data-sound-level="5" aria-label="Ses 5"></button>
+<div id="sound-volume-control">
+<input id="sound-volume-range" type="range" min="0" max="100" step="5" value="80" aria-label="Ses düzeyi">
+<label class="sound-mute-row" for="sound-muted"><input id="sound-muted" type="checkbox"> Sessiz</label>
 </div>
 <button id="btn-sound-test" type="button" class="w-full mt-5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-[.99] text-white font-black text-xs py-3 shadow">SESİ DENE</button>
-<div class="mt-2 text-center text-[10px] font-black text-slate-400">v334</div>
+<div class="mt-2 text-center text-[10px] font-black text-slate-400">v335</div>
 </div>
 </div>
 </div>
