@@ -693,7 +693,7 @@ function restoreHodriMeydanButton(){
 const btn=document.getElementById('btn-random-match');
 if(!btn) return;
 btn.disabled=false;
-btn.innerHTML='<span class="text-6xl leading-none mb-2" aria-hidden="true">🎲</span><span class="text-[13px] leading-tight">HODRİ MEYDAN!</span><span class="mt-1 text-[10px] leading-snug font-bold text-amber-950">Sürpriz bir rakiple oyna</span>';
+btn.innerHTML='<span class="text-[78px] leading-none mb-2 drop-shadow-sm" aria-hidden="true">🎲</span><span class="text-[13px] leading-tight">HODRİ MEYDAN!</span><span class="mt-1 text-[10px] leading-snug font-bold text-amber-950">Sürpriz bir rakiple oyna</span>';
 }
 async function cleanupRandomQueue(onlyIfMine=true){
 const ref=randomQueueRef, ticket=randomSearchTicket;
@@ -1178,23 +1178,16 @@ function clearVictoryPresentation(){
 }
 function setGameoverOutcome(won){
   const heading=document.getElementById('gameover-heading');
-  const medal=document.getElementById('gameover-medal');
-  if(!heading||!medal)return;
-  medal.classList.toggle('loss',won===false);
-  medal.classList.toggle('tie',won===null);
-  heading.textContent=won===true?'KUTLARIM KAZANDIN!':won===false?'Yenildin, bir daha dene':'Berabere! Bir daha dene';
+  if(!heading)return;
+  heading.textContent=won===true?'KAZANDIN':won===false?'YENİLDİN':'BERABERE';
   heading.style.color=won===true?'#b45309':won===false?'#475569':'#2563eb';
 }
 function decorateWinnerCard(side){
   clearVictoryPresentation();
   const card=document.getElementById(side==='p1'?'final-p1-card':'final-p2-card');
-  const avatar=document.getElementById(side==='p1'?'final-p1-avatar':'final-p2-avatar');
-  if(!card||!avatar) return;
+  if(!card) return;
   card.classList.add('victory-card');
   if(side==='p2') card.classList.add('victory-sky');
-  const crown=document.createElement('div'); crown.className='victory-avatar-crown'; crown.textContent='👑'; avatar.appendChild(crown);
-  const badge=document.createElement('div'); badge.className='victory-badge'+(side==='p2'?' sky':''); badge.textContent='★ ZAFER ★';
-  avatar.insertAdjacentElement('afterend',badge);
 }
 function emphasizeWinner(side){
   if(!side)return;
@@ -1213,14 +1206,14 @@ function emphasizeWinner(side){
   startWinnerConfettiWaterfall(side);
 }
 function showRandomResultExitButton(){
-const btn=document.getElementById('btn-random-result-exit');
-if(!btn) return;
-btn.disabled=false;
-btn.classList.remove('hidden');
-btn.style.setProperty('display','flex','important');
-btn.style.setProperty('visibility','visible','important');
-btn.style.setProperty('opacity','1','important');
+const actions=document.getElementById('gameover-actions');
+const replay=document.getElementById('btn-play-again');
+const exitBtn=document.getElementById('btn-game-exit');
+if(actions){actions.classList.remove('hidden');actions.style.setProperty('display','grid','important');}
+if(replay){replay.disabled=false;replay.classList.remove('hidden');replay.style.setProperty('display','flex','important');replay.textContent='YENİDEN OYNA';replay.classList.remove('rematch-pulse');}
+if(exitBtn){exitBtn.disabled=false;exitBtn.classList.remove('hidden');exitBtn.style.setProperty('display','flex','important');exitBtn.textContent='ÇIKIŞ';}
 }
+
 function setRandomAutoExitNotice(visible){
 const el=document.getElementById('random-auto-exit-note');
 if(!el) return;
@@ -1232,15 +1225,8 @@ if(!d || !isRandomHumanRoom()) return false;
 const finalWinner=String(d.finalWinner||'');
 if(!['host','guest','tie'].includes(finalWinner)) return false;
 const autoKey=`${mpRoomCode||''}|${Number(d.round||1)}`;
-const actions=document.getElementById('gameover-actions');
-const replay=document.getElementById('btn-play-again');
-const exitBtn=document.getElementById('btn-game-exit');
+showRandomResultExitButton();
 const inline=document.getElementById('rematch-inline-status');
-const randomExitBtn=document.getElementById('btn-random-result-exit');
-if(actions){actions.classList.add('hidden');actions.style.setProperty('display','none','important');}
-if(replay){replay.disabled=true;replay.classList.add('hidden');replay.style.setProperty('display','none','important');replay.classList.remove('rematch-pulse');}
-if(exitBtn){exitBtn.disabled=true;exitBtn.classList.add('hidden');exitBtn.style.setProperty('display','none','important');}
-if(randomExitBtn) showRandomResultExitButton();
 if(inline){inline.classList.add('hidden');inline.textContent='';}
 setRandomAutoExitNotice(true);
 // Kritik: sayaç sonuç ekranının çiziminden ve kutlama efektlerinden bağımsızdır.
@@ -1627,7 +1613,7 @@ const soloArrowHome=document.getElementById('solo-arrow'); if(soloArrowHome) sol
 document.getElementById('mp-room-view')?.classList.add('hidden');
 document.getElementById('mp-create-view')?.classList.remove('hidden');
 document.getElementById('btn-close-room')?.classList.add('hidden');
-const randomBtn=document.getElementById('btn-random-match'); if(randomBtn){randomBtn.disabled=false;randomBtn.innerHTML='<span class="text-6xl leading-none mb-2" aria-hidden="true">🎲</span><span class="text-[13px] leading-tight">HODRİ MEYDAN!</span><span class="mt-1 text-[10px] leading-snug font-bold text-amber-950">Sürpriz bir rakiple oyna</span>';}
+restoreHodriMeydanButton();
 setRandomStatus('',false);
 disconnectFirebaseNetwork();
 }
@@ -2818,7 +2804,6 @@ await navigator.clipboard.writeText(plain);
 showToast('Meydan okuma metni kopyalandı!','emerald',2200);
 }catch(e){if(e?.name!=='AbortError') showToast('Paylaşım açılamadı.','rose');}
 }
-document.getElementById('btn-challenge-share')?.addEventListener('click',shareChallengeResult);
 
 function showToast(msg, color, duration=1600) {
 const toast = document.createElement('div');
@@ -3069,7 +3054,17 @@ modal?.classList.remove('hidden');
 }
 
 async function handlePlayAgain(){
-if(activeGameMode==='multi' && isRandomHumanRoom()) return;
+if(activeGameMode==='multi' && isRandomHumanRoom()){
+  if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
+  randomResultAutoExitKey='';
+  exitRandomResultImmediately();
+  const panel=document.getElementById('friend-invite-panel');
+  panel?.classList.remove('hidden');
+  document.getElementById('mp-create-view')?.classList.remove('hidden');
+  document.getElementById('mp-room-view')?.classList.add('hidden');
+  setTimeout(()=>searchRandomOpponent(),0);
+  return;
+}
 if(activeGameMode !== 'multi'){
 clearInterval(timerInterval); timerInterval=null;
 clearTimeout(botInterval); botInterval=null;
@@ -3166,22 +3161,16 @@ mpEndResolveTimer=setTimeout(()=>{mpEndResolveTimer=null;hostResolveMatchEnd().c
 return;
 }
 
-// v338: SÜRE DOLDU kartı önce ekrana çizilir.
-// Sonuç ekranının içeriği bu 1 saniyelik bildirim görünürken arkada hazırlanır.
-// Böylece bildirim kaybolduğu anda sonuç ekranı beklemeden görünür.
-let resultPrepared=false;
+// v342: 1 saniyelik SÜRE DOLDU bildirimi biter bitmez sonuç modali açılır.
+// Ağır sonuç süslemeleri modal görünür olduktan sonra çalışır; geçişi artık bloke etmez.
 showTimeUpPreview(()=>{
-  if(!resultPrepared){
-    try{prepareSingleResultScreen();resultPrepared=true;}catch(e){console.error('Single result preparation error',e);}
-  }
-  document.getElementById('modal-gameover')?.classList.remove('hidden');
-  scheduleBoardPrewarm();
-});
-requestAnimationFrame(()=>{
-  setTimeout(()=>{
-    try{prepareSingleResultScreen();resultPrepared=true;}
+  const modal=document.getElementById('modal-gameover');
+  modal?.classList.remove('hidden');
+  requestAnimationFrame(()=>{
+    try{prepareSingleResultScreen();}
     catch(e){console.error('Single result preparation error',e);}
-  },0);
+    scheduleBoardPrewarm();
+  });
 });
 }
 
@@ -3388,10 +3377,6 @@ if(activeGameMode==='multi' && mpRoomRef && mpRole) requestSynchronizedRoomExit(
 else exitCurrentGameToHome();
 });
 
-document.getElementById('btn-random-result-exit')?.addEventListener('click', ()=>{
-  if(isRandomHumanRoom()) exitRandomResultImmediately();
-  else returnToHomeFromMultiplayer();
-});
 
 document.getElementById('btn-game-exit')?.addEventListener('click', ()=>{
 if(activeGameMode!=='multi' && !mpRoomRef && !mpRole){
