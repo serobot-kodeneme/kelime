@@ -39634,6 +39634,12 @@ randomSearchActive=false;
 randomSearchTicket=null;
 randomQueueRef=null;
 }
+function restoreHodriMeydanButton(){
+const btn=document.getElementById('btn-random-match');
+if(!btn) return;
+btn.disabled=false;
+btn.innerHTML='<span class="text-6xl leading-none mb-2" aria-hidden="true">🎲</span><span class="text-[13px] leading-tight">HODRİ MEYDAN!</span><span class="mt-1 text-[10px] leading-snug font-bold text-amber-950">Sürpriz bir rakiple oyna</span>';
+}
 async function cleanupRandomQueue(onlyIfMine=true){
 stopRandomOpponentCount();
 const ref=randomQueueRef, ticket=randomSearchTicket;
@@ -39650,8 +39656,7 @@ try{ await ref.onDisconnect().cancel(); }catch(_){}
 }catch(_){}
 }
 if(randomQueueRef===ref){randomSearchActive=false;randomSearchTicket=null;randomQueueRef=null;randomQueueListener=null;}
-const btn=document.getElementById('btn-random-match');
-if(btn){ btn.disabled=false; btn.textContent='🎲 HODRİ MEYDAN!'; }
+restoreHodriMeydanButton();
 }
 async function createRandomMatchedRoom(hostId,guestId){
 const alloc=await allocateDailyRoomCode();
@@ -39699,7 +39704,7 @@ const btn=document.getElementById('btn-random-match');
 if(btn){ btn.disabled=true; btn.textContent='RAKİP ARANIYOR…'; }
 setRandomStatus('Çevrimiçi rakip aranıyor…',true);
 if(!await waitFirebaseConnected()){
-if(btn){btn.disabled=false;btn.textContent='🎲 HODRİ MEYDAN!';}
+restoreHodriMeydanButton();
 setRandomStatus('Sunucuya bağlanılamadı.',true);
 return;
 }
