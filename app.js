@@ -646,7 +646,7 @@ const u=new URL(location.href); ['room','join','as'].forEach(k=>u.searchParams.d
 function setMpPanelRoom(code,status){
 document.getElementById('mp-create-view')?.classList.add('hidden');
 document.getElementById('mp-room-view')?.classList.remove('hidden');
-const c=document.getElementById('mp-room-code'); if(c)c.value='https://kapmaca.tr/?room='+String(code||'').toLowerCase();
+const c=document.getElementById('mp-room-code'); if(c)c.textContent='https://kapmaca.tr/?room='+String(code||'').toLowerCase();
 }
 async function markPresence(){
 if(!mpRoomRef||!mpRole) return;
