@@ -40636,20 +40636,6 @@ returnToHomeFromMultiplayer();
 
 document.getElementById('btn-fullscreen-home')?.addEventListener('click',toggleGameFullscreen);
 document.getElementById('btn-fullscreen-game')?.addEventListener('click',toggleGameFullscreen);
-const wideBoardButton=document.getElementById('btn-wide-board');
-function setWideBoard(enabled){
-  document.body.classList.toggle('wide-board',enabled);
-  if(wideBoardButton){
-    wideBoardButton.setAttribute('aria-pressed',String(enabled));
-    wideBoardButton.textContent=enabled?'NORMAL TAHTA':'GENİŞ TAHTA';
-  }
-}
-wideBoardButton?.addEventListener('click',()=>setWideBoard(!document.body.classList.contains('wide-board')));
-const gameScreen=document.getElementById('screen-game');
-new MutationObserver(()=>{if(gameScreen.classList.contains('hidden'))setWideBoard(false);}).observe(gameScreen,{attributes:true,attributeFilter:['class']});
-document.addEventListener('fullscreenchange',()=>{if(isFullscreenActive())setWideBoard(false);});
-document.addEventListener('webkitfullscreenchange',()=>{if(isFullscreenActive())setWideBoard(false);});
-
 window.addEventListener('load',async()=>{
 if(window.firebase && ensureFirebase()) initGlobalOnlinePresence();
 const u=new URL(location.href);
