@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <title>KAPMACA — Ücretsiz Türkçe Online Kelime Oyunu</title>
-<meta name="game-version" content="v360">
+<meta name="game-version" content="v361">
 <meta name="description" content="KAPMACA, 60 saniyede aynı harflerden en çok Türkçe sözcüğü bulmaya çalıştığın ücretsiz online kelime oyunudur. Tek başına oyna veya arkadaşına meydan oku.">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" content="#075458">
@@ -2343,6 +2343,13 @@ body {
     animation:none!important;
   }
 }
+.result-party-fx,.result-card-party,.result-global-confetti,.word-confetti-layer{display:none!important;}
+
+/* v361: sade premium zafer — konfetti yok */
+.victory-card{animation:kdPremiumVictory 1.05s cubic-bezier(.2,.8,.2,1) both;}
+@keyframes kdPremiumVictory{0%{transform:scale(.96);filter:brightness(.96)}55%{transform:scale(1.045);filter:brightness(1.08)}100%{transform:scale(1);filter:brightness(1)}}
+.victory-avatar-crown{animation:kdCrownSettle .7s cubic-bezier(.16,.84,.3,1) both!important;}
+@keyframes kdCrownSettle{0%{opacity:0;transform:translateX(-50%) translateY(-20px) scale(.65) rotate(-12deg)}70%{opacity:1;transform:translateX(-50%) translateY(2px) scale(1.1) rotate(3deg)}100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1) rotate(-5deg)}}
 </style>
 
 <style>
@@ -3106,6 +3113,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 }
 #screen-home.home-v156 .home-logo-tiles{
   display:flex;align-items:center;justify-content:center;gap:2px;margin:0 auto;
+  transform:scale(1.06);transform-origin:center;
   color:#0f172a;text-shadow:none;text-transform:none;
 }
 #screen-home.home-v156 .home-logo-tiles span{
@@ -3558,7 +3566,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 <div class="sound-step-marks" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
 <label class="sound-mute-row" for="sound-muted"><input id="sound-muted" type="checkbox"> Sessiz</label>
 </div>
-<div class="mt-2 text-center text-[10px] font-black text-slate-400">v360</div>
+<div class="mt-2 text-center text-[10px] font-black text-slate-400">v361</div>
 </div>
 </div>
 </div>
@@ -3712,7 +3720,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 </div>
 </div>
 
-<script src="app.js?v=360"></script>
+<script src="app.js?v=361"></script>
 
 </body>
 </html>
