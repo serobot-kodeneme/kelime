@@ -2963,7 +2963,11 @@ function showTimeUpPreview(done){
     <div class="time-up-sub">SONUÇLAR HAZIRLANIYOR</div>
   </div>`;
   game.appendChild(overlay);
-  timeUpPreviewTimer=setTimeout(()=>{clearTimeUpPreview();done();},780);
+  timeUpPreviewTimer=setTimeout(()=>{
+    timeUpPreviewTimer=null;
+    overlay.remove();
+    try{ done?.(); }catch(err){ console.error('Result screen error',err); document.getElementById('modal-gameover')?.classList.remove('hidden'); }
+  },1000);
 }
 
 const resultPreviewDoneKeys=new Set();
@@ -3094,7 +3098,8 @@ showToast('Yeni oyun başlatılamadı. Tekrar deneyin.','rose');
 
 function endGame(){
 if(!isMatchActive && mpRole && mpState===MP_STATES.FINISHED) return;
-isMatchActive=false; clearInterval(timerInterval); clearTimeout(botInterval);
+isMatchActive=false; clearInterval(timerInterval); timerInterval=null; clearTimeout(botInterval); botInterval=null;
+updateGameTimerUI(0);
 if(mpRoomRef && mpRole){
 markMultiplayerEndReady().catch(e=>console.warn('Final score sync retry needed',e));
 if(mpRole==='host' && mpState===MP_STATES.PLAYING){
@@ -3103,9 +3108,10 @@ mpEndResolveTimer=setTimeout(()=>{mpEndResolveTimer=null;hostResolveMatchEnd().c
 }else showToast('Maç sonucu senkronize ediliyor…','sky');
 return;
 }
-const longestBonus=applySingleLongestWordBonus();
 showTimeUpPreview(()=>{
-document.getElementById('modal-gameover').classList.remove('hidden');
+const resultModal=document.getElementById('modal-gameover');
+if(resultModal) resultModal.classList.remove('hidden');
+const longestBonus=applySingleLongestWordBonus();
 const singleActions=document.getElementById('gameover-actions');
 if(singleActions){ singleActions.style.removeProperty('display'); singleActions.classList.remove('hidden'); }
 const replayBtn=document.getElementById('btn-play-again');
