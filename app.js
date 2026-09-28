@@ -335,10 +335,8 @@ let lastNonMutedSoundVolume=masterSoundVolume>0?masterSoundVolume:.8;
 function renderSoundControls(){
 const range=document.getElementById('sound-volume-range');
 const mute=document.getElementById('sound-muted');
-const label=document.getElementById('sound-volume-label');
 if(range) range.value=String(Math.round(masterSoundVolume*100));
 if(mute) mute.checked=masterSoundVolume<=0;
-if(label) label.textContent=masterSoundVolume<=0?'Sessiz':`${Math.round(masterSoundVolume*100)}%`;
 }
 function setMasterSoundVolume(v){
 masterSoundVolume=Math.max(0,Math.min(1,Number(v)||0));
