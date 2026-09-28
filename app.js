@@ -1734,6 +1734,45 @@ returnToHomeFromMultiplayer();
 }
 };
 
+// v364: PWA kurulum akışı — oyun mekaniğinden bağımsız.
+let deferredInstallPrompt=null;
+const installBtn=document.getElementById('btn-install-app');
+function isKapmacaStandalone(){
+  return window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone===true;
+}
+function refreshInstallButton(){
+  if(!installBtn) return;
+  installBtn.classList.toggle('hidden',isKapmacaStandalone());
+}
+window.addEventListener('beforeinstallprompt',(e)=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  refreshInstallButton();
+});
+window.addEventListener('appinstalled',()=>{
+  deferredInstallPrompt=null;
+  refreshInstallButton();
+  showToast('KAPMACA cihazına yüklendi.','emerald');
+});
+installBtn?.addEventListener('click',async()=>{
+  if(isKapmacaStandalone()){ refreshInstallButton(); return; }
+  if(deferredInstallPrompt){
+    const promptEvent=deferredInstallPrompt;
+    deferredInstallPrompt=null;
+    await promptEvent.prompt();
+    try{ await promptEvent.userChoice; }catch(_){}
+    refreshInstallButton();
+    return;
+  }
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  if(ios){
+    alert('KAPMACA’yı yüklemek için Safari’de Paylaş düğmesine dokunup “Ana Ekrana Ekle”yi seç.');
+  }else{
+    alert('Tarayıcı menüsünden “Uygulamayı yükle” veya “Ana ekrana ekle” seçeneğini kullanabilirsin.');
+  }
+});
+refreshInstallButton();
+
 document.getElementById('btn-fullscreen-home')?.addEventListener('click',toggleGameFullscreen);
 document.getElementById('btn-fullscreen-game')?.addEventListener('click',toggleGameFullscreen);
 window.addEventListener('DOMContentLoaded',async()=>{
