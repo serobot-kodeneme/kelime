@@ -44279,7 +44279,7 @@ copyLinkEnterTimer=setTimeout(async()=>{
     document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
     startInviteWaitCountdown(deadline);
   }catch(_){ }
-},10000);
+},30000);
 }catch(e){ showToast('Bağlantı kopyalanamadı.','rose'); }
 };
 document.getElementById('btn-share-link').onclick = async()=>{
