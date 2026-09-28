@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v311</title>
-<meta name="game-version" content="v311">
+<title>KAPMACA.tr — Sözcük Avı v312</title>
+<meta name="game-version" content="v312">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -3013,12 +3013,6 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 @keyframes highResultPop{0%{transform:scale(.78) rotate(-1.8deg);opacity:.45}70%{transform:scale(1.035) rotate(.5deg)}100%{transform:scale(1);opacity:1}}
 @keyframes highWinnerBounce{from{transform:scale(1)}to{transform:scale(1.055) rotate(.4deg)}}
 
-.copy-link-popup{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.94);z-index:10080;max-width:min(86vw,360px);padding:13px 18px;border-radius:18px;background:rgba(15,23,42,.96);color:#fff;font-size:13px;line-height:1.35;font-weight:900;text-align:center;box-shadow:0 18px 46px rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.14);opacity:0;pointer-events:none;transition:opacity .16s ease,transform .16s ease;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.copy-link-popup.show{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto}
-#btn-copy-popup-go-room{background:#2563eb!important;color:#fff!important;border:1px solid #60a5fa!important}
-#btn-copy-popup-go-room:hover{background:#1d4ed8!important;color:#fff!important}
-#btn-copy-popup-close-room{background:#dc2626!important;color:#fff!important}
-
 /* v156-ui: ana sayfa görsel konsepti. Oyun/motor yerleşimine dokunmaz. */
 #screen-home.home-v156{
   font-family:'Quicksand',Calibri,'Segoe UI',sans-serif;
@@ -3284,6 +3278,16 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 #screen-howto .demo-board{max-width:184px!important;gap:2px!important;margin:0 auto!important}
 #screen-howto .demo-board .demo-tile{font-size:12px!important;border-radius:5px!important}
 @media(prefers-reduced-motion:reduce){.demo-board .demo-tile{transition:none;animation:none}}
+
+/* v312: authoritative final-10-second timer alarm; last in cascade by design. */
+@keyframes v312TimerAlarm{
+0%,44%{background:#ef0000;box-shadow:0 0 0 2px #ff8a8a,0 0 30px rgba(255,0,0,.95),inset 0 0 12px rgba(255,255,255,.18)}
+45%,100%{background:#000;box-shadow:0 0 0 2px #111,0 0 8px rgba(0,0,0,.95),inset 0 0 12px rgba(0,0,0,.92)}
+}
+#compact-game-header.game-header-v4 .compact-timer.timer-danger{background-image:none!important;animation:v312TimerAlarm .46s steps(1,end) infinite!important;border-color:#ff4d4d!important}
+#compact-game-header.game-header-v4 .compact-timer.timer-danger .timer-label{color:#fff!important}
+#compact-game-header.game-header-v4 .compact-timer.timer-danger #game-timer{color:#fff!important;text-shadow:0 0 8px rgba(255,255,255,.5),0 0 14px rgba(255,0,0,.8)!important}
+@media(prefers-reduced-motion:reduce){#compact-game-header.game-header-v4 .compact-timer.timer-danger{animation:none!important;background:#dc2626!important}}
 </style>
 
 <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -43187,7 +43191,7 @@ const left=Math.max(0,Math.ceil((inviteWaitDeadlineAt-serverNow())/1000));
 const el=document.getElementById('invite-wait-countdown'); if(el) el.textContent=String(left);
 if(left<=0){ stopInviteWaitCountdown(); expirePrivateInviteRoom(); }
 };
-tick(); inviteWaitCountdownTimer=setInterval(tick,500);
+tick(); inviteWaitCountdownTimer=setInterval(tick,1000);
 }
 async function allocateDailyRoomCode(){
 if(!mpDb) throw new Error('firebase-not-ready');
@@ -43225,7 +43229,6 @@ function setMpPanelRoom(code,status){
 document.getElementById('mp-create-view')?.classList.add('hidden');
 document.getElementById('mp-room-view')?.classList.remove('hidden');
 const c=document.getElementById('mp-room-code'); if(c)c.value=code;
-const st=document.getElementById('mp-status'); if(st)st.textContent=status;
 }
 async function markPresence(){
 if(!mpRoomRef||!mpRole) return;
@@ -43518,7 +43521,7 @@ const tick=()=>{
   }
 };
 tick();
-inviteDecisionTimer=setInterval(tick,250);
+inviteDecisionTimer=setInterval(tick,500);
 }
 
 async function joinRoom(code){
@@ -43920,19 +43923,16 @@ if(mpRole==='host'){
 if(!mpRoomData.guestId || !mpRoomData.guestOnline || !inviteAccepted){
 if(mpEntered) document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
 else document.getElementById('modal-mp-waiting')?.classList.add('hidden');
-const st=document.getElementById('mp-status');
-if(st) st.textContent = mpRoomData.guestId && mpRoomData.guestOnline ? 'Oyun bağlantısı verdiğiniz kişinin yanıtı bekleniyor' : 'Oyun bağlantısı verdiğiniz kişinin yanıtı bekleniyor';
 }else{
 stopInviteWaitCountdown();
 document.getElementById('modal-mp-waiting')?.classList.add('hidden');
-const st=document.getElementById('mp-status'); if(st)st.textContent='2. oyuncu hazır ✓ Senkron başlatılıyor…';
 if(!mpEntered) await enterMultiplayerRoom();
 await hostStartWaitingRound();
 }
 }
 }
 if(gs.status==='countdown'){
-hideCopyLinkPopup();
+
 setMpState(MP_STATES.COUNTDOWN); document.getElementById('modal-mp-waiting')?.classList.add('hidden');
 document.getElementById('modal-gameover')?.classList.add('hidden');
 document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
@@ -43946,7 +43946,7 @@ if(Array.isArray(gs.board) && gs.board.length===BOARD_SIZE) renderProvidedBoard(
 if(!mpEntered) await enterMultiplayerRoom();
 if(gs.startAt && !mpStarted) startSyncedMatch(gs);
 }
-if(gs.status==='playing'){hideCopyLinkPopup();if(!mpEntered) await enterMultiplayerRoom();activateMultiplayerPlaying(gs);}
+if(gs.status==='playing'){if(!mpEntered) await enterMultiplayerRoom();activateMultiplayerPlaying(gs);}
 if(gs.status==='finished'){
 setMpState(MP_STATES.FINISHED); document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
 const d={...(mpRoomData||{}),...gs};
@@ -44053,7 +44053,7 @@ maybeHeartbeat(remainingSeconds);
 maybeFinalGong(remainingSeconds);
 if(remainingSeconds<=0){clearInterval(timerInterval);endGame();}
 };
-tick(); timerInterval=setInterval(tick,200);
+tick(); timerInterval=setInterval(tick,250);
 }
 
 function activateMultiplayerPlaying(d){
@@ -44197,7 +44197,7 @@ setMpState(MP_STATES.IDLE);
 function returnToHomeFromMultiplayer(){
 const randomExitBtn=document.getElementById('btn-random-result-exit');
 if(randomExitBtn){randomExitBtn.disabled=true;randomExitBtn.classList.add('hidden');randomExitBtn.style.removeProperty('display');randomExitBtn.style.removeProperty('visibility');randomExitBtn.style.removeProperty('opacity');}
-hideCopyLinkPopup();
+
 stopInviteDecisionTimer();
 if(randomSearchActive) cleanupRandomQueue(true).catch(()=>{}); else releaseRandomSearchLocal();
 resetMultiplayerClientState();
@@ -44214,7 +44214,6 @@ const soloArrowHome=document.getElementById('solo-arrow'); if(soloArrowHome) sol
 document.getElementById('mp-room-view')?.classList.add('hidden');
 document.getElementById('mp-create-view')?.classList.remove('hidden');
 document.getElementById('btn-close-room')?.classList.add('hidden');
-const st=document.getElementById('mp-status'); if(st) st.textContent='Oda hazırlanıyor…';
 const randomBtn=document.getElementById('btn-random-match'); if(randomBtn){randomBtn.disabled=false;randomBtn.textContent='🎲 RASTGELE RAKİP';}
 setRandomStatus('',false);
 }
@@ -44285,8 +44284,6 @@ setRoomUrl(copiedRoom);
 await enterMultiplayerRoom();
 if(!mpEntered || mpRoomCode!==copiedRoom || mpRole!=='host') return;
 isMatchActive=false;
-const st=document.getElementById('mp-status');
-if(st) st.textContent='Oyun bağlantısı verdiğiniz kişinin yanıtı bekleniyor';
 document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
 startInviteWaitCountdown(inviteDeadline);
 }catch(e){ showToast('Bağlantı kopyalanamadı.','rose'); }
@@ -44342,8 +44339,6 @@ await enterMultiplayerRoom();
 } else {
 updateFullscreenUi();
 }
-const st=document.getElementById('mp-status');
-if(st) st.textContent=mpRole==='host'?'Oyun bağlantısı verdiğiniz kişinin yanıtı bekleniyor':'Kapışma daveti bekliyor.';
 }
 });
 
@@ -44355,7 +44350,7 @@ try{
 const inv=(await mpRoomRef.child('invite').once('value')).val()||{};
 if(Number(inv.expiresAt||0)>0 && Number(inv.expiresAt)<=serverNow()){ showToast('Davet süresi doldu.','rose'); await closeAndLockPrivateRoom(mpRoomRef,mpRoomCode,'invite-expired'); returnToHomeFromMultiplayer(); return; }
 await mpRoomRef.child('invite/guest').set('accepted');
-hideCopyLinkPopup();
+
 document.getElementById('modal-room-invite')?.classList.add('hidden');
 await enterMultiplayerRoom();
 }catch(e){showToast('Oyun başlatılamadı.','rose'); if(btn) btn.disabled=false;}
@@ -45360,9 +45355,6 @@ ticker.appendChild(badge);
 return badge;
 }
 
-function hideCopyLinkPopup(){}
-function showCopyLinkPopup(){}
-
 function showToast(msg, color, duration=1600) {
 const toast = document.createElement('div');
 toast.className = `floating-toast px-3 py-1 rounded-full text-xs font-black shadow-lg ${
@@ -45900,7 +45892,7 @@ returnToHomeFromMultiplayer();
 hideRoomExitNotice();
 }
 async function requestSynchronizedRoomExit(reason='game-cancelled'){
-hideCopyLinkPopup();
+
 if(!mpRoomRef || !mpRole){
 return exitCurrentGameToHome();
 }
