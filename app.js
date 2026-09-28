@@ -76,7 +76,7 @@ wordDataPromise=new Promise((resolve,reject)=>{
   };
   if(window.KAPMACA_WORD_DATA){finish();return;}
   const script=document.createElement('script');
-  script.src='word-data.js';
+  script.src='word-data.js?v=343';
   script.async=true;
   script.onload=finish;
   script.onerror=()=>{wordDataPromise=null;reject(new Error('word-data-load-failed'));};
@@ -1766,7 +1766,7 @@ document.querySelectorAll('.bot-diff-choice').forEach(b=>b.classList.remove('rin
 btn.classList.add('ring-4','ring-amber-400');
 setDifficultyOpen(false);
 try{ await ensureWordDataLoaded(); prepareGame(); }
-catch(_){ showToast('Oyun sözlüğü yüklenemedi. Tekrar deneyin.','rose'); }
+catch(err){ console.error('Single game startup failed',err); showToast('Oyun hazırlanamadı. Tekrar deneyin.','rose'); }
 };
 });
 let howtoDemoTimer=null;
@@ -1912,16 +1912,23 @@ updateFullscreenUi();
 
 function prepareGame() {
 stopLocalCountdown();
-activeGameMode = 'single'; setLongestBonusBadges(false,false);
-document.getElementById('p1-title').textContent = 'OYUNCU';
-document.getElementById('p2-title').textContent = 'BİLGİSAYAR';
+activeGameMode='single'; setLongestBonusBadges(false,false);
+document.getElementById('p1-title').textContent='OYUNCU';
+document.getElementById('p2-title').textContent='BİLGİSAYAR';
+p1Score=0; p2Score=0; resetRewardFx(); updateScores(); remainingSeconds=60;
+resetMatchWordResults(); resetSeriesWordResults();
+sessionFoundWords.clear();
+const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
+try{
+  buildGrid();
+}catch(err){
+  console.error('Single game board startup error',err);
+  showToast('Tahta hazırlanamadı. Tekrar deneyin.','rose');
+  return;
+}
 document.getElementById('screen-home').classList.add('hidden');
 document.getElementById('screen-game').classList.remove('hidden');
-p1Score = 0; p2Score = 0; resetRewardFx(); updateScores(); remainingSeconds = 60;
-resetMatchWordResults(); resetSeriesWordResults();
-sessionFoundWords.clear(); document.getElementById('words-ticker').innerHTML = '';
-buildGrid();
-triggerCountdownSequence(() => { isMatchActive = true; startTimer(); planBot(); });
+triggerCountdownSequence(()=>{isMatchActive=true;startTimer();planBot();});
 }
 
 function triggerCountdownSequence(onComplete) {
@@ -2240,12 +2247,34 @@ return true;
 }
 
 function buildGrid() {
-const ready = prewarmedBoard || generateOptimizedBoard(3);
-prewarmedBoard = null;
-gridBoard = ready.board;
-boardFoundWords = ready.words;
-rememberBoard(gridBoard, boardFoundWords);
-paintBoardCells(gridBoard);
+let ready=null;
+try{
+  if(prewarmedBoard && Array.isArray(prewarmedBoard.board) && prewarmedBoard.board.length===BOARD_SIZE){
+    ready=prewarmedBoard;
+  }else{
+    ready=generateOptimizedBoard(3);
+  }
+}catch(err){
+  console.error('Optimized board generation failed',err);
+}
+prewarmedBoard=null;
+
+// Fail-safe: the game must never open with an empty grey board.
+if(!ready || !Array.isArray(ready.board) || ready.board.length!==BOARD_SIZE){
+  try{
+    const board=makeCandidateBoard();
+    const words=wordDataReady?solveBoardWords(board):[];
+    ready={board,words};
+  }catch(err){
+    console.error('Fallback board generation failed',err);
+    const board=Array.from({length:BOARD_SIZE},()=>Array.from({length:BOARD_SIZE},()=>FILL_LETTERS[Math.floor(Math.random()*FILL_LETTERS.length)]));
+    ready={board,words:[]};
+  }
+}
+gridBoard=ready.board;
+boardFoundWords=Array.isArray(ready.words)?ready.words:[];
+rememberBoard(gridBoard,boardFoundWords);
+if(!paintBoardCells(gridBoard)) throw new Error('board-paint-failed');
 }
 
 function renderProvidedBoard(board) {
