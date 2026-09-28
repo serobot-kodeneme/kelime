@@ -39389,13 +39389,28 @@ safeStorageSet('local','kd_client_token',t);
 runtimeClientToken=t;
 return t;
 }
+let firebaseNetworkOnline=false;
+let serverOffsetListener=null;
 function ensureFirebase(){
-if(mpDb) return true;
 if(!window.firebase){ showToast('Firebase yüklenemedi. İnternet bağlantını kontrol et.','rose'); return false; }
 if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-mpDb=firebase.database();
-mpDb.ref('.info/serverTimeOffset').on('value',s=>{ mpServerOffset=Number(s.val()||0); });
+if(!mpDb) mpDb=firebase.database();
+if(!serverOffsetListener){
+  serverOffsetListener=s=>{ mpServerOffset=Number(s.val()||0); };
+  mpDb.ref('.info/serverTimeOffset').on('value',serverOffsetListener);
+}
+if(!firebaseNetworkOnline){
+  try{ mpDb.goOnline(); }catch(_){}
+  firebaseNetworkOnline=true;
+}
 return true;
+}
+function disconnectFirebaseNetwork(){
+if(!mpDb || !firebaseNetworkOnline) return;
+try{ mpDb.goOffline(); }catch(_){}
+firebaseNetworkOnline=false;
+firebaseWasConnected=null;
+reconnectPresenceBusy=false;
 }
 async function syncServerClock(){
 if(!ensureFirebase()) return false;
@@ -39671,6 +39686,7 @@ setRandomStatus('Çevrimiçi rakip aranıyor…',true);
 if(!await waitFirebaseConnected()){
 restoreHodriMeydanButton();
 setRandomStatus('Sunucuya bağlanılamadı.',true);
+disconnectFirebaseNetwork();
 return;
 }
 
@@ -39760,7 +39776,7 @@ setTimeout(()=>setRandomStatus('',false),1800);
 }
 
 async function createRoom(){
-if(!await waitFirebaseConnected()){ showToast('Sunucuya bağlanılamadı. İnternet bağlantını kontrol et.','rose'); return; }
+if(!await waitFirebaseConnected()){ showToast('Sunucuya bağlanılamadı. İnternet bağlantını kontrol et.','rose'); disconnectFirebaseNetwork(); return; }
 let alloc;
 try{ alloc=await allocateDailyRoomCode(); }
 catch(e){ showToast('Günlük oda kodu oluşturulamadı. Tekrar dene.','rose'); return; }
@@ -40510,6 +40526,7 @@ document.getElementById('mp-create-view')?.classList.remove('hidden');
 document.getElementById('btn-close-room')?.classList.add('hidden');
 const randomBtn=document.getElementById('btn-random-match'); if(randomBtn){randomBtn.disabled=false;randomBtn.innerHTML='<span class="text-6xl leading-none mb-2" aria-hidden="true">🎲</span><span class="text-[13px] leading-tight">HODRİ MEYDAN!</span><span class="mt-1 text-[10px] leading-snug font-bold text-amber-950">Sürpriz bir rakiple oyna</span>';}
 setRandomStatus('',false);
+disconnectFirebaseNetwork();
 }
 
 
@@ -40547,18 +40564,21 @@ setDifficultyOpen(false);
 const panel=document.getElementById('friend-invite-panel');
 const willOpen=panel?.classList.contains('hidden');
 if(willOpen){
-ensureFirebase();
 panel?.classList.remove('hidden');
 document.getElementById('mp-create-view')?.classList.remove('hidden');
 document.getElementById('mp-room-view')?.classList.add('hidden');
 }else{
-if(randomSearchActive) await cleanupRandomQueue(true);
+if(mpRoomRef && mpRole) await requestSynchronizedRoomExit('player-exit');
+else if(randomSearchActive) await cleanupRandomQueue(true);
 panel?.classList.add('hidden');
+disconnectFirebaseNetwork();
 }
 };
 document.getElementById('btn-close-friend').onclick = async() => {
-if(randomSearchActive) await cleanupRandomQueue(true);
+if(mpRoomRef && mpRole) await requestSynchronizedRoomExit('player-exit');
+else if(randomSearchActive) await cleanupRandomQueue(true);
 document.getElementById('friend-invite-panel').classList.add('hidden');
+disconnectFirebaseNetwork();
 };
 document.getElementById('btn-create-room')?.addEventListener('click',openFreshPrivateRoom);
 document.getElementById('btn-random-match')?.addEventListener('click',searchRandomOpponent);
@@ -40611,6 +40631,7 @@ document.getElementById('screen-home')?.classList.remove('hidden');
 document.getElementById('friend-invite-panel')?.classList.add('hidden');
 setDifficultyOpen(false);
 const ok=await joinRoom(code);
+if(!ok){ disconnectFirebaseNetwork(); return; }
 if(ok){
 if(mpRole==='guest' && /^invite-only-/.test(String(mpRoomMode||'')) && mpRoomData?.status==='waiting') {
 showInviteDecisionModal();
