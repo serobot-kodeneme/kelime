@@ -693,7 +693,7 @@ function restoreHodriMeydanButton(){
 const btn=document.getElementById('btn-random-match');
 if(!btn) return;
 btn.disabled=false;
-btn.innerHTML='<span class="text-[78px] leading-none mb-2 drop-shadow-sm" aria-hidden="true">🎲</span><span class="text-[13px] leading-tight">HODRİ MEYDAN!</span><span class="mt-1 text-[10px] leading-snug font-bold text-amber-950">Sürpriz bir rakiple oyna</span>';
+btn.innerHTML='<span class="text-[96px] leading-none mb-1 drop-shadow-md" aria-hidden="true">🎲</span><span class="text-[13px] leading-tight">HODRİ MEYDAN!</span><span class="mt-1 text-[10px] leading-snug font-bold text-amber-950">Sürpriz bir rakiple oyna</span>';
 }
 async function cleanupRandomQueue(onlyIfMine=true){
 const ref=randomQueueRef, ticket=randomSearchTicket;
@@ -1101,7 +1101,7 @@ const actions=document.getElementById('gameover-actions');
 const replay=document.getElementById('btn-play-again');
 const exitBtn=document.getElementById('btn-game-exit');
 const inline=document.getElementById('rematch-inline-status');
-if(actions){actions.classList.remove('hidden');actions.style.setProperty('display','block','important');}
+if(actions){actions.classList.remove('hidden');actions.style.setProperty('display','grid','important');}
 if(replay){
 replay.classList.remove('hidden');
 replay.style.setProperty('display','flex','important');
@@ -3134,7 +3134,7 @@ showToast('Yeni oyun başlatılamadı. Tekrar deneyin.','rose');
 function prepareSingleResultScreen(){
 const longestBonus=applySingleLongestWordBonus();
 const singleActions=document.getElementById('gameover-actions');
-if(singleActions){ singleActions.style.removeProperty('display'); singleActions.classList.remove('hidden'); }
+if(singleActions){ singleActions.classList.remove('hidden'); singleActions.style.setProperty('display','grid','important'); }
 const replayBtn=document.getElementById('btn-play-again');
 if(replayBtn){ replayBtn.style.removeProperty('display'); replayBtn.disabled=false; replayBtn.textContent='YENİDEN OYNA'; replayBtn.classList.remove('hidden'); }
 const singleExitBtn=document.getElementById('btn-game-exit');
