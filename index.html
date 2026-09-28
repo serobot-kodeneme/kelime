@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v305</title>
-<meta name="game-version" content="v305">
+<title>KAPMACA.tr — Sözcük Avı v306</title>
+<meta name="game-version" content="v306">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -3010,7 +3010,10 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 @keyframes highWinnerBounce{from{transform:scale(1)}to{transform:scale(1.055) rotate(.4deg)}}
 
 .copy-link-popup{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.94);z-index:10080;max-width:min(86vw,360px);padding:13px 18px;border-radius:18px;background:rgba(15,23,42,.96);color:#fff;font-size:13px;line-height:1.35;font-weight:900;text-align:center;box-shadow:0 18px 46px rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.14);opacity:0;pointer-events:none;transition:opacity .16s ease,transform .16s ease;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.copy-link-popup.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.copy-link-popup.show{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto}
+#btn-copy-popup-go-room{background:#2563eb!important;color:#fff!important;border:1px solid #60a5fa!important}
+#btn-copy-popup-go-room:hover{background:#1d4ed8!important;color:#fff!important}
+#btn-copy-popup-close-room{background:#dc2626!important;color:#fff!important}
 
 /* v156-ui: ana sayfa görsel konsepti. Oyun/motor yerleşimine dokunmaz. */
 #screen-home.home-v156{
@@ -3634,7 +3637,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div id="copy-link-popup-text">Bu bağlantıyı oynamak istediğiniz kişiye iletin, 60 saniye içinde odaya yönlendirileceksiniz.</div>
 <div class="mt-2 grid grid-cols-2 gap-2">
 <button id="btn-copy-popup-close-room" type="button" class="w-full rounded-xl bg-red-600 hover:bg-red-700 active:scale-[0.98] px-3 py-2 text-white text-[11px] font-black shadow-md transition">OYUNU KAPAT</button>
-<button id="btn-copy-popup-go-room" type="button" class="w-full rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] px-3 py-2 text-white text-[11px] font-black shadow-md transition">ODAYA GİT</button>
+<button id="btn-copy-popup-go-room" type="button" style="background:#2563eb;color:#fff;border:1px solid #60a5fa;" class="w-full rounded-xl active:scale-[0.98] px-3 py-2 text-[11px] font-black shadow-md transition">ODAYA GİT</button>
 </div>
 </div>
 
@@ -44293,6 +44296,7 @@ const enterCopiedInviteRoom=async()=>{
       if(currentExpiry<=0) await mpRoomRef.child('invite/expiresAt').set(deadline);
     }
     hideCopyLinkPopup();
+    setRoomUrl(copiedRoom);
     await enterMultiplayerRoom();
     if(!mpEntered || mpRoomCode!==copiedRoom || mpRole!=='host') return;
     if(mpRoomData?.status!=='waiting') return;
