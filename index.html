@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v294</title>
-<meta name="game-version" content="v294">
+<title>KAPMACA.tr — Sözcük Avı v295</title>
+<meta name="game-version" content="v295">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -43019,7 +43019,7 @@ let mpDb=null, mpRoomRef=null, mpRoomCode=null, mpRole=null, mpRoomData=null, mp
 let mpRandomMatchSession=false; // v233: rastgele maç kimliği sonuç ekranı kapanana kadar yerelde kilitli kalır.
 let mpSessionJoinedAt=0, mpExitHandling=false, mpLastExitSignalId='';
 let mpListener=null, mpWordsListener=null, mpScoresListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null;
-let mpScoreSyncTimer=null, mpScoreSyncInFlight=false, mpScoreDesired=null;
+let mpScoreSyncTimer=null, mpScoreSyncInFlight=false, mpScoreDesired=null, mpLastConfirmedOwnScore=null;
 let mpControlListeners=[];
 let mpStartBusy=false, mpRematchBusy=false, mpPresenceRef=null, mpLastRoomMetaSig='', mpEndResolveTimer=null, mpRematchExpiryTimer=null;
 let mpSeenWordEvents=new Set(), mpLastBeepSecond=null, mpLastResultRenderSig='';
@@ -43938,7 +43938,7 @@ bindControl('longestBonus','value',snap=>{mpRoomData={...(mpRoomData||{}),longes
 bindControl('roomExit','value',snap=>{const exitSignal=snap.val(); if(exitSignal?.id&&exitSignal.id!==mpLastExitSignalId&&Number(exitSignal.at||0)>=mpSessionJoinedAt-1000){mpLastExitSignalId=exitSignal.id;handleSynchronizedRoomExit(exitSignal.reason||'game-cancelled',exitSignal.by||'');}});
 mpScoresListener=mpRoomRef.child('scores').on('value',snap=>{
 const sc=snap.val()||{}; mpRoomData={...(mpRoomData||{}),scores:sc};
-if(mpRole==='host'){if(!isOwnMpScorePending())p1Score=Number(sc.host||0);p2Score=Number(sc.guest||0);}else if(mpRole==='guest'){p1Score=Number(sc.host||0);if(!isOwnMpScorePending())p2Score=Number(sc.guest||0);}else{p1Score=Number(sc.host||0);p2Score=Number(sc.guest||0);} updateScores();
+if(mpRole==='host'){if(!isOwnMpScorePending()){p1Score=Number(sc.host||0);mpLastConfirmedOwnScore=p1Score;}p2Score=Number(sc.guest||0);}else if(mpRole==='guest'){p1Score=Number(sc.host||0);if(!isOwnMpScorePending()){p2Score=Number(sc.guest||0);mpLastConfirmedOwnScore=p2Score;}}else{p1Score=Number(sc.host||0);p2Score=Number(sc.guest||0);} updateScores();
 });
 
 mpWordsListener=mpRoomRef.child('words').on('child_added',snap=>{
@@ -44060,7 +44060,10 @@ if(mpScoreSyncInFlight) return;
 const value=Math.max(0,Number(mpScoreDesired??getLocalMpScore()));
 mpScoreSyncInFlight=true;
 try{
+if(mpLastConfirmedOwnScore!==value){
 await mpRoomRef.child('scores/'+mpRole).set(value);
+mpLastConfirmedOwnScore=value;
+}
 }catch(e){
 console.warn('Score sync retry needed',e);
 }finally{
@@ -44094,7 +44097,10 @@ if(mpScoreSyncTimer!==null){ clearTimeout(mpScoreSyncTimer); mpScoreSyncTimer=nu
 const finalScore=Math.max(0,getLocalMpScore());
 mpScoreSyncInFlight=true;
 try{
+if(mpLastConfirmedOwnScore!==finalScore){
 await mpRoomRef.child('scores/'+mpRole).set(finalScore);
+mpLastConfirmedOwnScore=finalScore;
+}
 mpScoreDesired=finalScore;
 }finally{
 mpScoreSyncInFlight=false;
@@ -44139,7 +44145,7 @@ if(mpRematchExpiryTimer){clearTimeout(mpRematchExpiryTimer);mpRematchExpiryTimer
 if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;} randomResultAutoExitKey=''; setRandomAutoExitNotice(false);
 if(mpPresenceRef){try{mpPresenceRef.onDisconnect().cancel().catch(()=>{});}catch(_){} }
 if(mpScoreSyncTimer!==null){ clearTimeout(mpScoreSyncTimer); mpScoreSyncTimer=null; }
-mpScoreSyncInFlight=false; mpScoreDesired=null;
+mpScoreSyncInFlight=false; mpScoreDesired=null; mpLastConfirmedOwnScore=null;
 if(pointerFrame){ cancelAnimationFrame(pointerFrame); pointerFrame=0; }
 isPointerDown=false; pointerHoldStartedAt=0; clearTimeout(pointerHoldTimer); pointerHoldTimer=null; activePointerId=null; pendingPointer=null; activeGridRect=null; activeGridMetrics=null; isMatchActive=false;
 try{ clearPath(); }catch(_){ selectedPath=[]; }
@@ -45089,6 +45095,7 @@ el.classList.remove(cls);
 requestAnimationFrame(()=>{el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),620);});
 }
 function rewardWordFx(isP1){
+if(document.hidden) return;
 const side=isP1?'p1':'p2';
 const now=performance.now();
 const state=kdComboState[side];
@@ -45262,6 +45269,7 @@ setTimeout(()=>layer.remove(),duration+80);
 }
 
 function flyScore(pts, isP1, originPoint=null) {
+if(document.hidden) return;
 const target=document.getElementById(isP1?'p1-score-chip':'p2-score-chip') || document.getElementById(isP1?'p1-score-val':'p2-score-val');
 if(!target) return;
 const tr=target.getBoundingClientRect();
@@ -45313,10 +45321,13 @@ document.getElementById('p2-score-val').textContent = p2Score;
 }
 
 function addTickerBadge(word, isP1) {
+const ticker=document.getElementById('words-ticker');
+if(!ticker) return null;
+while(ticker.children.length>=36) ticker.firstElementChild?.remove();
 const badge = document.createElement('span');
 badge.className = `${isP1 ? 'bg-amber-400' : 'bg-sky-400'} text-slate-950 font-black px-2 py-0.5 rounded-full text-[10px] uppercase mx-0.5`;
 badge.textContent = word;
-document.getElementById('words-ticker').appendChild(badge);
+ticker.appendChild(badge);
 return badge;
 }
 
@@ -45354,7 +45365,11 @@ if (remainingSeconds <= 0) endGame();
 }, 1000);
 }
 
+const BOARD_SOLVE_CACHE = new Map();
+const BOARD_SOLVE_CACHE_LIMIT = 8;
 function solveBoardWords(board = gridBoard) {
+const solveKey=Array.isArray(board)&&board.length===BOARD_SIZE ? boardSignature(board) : '';
+if(solveKey && BOARD_SOLVE_CACHE.has(solveKey)) return BOARD_SOLVE_CACHE.get(solveKey);
 const found = new Map();
 const visited = Array.from({length:BOARD_SIZE}, () => Array(BOARD_SIZE).fill(false));
 const deltas = [[-1,0],[0,-1],[0,1],[1,0]];
@@ -45383,7 +45398,12 @@ path.pop(); visited[nr][nc]=false;
 for (let r=0;r<BOARD_SIZE;r++) for (let c=0;c<BOARD_SIZE;c++) {
 visited[r][c]=true; dfs(r,c,board[r][c],[{r,c}]); visited[r][c]=false;
 }
-return Array.from(found.values());
+const solved=Array.from(found.values());
+if(solveKey){
+  if(BOARD_SOLVE_CACHE.size>=BOARD_SOLVE_CACHE_LIMIT) BOARD_SOLVE_CACHE.delete(BOARD_SOLVE_CACHE.keys().next().value);
+  BOARD_SOLVE_CACHE.set(solveKey,solved);
+}
+return solved;
 }
 
 const BOT_LEVELS = {
@@ -45596,7 +45616,7 @@ function stopWinnerConfettiWaterfall(){
 }
 function startWinnerConfettiWaterfall(winnerSide=null){
  stopWinnerConfettiWaterfall();
- if(typeof confetti!=='function'||!winnerSide) return;
+ if(document.hidden||typeof confetti!=='function'||!winnerSide) return;
  const modal=document.getElementById('modal-gameover');
  const avatarId=winnerSide==='p1'?'final-p1-avatar':'final-p2-avatar';
  const shoot=()=>{
