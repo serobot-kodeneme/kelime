@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v278</title>
-<meta name="game-version" content="v278">
+<title>KAPMACA.tr — Sözcük Avı v279</title>
+<meta name="game-version" content="v279">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2703,6 +2703,26 @@ text-shadow:0 2px 8px rgba(0,0,0,.22); filter:saturate(.96); will-change:transfo
 @keyframes kdComboPop{0%{opacity:0;transform:translate3d(-50%,7px,0) scale(.84)}22%{opacity:1;transform:translate3d(-50%,-2px,0) scale(1.06)}100%{opacity:0;transform:translate3d(-50%,-16px,0) scale(.98)}}
 @keyframes kdWinnerGlow{0%,100%{box-shadow:0 8px 22px rgba(15,23,42,.14)}50%{box-shadow:0 8px 28px rgba(250,204,21,.34),0 0 0 2px rgba(255,255,255,.7)}}
 .kd-winner-glow{animation:kdWinnerGlow 1.05s ease-in-out 3}
+@keyframes victoryStrongFlash{
+  0%,100%{filter:brightness(1);transform:scale(1);box-shadow:0 0 0 0 rgba(255,255,255,0)}
+  18%{filter:brightness(1.55) saturate(1.25);transform:scale(1.045);box-shadow:0 0 0 5px rgba(255,255,255,.88),0 0 34px rgba(250,204,21,.78)}
+  36%{filter:brightness(1.02);transform:scale(1);box-shadow:0 0 0 1px rgba(255,255,255,.15)}
+  58%{filter:brightness(1.42) saturate(1.22);transform:scale(1.035);box-shadow:0 0 0 4px rgba(255,255,255,.76),0 0 28px rgba(56,189,248,.64)}
+  76%{filter:brightness(1.03);transform:scale(1)}
+}
+.victory-flash-strong{animation:victoryStrongFlash .82s ease-in-out 2!important;will-change:filter,transform,box-shadow}
+#scrabble-grid .letter-cell.missed-word-cell{
+  background:#fecaca!important;color:#7f1d1d!important;border-color:#fca5a5!important;
+  box-shadow:inset 0 0 0 2px #f87171,0 3px 8px rgba(185,28,28,.18)!important;
+  transform:none!important;
+}
+.missed-word-banner{
+  position:absolute;left:50%;top:5px;transform:translateX(-50%);z-index:48;pointer-events:none;
+  padding:5px 11px;border-radius:999px;background:#fee2e2;border:1px solid #fca5a5;
+  color:#991b1b;font-size:11px;font-weight:1000;letter-spacing:.08em;box-shadow:0 4px 12px rgba(127,29,29,.16);
+  white-space:nowrap;
+}
+@media (prefers-reduced-motion:reduce){.victory-flash-strong{animation:none!important}}
 @media (prefers-reduced-motion:reduce){.kd-score-pop,.kd-avatar-ring,.kd-combo-pop,.kd-winner-glow{animation:none!important}}
 
 .game-bottom-controls{width:min(100%,580px);max-width:580px;margin:12px auto 6px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none}
@@ -42928,9 +42948,17 @@ safeStorageSet('local','kd_client_token',t);
 runtimeClientToken=t;
 return t;
 }
+let globalPresenceRef=null;
 function initGlobalOnlinePresence(){
 if(!mpDb) return;
+if(!globalPresenceRef) globalPresenceRef=mpDb.ref('meta/onlineSessions').push();
 mpDb.ref('.info/connected').on('value',snap=>{
+const connectedNow=snap.val()===true;
+if(connectedNow && globalPresenceRef){
+  const payload={clientId:getClientToken(),at:firebase.database.ServerValue.TIMESTAMP};
+  globalPresenceRef.set(payload).catch(()=>{});
+  try{globalPresenceRef.onDisconnect().remove();}catch(_){}
+}
 const online=snap.val()===true;
 const reconnected=online && firebaseWasConnected===false;
 firebaseWasConnected=online;
@@ -43120,7 +43148,7 @@ await requestSynchronizedRoomExit('opponent-disconnected');
 },MP_DISCONNECT_GRACE_MS);
 }
 
-let randomQueueRef=null, randomQueueListener=null, randomOpponentCountListener=null, randomSearchActive=false, randomSearchTicket=null, randomWaitCancel=null;
+let randomQueueRef=null, randomQueueListener=null, randomOpponentCountListener=null, randomOnlineCountRef=null, randomSearchActive=false, randomSearchTicket=null, randomWaitCancel=null;
 let randomResultAutoExitTimer=null, randomResultAutoExitKey='';
 let inviteWaitCountdownTimer=null;
 let inviteWaitDeadlineAt=0;
@@ -43138,21 +43166,24 @@ const a=new Uint32Array(3); crypto.getRandomValues(a);
 return Array.from(a,n=>n.toString(36)).join('');
 }
 function stopRandomOpponentCount(){
-if(randomQueueRef&&randomOpponentCountListener)randomQueueRef.off('value',randomOpponentCountListener);
-randomOpponentCountListener=null;
+if(randomOnlineCountRef&&randomOpponentCountListener)randomOnlineCountRef.off('value',randomOpponentCountListener);
+randomOpponentCountListener=null;randomOnlineCountRef=null;
 const el=document.getElementById('mp-online-count');if(el){el.classList.add('hidden');el.textContent='';}
 }
 function startRandomOpponentCount(myId){
 stopRandomOpponentCount();
-const ref=randomQueueRef,el=document.getElementById('mp-online-count');
-if(!ref||!el)return;
-el.textContent='Çevrimiçi bekleyen rakip aranıyor…';el.classList.remove('hidden');
+const el=document.getElementById('mp-online-count');
+if(!mpDb||!el)return;
+randomOnlineCountRef=mpDb.ref('meta/onlineSessions');
+el.textContent='Çevrimiçi oyuncu sayısı: hesaplanıyor…';el.classList.remove('hidden');
 randomOpponentCountListener=snap=>{
-const q=snap.val()||{};
-const available=(q.clientId&&q.clientId!==myId&&!q.claimedBy&&!q.roomCode&&Number(q.expiresAt||0)>serverNow())?1:0;
-el.textContent=`Çevrimiçi bekleyen rakip: ${available}`;
+  const data=snap.val()||{};
+  const count=Object.keys(data).length;
+  el.textContent=`Çevrimiçi oyuncu sayısı: ${count}`;
 };
-ref.on('value',randomOpponentCountListener);
+randomOnlineCountRef.on('value',randomOpponentCountListener,()=>{
+  el.textContent='Çevrimiçi oyuncu sayısı: —';
+});
 }
 function releaseRandomSearchLocal(){
 stopRandomOpponentCount();
@@ -43612,6 +43643,16 @@ function decorateWinnerCard(side){
   const badge=document.createElement('div'); badge.className='victory-badge'+(side==='p2'?' sky':''); badge.textContent='★ ZAFER ★';
   avatar.insertAdjacentElement('afterend',badge);
 }
+function emphasizeWinner(side){
+  if(!side)return;
+  decorateWinnerCard(side);
+  const card=document.getElementById(side==='p1'?'final-p1-card':'final-p2-card');
+  card?.classList.add('victory-flash-strong','kd-winner-glow');
+  setTimeout(()=>card?.classList.remove('victory-flash-strong'),1800);
+  spawnGlobalResultConfetti(side);
+  launchGrandCelebration(side);
+  startWinnerConfettiWaterfall(side);
+}
 function setRandomAutoExitNotice(visible){
 const el=document.getElementById('random-auto-exit-note');
 if(!el) return;
@@ -43651,10 +43692,15 @@ if(!d||d.status!=='finished') return;
 const finalWinner=String(d.finalWinner||'');
 if(!['host','guest','tie'].includes(finalWinner)) return;
 if(isPrivateFriendRoom()) forcePrivateResultActions();
-// v233: otomatik çıkışı görsel sonuç kodundan ÖNCE silahlandır.
-armRandomResultAutoExit(d);
 const resultSig=[Number(d.round||1),finalWinner,Number(d.scores?.host||0),Number(d.scores?.guest||0),Number(d.longestBonus?.maxLen||0)].join('|');
 if(resultSig===mpLastResultRenderSig) return;
+const previewKey=`mp|${mpRoomCode||''}|${resultSig}`;
+if(!missedPreviewDoneKeys.has(previewKey)){
+  missedPreviewDoneKeys.add(previewKey);
+  isMatchActive=false;clearInterval(timerInterval);clearInterval(mpClock);clearTimeout(botInterval);
+  showMissedWordsBeforeResult(d,()=>showMultiplayerSeriesResult(d));
+  return;
+}
 mpLastResultRenderSig=resultSig;
 clearVictoryPresentation();
 isMatchActive=false;clearInterval(timerInterval);clearInterval(mpClock);clearTimeout(botInterval);
@@ -43667,8 +43713,8 @@ renderGameoverWordLists();setLongestBonusBadges(!!d.longestBonus?.host,!!d.longe
 const heading=document.getElementById('gameover-heading'),p1NameEl=document.getElementById('final-p1-name'),p2NameEl=document.getElementById('final-p2-name'),p1ScoreEl=document.getElementById('final-score-val-p1'),p2ScoreEl=document.getElementById('final-score-val-p2');
 [p1NameEl,p2NameEl,p1ScoreEl,p2ScoreEl].forEach(el=>el?.classList.remove('winner-pulse','winner-name-big','winner-score-big')); const p1AvatarEl=document.getElementById('final-p1-avatar'),p2AvatarEl=document.getElementById('final-p2-avatar'); [p1AvatarEl,p2AvatarEl].forEach(el=>el?.classList.remove('winner-avatar-big'));
 const c1=document.getElementById('final-p1-card'),c2=document.getElementById('final-p2-card');[c1,c2].forEach(c=>{if(c){c.classList.remove('kd-winner-glow');c.style.transform='';c.style.filter='';c.style.background='';c.style.borderRadius='';c.style.padding='';}});
-if(d.finalWinner==='host'){if(c1){c1.style.background='rgba(254,243,199,.9)';c1.style.borderRadius='16px';c1.style.padding='8px';}if(c2)c2.style.filter='saturate(.7) opacity(.82)';setGameoverOutcome(mpRole==='host');p1ScoreEl?.classList.add('winner-score-big');}
-else if(d.finalWinner==='guest'){if(c2){c2.style.background='rgba(224,242,254,.92)';c2.style.borderRadius='16px';c2.style.padding='8px';}if(c1)c1.style.filter='saturate(.7) opacity(.82)';setGameoverOutcome(mpRole==='guest');p2ScoreEl?.classList.add('winner-score-big');}
+if(d.finalWinner==='host'){if(c1){c1.style.background='rgba(254,243,199,.9)';c1.style.borderRadius='16px';c1.style.padding='8px';}if(c2)c2.style.filter='saturate(.7) opacity(.82)';setGameoverOutcome(mpRole==='host');p1ScoreEl?.classList.add('winner-score-big');emphasizeWinner('p1');}
+else if(d.finalWinner==='guest'){if(c2){c2.style.background='rgba(224,242,254,.92)';c2.style.borderRadius='16px';c2.style.padding='8px';}if(c1)c1.style.filter='saturate(.7) opacity(.82)';setGameoverOutcome(mpRole==='guest');p2ScoreEl?.classList.add('winner-score-big');emphasizeWinner('p2');}
 else {setGameoverOutcome(null);}
 const replay=document.getElementById('btn-play-again');
 const exitBtn=document.getElementById('btn-game-exit');
@@ -43751,7 +43797,6 @@ setMpState(MP_STATES.FINISHED); document.getElementById('modal-rematch-waiting')
 const d={...(mpRoomData||{}),...gs};
 // v233: sonuç kesinleştiği anda, render/konfeti kodundan bağımsız otomatik çıkışı kur.
 if(isRandomHumanRoom()){
-armRandomResultAutoExit(d);
 showMultiplayerSeriesResult(d);
 }else{
 forcePrivateResultActions();
@@ -45240,6 +45285,60 @@ planBot();
 }, level.delay);
 }
 
+let missedPreviewTimer=null;
+const missedPreviewDoneKeys=new Set();
+function clearMissedWordPreview(){
+  if(missedPreviewTimer){clearTimeout(missedPreviewTimer);missedPreviewTimer=null;}
+  document.querySelectorAll('#scrabble-grid .missed-word-cell').forEach(el=>el.classList.remove('missed-word-cell'));
+  document.getElementById('missed-word-banner')?.remove();
+}
+function getFoundWordsForMissed(resultData=null){
+  const found=new Set();
+  if(resultData?.words){
+    for(const ev of Object.values(resultData.words)){
+      const w=String(ev?.word||'').toLocaleUpperCase('tr-TR');
+      if(w)found.add(w);
+    }
+  }
+  for(const w of sessionFoundWords)found.add(String(w).toLocaleUpperCase('tr-TR'));
+  return found;
+}
+function getMissedWordSamples(resultData=null){
+  let solved=boardFoundWords;
+  if(!Array.isArray(solved)||!solved.length) solved=solveBoardWords(gridBoard);
+  const found=getFoundWordsForMissed(resultData);
+  return solved
+    .filter(item=>item?.word&&Array.isArray(item.path)&&!found.has(item.word))
+    .map(item=>({item,score:item.word.split('').reduce((sum,ch)=>sum+(TILE_SCORE_CACHE[ch]||1),0)}))
+    .sort((a,b)=>b.score-a.score||b.item.word.length-a.item.word.length||a.item.word.localeCompare(b.item.word,'tr'))
+    .slice(0,3)
+    .map(x=>x.item);
+}
+function showMissedWordsBeforeResult(resultData,done){
+  clearMissedWordPreview();
+  const words=getMissedWordSamples(resultData);
+  if(!words.length){done();return;}
+  const board=document.getElementById('scrabble-grid');
+  const parent=board?.parentElement;
+  if(!board||!parent){done();return;}
+  let banner=document.createElement('div');
+  banner.id='missed-word-banner';banner.className='missed-word-banner';
+  parent.appendChild(banner);
+  let i=0;
+  const showNext=()=>{
+    document.querySelectorAll('#scrabble-grid .missed-word-cell').forEach(el=>el.classList.remove('missed-word-cell'));
+    if(i>=words.length){clearMissedWordPreview();done();return;}
+    const item=words[i++];
+    banner.textContent=`KAÇIRILAN: ${item.word}`;
+    for(const pt of item.path){
+      const cell=domCells[pt.r*BOARD_SIZE+pt.c];
+      cell?.classList.add('missed-word-cell');
+    }
+    missedPreviewTimer=setTimeout(showNext,720);
+  };
+  showNext();
+}
+
 function spawnHighResultPartyFx(){ return; }
 function launchLightResultConfetti(x=.5){if(typeof confetti==='function')confetti({particleCount:20,spread:70,origin:{x,y:.56},zIndex:999,disableForReducedMotion:true});}
 function spawnGlobalResultConfetti(winnerSide=null){
@@ -45374,6 +45473,7 @@ mpEndResolveTimer=setTimeout(()=>{mpEndResolveTimer=null;hostResolveMatchEnd().c
 return;
 }
 const longestBonus=applySingleLongestWordBonus();
+showMissedWordsBeforeResult(null,()=>{
 document.getElementById('modal-gameover').classList.remove('hidden');
 const singleActions=document.getElementById('gameover-actions');
 if(singleActions){ singleActions.style.removeProperty('display'); singleActions.classList.remove('hidden'); }
@@ -45402,7 +45502,10 @@ const c1=document.getElementById('final-p1-card'),c2=document.getElementById('fi
 if(p1Score>p2Score){if(c1){c1.style.background='rgba(254,243,199,.9)';c1.style.borderRadius='16px';c1.style.padding='8px';}if(c2)c2.style.filter='saturate(.7) opacity(.82)';setGameoverOutcome(true);p1ScoreEl?.classList.add('winner-score-big');}
 else if(p2Score>p1Score){if(c2){c2.style.background='rgba(224,242,254,.92)';c2.style.borderRadius='16px';c2.style.padding='8px';}if(c1)c1.style.filter='saturate(.7) opacity(.82)';setGameoverOutcome(false);p2ScoreEl?.classList.add('winner-score-big');}
 else {setGameoverOutcome(null);}
+if(p1Score>p2Score)emphasizeWinner('p1');
+else if(p2Score>p1Score)emphasizeWinner('p2');
 scheduleBoardPrewarm();
+});
 }
 
 function showRoomExitNotice(message='OYUNDAN ÇIKIŞ YAPILDI'){
