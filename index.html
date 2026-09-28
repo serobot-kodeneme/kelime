@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <title>KAPMACA — Ücretsiz Türkçe Online Kelime Oyunu</title>
-<meta name="game-version" content="v343">
+<meta name="game-version" content="v344">
 <meta name="description" content="KAPMACA, 60 saniyede aynı harflerden en çok Türkçe sözcüğü bulmaya çalıştığın ücretsiz online kelime oyunudur. Tek başına oyna veya arkadaşına meydan oku.">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" content="#075458">
@@ -2978,11 +2978,12 @@ button:not(:disabled):active{filter:brightness(.96) saturate(1.12);}
 .result-global-confetti{position:fixed;inset:0;pointer-events:none;z-index:998;overflow:hidden;}
 .result-global-confetti i{position:absolute;top:-20px;width:9px;height:14px;border-radius:2px;opacity:.98;animation:globalResultConfetti var(--dur,2.2s) cubic-bezier(.2,.7,.25,1) forwards;will-change:transform,opacity;}
 #gameover-actions{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:10px 12px;
-  justify-items:center;
-  align-items:start;
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:10px 16px!important;
+  justify-items:center!important;
+  align-items:start!important;
+  width:100%!important;
 }
 body[data-private-friend-active="1"] #gameover-actions{display:grid!important;}
 body[data-private-friend-active="1"] #btn-play-again,
@@ -3374,12 +3375,12 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 <div id="mp-create-view" class="mt-2 space-y-2">
 <div class="grid grid-cols-2 gap-2">
 <button id="btn-random-match" class="home-mode-btn rounded-[18px] bg-gradient-to-b from-amber-300 to-orange-500 text-slate-950 font-black shadow-md border-2 border-amber-200 active:scale-[.98] flex flex-col items-center justify-center text-center p-3" style="aspect-ratio:1/1">
-<span class="text-[78px] leading-none mb-2 drop-shadow-sm" aria-hidden="true">🎲</span>
+<span class="text-[96px] leading-none mb-1 drop-shadow-md" aria-hidden="true">🎲</span>
 <span class="text-[13px] leading-tight">HODRİ MEYDAN!</span>
 <span class="mt-1 text-[10px] leading-snug font-bold text-amber-950">Sürpriz bir rakiple oyna</span>
 </button>
 <button id="btn-create-room" class="rounded-[18px] bg-gradient-to-b from-sky-400 to-blue-600 text-white font-black shadow-md border-2 border-sky-200 active:scale-[.98] flex flex-col items-center justify-center text-center p-3" style="aspect-ratio:1/1">
-<span class="text-[78px] leading-none mb-2 drop-shadow-sm" aria-hidden="true">🤝</span>
+<span class="text-[96px] leading-none mb-1 drop-shadow-md" aria-hidden="true">🤝</span>
 <span class="text-[13px] leading-tight">DOST ATEŞİ</span>
 <span class="mt-1 text-[10px] leading-snug font-bold text-sky-50">Tanıdık bir yüzle tatlı hesaplaşma!</span>
 </button>
@@ -3545,7 +3546,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 <div class="sound-step-marks" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
 <label class="sound-mute-row" for="sound-muted"><input id="sound-muted" type="checkbox"> Sessiz</label>
 </div>
-<div class="mt-2 text-center text-[10px] font-black text-slate-400">v343</div>
+<div class="mt-2 text-center text-[10px] font-black text-slate-400">v344</div>
 </div>
 </div>
 </div>
@@ -3702,7 +3703,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 </div>
 </div>
 
-<script src="app.js?v=343"></script>
+<script src="app.js?v=344"></script>
 
 </body>
 </html>
