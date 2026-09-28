@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://serobot-kodeneme.github.io/kelime/sitemap.xml
