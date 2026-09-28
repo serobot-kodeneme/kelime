@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v287</title>
-<meta name="game-version" content="v287">
+<title>KAPMACA.tr — Sözcük Avı v288</title>
+<meta name="game-version" content="v288">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -1696,6 +1696,9 @@
   }
   .select-none {
     -webkit-user-select: none;
+}
+button,input,textarea,select{font-family:'Quicksand',sans-serif!important}
+body {
     user-select: none;
   }
   .hover\:-translate-y-1 {
@@ -2324,7 +2327,7 @@
 
 <style>
 body {
-font-family: Calibri, 'Segoe UI', Arial, sans-serif;
+font-family: 'Quicksand', sans-serif;
 
 background:
 radial-gradient(circle at 50% 12%, rgba(34,211,238,.14) 0 10%, transparent 38%),
@@ -3244,6 +3247,9 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 .mp-demo .demo-board .demo-tile{font-size:13px;border-radius:6px}
 #home-demo .demo-board{max-width:198px;gap:2px}
 #home-demo .demo-board .demo-tile{font-size:13px;border-radius:6px}
+#screen-howto [aria-label="Örnek oynanış animasyonu"]{margin-top:-5px!important;padding:11px!important}
+#screen-howto .demo-board{max-width:184px!important;gap:2px!important;margin:0 auto!important}
+#screen-howto .demo-board .demo-tile{font-size:12px!important;border-radius:5px!important}
 @media(prefers-reduced-motion:reduce){.demo-board .demo-tile{transition:none;animation:none}}
 </style>
 
@@ -3394,7 +3400,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 
 <div id="screen-howto" class="absolute inset-0 z-[80] hidden bg-gradient-to-b from-sky-100 to-amber-50 overflow-y-auto hide-scroll p-4">
 <div class="max-w-sm mx-auto pb-6">
-<div class="flex items-center justify-between mb-4"><button id="btn-howto-back" class="w-10 h-10 rounded-full bg-white shadow font-black text-xl">‹</button><h2 class="font-black text-xl text-indigo-950">OYNANIŞ</h2><div class="w-10"></div></div>
+<div class="flex items-center justify-between mb-4"><button id="btn-howto-back" aria-label="Oynanışı kapat" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-black">✕</button><h2 class="font-black text-xl text-indigo-950">OYNANIŞ</h2><div class="w-8"></div></div>
 <div class="rounded-3xl bg-indigo-950 text-white p-4 shadow-lg mb-3">
 <div class="text-lg font-black">KAPMACA Sözcük Avı nasıl oynanır?</div>
 <p class="text-xs text-indigo-100 mt-1 leading-relaxed">9×9 tahtada komşu harfleri birleştir, geçerli Türkçe sözcükleri bul ve 60 saniyelik kapışmada en yüksek puanı toplamaya çalış.</p>
@@ -3445,9 +3451,9 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <div id="screen-settings" class="absolute inset-0 z-[80] hidden bg-gradient-to-b from-sky-100 to-white p-4">
 <div class="max-w-sm mx-auto">
 <div class="flex items-center justify-between">
-<button id="btn-settings-back" class="w-10 h-10 rounded-full bg-white shadow font-black text-xl">‹</button>
+<button id="btn-settings-back" aria-label="Ayarları kapat" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-black">✕</button>
 <h2 class="font-black text-xl text-indigo-950">AYARLAR</h2>
-<div class="w-10"></div>
+<div class="w-8"></div>
 </div>
 <div class="mt-8 bg-white/95 border-2 border-sky-200 rounded-3xl p-5 shadow-lg">
 <div class="flex items-center justify-between gap-3">
@@ -3472,7 +3478,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 
 <div id="screen-about" class="absolute inset-0 z-[80] hidden bg-gradient-to-b from-sky-100 to-white p-4">
 <div class="max-w-sm mx-auto">
-<div class="flex items-center justify-between"><button id="btn-about-back" class="w-10 h-10 rounded-full bg-white shadow font-black text-xl">‹</button><h2 class="font-black text-xl text-indigo-950">HAKKINDA</h2><div class="w-10"></div></div>
+<div class="flex items-center justify-between"><button id="btn-about-back" aria-label="Hakkında bölümünü kapat" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-black">✕</button><h2 class="font-black text-xl text-indigo-950">HAKKINDA</h2><div class="w-8"></div></div>
 <div class="mt-8 bg-white/90 border-2 border-sky-200 rounded-3xl p-5 shadow-lg text-center">
 <div class="text-left rounded-2xl border border-amber-200 bg-amber-50 p-4 mb-4 text-[11px] leading-relaxed text-slate-700 space-y-3">
 <h3 class="text-sm font-black text-amber-950">YASAL BİLGİLENDİRME VE TELİF HAKKI BİLDİRİMİ</h3>
@@ -3492,7 +3498,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 
 <div id="screen-support" class="absolute inset-0 z-[80] hidden bg-gradient-to-b from-rose-100 to-white p-4">
 <div class="max-w-sm mx-auto">
-<div class="flex items-center justify-between"><a id="btn-close-support" href="#screen-home" aria-label="Desteği kapat" class="w-10 h-10 rounded-full bg-white shadow font-black text-xl flex items-center justify-center">‹</a><h2 class="font-black text-xl text-indigo-950">DESTEK</h2><div class="w-10"></div></div>
+<div class="flex items-center justify-between"><button id="btn-close-support" aria-label="Desteği kapat" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-black">✕</button><h2 class="font-black text-xl text-indigo-950">DESTEK</h2><div class="w-8"></div></div>
 <div class="mt-5 bg-white/95 border-2 border-rose-200 rounded-3xl p-5 shadow-lg text-center">
 <img class="support-official-logo" src="https://www.losev.org.tr/_next/static/media/losev_dark_logo.c35ca8f1.svg" alt="LÖSEV logosu" loading="lazy" />
 <div class="mt-5 rounded-[20px] bg-gradient-to-r from-rose-50 via-white to-red-50 border-2 border-rose-200 p-4 shadow-md">
