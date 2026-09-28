@@ -2946,7 +2946,7 @@ function showTimeUpPreview(done){
     <div class="time-up-sub">SONUÇLAR HAZIRLANIYOR</div>
   </div>`;
   game.appendChild(overlay);
-  timeUpPreviewTimer=setTimeout(()=>{clearTimeUpPreview();done();},1150);
+  timeUpPreviewTimer=setTimeout(()=>{clearTimeUpPreview();done();},780);
 }
 
 const resultPreviewDoneKeys=new Set();
