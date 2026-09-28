@@ -277,8 +277,26 @@ updateFullscreenUi();
 await requestGameFullscreen(false);
 }
 }
-document.addEventListener('fullscreenchange',updateFullscreenUi);
-document.addEventListener('webkitfullscreenchange',updateFullscreenUi);
+function handleFullscreenLayoutChange(){
+updateFullscreenUi();
+// Tam ekran geçişinde tahta boyutu değişir. Sürükleme aktif değilse eski
+// koordinat önbelleğini temizleyip yeni boyutları bir sonraki frame'de ölç.
+// Aktif sürükleme sırasında dokunmayız; aksi halde yol hesabı yarıda bozulabilir.
+if(typeof isPointerDown!=='undefined' && isPointerDown) return;
+hoverGridRect=null; hoverGridMetrics=null; activeGridRect=null; activeGridMetrics=null;
+requestAnimationFrame(()=>{
+  if(typeof isPointerDown!=='undefined' && isPointerDown) return;
+  try{
+    const grid=document.getElementById('scrabble-grid');
+    if(grid && grid.children.length){
+      hoverGridMetrics=measureGrid();
+      hoverGridRect=hoverGridMetrics.rect;
+    }
+  }catch(_){}
+});
+}
+document.addEventListener('fullscreenchange',handleFullscreenLayoutChange);
+document.addEventListener('webkitfullscreenchange',handleFullscreenLayoutChange);
 
 let remainingSeconds = 60;
 let isMatchActive = false;
