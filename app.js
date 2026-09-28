@@ -42344,9 +42344,15 @@ let dictCurrentWords = [];
 function openDictionary(){
 ensureDictionaryIndex();
 renderAlphabetButtons();
-dictVisibleCount = DICT_PAGE_SIZE;
-renderWordsForLetter(dictCurrentLetter || 'A');
+dictCurrentLetter=''; dictCurrentQuery=''; dictVisibleCount=DICT_PAGE_SIZE;
+document.getElementById('dict-search-input').value='';
+document.getElementById('dict-search-wrap')?.classList.add('hidden');
 document.getElementById('dict-search-meaning').classList.add('hidden');
+document.getElementById('dict-list-heading')?.classList.add('hidden');
+document.getElementById('dict-rules-panel')?.classList.add('hidden');
+document.getElementById('dict-words-list')?.classList.add('hidden');
+document.getElementById('dict-load-more')?.classList.add('hidden');
+updateAlphabetActive();
 document.getElementById('modal-dictionary').classList.remove('hidden');
 }
 document.getElementById('btn-close-dict').onclick = () => {
@@ -42375,6 +42381,10 @@ btn.onclick = () => {
 document.getElementById('dict-search-input').value = '';
 closeDictionaryMeaning(); document.getElementById('dict-search-meaning').classList.add('hidden');
 dictCurrentQuery=''; dictCurrentLetter=l; dictVisibleCount=DICT_PAGE_SIZE;
+document.getElementById('dict-search-wrap')?.classList.remove('hidden');
+document.getElementById('dict-list-heading')?.classList.remove('hidden');
+document.getElementById('dict-rules-panel')?.classList.remove('hidden');
+document.getElementById('dict-words-list')?.classList.remove('hidden');
 renderWordsForLetter(l);
 };
 frag.appendChild(btn);
