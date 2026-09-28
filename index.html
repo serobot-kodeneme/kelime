@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v300</title>
-<meta name="game-version" content="v300">
+<title>KAPMACA.tr — Sözcük Avı v301</title>
+<meta name="game-version" content="v301">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -43791,7 +43791,7 @@ function setRandomAutoExitNotice(visible){
 const el=document.getElementById('random-auto-exit-note');
 if(!el) return;
 el.style.display=visible?'block':'none';
-if(visible) el.textContent='6 SANİYE İÇİNDE ANA SAYFAYA DÖNÜLECEK';
+if(visible) el.textContent='5 SANİYE İÇİNDE ANA SAYFAYA DÖNÜLECEK';
 }
 function armRandomResultAutoExit(d){
 if(!d || !isRandomHumanRoom()) return false;
@@ -43802,9 +43802,15 @@ const actions=document.getElementById('gameover-actions');
 const replay=document.getElementById('btn-play-again');
 const exitBtn=document.getElementById('btn-game-exit');
 const inline=document.getElementById('rematch-inline-status');
-if(actions){actions.classList.add('hidden');actions.style.setProperty('display','none','important');}
+if(actions){actions.classList.remove('hidden');actions.style.removeProperty('display');}
 if(replay){replay.disabled=true;replay.classList.add('hidden');replay.style.setProperty('display','none','important');replay.classList.remove('rematch-pulse');}
-if(exitBtn){exitBtn.disabled=true;exitBtn.classList.add('hidden');exitBtn.style.setProperty('display','none','important');}
+if(exitBtn){
+  exitBtn.disabled=false;
+  exitBtn.classList.remove('hidden');
+  exitBtn.style.removeProperty('display');
+  exitBtn.className='w-full mt-2 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-black text-xs py-2.5 rounded-xl uppercase shadow-md transition';
+  exitBtn.textContent='ÇIKIŞ';
+}
 if(inline){inline.classList.add('hidden');inline.textContent='';}
 setRandomAutoExitNotice(true);
 // Kritik: sayaç sonuç ekranının çiziminden ve kutlama efektlerinden bağımsızdır.
@@ -43817,7 +43823,7 @@ const capturedRole=mpRole;
 randomResultAutoExitTimer=setTimeout(()=>{
 randomResultAutoExitTimer=null;
 finishRandomMatchAfterResult(autoKey,capturedRef,capturedRole);
-},6000);
+},5000);
 return true;
 }
 
