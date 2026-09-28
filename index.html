@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v284</title>
-<meta name="game-version" content="v284">
+<title>KAPMACA.tr — Sözcük Avı v285</title>
+<meta name="game-version" content="v285">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2889,7 +2889,7 @@ button:not(:disabled):active{filter:brightness(.96) saturate(1.12);}
 }
 .winner-avatar-big svg{width:34px!important;height:34px!important;}
 .victory-card{position:relative;isolation:isolate;overflow:visible!important;}
-.victory-card::before{content:"";position:absolute;inset:-18px -14px;z-index:-1;border-radius:24px;background:radial-gradient(circle at 50% 38%,rgba(255,255,255,.96) 0 16%,rgba(250,204,21,.28) 36%,rgba(250,204,21,0) 72%);animation:victoryHalo 1.35s ease-in-out infinite;pointer-events:none;}
+.victory-card::before{content:"";position:absolute;inset:-18px -14px;z-index:-1;border-radius:24px;background:radial-gradient(circle at 50% 38%,rgba(255,255,255,.96) 0 16%,rgba(250,204,21,.28) 36%,rgba(250,204,21,0) 72%);animation:victoryHalo 1.35s ease-in-out 4;pointer-events:none;}
 .victory-card.victory-sky::before{background:radial-gradient(circle at 50% 38%,rgba(255,255,255,.96) 0 16%,rgba(56,189,248,.28) 36%,rgba(56,189,248,0) 72%);}
 @keyframes victoryHalo{0%,100%{transform:scale(.96);opacity:.72}50%{transform:scale(1.06);opacity:1}}
 .victory-badge{display:inline-flex;align-items:center;justify-content:center;gap:4px;margin:2px auto 5px;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:1000;letter-spacing:.12em;color:#fff;background:linear-gradient(135deg,#f59e0b,#facc15);box-shadow:0 5px 14px rgba(245,158,11,.28);animation:victoryBadgePop .45s cubic-bezier(.2,.8,.2,1) both;}
@@ -2900,7 +2900,7 @@ button:not(:disabled):active{filter:brightness(.96) saturate(1.12);}
 #gameover-heading{font-size:clamp(16px,5vw,22px);line-height:1.16;}
 @media(max-height:680px){.gameover-medal{width:51px;height:51px;margin:0 auto 4px;font-size:27px;}}
 @keyframes victoryBadgePop{0%{opacity:0;transform:translateY(7px) scale(.72)}70%{opacity:1;transform:translateY(-1px) scale(1.08)}100%{opacity:1;transform:translateY(0) scale(1)}}
-.victory-avatar-crown{position:absolute;left:50%;top:-17px;transform:translateX(-50%) rotate(-5deg);font-size:24px;filter:drop-shadow(0 4px 5px rgba(0,0,0,.18));animation:crownFloat 1.2s ease-in-out infinite;pointer-events:none;z-index:6}
+.victory-avatar-crown{position:absolute;left:50%;top:-17px;transform:translateX(-50%) rotate(-5deg);font-size:24px;filter:drop-shadow(0 4px 5px rgba(0,0,0,.18));animation:crownFloat 1.2s ease-in-out 4;pointer-events:none;z-index:6}
 @keyframes crownFloat{0%,100%{transform:translateX(-50%) translateY(0) rotate(-5deg)}50%{transform:translateX(-50%) translateY(-3px) rotate(4deg)}}
 @media (prefers-reduced-motion:reduce){.victory-card::before,.victory-badge,.victory-avatar-crown{animation:none!important}}
 
@@ -3024,10 +3024,6 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
   color:#fff3cf;text-shadow:0 3px 0 #cc7300,0 5px 8px rgba(0,72,155,.28);
   box-shadow:0 6px 0 #0755ba,0 11px 18px rgba(0,87,170,.22),inset 0 2px 0 rgba(255,255,255,.42);
 }
-.home-hand-art{position:absolute;z-index:1;width:142px;height:124px;pointer-events:none;opacity:.80;filter:drop-shadow(0 7px 9px rgba(31,88,122,.13))}
-.home-hand-art.left{left:-22px;top:37%;transform:rotate(-12deg)}
-.home-hand-art.right{right:-23px;top:49%;transform:scaleX(-1) rotate(-8deg)}
-@media(max-width:380px){.home-hand-art{width:110px;height:97px;opacity:.64}}
 #screen-home.home-v156 #btn-solo-mode{
   background:linear-gradient(180deg,#28b9fb 0%,#1197ed 48%,#0874db 100%) !important;
   border-color:#87e2ff !important;box-shadow:0 7px 0 #075cb8,0 11px 18px rgba(0,111,198,.22),inset 0 2px 0 rgba(255,255,255,.35) !important;
@@ -42845,6 +42841,7 @@ playTone(base,.060,.065,'sine',base+115);
 // v278: Tüm düğmeler için tek, çok hafif ve kısa "pit" sesi.
 // Event delegation kullanıldığı için düğme başına ayrı dinleyici oluşturmaz.
 function playUiClickSound(){
+  if(document.hidden) return;
   playTone(560,.028,.028,'sine',690);
 }
 document.addEventListener('click',(e)=>{
@@ -44302,7 +44299,10 @@ function startHowtoDemo(){
 }
 const rematchDemo=document.querySelector('#modal-mp-waiting .mp-demo')?.cloneNode(true);
 if(rematchDemo) document.getElementById('rematch-wait-sub')?.after(rematchDemo);
-document.addEventListener('visibilitychange',()=>{if(document.hidden)stopHowtoDemo();else startHowtoDemo();});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){stopHowtoDemo();stopWinnerConfettiWaterfall();}
+  else startHowtoDemo();
+});
 new MutationObserver(()=>{if(!document.getElementById('screen-home').classList.contains('hidden'))startHowtoDemo();}).observe(document.getElementById('screen-home'),{attributes:true,attributeFilter:['class']});
 for(const id of ['modal-room-invite','modal-mp-waiting','modal-rematch-waiting','modal-countdown'])new MutationObserver(()=>startHowtoDemo()).observe(document.getElementById(id),{attributes:true,attributeFilter:['class']});
 startHowtoDemo();
@@ -45434,6 +45434,8 @@ function startWinnerConfettiWaterfall(winnerSide=null){
  };
  shoot();
  winnerWaterfallTimer=setInterval(shoot,180);
+ const stopTimer=setTimeout(()=>stopWinnerConfettiWaterfall(),3600);
+ grandCelebrationTimeouts.push(stopTimer);
 }
 
 function launchGrandCelebration(winnerSide=null) {
