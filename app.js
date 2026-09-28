@@ -992,6 +992,8 @@ return true;
 
 async function enterMultiplayerRoom(){
 if(!mpRoomRef) return;
+try{ await ensureWordDataLoaded(); }
+catch(_){ showToast('Oyun sözlüğü yüklenemedi. Tekrar deneyin.','rose'); return; }
 activeGameMode = 'multi';
 const [gsSnap,scoreSnap,wordsSnap]=await Promise.all([mpRoomRef.child('gameState').once('value'),mpRoomRef.child('scores').once('value'),mpRoomRef.child('words').once('value')]);
 const d={...(gsSnap.val()||{}),scores:scoreSnap.val()||{host:0,guest:0},words:wordsSnap.val()||{}}; if(!d||!d.board) return;
