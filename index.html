@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v309</title>
-<meta name="game-version" content="v309">
+<title>KAPMACA.tr — Sözcük Avı v310</title>
+<meta name="game-version" content="v310">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2504,23 +2504,27 @@ z-index: 100;
 white-space: nowrap;
 }
 
-@keyframes pulseTimer {
-0%,100%{transform:scale(1);opacity:1}
-50%{transform:scale(1.08);opacity:.88}
+@keyframes timerDangerBg {
+0%,46%{background:#dc2626;box-shadow:0 0 0 1px rgba(248,113,113,.72),0 0 15px rgba(220,38,38,.55)}
+54%,100%{background:#050505;box-shadow:0 0 0 1px rgba(15,23,42,.95),0 0 12px rgba(0,0,0,.48)}
 }
-@keyframes pulseTimerCritical {
-0%,100%{transform:scale(1)}
-50%{transform:scale(1.14)}
+@keyframes timerDangerShake {
+0%,100%{transform:translate3d(0,0,0) scale(1)}
+20%{transform:translate3d(-1.5px,0,0) scale(1.05)}
+40%{transform:translate3d(1.5px,-.5px,0) scale(1.08)}
+60%{transform:translate3d(-1px,.5px,0) scale(1.06)}
+80%{transform:translate3d(1px,0,0) scale(1.04)}
 }
-.timer-warning{animation:pulseTimer 1s ease-in-out infinite;color:#f87171!important;}
-.timer-critical{animation:pulseTimerCritical .58s ease-in-out infinite;color:#fff!important;text-shadow:0 0 8px rgba(248,113,113,.72)!important;}
+.compact-timer.timer-danger{animation:timerDangerBg .62s steps(1,end) infinite!important;border-color:#ef4444!important;}
+.compact-timer.timer-danger .timer-label{color:#fff!important;}
+#game-timer.timer-warning,#game-timer.timer-critical{animation:timerDangerShake .28s linear infinite!important;color:#fff!important;text-shadow:0 0 8px rgba(255,255,255,.42),0 0 12px rgba(239,68,68,.68)!important;}
 
 @keyframes kdWordOk{0%{box-shadow:inset 0 0 0 rgba(16,185,129,0)}35%{box-shadow:inset 0 0 18px rgba(16,185,129,.42)}100%{box-shadow:inset 0 0 0 rgba(16,185,129,0)}}
 @keyframes kdWordBad{0%{box-shadow:inset 0 0 0 rgba(244,63,94,0)}35%{box-shadow:inset 0 0 16px rgba(244,63,94,.36)}100%{box-shadow:inset 0 0 0 rgba(244,63,94,0)}}
 #selected-preview-bar.kd-word-ok{animation:kdWordOk .20s ease-out 1;}
 #selected-preview-bar.kd-word-bad{animation:kdWordBad .18s ease-out 1;}
 #countdown-number{font-variant-numeric:tabular-nums;text-shadow:0 5px 16px rgba(245,158,11,.24);}
-@media (prefers-reduced-motion:reduce){.timer-warning,.timer-critical,#selected-preview-bar.kd-word-ok,#selected-preview-bar.kd-word-bad{animation:none!important}.letter-cell{transition:none!important}}
+@media (prefers-reduced-motion:reduce){.timer-warning,.timer-critical,.compact-timer.timer-danger,#selected-preview-bar.kd-word-ok,#selected-preview-bar.kd-word-bad{animation:none!important}.compact-timer.timer-danger{background:#dc2626!important}.letter-cell{transition:none!important}}
 .hide-scroll::-webkit-scrollbar { display: none; }
 .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -42867,8 +42871,10 @@ const el=document.getElementById('game-timer');
 if(!el)return;
 const sec=Math.max(0,Math.ceil(Number(seconds)||0));
 el.textContent=sec;
-el.classList.toggle('timer-warning',sec<=10 && sec>5);
-el.classList.toggle('timer-critical',sec<=5);
+const danger=sec<=10 && sec>0;
+el.classList.toggle('timer-warning',danger);
+el.classList.toggle('timer-critical',sec<=5 && sec>0);
+el.closest('.compact-timer')?.classList.toggle('timer-danger',danger);
 }
 
 let timerInterval = null;
