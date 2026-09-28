@@ -41316,11 +41316,14 @@ lastPointerX=e.clientX; lastPointerY=e.clientY;
 
 gridEl.addEventListener('pointermove', (e) => {
 if (!isMatchActive || !isPointerDown) return;
-const samples = typeof e.getCoalescedEvents === 'function' ? e.getCoalescedEvents() : null;
-if (samples && samples.length > 1) {
-const step=Math.max(1,Math.ceil(samples.length/4));
-for (let i=0;i<samples.length;i+=step) { const sample=samples[i]; processPointerSegment(sample.clientX,sample.clientY,activeGridMetrics); }
-const last=samples[samples.length-1]; processPointerSegment(last.clientX,last.clientY,activeGridMetrics);
+const fullscreenFine = !IS_COARSE_POINTER && isFullscreenActive();
+if(!fullscreenFine){
+  const samples = typeof e.getCoalescedEvents === 'function' ? e.getCoalescedEvents() : null;
+  if (samples && samples.length > 1) {
+    const step=Math.max(1,Math.ceil(samples.length/4));
+    for (let i=0;i<samples.length;i+=step) { const sample=samples[i]; processPointerSegment(sample.clientX,sample.clientY,activeGridMetrics); }
+    const last=samples[samples.length-1]; processPointerSegment(last.clientX,last.clientY,activeGridMetrics);
+  }
 }
 pendingPointer = {x:e.clientX, y:e.clientY};
 if (pointerFrame) return;
@@ -41363,8 +41366,9 @@ const cellPx=metrics?Math.min(metrics.cellW,metrics.cellH):40;
 // Küçük hücrelerde gereksiz 8-10 ara hesap üretmek fullscreen'de tutukluk yapıyordu.
 // Dokunmatik yolu eski hassasiyetinde kalır; fine-pointer yolu daha hafif çalışır.
 const finePointer=!IS_COARSE_POINTER;
-const maxSteps=finePointer?5:10;
-const stepDivisor=finePointer?Math.max(8,cellPx*.56):Math.max(6.5,cellPx*.38);
+const fullscreenFine=finePointer && isFullscreenActive();
+const maxSteps=fullscreenFine?3:(finePointer?5:10);
+const stepDivisor=fullscreenFine?Math.max(10,cellPx*.72):(finePointer?Math.max(8,cellPx*.56):Math.max(6.5,cellPx*.38));
 const steps=Math.min(maxSteps,Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/stepDivisor)));
 for(let i=1;i<=steps;i++) processPointerAt(lastPointerX+dx*i/steps,lastPointerY+dy*i/steps,metrics);
 lastPointerX=clientX;lastPointerY=clientY;
