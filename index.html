@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v310</title>
-<meta name="game-version" content="v310">
+<title>KAPMACA.tr — Sözcük Avı v311</title>
+<meta name="game-version" content="v311">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2505,8 +2505,8 @@ white-space: nowrap;
 }
 
 @keyframes timerDangerBg {
-0%,46%{background:#dc2626;box-shadow:0 0 0 1px rgba(248,113,113,.72),0 0 15px rgba(220,38,38,.55)}
-54%,100%{background:#050505;box-shadow:0 0 0 1px rgba(15,23,42,.95),0 0 12px rgba(0,0,0,.48)}
+0%,44%{background-color:#ef0000!important;background-image:none!important;box-shadow:0 0 0 2px #ff6b6b,0 0 28px rgba(255,0,0,.95),inset 0 0 14px rgba(255,255,255,.20)}
+45%,100%{background-color:#000!important;background-image:none!important;box-shadow:0 0 0 2px #111,0 0 8px rgba(0,0,0,.95),inset 0 0 12px rgba(0,0,0,.9)}
 }
 @keyframes timerDangerShake {
 0%,100%{transform:translate3d(0,0,0) scale(1)}
@@ -2515,7 +2515,7 @@ white-space: nowrap;
 60%{transform:translate3d(-1px,.5px,0) scale(1.06)}
 80%{transform:translate3d(1px,0,0) scale(1.04)}
 }
-.compact-timer.timer-danger{animation:timerDangerBg .62s steps(1,end) infinite!important;border-color:#ef4444!important;}
+.compact-timer.timer-danger{background-image:none!important;animation:timerDangerBg .46s steps(1,end) infinite!important;border-color:#ff4d4d!important;}
 .compact-timer.timer-danger .timer-label{color:#fff!important;}
 #game-timer.timer-warning,#game-timer.timer-critical{animation:timerDangerShake .28s linear infinite!important;color:#fff!important;text-shadow:0 0 8px rgba(255,255,255,.42),0 0 12px rgba(239,68,68,.68)!important;}
 
@@ -42874,7 +42874,9 @@ el.textContent=sec;
 const danger=sec<=10 && sec>0;
 el.classList.toggle('timer-warning',danger);
 el.classList.toggle('timer-critical',sec<=5 && sec>0);
-el.closest('.compact-timer')?.classList.toggle('timer-danger',danger);
+const timerBox=el.closest('.compact-timer');
+timerBox?.classList.toggle('timer-danger',danger);
+if(!danger) timerBox?.classList.remove('timer-danger-red','timer-danger-black');
 }
 
 let timerInterval = null;
