@@ -1689,7 +1689,6 @@ disconnectFirebaseNetwork();
 };
 document.getElementById('btn-create-room')?.addEventListener('click',openFreshPrivateRoom);
 document.getElementById('btn-random-match')?.addEventListener('click',searchRandomOpponent);
-document.getElementById('btn-random-match-room')?.addEventListener('click',async()=>{ await discardCurrentPrivateRoom(); document.getElementById('friend-invite-panel')?.classList.remove('hidden'); await searchRandomOpponent(); });
 let copyLinkEnterTimer=null;
 document.getElementById('btn-copy-link').onclick = async()=>{
 if(!mpRoomCode)return;
