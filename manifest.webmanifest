@@ -12,5 +12,19 @@
   "categories": [
     "games",
     "word"
+  ],
+  "icons": [
+    {
+      "src": "kapmaca-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "kapmaca-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
   ]
 }
