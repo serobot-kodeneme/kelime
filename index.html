@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v289</title>
-<meta name="game-version" content="v289">
+<title>KAPMACA.tr — Sözcük Avı v290</title>
+<meta name="game-version" content="v290">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2438,13 +2438,6 @@ color: #334155 !important;
 box-shadow: 0 2px 0 #94a3b8 !important;
 }
 .tile-claimed-p1.tile-claimed-p2 .tile-score { color: #475569 !important; }
-
-/* v289: Daha önce bulunan sözcüğün tahtadaki tüm olası yollarındaki HARFLER kırmızı görünür.
-   Yalnız ilk harf span'ı boyanır; hücre arka planı, puan rengi ve etkileşim değişmez. */
-#scrabble-grid .letter-cell.used-word-cell > span:first-child{
-  color:#dc2626!important;
-  text-shadow:0 0 7px rgba(220,38,38,.18);
-}
 
 /* v286: Karşı tarafın bulduğu sözcük kısa süre kendi oyuncu renginde belirginleşir.
    Transform kullanılmaz; fare/parmak geometrisine dokunmaz. */
@@ -43896,7 +43889,6 @@ function applyRemoteWordEvent(ev){
 if(!ev||!ev.word) return;
 const path=decodeClaimPath(ev.path);
 if(path.length) applyClaimedPath(path,ev.role==='host');
-markFoundWordOccurrences(String(ev.word).toLocaleUpperCase('tr-TR'));
 const remoteBadge=addTickerBadge(String(ev.word).toLocaleUpperCase('tr-TR'),ev.role==='host');
 flashOpponentWord(path,ev.role==='host',remoteBadge);
 let remoteOrigin=null;
@@ -44701,7 +44693,7 @@ pendingPointer=null; lastPointerX=null; lastPointerY=null;
 if(pointerFrame){cancelAnimationFrame(pointerFrame);pointerFrame=0;}
 if(hoverLiftCell){hoverLiftCell.classList.remove('tile-hover-lift');hoverLiftCell=null;}
 for(const cell of domCells){
-cell?.classList.remove('tile-dragging','tile-dragging-p1','tile-dragging-p2','tile-claimed-p1','tile-claimed-p2','tile-hover-lift','tile-hover-p1','tile-hover-p2','remote-word-flash-p1','remote-word-flash-p2','used-word-cell');
+cell?.classList.remove('tile-dragging','tile-dragging-p1','tile-dragging-p2','tile-claimed-p1','tile-claimed-p2','tile-hover-lift','tile-hover-p1','tile-hover-p2','remote-word-flash-p1','remote-word-flash-p2');
 }
 remainingSeconds=60;
 p1Score=0; p2Score=0; updateScores();
@@ -44769,7 +44761,6 @@ if (!word) continue;
 mpFoundWords.host.add(word);
 mpFoundWords.guest.add(word);
 sessionFoundWords.add(word);
-markFoundWordOccurrences(word);
 { const remotePath=decodeClaimPath(ev.path); if(remotePath.length) applyClaimedPath(remotePath, ev.role === 'host'); }
 if (!mpSeenWordEvents.has(key)) {
 mpSeenWordEvents.add(key);
@@ -45128,7 +45119,6 @@ mpFoundWords.host.add(word);
 mpFoundWords.guest.add(word);
 } else sessionFoundWords.add(word);
 recordMatchWord(word,pts,isP1);
-markFoundWordOccurrences(word);
 playCorrectChime();
 flashWordFeedback(true);
 showToast(`${word} (+${pts})`, isP1 ? 'amber' : 'sky');
@@ -45152,45 +45142,6 @@ const el=domCells[pos.r*BOARD_SIZE+pos.c];
 if(!el) return;
 el.classList.add(isP1?'tile-claimed-p1':'tile-claimed-p2');
 });
-}
-
-function findAllBoardPathsForWord(word,maxPaths=32){
-const target=String(word||'').toLocaleUpperCase('tr-TR');
-if(target.length<2||target.length>9||!Array.isArray(gridBoard)||gridBoard.length!==BOARD_SIZE) return [];
-const out=[],visited=Array.from({length:BOARD_SIZE},()=>Array(BOARD_SIZE).fill(false));
-const dirs=[[-1,0],[1,0],[0,-1],[0,1]];
-const dfs=(r,c,index,path)=>{
-  if(out.length>=maxPaths) return;
-  if(gridBoard[r]?.[c]!==target[index]) return;
-  visited[r][c]=true;path.push({r,c});
-  if(index===target.length-1) out.push(path.slice());
-  else{
-    for(const [dr,dc] of dirs){
-      const nr=r+dr,nc=c+dc;
-      if(nr>=0&&nr<BOARD_SIZE&&nc>=0&&nc<BOARD_SIZE&&!visited[nr][nc]&&gridBoard[nr]?.[nc]===target[index+1]){
-        dfs(nr,nc,index+1,path);
-        if(out.length>=maxPaths) break;
-      }
-    }
-  }
-  path.pop();visited[r][c]=false;
-};
-for(let r=0;r<BOARD_SIZE&&out.length<maxPaths;r++){
-  for(let c=0;c<BOARD_SIZE&&out.length<maxPaths;c++){
-    if(gridBoard[r]?.[c]===target[0]) dfs(r,c,0,[]);
-  }
-}
-return out;
-}
-
-function markFoundWordOccurrences(word){
-const paths=findAllBoardPathsForWord(word,32);
-for(const path of paths){
-  for(const pos of path){
-    const el=domCells[pos.r*BOARD_SIZE+pos.c]||document.getElementById(`cell-${pos.r}-${pos.c}`);
-    el?.classList.add('used-word-cell');
-  }
-}
 }
 
 function flashOpponentWord(path,isP1,badge=null){
@@ -45413,7 +45364,6 @@ const botIsP2 = (chosenAvatarId === 'av_1');
 
 sessionFoundWords.add(word);
 recordMatchWord(word,pts,!botIsP2);
-markFoundWordOccurrences(word);
 
 matchObj.path.forEach(pt => {
 const cell = document.getElementById(`cell-${pt.r}-${pt.c}`);
