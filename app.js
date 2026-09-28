@@ -335,7 +335,7 @@ let lastNonMutedSoundVolume=masterSoundVolume>0?masterSoundVolume:.8;
 function renderSoundControls(){
 const range=document.getElementById('sound-volume-range');
 const mute=document.getElementById('sound-muted');
-if(range) range.value=String(Math.round(masterSoundVolume*100));
+if(range) range.value=String(Math.max(1,Math.min(5,Math.round((masterSoundVolume>0?masterSoundVolume:lastNonMutedSoundVolume)*5))));
 if(mute) mute.checked=masterSoundVolume<=0;
 }
 function setMasterSoundVolume(v){
@@ -1893,8 +1893,8 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&supportScre
 const soundRange=document.getElementById('sound-volume-range');
 const soundMuted=document.getElementById('sound-muted');
 soundRange?.addEventListener('input',()=>{
-  const v=Math.max(0,Math.min(1,Number(soundRange.value||0)/100));
-  setMasterSoundVolume(v);
+  const level=Math.max(1,Math.min(5,Number(soundRange.value||1)));
+  setMasterSoundVolume(level/5);
 });
 soundRange?.addEventListener('change',()=>{if(masterSoundVolume>0) playCorrectChime();});
 soundMuted?.addEventListener('change',()=>{
@@ -1902,7 +1902,7 @@ soundMuted?.addEventListener('change',()=>{
     if(masterSoundVolume>0) lastNonMutedSoundVolume=masterSoundVolume;
     setMasterSoundVolume(0);
   }else{
-    setMasterSoundVolume(lastNonMutedSoundVolume>0?lastNonMutedSoundVolume:.8);
+    setMasterSoundVolume(Math.max(1,Math.min(5,Math.round((lastNonMutedSoundVolume>0?lastNonMutedSoundVolume:.8)*5)))/5);
     playCorrectChime();
   }
 });
