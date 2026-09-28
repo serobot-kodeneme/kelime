@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <title>KAPMACA — Ücretsiz Türkçe Online Kelime Oyunu</title>
-<meta name="game-version" content="v344">
+<meta name="game-version" content="v345">
 <meta name="description" content="KAPMACA, 60 saniyede aynı harflerden en çok Türkçe sözcüğü bulmaya çalıştığın ücretsiz online kelime oyunudur. Tek başına oyna veya arkadaşına meydan oku.">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" content="#075458">
@@ -3051,6 +3051,19 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 .sound-step-marks{display:flex;justify-content:space-between;margin:2px 3px 0;color:#64748b;font-size:13px;line-height:1;font-weight:1000;user-select:none}
 .sound-mute-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;font-size:13px;font-weight:900;color:#475569}
 #sound-muted{width:18px;height:18px;accent-color:#ef4444;cursor:pointer}
+
+/* v345: Windows alışkanlığı — çıkış/kapat eylemleri sağda. */
+#btn-quick-exit{order:2!important}
+#btn-fullscreen-game{order:1!important}
+#btn-close-friend,
+#btn-close-difficulty,
+#btn-settings-back,
+#btn-howto-back,
+#btn-about-back,
+#btn-close-support,
+#btn-close-dict,
+#btn-close-mp-waiting,
+#btn-close-rematch-waiting{margin-left:auto!important}
 @keyframes highResultPop{0%{transform:scale(.78) rotate(-1.8deg);opacity:.45}70%{transform:scale(1.035) rotate(.5deg)}100%{transform:scale(1);opacity:1}}
 @keyframes highWinnerBounce{from{transform:scale(1)}to{transform:scale(1.055) rotate(.4deg)}}
 
@@ -3374,15 +3387,13 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 <div class="flex justify-between items-center"><b class="text-sm text-slate-800">👥 ÇOK OYUNCULU</b><button id="btn-close-friend" class="w-7 h-7 rounded-full bg-slate-100 text-lg font-black text-slate-500 leading-none">×</button></div>
 <div id="mp-create-view" class="mt-2 space-y-2">
 <div class="grid grid-cols-2 gap-2">
-<button id="btn-random-match" class="home-mode-btn rounded-[18px] bg-gradient-to-b from-amber-300 to-orange-500 text-slate-950 font-black shadow-md border-2 border-amber-200 active:scale-[.98] flex flex-col items-center justify-center text-center p-3" style="aspect-ratio:1/1">
-<span class="text-[96px] leading-none mb-1 drop-shadow-md" aria-hidden="true">🎲</span>
-<span class="text-[13px] leading-tight">HODRİ MEYDAN!</span>
-<span class="mt-1 text-[10px] leading-snug font-bold text-amber-950">Sürpriz bir rakiple oyna</span>
+<button id="btn-random-match" class="home-mode-btn rounded-[18px] bg-gradient-to-b from-amber-300 to-orange-500 text-slate-950 font-black shadow-md border-2 border-amber-200 active:scale-[.98] flex items-center justify-center text-left px-2.5 py-2 gap-1.5 min-h-[112px]">
+<span class="text-[82px] leading-none shrink-0 drop-shadow-md" aria-hidden="true">🎲</span>
+<span class="min-w-0 flex flex-col justify-center"><span class="text-[12px] leading-tight">HODRİ MEYDAN!</span><span class="mt-1 text-[9px] leading-snug font-bold text-amber-950">Sürpriz bir rakiple oyna</span></span>
 </button>
-<button id="btn-create-room" class="rounded-[18px] bg-gradient-to-b from-sky-400 to-blue-600 text-white font-black shadow-md border-2 border-sky-200 active:scale-[.98] flex flex-col items-center justify-center text-center p-3" style="aspect-ratio:1/1">
-<span class="text-[96px] leading-none mb-1 drop-shadow-md" aria-hidden="true">🤝</span>
-<span class="text-[13px] leading-tight">DOST ATEŞİ</span>
-<span class="mt-1 text-[10px] leading-snug font-bold text-sky-50">Tanıdık bir yüzle tatlı hesaplaşma!</span>
+<button id="btn-create-room" class="rounded-[18px] bg-gradient-to-b from-sky-400 to-blue-600 text-white font-black shadow-md border-2 border-sky-200 active:scale-[.98] flex items-center justify-center text-left px-2.5 py-2 gap-1.5 min-h-[112px]">
+<span class="text-[82px] leading-none shrink-0 drop-shadow-md" aria-hidden="true">🤝</span>
+<span class="min-w-0 flex flex-col justify-center"><span class="text-[12px] leading-tight">DOST ATEŞİ</span><span class="mt-1 text-[9px] leading-snug font-bold text-sky-50">Tanıdık bir yüzle tatlı hesaplaşma!</span></span>
 </button>
 </div>
 <div id="mp-random-status" class="hidden rounded-lg bg-violet-50 border border-violet-100 px-2.5 py-1.5 text-[10px] font-bold text-violet-900">Çevrimiçi rakip aranıyor…</div>
@@ -3463,10 +3474,10 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 <div id="scrabble-grid" class="scrabble-board touch-none select-none w-full max-w-md mx-auto"></div>
 
 <div class="game-bottom-controls">
-<button id="btn-quick-exit" type="button" class="active:scale-[0.98] uppercase transition flex items-center justify-center gap-1.5"><span aria-hidden="true">✕</span><span>ÇIKIŞ YAP</span></button>
 <button id="btn-fullscreen-game" type="button" class="active:scale-[0.98] uppercase transition flex items-center justify-center gap-1.5" aria-label="Tam ekranı aç veya kapat">
 <span aria-hidden="true">⛶</span><span id="fullscreen-game-label">TAM EKRAN</span>
 </button>
+<button id="btn-quick-exit" type="button" class="active:scale-[0.98] uppercase transition flex items-center justify-center gap-1.5"><span aria-hidden="true">✕</span><span>ÇIKIŞ YAP</span></button>
 </div>
 </div>
 </div>
@@ -3546,7 +3557,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 <div class="sound-step-marks" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
 <label class="sound-mute-row" for="sound-muted"><input id="sound-muted" type="checkbox"> Sessiz</label>
 </div>
-<div class="mt-2 text-center text-[10px] font-black text-slate-400">v344</div>
+<div class="mt-2 text-center text-[10px] font-black text-slate-400">v345</div>
 </div>
 </div>
 </div>
@@ -3703,7 +3714,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 </div>
 </div>
 
-<script src="app.js?v=344"></script>
+<script src="app.js?v=345"></script>
 
 </body>
 </html>
