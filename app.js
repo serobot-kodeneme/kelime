@@ -3094,21 +3094,7 @@ showToast('Yeni oyun başlatılamadı. Tekrar deneyin.','rose');
 }
 }
 
-function endGame(){
-if(!isMatchActive && mpRole && mpState===MP_STATES.FINISHED) return;
-isMatchActive=false; clearInterval(timerInterval); timerInterval=null; clearTimeout(botInterval); botInterval=null;
-updateGameTimerUI(0);
-if(mpRoomRef && mpRole){
-markMultiplayerEndReady().catch(e=>console.warn('Final score sync retry needed',e));
-if(mpRole==='host' && mpState===MP_STATES.PLAYING){
-clearTimeout(mpEndResolveTimer);
-mpEndResolveTimer=setTimeout(()=>{mpEndResolveTimer=null;hostResolveMatchEnd().catch(()=>{});},120);
-}else showToast('Maç sonucu senkronize ediliyor…','sky');
-return;
-}
-showTimeUpPreview(()=>{
-const resultModal=document.getElementById('modal-gameover');
-if(resultModal) resultModal.classList.remove('hidden');
+function prepareSingleResultScreen(){
 const longestBonus=applySingleLongestWordBonus();
 const singleActions=document.getElementById('gameover-actions');
 if(singleActions){ singleActions.style.removeProperty('display'); singleActions.classList.remove('hidden'); }
@@ -3125,21 +3111,64 @@ if(singleExitBtn){
 document.getElementById('final-score-val-p1').textContent=p1Score;
 document.getElementById('final-score-val-p2').textContent=p2Score;
 const p1Name=document.getElementById('p1-title').textContent, p2Name=document.getElementById('p2-title').textContent;
-document.getElementById('final-p1-name').textContent=p1Name; document.getElementById('final-p2-name').textContent=p2Name;
+document.getElementById('final-p1-name').textContent=p1Name;
+document.getElementById('final-p2-name').textContent=p2Name;
 renderGameoverWordLists();
 setLongestBonusBadges(!!longestBonus.p1,!!longestBonus.p2);
-const heading=document.getElementById('gameover-heading');
 const p1NameEl=document.getElementById('final-p1-name'),p2NameEl=document.getElementById('final-p2-name'),p1ScoreEl=document.getElementById('final-score-val-p1'),p2ScoreEl=document.getElementById('final-score-val-p2');
-[p1NameEl,p2NameEl,p1ScoreEl,p2ScoreEl].forEach(el=>el?.classList.remove('winner-pulse','winner-name-big','winner-score-big')); const p1AvatarEl=document.getElementById('final-p1-avatar'),p2AvatarEl=document.getElementById('final-p2-avatar'); [p1AvatarEl,p2AvatarEl].forEach(el=>el?.classList.remove('winner-avatar-big'));
+[p1NameEl,p2NameEl,p1ScoreEl,p2ScoreEl].forEach(el=>el?.classList.remove('winner-pulse','winner-name-big','winner-score-big'));
+const p1AvatarEl=document.getElementById('final-p1-avatar'),p2AvatarEl=document.getElementById('final-p2-avatar');
+[p1AvatarEl,p2AvatarEl].forEach(el=>el?.classList.remove('winner-avatar-big'));
 clearVictoryPresentation();
 const c1=document.getElementById('final-p1-card'),c2=document.getElementById('final-p2-card');
 [c1,c2].forEach(c=>{if(c){c.classList.remove('kd-winner-glow');c.style.transform='';c.style.filter='';c.style.background='';c.style.borderRadius='';c.style.padding='';}});
-if(p1Score>p2Score){if(c1){c1.style.background='rgba(254,243,199,.9)';c1.style.borderRadius='16px';c1.style.padding='8px';}if(c2)c2.style.filter='saturate(.7) opacity(.82)';setGameoverOutcome(true);p1ScoreEl?.classList.add('winner-score-big');}
-else if(p2Score>p1Score){if(c2){c2.style.background='rgba(224,242,254,.92)';c2.style.borderRadius='16px';c2.style.padding='8px';}if(c1)c1.style.filter='saturate(.7) opacity(.82)';setGameoverOutcome(false);p2ScoreEl?.classList.add('winner-score-big');}
-else {setGameoverOutcome(null);}
+if(p1Score>p2Score){
+  if(c1){c1.style.background='rgba(254,243,199,.9)';c1.style.borderRadius='16px';c1.style.padding='8px';}
+  if(c2)c2.style.filter='saturate(.7) opacity(.82)';
+  setGameoverOutcome(true);p1ScoreEl?.classList.add('winner-score-big');
+}else if(p2Score>p1Score){
+  if(c2){c2.style.background='rgba(224,242,254,.92)';c2.style.borderRadius='16px';c2.style.padding='8px';}
+  if(c1)c1.style.filter='saturate(.7) opacity(.82)';
+  setGameoverOutcome(false);p2ScoreEl?.classList.add('winner-score-big');
+}else{
+  setGameoverOutcome(null);
+}
 if(p1Score>p2Score)emphasizeWinner('p1');
 else if(p2Score>p1Score)emphasizeWinner('p2');
-scheduleBoardPrewarm();
+}
+
+function endGame(){
+if(!isMatchActive && mpRole && mpState===MP_STATES.FINISHED) return;
+isMatchActive=false;
+clearInterval(timerInterval); timerInterval=null;
+clearTimeout(botInterval); botInterval=null;
+updateGameTimerUI(0);
+
+if(mpRoomRef && mpRole){
+markMultiplayerEndReady().catch(e=>console.warn('Final score sync retry needed',e));
+if(mpRole==='host' && mpState===MP_STATES.PLAYING){
+clearTimeout(mpEndResolveTimer);
+mpEndResolveTimer=setTimeout(()=>{mpEndResolveTimer=null;hostResolveMatchEnd().catch(()=>{});},120);
+}else showToast('Maç sonucu senkronize ediliyor…','sky');
+return;
+}
+
+// v338: SÜRE DOLDU kartı önce ekrana çizilir.
+// Sonuç ekranının içeriği bu 1 saniyelik bildirim görünürken arkada hazırlanır.
+// Böylece bildirim kaybolduğu anda sonuç ekranı beklemeden görünür.
+let resultPrepared=false;
+showTimeUpPreview(()=>{
+  if(!resultPrepared){
+    try{prepareSingleResultScreen();resultPrepared=true;}catch(e){console.error('Single result preparation error',e);}
+  }
+  document.getElementById('modal-gameover')?.classList.remove('hidden');
+  scheduleBoardPrewarm();
+});
+requestAnimationFrame(()=>{
+  setTimeout(()=>{
+    try{prepareSingleResultScreen();resultPrepared=true;}
+    catch(e){console.error('Single result preparation error',e);}
+  },0);
 });
 }
 
