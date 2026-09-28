@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v292</title>
-<meta name="game-version" content="v292">
+<title>KAPMACA.tr — Sözcük Avı v293</title>
+<meta name="game-version" content="v293">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -42743,7 +42743,37 @@ return Array.from((isP1?seriesWordResults.p1:seriesWordResults.p2).values())
 function renderGameoverWordLists(){
 const draw=(id,items,tone)=>{
 const el=document.getElementById(id); if(!el) return;
-el.innerHTML=items.length?items.map((x,i)=>`<div class="flex items-center justify-between gap-1 rounded-lg px-2 py-1 ${tone==='amber'?'bg-white/75 text-amber-950':'bg-white/75 text-sky-950'}"><span class="truncate text-[12px] font-black"><span class="opacity-50 mr-1">${i+1}.</span>${x.word}</span><span class="shrink-0 text-[11px] font-black">+${x.pts}</span></div>`).join(''):'<div class="text-center text-[9px] font-bold text-slate-400 py-2">—</div>';
+el.innerHTML='';
+if(!items.length){el.innerHTML='<div class="text-center text-[9px] font-bold text-slate-400 py-2">—</div>';return;}
+const frag=document.createDocumentFragment();
+items.forEach((x,i)=>{
+  const entry=document.createElement('div');
+  entry.className=`rounded-lg ${tone==='amber'?'bg-white/75 text-amber-950':'bg-white/75 text-sky-950'}`;
+  const button=document.createElement('button');
+  button.type='button';
+  button.className='w-full flex items-center justify-between gap-1 px-2 py-1 text-left cursor-pointer';
+  button.title=`${x.word} anlamını göster`;
+  button.setAttribute('aria-expanded','false');
+  const word=document.createElement('span');
+  word.className='truncate text-[12px] font-black';
+  word.innerHTML=`<span class="opacity-50 mr-1">${i+1}.</span>`;
+  word.append(document.createTextNode(x.word));
+  const pts=document.createElement('span');
+  pts.className='shrink-0 text-[11px] font-black';
+  pts.textContent=`+${x.pts}`;
+  const meaning=document.createElement('div');
+  meaning.className='dict-inline-meaning hidden mx-2 mb-2 text-left';
+  meaning.setAttribute('aria-live','polite');
+  button.append(word,pts);
+  button.onclick=()=>{
+    const opening=meaning.classList.contains('hidden') || dictMeaningOpenHost!==meaning;
+    showDictionaryMeaning(x.word,meaning);
+    button.setAttribute('aria-expanded',opening?'true':'false');
+  };
+  entry.append(button,meaning);
+  frag.appendChild(entry);
+});
+el.appendChild(frag);
 };
 draw('final-p1-words',sortedTopScoreWords(true),'amber');
 draw('final-p2-words',sortedTopScoreWords(false),'sky');
