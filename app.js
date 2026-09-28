@@ -1226,9 +1226,7 @@ function emphasizeWinner(side){
   avatar?.classList.add('winner-avatar-big');
   card?.classList.add('victory-flash-strong','kd-winner-glow');
   setTimeout(()=>card?.classList.remove('victory-flash-strong'),2200);
-  spawnGlobalResultConfetti(side);
-  launchGrandCelebration(side);
-  startWinnerConfettiWaterfall(side);
+  // v361: konfetti kaldırıldı; zafer taç + halo + kart vurgusuyla kutlanır.
 }
 function showRandomResultExitButton(){
 const actions=document.getElementById('gameover-actions');
@@ -1946,16 +1944,21 @@ p1Score=0; p2Score=0; resetRewardFx(); updateScores(); remainingSeconds=60;
 resetMatchWordResults(); resetSeriesWordResults();
 sessionFoundWords.clear();
 const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
-try{
-  buildGrid();
-}catch(err){
-  console.error('Single game board startup error',err);
-  showToast('Tahta hazırlanamadı. Tekrar deneyin.','rose');
-  return;
-}
 document.getElementById('screen-home').classList.add('hidden');
 document.getElementById('screen-game').classList.remove('hidden');
+// v361: geri sayım görünürken tahta hazırlanır; BAŞLA anında yalnız oyun aktive edilir.
 triggerCountdownSequence(()=>{isMatchActive=true;startTimer();planBot();});
+requestAnimationFrame(()=>{
+  try{ buildGrid(); }
+  catch(err){
+    console.error('Single game board startup error',err);
+    stopLocalCountdown();
+    document.getElementById('modal-countdown')?.classList.add('hidden');
+    showToast('Tahta hazırlanamadı. Tekrar deneyin.','rose');
+    document.getElementById('screen-game')?.classList.add('hidden');
+    document.getElementById('screen-home')?.classList.remove('hidden');
+  }
+});
 }
 
 function triggerCountdownSequence(onComplete) {
@@ -3077,9 +3080,7 @@ function startWinnerConfettiWaterfall(winnerSide=null){
 function launchGrandCelebration(winnerSide=null) {
 stopGrandCelebrationFx();
 stopWinnerConfettiWaterfall();
-spawnHighResultPartyFx();
-const baseX = winnerSide==='p1' ? 0.22 : winnerSide==='p2' ? 0.78 : 0.5;
-launchLightResultConfetti(baseX);
+// v361: parçacık/konfetti yok; premium zafer CSS vurgusu kullanılır.
 }
 
 async function waitUntilRoomFinished(timeoutMs=3500){
