@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v286</title>
-<meta name="game-version" content="v286">
+<title>KAPMACA.tr — Sözcük Avı v287</title>
+<meta name="game-version" content="v287">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2746,6 +2746,15 @@ text-shadow:0 2px 8px rgba(0,0,0,.22); filter:saturate(.96); will-change:transfo
   color:#991b1b;font-size:11px;font-weight:1000;letter-spacing:.08em;box-shadow:0 4px 12px rgba(127,29,29,.16);
   white-space:nowrap;
 }
+@keyframes timeUpCardPop{0%{opacity:0;transform:scale(.82) translateY(10px)}55%{opacity:1;transform:scale(1.055) translateY(0)}100%{opacity:1;transform:scale(1)}}
+@keyframes timeUpClockTick{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+.time-up-overlay{position:absolute;inset:0;z-index:76;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.48);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);pointer-events:none}
+.time-up-card{min-width:210px;padding:20px 26px;border-radius:28px;background:linear-gradient(180deg,#fffdf4,#fff7d6);border:2px solid #fde68a;box-shadow:0 18px 46px rgba(15,23,42,.28),inset 0 1px 0 #fff;text-align:center;animation:timeUpCardPop .34s ease-out both}
+.time-up-clock{width:68px;height:68px;margin:0 auto 8px;display:grid;place-items:center;animation:timeUpClockTick .44s ease-in-out 2;transform-origin:center}
+.time-up-clock svg{width:68px;height:68px;filter:drop-shadow(0 5px 7px rgba(146,64,14,.18))}
+.time-up-title{font-size:24px;line-height:1;font-weight:1000;color:#b45309;letter-spacing:.035em;text-shadow:0 2px 0 #fff}
+.time-up-sub{margin-top:6px;font-size:10px;font-weight:900;color:#92400e;opacity:.72;letter-spacing:.08em}
+@media (prefers-reduced-motion:reduce){.time-up-card,.time-up-clock{animation:none!important}}
 @media (prefers-reduced-motion:reduce){.victory-flash-strong{animation:none!important}}
 @media (prefers-reduced-motion:reduce){.kd-score-pop,.kd-avatar-ring,.kd-combo-pop,.kd-winner-glow{animation:none!important}}
 
@@ -3400,7 +3409,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 <p><b>Harf seçimi:</b> Bir harfe basılı tut, yalnızca sağ-sol-yukarı-aşağı komşu harflere sürükle ve bırak.</p>
 <p><b>Çapraz geçiş yoktur.</b> Tek bir harfe dokunup bırakmak ceza vermez. Seçim 3 saniyeyi aşarsa oyun harfleri otomatik bırakır ve ceza uygulamaz.</p>
 <p><b>Sözlük kontrolü:</b> 2–9 harfli seçim bırakıldığı anda otomatik kontrol edilir. Geçerli sözcük puan kazandırır; geçersiz veya argo/küfürlü sözcük -3 puandır.</p>
-<p><b>Aynı sözcük:</b> Bir maçta daha önce bulunmuş sözcüğü tekrar yazmak -3 puandır. Aynı harfler farklı sözcükler için tekrar kullanılabilir.</p>
+<p><b>Aynı sözcük:</b> Rakip tarafından daha önce bulunmuş bir sözcük tekrar yazılırsa puan değişmez; yalnız “Rakip tarafından bulundu :(” bildirimi gösterilir. Aynı harfler farklı sözcükler için tekrar kullanılabilir.</p>
 </div>
 </div>
 <div class="bg-white rounded-3xl p-4 shadow-lg border border-emerald-200">
@@ -43739,7 +43748,7 @@ const previewKey=`mp|${mpRoomCode||''}|${resultSig}`;
 if(!missedPreviewDoneKeys.has(previewKey)){
   missedPreviewDoneKeys.add(previewKey);
   isMatchActive=false;clearInterval(timerInterval);clearInterval(mpClock);clearTimeout(botInterval);
-  showMissedWordsBeforeResult(d,()=>showMultiplayerSeriesResult(d));
+  showTimeUpPreview(()=>showMissedWordsBeforeResult(d,()=>showMultiplayerSeriesResult(d)));
   return;
 }
 mpLastResultRenderSig=resultSig;
@@ -44669,6 +44678,7 @@ return next;
 }
 
 function resetMultiplayerRoundVisualState(){
+clearTimeUpPreview();
 mpLastResultRenderSig='';
 resetRewardFx();
 try{ clearPath(); }catch(_){ selectedPath.length=0; selectedFlags.fill(0); }
@@ -45083,11 +45093,7 @@ at: firebase.database.ServerValue.TIMESTAMP
 };
 });
 if (!tx.committed) {
-playErrorBuzzer();
-flashWordFeedback(false);
-breakCombo(isP1);
-showToast(`${word} daha önce bulundu! (-3)`, 'rose');
-adjustScore(isP1 ? -3 : 0, !isP1 ? -3 : 0);
+showToast('Rakip tarafından bulundu :(', 'sky', 1500);
 clearPath();
 return;
 }
@@ -45097,11 +45103,7 @@ clearPath();
 return;
 }
 } else if (sessionFoundWords.has(word)) {
-playErrorBuzzer();
-flashWordFeedback(false);
-breakCombo(isP1);
-showToast(`${word} daha önce bulundu! (-3)`, 'rose');
-adjustScore(isP1 ? -3 : 0, !isP1 ? -3 : 0);
+showToast('Rakip tarafından bulundu :(', 'sky', 1500);
 clearPath();
 return;
 }
@@ -45379,6 +45381,34 @@ planBot();
 }, level.delay);
 }
 
+let timeUpPreviewTimer=null;
+function clearTimeUpPreview(){
+  if(timeUpPreviewTimer){clearTimeout(timeUpPreviewTimer);timeUpPreviewTimer=null;}
+  document.getElementById('time-up-overlay')?.remove();
+}
+function showTimeUpPreview(done){
+  clearTimeUpPreview();
+  const game=document.getElementById('screen-game');
+  if(!game){done();return;}
+  const overlay=document.createElement('div');
+  overlay.id='time-up-overlay';
+  overlay.className='time-up-overlay';
+  overlay.innerHTML=`<div class="time-up-card">
+    <div class="time-up-clock" aria-hidden="true">
+      <svg viewBox="0 0 64 64" fill="none">
+        <circle cx="32" cy="34" r="22" fill="#fff" stroke="#f59e0b" stroke-width="4"/>
+        <path d="M32 34V21M32 34l10 6" stroke="#b45309" stroke-width="4" stroke-linecap="round"/>
+        <path d="M23 7h18M27 7v6M37 7v6" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="32" cy="34" r="3" fill="#b45309"/>
+      </svg>
+    </div>
+    <div class="time-up-title">SÜRE DOLDU!</div>
+    <div class="time-up-sub">SONUÇLAR HAZIRLANIYOR</div>
+  </div>`;
+  game.appendChild(overlay);
+  timeUpPreviewTimer=setTimeout(()=>{clearTimeUpPreview();done();},1150);
+}
+
 let missedPreviewTimer=null;
 const missedPreviewDoneKeys=new Set();
 function clearMissedWordPreview(){
@@ -45569,7 +45599,7 @@ mpEndResolveTimer=setTimeout(()=>{mpEndResolveTimer=null;hostResolveMatchEnd().c
 return;
 }
 const longestBonus=applySingleLongestWordBonus();
-showMissedWordsBeforeResult(null,()=>{
+showTimeUpPreview(()=>showMissedWordsBeforeResult(null,()=>{
 document.getElementById('modal-gameover').classList.remove('hidden');
 const singleActions=document.getElementById('gameover-actions');
 if(singleActions){ singleActions.style.removeProperty('display'); singleActions.classList.remove('hidden'); }
@@ -45601,7 +45631,7 @@ else {setGameoverOutcome(null);}
 if(p1Score>p2Score)emphasizeWinner('p1');
 else if(p2Score>p1Score)emphasizeWinner('p2');
 scheduleBoardPrewarm();
-});
+}));
 }
 
 function showRoomExitNotice(message='OYUNDAN ÇIKIŞ YAPILDI'){
@@ -45769,6 +45799,7 @@ await handleSynchronizedRoomExit(reason,role);
 async function exitCurrentGameToHome(){
 stopLocalCountdown();
 stopInviteDecisionTimer();
+clearTimeUpPreview();
 stopWinnerConfettiWaterfall();
 clearVictoryPresentation();
 isMatchActive=false;
