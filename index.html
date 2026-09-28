@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v290</title>
-<meta name="game-version" content="v290">
+<title>KAPMACA.tr — Sözcük Avı v291</title>
+<meta name="game-version" content="v291">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2439,24 +2439,32 @@ box-shadow: 0 2px 0 #94a3b8 !important;
 }
 .tile-claimed-p1.tile-claimed-p2 .tile-score { color: #475569 !important; }
 
-/* v286: Karşı tarafın bulduğu sözcük kısa süre kendi oyuncu renginde belirginleşir.
-   Transform kullanılmaz; fare/parmak geometrisine dokunmaz. */
+/* v291: Rakibin bulduğu sözcük, izleyen oyuncunun ekranında RAKİBİN kendi renginde
+   güçlü ve kolay fark edilen iki darbeli parlama ile gösterilir. */
 @keyframes remoteWordFlashP1{
-  0%,100%{filter:brightness(1);box-shadow:0 2px 0 #fbbf24}
-  22%,66%{filter:brightness(1.28);box-shadow:0 0 0 3px rgba(251,191,36,.78),0 0 16px rgba(245,158,11,.58)}
-  44%,82%{filter:brightness(1.02);box-shadow:0 2px 0 #fbbf24}
+  0%,100%{filter:brightness(1) saturate(1);box-shadow:0 2px 0 #fbbf24}
+  18%,58%{filter:brightness(1.34) saturate(1.32);box-shadow:0 0 0 4px rgba(251,191,36,.95),0 0 22px rgba(245,158,11,.82),inset 0 0 0 2px rgba(255,255,255,.82)}
+  36%,78%{filter:brightness(1.04) saturate(1.08);box-shadow:0 2px 0 #fbbf24}
 }
 @keyframes remoteWordFlashP2{
-  0%,100%{filter:brightness(1);box-shadow:0 2px 0 #7dd3fc}
-  22%,66%{filter:brightness(1.25);box-shadow:0 0 0 3px rgba(56,189,248,.78),0 0 16px rgba(14,165,233,.56)}
-  44%,82%{filter:brightness(1.02);box-shadow:0 2px 0 #7dd3fc}
+  0%,100%{filter:brightness(1) saturate(1);box-shadow:0 2px 0 #38bdf8}
+  18%,58%{filter:brightness(1.38) saturate(1.42);box-shadow:0 0 0 4px rgba(56,189,248,.98),0 0 24px rgba(14,165,233,.88),inset 0 0 0 2px rgba(255,255,255,.86)}
+  36%,78%{filter:brightness(1.04) saturate(1.1);box-shadow:0 2px 0 #38bdf8}
 }
-#scrabble-grid .letter-cell.remote-word-flash-p1{animation:remoteWordFlashP1 .92s ease-out 1!important;z-index:22!important}
-#scrabble-grid .letter-cell.remote-word-flash-p2{animation:remoteWordFlashP2 .92s ease-out 1!important;z-index:22!important}
-@keyframes remoteBadgeFlashP1{0%,100%{filter:brightness(1);box-shadow:none}25%,68%{filter:brightness(1.35);box-shadow:0 0 0 2px rgba(251,191,36,.58),0 0 12px rgba(245,158,11,.5)}}
-@keyframes remoteBadgeFlashP2{0%,100%{filter:brightness(1);box-shadow:none}25%,68%{filter:brightness(1.32);box-shadow:0 0 0 2px rgba(56,189,248,.58),0 0 12px rgba(14,165,233,.48)}}
-.remote-word-badge-p1{animation:remoteBadgeFlashP1 .92s ease-out 1!important}
-.remote-word-badge-p2{animation:remoteBadgeFlashP2 .92s ease-out 1!important}
+#scrabble-grid .letter-cell.remote-word-flash-p1{
+  animation:remoteWordFlashP1 1.28s ease-in-out 1!important;z-index:22!important;
+  background:#fde68a!important;color:#713f12!important;border-color:#fbbf24!important;
+}
+#scrabble-grid .letter-cell.remote-word-flash-p2{
+  animation:remoteWordFlashP2 1.28s ease-in-out 1!important;z-index:22!important;
+  background:#bae6fd!important;color:#075985!important;border-color:#38bdf8!important;
+}
+#scrabble-grid .letter-cell.remote-word-flash-p1 .tile-score{color:#92400e!important}
+#scrabble-grid .letter-cell.remote-word-flash-p2 .tile-score{color:#0369a1!important}
+@keyframes remoteBadgeFlashP1{0%,100%{filter:brightness(1);box-shadow:none}20%,60%{filter:brightness(1.45);box-shadow:0 0 0 3px rgba(251,191,36,.78),0 0 18px rgba(245,158,11,.72)}}
+@keyframes remoteBadgeFlashP2{0%,100%{filter:brightness(1);box-shadow:none}20%,60%{filter:brightness(1.45);box-shadow:0 0 0 3px rgba(56,189,248,.82),0 0 18px rgba(14,165,233,.74)}}
+.remote-word-badge-p1{animation:remoteBadgeFlashP1 1.28s ease-in-out 1!important}
+.remote-word-badge-p2{animation:remoteBadgeFlashP2 1.28s ease-in-out 1!important}
 @media (prefers-reduced-motion:reduce){
   #scrabble-grid .letter-cell.remote-word-flash-p1,
   #scrabble-grid .letter-cell.remote-word-flash-p2,
@@ -2738,16 +2746,34 @@ text-shadow:0 2px 8px rgba(0,0,0,.22); filter:saturate(.96); will-change:transfo
   76%{filter:brightness(1.03);transform:scale(1)}
 }
 .victory-flash-strong{animation:victoryStrongFlash .82s ease-in-out 2!important;will-change:filter,transform,box-shadow}
+@keyframes missedLetterPick{
+  0%{transform:translate3d(0,0,0) scale(1);filter:brightness(1)}
+  38%{transform:translate3d(0,-6px,0) scale(1.13);filter:brightness(1.18)}
+  72%{transform:translate3d(0,-2px,0) scale(1.07);filter:brightness(1.08)}
+  100%{transform:translate3d(0,0,0) scale(1);filter:brightness(1)}
+}
+@keyframes missedBannerCollect{
+  0%{opacity:.35;transform:translateX(-50%) translateY(7px) scale(.9)}
+  55%{opacity:1;transform:translateX(-50%) translateY(-2px) scale(1.07)}
+  100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+}
 #scrabble-grid .letter-cell.missed-word-cell{
-  background:#fecaca!important;color:#7f1d1d!important;border-color:#fca5a5!important;
-  box-shadow:inset 0 0 0 2px #f87171,0 3px 8px rgba(185,28,28,.18)!important;
-  transform:none!important;
+  background:#fecaca!important;color:#7f1d1d!important;border-color:#f87171!important;
+  box-shadow:inset 0 0 0 2px #ef4444,0 4px 10px rgba(185,28,28,.24)!important;
+}
+#scrabble-grid .letter-cell.missed-word-pick{
+  animation:missedLetterPick .48s cubic-bezier(.2,.8,.2,1) both!important;
+  z-index:24!important;
 }
 .missed-word-banner{
   position:absolute;left:50%;top:5px;transform:translateX(-50%);z-index:48;pointer-events:none;
   padding:5px 11px;border-radius:999px;background:#fee2e2;border:1px solid #fca5a5;
   color:#991b1b;font-size:11px;font-weight:1000;letter-spacing:.08em;box-shadow:0 4px 12px rgba(127,29,29,.16);
   white-space:nowrap;
+}
+.missed-word-banner.collecting{animation:missedBannerCollect .46s cubic-bezier(.2,.8,.2,1) both}
+@media (prefers-reduced-motion:reduce){
+  #scrabble-grid .letter-cell.missed-word-pick,.missed-word-banner.collecting{animation:none!important}
 }
 @keyframes timeUpCardPop{0%{opacity:0;transform:scale(.82) translateY(10px)}55%{opacity:1;transform:scale(1.055) translateY(0)}100%{opacity:1;transform:scale(1)}}
 @keyframes timeUpClockTick{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
@@ -45153,12 +45179,12 @@ for(const pos of path){
   el.classList.remove('remote-word-flash-p1','remote-word-flash-p2');
   void el.offsetWidth;
   el.classList.add(cls);
-  setTimeout(()=>el.classList.remove(cls),980);
+  setTimeout(()=>el.classList.remove(cls),1360);
 }
 if(badge){
   const badgeCls=isP1?'remote-word-badge-p1':'remote-word-badge-p2';
   badge.classList.add(badgeCls);
-  setTimeout(()=>badge.classList.remove(badgeCls),980);
+  setTimeout(()=>badge.classList.remove(badgeCls),1360);
 }
 }
 
@@ -45419,7 +45445,7 @@ let missedPreviewTimer=null;
 const missedPreviewDoneKeys=new Set();
 function clearMissedWordPreview(){
   if(missedPreviewTimer){clearTimeout(missedPreviewTimer);missedPreviewTimer=null;}
-  document.querySelectorAll('#scrabble-grid .missed-word-cell').forEach(el=>el.classList.remove('missed-word-cell'));
+  document.querySelectorAll('#scrabble-grid .missed-word-cell,#scrabble-grid .missed-word-pick').forEach(el=>el.classList.remove('missed-word-cell','missed-word-pick'));
   document.getElementById('missed-word-banner')?.remove();
 }
 function getFoundWordsForMissed(resultData=null){
@@ -45453,20 +45479,51 @@ function showMissedWordsBeforeResult(resultData,done){
   if(!board||!parent){done();return;}
   let banner=document.createElement('div');
   banner.id='missed-word-banner';banner.className='missed-word-banner';
+  banner.textContent='KAÇIRILAN SÖZCÜKLER';
   parent.appendChild(banner);
-  let i=0;
-  const showNext=()=>{
-    document.querySelectorAll('#scrabble-grid .missed-word-cell').forEach(el=>el.classList.remove('missed-word-cell'));
-    if(i>=words.length){clearMissedWordPreview();done();return;}
-    const item=words[i++];
-    banner.textContent=`KAÇIRILAN: ${item.word}`;
-    for(const pt of item.path){
-      const cell=domCells[pt.r*BOARD_SIZE+pt.c];
-      cell?.classList.add('missed-word-cell');
-    }
-    missedPreviewTimer=setTimeout(showNext,1250);
+  let wordIndex=0;
+
+  const clearPicked=()=>{
+    document.querySelectorAll('#scrabble-grid .missed-word-cell,#scrabble-grid .missed-word-pick')
+      .forEach(el=>el.classList.remove('missed-word-cell','missed-word-pick'));
   };
-  showNext();
+
+  const showNextWord=()=>{
+    clearPicked();
+    if(wordIndex>=words.length){
+      missedPreviewTimer=setTimeout(()=>{clearMissedWordPreview();done();},420);
+      return;
+    }
+    const item=words[wordIndex++];
+    const path=Array.isArray(item.path)?item.path:[];
+    let letterIndex=0;
+
+    const pickNextLetter=()=>{
+      if(letterIndex>=path.length){
+        banner.textContent=`KAÇIRILAN: ${item.word}`;
+        banner.classList.remove('collecting');
+        void banner.offsetWidth;
+        banner.classList.add('collecting');
+        missedPreviewTimer=setTimeout(showNextWord,650);
+        return;
+      }
+      const pt=path[letterIndex++];
+      const cell=domCells[pt.r*BOARD_SIZE+pt.c];
+      if(cell){
+        cell.classList.add('missed-word-cell');
+        cell.classList.remove('missed-word-pick');
+        void cell.offsetWidth;
+        cell.classList.add('missed-word-pick');
+      }
+      // Oynanış öğretme demosuna yakın, harf harf "elle toplama" temposu.
+      missedPreviewTimer=setTimeout(pickNextLetter,185);
+    };
+
+    banner.textContent='KAÇIRILAN SÖZCÜK';
+    pickNextLetter();
+  };
+
+  showNextWord();
 }
 
 function spawnHighResultPartyFx(){ return; }
