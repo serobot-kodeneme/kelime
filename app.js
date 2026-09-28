@@ -1197,7 +1197,7 @@ function clearVictoryPresentation(){
 function setGameoverOutcome(won){
   const heading=document.getElementById('gameover-heading');
   if(!heading)return;
-  heading.textContent=won===true?'KAZANDIN':won===false?'YENİLDİN':'BERABERE';
+  heading.textContent=won===true?'KAZANDIN!!':won===false?'Yenilgi :(':'BERABERE';
   heading.style.color=won===true?'#b45309':won===false?'#475569':'#2563eb';
 }
 function decorateWinnerCard(side){
