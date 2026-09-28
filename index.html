@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v295</title>
-<meta name="game-version" content="v295">
+<title>KAPMACA.tr — Sözcük Avı v296</title>
+<meta name="game-version" content="v296">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -3459,16 +3459,16 @@ body[data-private-friend-active="1"] #btn-game-exit{display:block!important;}
 </div>
 <div class="bg-gradient-to-br from-sky-50 to-cyan-100 rounded-3xl p-4 shadow-lg border border-sky-200">
 <div class="font-black text-sky-950 mb-2">👥 Çok Oyunculu — KAPMACA</div>
-<p class="text-xs text-sky-950/80 leading-relaxed">Özel odayı kuran kişi 1. oyuncu olur. Sistem her gün yenilenen 5 küçük harfli oda kodu ve paylaşılabilir bağlantı verir. Rakip bağlanınca oyun senkronize edilir ve 3 saniyelik geri sayımdan sonra aynı tahta üzerinde kapışma başlar. Rastgele Rakip seçeneğinde yalnız gerçek çevrimiçi oyuncu aranır. Arama en fazla 45 saniye sürer; rakip bulunamazsa ana sayfada tekrar deneyebilirsin.</p>
+<p class="text-xs text-sky-950/80 leading-relaxed">Özel odayı kuran kişi 1. oyuncu olur. Sistem her gün yenilenen 5 küçük harfli oda kodu ve paylaşılabilir bağlantı verir. Rakip bağlanınca oyun senkronize edilir ve 3 saniyelik geri sayımdan sonra aynı tahta üzerinde kapışma başlar. Rastgele Rakip seçeneğinde yalnız gerçek çevrimiçi oyuncu aranır. Arama en fazla 45 saniye sürer; rakip bulunamazsa ana sayfada tekrar deneyebilirsin. Rastgele maçın sonuç ve kutlama ekranı 6 saniye gösterilir, ardından otomatik olarak ana sayfaya dönülür.</p>
 <div class="mt-2 rounded-2xl bg-white/75 border border-sky-200 p-3 text-[11px] font-bold text-sky-900 leading-relaxed">Kapmaca kuralı: Bir sözcüğü ilk bulan puanı alır. Rakip aynı sözcükten tekrar puan alamaz; fakat o harfleri kullanarak farklı bir sözcük oluşturabilir. Maçın en uzun geçerli sözcüğünü bulan oyuncu +10 bonus alır. En uzun sözcük uzunluğu eşitse iki oyuncu da +10 alır.</div>
 </div>
 <div class="bg-white rounded-3xl p-4 shadow-lg border border-emerald-100">
 <div class="font-black text-emerald-900 mb-2">🏆 Puan ve süre</div>
-<p class="text-xs text-slate-600 leading-relaxed">Maç 60 saniyedir. Uzun ve değerli harflerden oluşan sözcükler daha fazla puan kazandırır. Geçersiz veya daha önce bulunmuş sözcük -3 puandır. Son 10 saniyede sesli uyarı başlar; son 3 saniyede gong sesi duyulur. Süre sonunda yüksek puanlı oyuncu kazanır.</p>
+<p class="text-xs text-slate-600 leading-relaxed">Maç 60 saniyedir. Uzun ve değerli harflerden oluşan sözcükler daha fazla puan kazandırır. Geçersiz veya argo/küfürlü 2+ harfli deneme -3 puandır. Rakibin daha önce bulduğu sözcükte ceza uygulanmaz; yalnız “Rakip tarafından bulundu :(” bildirimi gösterilir. Son 10 saniyede sesli uyarı başlar; son 3 saniyede gong sesi duyulur. Süre sonunda yüksek puanlı oyuncu kazanır.</p>
 </div>
 <div class="bg-white rounded-3xl p-4 shadow-lg border border-violet-100">
 <div class="font-black text-violet-950 mb-2">💡 İpucu</div>
-<p class="text-xs text-slate-600 leading-relaxed">Önce kısa sözcükleri hızlıca topla; ardından aynı bölgelerde daha uzun sözcükleri ara. Bulunmuş harfler kilitlenmez, yeni sözcüklerde tekrar kullanılabilir.</p>
+<p class="text-xs text-slate-600 leading-relaxed">Önce kısa sözcükleri hızlıca topla; ardından aynı bölgelerde daha uzun sözcükleri ara. Bulunmuş harfler kilitlenmez, yeni sözcüklerde tekrar kullanılabilir. Sonuç ekranındaki en yüksek puanlı 5 sözcüğe dokunarak sözlük anlamını yalnız istediğinde görüntüleyebilirsin.</p>
 </div>
 </div>
 </div>
@@ -43777,7 +43777,7 @@ function setRandomAutoExitNotice(visible){
 const el=document.getElementById('random-auto-exit-note');
 if(!el) return;
 el.style.display=visible?'block':'none';
-if(visible) el.textContent='3 SANİYE İÇİNDE ÇIKIŞ YAPILACAK';
+if(visible) el.textContent='6 SANİYE İÇİNDE ANA SAYFAYA DÖNÜLECEK';
 }
 function armRandomResultAutoExit(d){
 if(!d || !isRandomHumanRoom()) return false;
@@ -43803,7 +43803,7 @@ const capturedRole=mpRole;
 randomResultAutoExitTimer=setTimeout(()=>{
 randomResultAutoExitTimer=null;
 finishRandomMatchAfterResult(autoKey,capturedRef,capturedRole);
-},3000);
+},6000);
 return true;
 }
 
@@ -45783,12 +45783,12 @@ const signal={id:`${Date.now().toString(36)}-${Math.random().toString(36).slice(
 if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
 randomResultAutoExitKey='';
 setRandomAutoExitNotice(false);
-// Tam 3 saniye sonunda cihaz otomatik ÇIKIŞ komutunu verir. Kendi ekranı
+// Tam 6 saniye sonunda cihaz otomatik ÇIKIŞ komutunu verir. Kendi ekranı
 // Firebase yanıtını beklemeden ana sayfaya döner. Host/guest fark etmeksizin
 // aynı anda oda kapatma best-effort olarak gönderilir; ilk başarılı silme yeterlidir.
 if(ref){
   // Çıkış sinyali best-effort gönderilir; oda silme bunun tamamlanmasını beklemez.
-  // Böylece 3. saniyede oda kapanışı Firebase ağ gecikmesiyle ötelenmez.
+  // Böylece 6. saniyede oda kapanışı Firebase ağ gecikmesiyle ötelenmez.
   try{ref.child('roomExit').set(signal).catch(()=>{});}catch(_){}
   try{ref.remove().catch(()=>{});}catch(_){}
 }
