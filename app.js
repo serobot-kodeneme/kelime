@@ -320,8 +320,8 @@ let gameAudioCtx = null;
 let lastHeartbeatSecond = null;
 let lastGongSecond = null;
 const SOUND_VOLUME_KEY = 'kd_sound_volume_v2';
-const AUDIO_GAIN_BOOST = 1.4234; // önceki çıkışa göre +%10
-const AUDIO_GAIN_CAP = 0.286;
+const AUDIO_GAIN_BOOST = 1.56574; // v335: genel ses seviyesi +%10
+const AUDIO_GAIN_CAP = 0.315;
 function safeStorageGet(kind,key){
 try{return (kind==='session'?window.sessionStorage:window.localStorage).getItem(key);}catch(_){return null;}
 }
@@ -331,18 +331,20 @@ try{(kind==='session'?window.sessionStorage:window.localStorage).setItem(key,val
 let masterSoundVolume = Math.max(0, Math.min(1, Number(safeStorageGet('local',SOUND_VOLUME_KEY) ?? 0.80)));
 // Tek standart, hafif görsel profil. Grafik kalite seçeneği yoktur.
 
-function setMasterSoundVolume(v){
-masterSoundVolume = Math.max(0, Math.min(1, Number(v)||0));
-const level=Math.max(0,Math.min(5,Math.round(masterSoundVolume*5)));
-masterSoundVolume=level/5;
-safeStorageSet('local',SOUND_VOLUME_KEY,String(masterSoundVolume));
+let lastNonMutedSoundVolume=masterSoundVolume>0?masterSoundVolume:.8;
+function renderSoundControls(){
+const range=document.getElementById('sound-volume-range');
+const mute=document.getElementById('sound-muted');
 const label=document.getElementById('sound-volume-label');
-if(label) label.textContent=level===0?'Sessiz':`${level} / 5`;
-document.querySelectorAll('.sound-level-dot').forEach(dot=>{
-const dotLevel=Number(dot.dataset.soundLevel||0);
-dot.classList.toggle('active',level===0?dotLevel===0:dotLevel>0&&dotLevel<=level);
-dot.setAttribute('aria-pressed',dotLevel===level?'true':'false');
-});
+if(range) range.value=String(Math.round(masterSoundVolume*100));
+if(mute) mute.checked=masterSoundVolume<=0;
+if(label) label.textContent=masterSoundVolume<=0?'Sessiz':`${Math.round(masterSoundVolume*100)}%`;
+}
+function setMasterSoundVolume(v){
+masterSoundVolume=Math.max(0,Math.min(1,Number(v)||0));
+if(masterSoundVolume>0) lastNonMutedSoundVolume=masterSoundVolume;
+safeStorageSet('local',SOUND_VOLUME_KEY,String(masterSoundVolume));
+renderSoundControls();
 }
 function ensureGameAudio(){
 try{
@@ -1890,7 +1892,22 @@ document.addEventListener('click',(event)=>{
 const supportScreen=document.getElementById('screen-support');
 supportScreen?.addEventListener('click',event=>{if(event.target===supportScreen){supportScreen.classList.add('hidden');if(location.hash==='#screen-support')history.replaceState(null,'',location.pathname+location.search);}});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&supportScreen&&!supportScreen.classList.contains('hidden')){supportScreen.classList.add('hidden');if(location.hash==='#screen-support')history.replaceState(null,'',location.pathname+location.search);}});
-document.querySelectorAll('.sound-level-dot').forEach(dot=>dot.addEventListener('click',()=>{setMasterSoundVolume(Number(dot.dataset.soundLevel)/5);if(masterSoundVolume>0)playCorrectChime();}));
+const soundRange=document.getElementById('sound-volume-range');
+const soundMuted=document.getElementById('sound-muted');
+soundRange?.addEventListener('input',()=>{
+  const v=Math.max(0,Math.min(1,Number(soundRange.value||0)/100));
+  setMasterSoundVolume(v);
+});
+soundRange?.addEventListener('change',()=>{if(masterSoundVolume>0) playCorrectChime();});
+soundMuted?.addEventListener('change',()=>{
+  if(soundMuted.checked){
+    if(masterSoundVolume>0) lastNonMutedSoundVolume=masterSoundVolume;
+    setMasterSoundVolume(0);
+  }else{
+    setMasterSoundVolume(lastNonMutedSoundVolume>0?lastNonMutedSoundVolume:.8);
+    playCorrectChime();
+  }
+});
 document.getElementById('btn-sound-test').onclick = () => { ensureGameAudio(); playLetterPickSound(3); setTimeout(playCorrectChime,110); };
 setMasterSoundVolume(masterSoundVolume);
 
