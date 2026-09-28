@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v281</title>
-<meta name="game-version" content="v281">
+<title>KAPMACA.tr — Sözcük Avı v282</title>
+<meta name="game-version" content="v282">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -43371,7 +43371,6 @@ mpRoomCode=code; mpRole='host'; mpRoomRef=ref; mpRoomMode='invite-only-v5'; mpRa
 setRoomUrl(code); await markPresence();
 setMpPanelRoom(code,'Bağlantıyı kopyala ve arkadaşına gönder.');
 document.getElementById('btn-close-room')?.classList.remove('hidden');
-
 setMpState(MP_STATES.WAITING);
 attachRoomListener();
 }
@@ -43430,7 +43429,7 @@ mpRoomData={...gs0,scores:scoreSnap.val()||{host:0,guest:0},inviteGuest:(role===
 await markPresence(); setRoomUrl(code);
 setMpPanelRoom(code,role==='host'?'1. oyuncu olarak odana yeniden bağlandın.':'2. oyuncu olarak davet odasına bağlandın.');
 document.getElementById('btn-close-room')?.classList.toggle('hidden',role!=='host');
-
+document.getElementById('btn-enter-room')?.classList.toggle('hidden',role!=='host');
 setMpState(mpRoomData.status||MP_STATES.WAITING);
 attachRoomListener();
 if(role==='guest' && /^invite-only-/.test(String(mpRoomMode||'')) && mpRoomData.status==='waiting'){
@@ -44046,7 +44045,6 @@ const soloArrowHome=document.getElementById('solo-arrow'); if(soloArrowHome) sol
 document.getElementById('mp-room-view')?.classList.add('hidden');
 document.getElementById('mp-create-view')?.classList.remove('hidden');
 document.getElementById('btn-close-room')?.classList.add('hidden');
-
 const st=document.getElementById('mp-status'); if(st) st.textContent='Oda hazırlanıyor…';
 const randomBtn=document.getElementById('btn-random-match'); if(randomBtn){randomBtn.disabled=false;randomBtn.textContent='🎲 RASTGELE RAKİP';}
 setRandomStatus('',false);
@@ -44139,7 +44137,7 @@ if(navigator.share) await navigator.share({title:'KAPMACA Sözcük Avı',text:'K
 else { await navigator.clipboard.writeText(url); showToast('Davet bağlantısı kopyalandı.','emerald'); }
 }catch(e){}
 };
-
+document.getElementById('btn-enter-room').onclick=async()=>{
 if(mpRole!=='host' || !mpRoomRef) return;
 clearTimeout(copyLinkEnterTimer);copyLinkEnterTimer=null;
 await enterMultiplayerRoom();
