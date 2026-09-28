@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>KAPMACA.tr — Sözcük Avı v285</title>
-<meta name="game-version" content="v285">
+<title>KAPMACA.tr — Sözcük Avı v286</title>
+<meta name="game-version" content="v286">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2435,6 +2435,30 @@ color: #334155 !important;
 box-shadow: 0 2px 0 #94a3b8 !important;
 }
 .tile-claimed-p1.tile-claimed-p2 .tile-score { color: #475569 !important; }
+
+/* v286: Karşı tarafın bulduğu sözcük kısa süre kendi oyuncu renginde belirginleşir.
+   Transform kullanılmaz; fare/parmak geometrisine dokunmaz. */
+@keyframes remoteWordFlashP1{
+  0%,100%{filter:brightness(1);box-shadow:0 2px 0 #fbbf24}
+  22%,66%{filter:brightness(1.28);box-shadow:0 0 0 3px rgba(251,191,36,.78),0 0 16px rgba(245,158,11,.58)}
+  44%,82%{filter:brightness(1.02);box-shadow:0 2px 0 #fbbf24}
+}
+@keyframes remoteWordFlashP2{
+  0%,100%{filter:brightness(1);box-shadow:0 2px 0 #7dd3fc}
+  22%,66%{filter:brightness(1.25);box-shadow:0 0 0 3px rgba(56,189,248,.78),0 0 16px rgba(14,165,233,.56)}
+  44%,82%{filter:brightness(1.02);box-shadow:0 2px 0 #7dd3fc}
+}
+#scrabble-grid .letter-cell.remote-word-flash-p1{animation:remoteWordFlashP1 .92s ease-out 1!important;z-index:22!important}
+#scrabble-grid .letter-cell.remote-word-flash-p2{animation:remoteWordFlashP2 .92s ease-out 1!important;z-index:22!important}
+@keyframes remoteBadgeFlashP1{0%,100%{filter:brightness(1);box-shadow:none}25%,68%{filter:brightness(1.35);box-shadow:0 0 0 2px rgba(251,191,36,.58),0 0 12px rgba(245,158,11,.5)}}
+@keyframes remoteBadgeFlashP2{0%,100%{filter:brightness(1);box-shadow:none}25%,68%{filter:brightness(1.32);box-shadow:0 0 0 2px rgba(56,189,248,.58),0 0 12px rgba(14,165,233,.48)}}
+.remote-word-badge-p1{animation:remoteBadgeFlashP1 .92s ease-out 1!important}
+.remote-word-badge-p2{animation:remoteBadgeFlashP2 .92s ease-out 1!important}
+@media (prefers-reduced-motion:reduce){
+  #scrabble-grid .letter-cell.remote-word-flash-p1,
+  #scrabble-grid .letter-cell.remote-word-flash-p2,
+  .remote-word-badge-p1,.remote-word-badge-p2{animation:none!important}
+}
 
 
 .tile-dragging {
@@ -43850,7 +43874,8 @@ function applyRemoteWordEvent(ev){
 if(!ev||!ev.word) return;
 const path=decodeClaimPath(ev.path);
 if(path.length) applyClaimedPath(path,ev.role==='host');
-addTickerBadge(String(ev.word).toLocaleUpperCase('tr-TR'),ev.role==='host');
+const remoteBadge=addTickerBadge(String(ev.word).toLocaleUpperCase('tr-TR'),ev.role==='host');
+flashOpponentWord(path,ev.role==='host',remoteBadge);
 let remoteOrigin=null;
 const lastPos=(ev.last&&Number.isInteger(ev.last.r)&&Number.isInteger(ev.last.c))?ev.last:(path.length?path[path.length-1]:null);
 if(lastPos){
@@ -44652,7 +44677,7 @@ pendingPointer=null; lastPointerX=null; lastPointerY=null;
 if(pointerFrame){cancelAnimationFrame(pointerFrame);pointerFrame=0;}
 if(hoverLiftCell){hoverLiftCell.classList.remove('tile-hover-lift');hoverLiftCell=null;}
 for(const cell of domCells){
-cell?.classList.remove('tile-dragging','tile-dragging-p1','tile-dragging-p2','tile-claimed-p1','tile-claimed-p2','tile-hover-lift','tile-hover-p1','tile-hover-p2');
+cell?.classList.remove('tile-dragging','tile-dragging-p1','tile-dragging-p2','tile-claimed-p1','tile-claimed-p2','tile-hover-lift','tile-hover-p1','tile-hover-p2','remote-word-flash-p1','remote-word-flash-p2');
 }
 remainingSeconds=60;
 p1Score=0; p2Score=0; updateScores();
@@ -45111,6 +45136,24 @@ el.classList.add(isP1?'tile-claimed-p1':'tile-claimed-p2');
 });
 }
 
+function flashOpponentWord(path,isP1,badge=null){
+if(document.hidden||!Array.isArray(path)||!path.length) return;
+const cls=isP1?'remote-word-flash-p1':'remote-word-flash-p2';
+for(const pos of path){
+  const el=domCells[pos.r*BOARD_SIZE+pos.c]||document.getElementById(`cell-${pos.r}-${pos.c}`);
+  if(!el) continue;
+  el.classList.remove('remote-word-flash-p1','remote-word-flash-p2');
+  void el.offsetWidth;
+  el.classList.add(cls);
+  setTimeout(()=>el.classList.remove(cls),980);
+}
+if(badge){
+  const badgeCls=isP1?'remote-word-badge-p1':'remote-word-badge-p2';
+  badge.classList.add(badgeCls);
+  setTimeout(()=>badge.classList.remove(badgeCls),980);
+}
+}
+
 function playWordConfetti(length){
 const letters=Math.max(2,Math.min(9,Number(length)||2));
 const count=Math.round((IS_COARSE_POINTER?8:10)+(letters-2)*(IS_COARSE_POINTER?2.5:3));
@@ -45202,6 +45245,7 @@ const badge = document.createElement('span');
 badge.className = `${isP1 ? 'bg-amber-400' : 'bg-sky-400'} text-slate-950 font-black px-2 py-0.5 rounded-full text-[10px] uppercase mx-0.5`;
 badge.textContent = word;
 document.getElementById('words-ticker').appendChild(badge);
+return badge;
 }
 
 function showCopyLinkPopup(){
@@ -45327,7 +45371,8 @@ if(botLast){const bel=document.getElementById(`cell-${botLast.r}-${botLast.c}`);
 flyScore(pts, !botIsP2, botOrigin);
 rewardWordFx(!botIsP2);
 adjustScore(botIsP2 ? 0 : pts, botIsP2 ? pts : 0);
-addTickerBadge(word, !botIsP2);
+const botBadge=addTickerBadge(word, !botIsP2);
+flashOpponentWord(matchObj.path,!botIsP2,botBadge);
 showToast(`2. OYUNCU: ${word} (+${pts})`, botIsP2 ? 'sky' : 'amber');
 }
 planBot();
