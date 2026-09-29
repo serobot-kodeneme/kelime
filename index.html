@@ -16,7 +16,7 @@
   gtag('js', new Date());
   gtag('config', 'G-S01R78NGGH');
 </script>
-<meta name="game-version" content="v431">
+<meta name="game-version" content="v432">
 <meta name="description" content="KAPMACA - Sözcük Avı; oynayarak öğrenmeyi destekleyen, Türkçe sözcük üretme, kelime bulma, kelime zekâsı ve hızlı düşünme becerilerini geliştirmeye yönelik eğitsel ve çocuklara uygun ücretsiz bir kelime oyunudur.">
 <meta name="keywords" content="kelime oyunu, sözcük oyunu, Türkçe kelime oyunu, sözcük avı, kelime bulmaca, sözcük üretme, kelime üretme, kelime zeka oyunu, kelime zekâ oyunu, zeka oyunu, eğitsel oyun, eğitici oyun, oynayarak öğrenme, çocuklar için kelime oyunu, Türkçe öğrenme oyunu, kelime dağarcığı, kelime hazinesi, sözcük dağarcığı, hızlı düşünme oyunu, online kelime oyunu, çok oyunculu kelime oyunu">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
@@ -31,7 +31,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="kapmaca-icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="kapmaca-icon.svg">
-<script defer src="app.js?v=431"></script>
+<script defer src="app.js?v=432"></script>
 <meta property="og:locale" content="tr_TR">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KAPMACA">
@@ -3705,7 +3705,7 @@ button,a,[role="button"],.dict-word-button,.found-word-badge{cursor:pointer;}
 <div class="flex items-center justify-between mb-4"><div class="w-8"></div><h2 class="font-black text-xl text-indigo-950">OYNANIŞ</h2><button id="btn-howto-back" aria-label="Oynanışı kapat" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-black">✕</button></div>
 <div class="rounded-3xl bg-indigo-950 text-white p-4 shadow-lg mb-3">
 <div class="text-lg font-black">KAPMACA Sözcük Avı nasıl oynanır?</div>
-<p class="text-xs text-indigo-100 mt-1 leading-relaxed">9×9 tahtada komşu harfleri birleştir, geçerli Türkçe sözcükleri bul ve 60 saniyelik kapışmada en yüksek puanı toplamaya çalış.</p>
+<p class="text-xs text-indigo-100 mt-1 leading-relaxed">9×9 tahtada soldan, sağdan, aşağıdan, yukarıdan başlayarak harfler kap, geçerli Türkçe sözcükleri bul ve 60 saniyelik kapışmada en yüksek puanı topla!</p>
 </div>
 <div class="bg-white rounded-3xl p-4 shadow-lg border border-sky-100 mb-3" aria-label="Örnek oynanış animasyonu">
 <div class="demo-board" aria-hidden="true"><span class="demo-tile">A</span><span class="demo-tile">Y</span><span class="demo-tile">İ</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">A</span><span class="demo-tile">S</span><span class="demo-tile">K</span><span class="demo-tile">A</span><span class="demo-tile">P</span><span class="demo-tile">M</span><span class="demo-tile">A</span><span class="demo-tile">C</span><span class="demo-tile">A</span><span class="demo-tile">İ</span><span class="demo-tile">Ş</span><span class="demo-tile">Ş</span><span class="demo-tile">İ</span><span class="demo-tile">T</span><span class="demo-tile">A</span><span class="demo-tile">L</span></div>
@@ -3714,6 +3714,7 @@ button,a,[role="button"],.dict-word-button,.found-word-badge{cursor:pointer;}
 <div class="bg-white rounded-3xl p-4 shadow-lg border border-sky-100">
 <div class="font-black text-indigo-950 mb-2">🎮 Temel kurallar</div>
 <div class="space-y-2 text-xs text-slate-650 leading-relaxed">
+<p>Bir sözcüğü ilk bulan puanı kapar. Aynı sözcükten tekrar puan alınamaz; ancak o harfleri kullanarak farklı bir sözcük oluşturulabilir. Maçın en uzun geçerli sözcüğünü bulan oyuncu +10 ek puan alır. En uzun sözcük uzunluğu eşitse iki oyuncu da +10 alır.</p>
 <p><b>Harf ve sözcük seçimi:</b> Oyun tahtasında bulduğun sözcüğün ilk harfine basılı tut, sağ-sol-yukarı-aşağı komşu harflere sürükle ve anlamlı bir sözcük oluşunca bırak.</p>
 <p><b>Çapraz geçiş yoktur.</b> Tek bir harfe dokunup bırakmak ceza vermez. Bir harfi tutma süresi 3 saniyeyi aşarsa oyun harfleri otomatik bırakır ve ceza uygulamaz.</p>
 <p><b>Sözlük kontrolü:</b> 2–9 harfli seçim bırakıldığı anda otomatik kontrol edilir. Geçerli sözcük puan kazandırır; geçersiz veya argo/küfürlü sözcük -3 puandır.</p>
@@ -3734,23 +3735,22 @@ button,a,[role="button"],.dict-word-button,.found-word-badge{cursor:pointer;}
 <p class="text-xs text-amber-950/80 leading-relaxed">Bilgisayara karşı oynarsın. Kolay, Orta, Zor veya Uzman seviyesini seçersin. Oyuncu ve bilgisayar aynı 9×9 tahtayı kullanırsınız; 60 saniye sonunda yüksek puan kazanan maçı alır. YENİDEN OYNA düğmesi ile aynı zorlukta yeni bir oyun hazırlanır.</p>
 </div>
 <div class="bg-gradient-to-br from-sky-50 to-cyan-100 rounded-3xl p-4 shadow-lg border border-sky-200">
-<div class="font-black text-sky-950 mb-2">👥 Çok Oyunculu — KAPMACA</div>
+<div class="font-black text-sky-950 mb-2">👥 Çok Oyunculu</div>
 <p class="text-xs text-sky-950/80 leading-relaxed"><b>🤝 Dost Ateşi:</b> Odayı kuran kişi 1. oyuncu olur. Oyun her gün yenilenen 5 küçük harfli oda kodu ve paylaşılabilir bağlantı verir. Bağlantıyı tanıdığın kişiye gönderirsin; rakip odaya bağlanınca oyun senkronize edilir ve 3 saniyelik geri sayımdan sonra aynı tahta üzerinde kapışma başlar.</p>
 <p class="text-xs text-sky-950/80 leading-relaxed mt-2"><b>🎲 Hodri Meydan!:</b> Gerçek bir çevrimiçi sürpriz rakip aranır. Arama en fazla 45 saniye sürer; rakip bulunamazsa ana sayfada yeniden deneyebilirsin. Hodri Meydan maçının sonuç ekranından sonra oyun otomatik olarak ana sayfaya döner.</p>
-<div class="mt-2 rounded-2xl bg-white/75 border border-sky-200 p-3 text-[11px] font-bold text-sky-900 leading-relaxed"><b>Kapmaca kuralı:</b> Bir sözcüğü ilk bulan puanı alır. Rakip aynı sözcükten tekrar puan alamaz; fakat o harfleri kullanarak farklı bir sözcük oluşturabilir. Maçın en uzun geçerli sözcüğünü bulan oyuncu +10 bonus alır. En uzun sözcük uzunluğu eşitse iki oyuncu da +10 alır.</div>
 </div>
 <div class="bg-white rounded-3xl p-4 shadow-lg border border-emerald-100">
 <div class="font-black text-emerald-900 mb-2">🏆 Puan ve süre</div>
 <div class="space-y-2 text-xs text-slate-600 leading-relaxed">
 <p>Maç 60 saniyedir. Uzun ve değerli harflerden oluşan sözcükler daha fazla puan kazandırır.</p>
 <p>Geçersiz veya argo/küfürlü 2+ harfli deneme -3 puandır. Rakibin daha önce bulduğu sözcükte ceza uygulanmaz.</p>
-<p>Son 10 saniyede sesli uyarı başlar; son 3 saniyede gong sesi duyulur. Süre sonunda yüksek puanlı oyuncu kazanır.</p>
+<p>Son 10 saniyede sesli uyarı başlar ve son 3 saniyede gong sesi duyulur. Süre sonunda yüksek puanlı oyuncu kazanır.</p>
 </div>
 </div>
 <div class="bg-white rounded-3xl p-4 shadow-lg border border-violet-100">
 <div class="font-black text-violet-950 mb-2">💡 İpucu</div>
 <div class="space-y-2 text-xs text-slate-600 leading-relaxed">
-<p>Önce kısa sözcükleri hızlıca topla; ardından aynı bölgelerde daha uzun sözcükleri ara. <b>Bulunmuş harfler kilitlenmez, yeni sözcüklerde tekrar kullanılabilir</b>.</p>
+<p>Önce kısa sözcükleri hızlıca topla; ardından aynı bölgelerde daha uzun sözcükleri ara. <b>Bulunmuş harfler kilitlenmez, yeni sözcüklerde tekrar kullanılabilir.</b></p>
 <p>Sonuç ekranındaki en yüksek puanlı sözcüklere dokunarak sözlük anlamını görüntüleyebilirsin.</p>
 </div>
 </div>
@@ -3775,7 +3775,7 @@ button,a,[role="button"],.dict-word-button,.found-word-badge{cursor:pointer;}
 <div class="sound-step-marks" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
 <label class="sound-mute-row" for="sound-muted"><input id="sound-muted" type="checkbox"> Sessiz</label>
 </div>
-<div class="mt-2 text-center text-[11px] font-black text-slate-400">v431</div>
+<div class="mt-2 text-center text-[11px] font-black text-slate-400">v432</div>
 </div>
 </div>
 </div>
