@@ -768,7 +768,7 @@ hostId, guestId,
 gameState:{status:'waiting',board:readyBoard.board,startAt:0,round:1},
 scores:{host:0,guest:0}, words:{}, longestBonus:null, bonusApplied:false,
 endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0}, pendingRound:null, invite:{guest:'accepted'},
-presence:{host:{online:false,clientId:hostId},guest:{online:false,clientId:guestId}}
+presence:{host:{online:false,clientId:hostId},guest:{online:false,clientId:guestId}}, ready:{host:false,guest:false}
 });
 return code;
 }
@@ -952,7 +952,7 @@ hostId, guestId:null,
 gameState:{status:'waiting',board:readyBoard.board,startAt:0,round:1},
 scores:{host:0,guest:0}, words:{}, longestBonus:null, bonusApplied:false,
 endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0}, pendingRound:null, invite:{guest:'pending',expiresAt:0},
-presence:{host:{online:true,clientId:hostId},guest:{online:false}}
+presence:{host:{online:true,clientId:hostId},guest:{online:false}}, ready:{host:false,guest:false}
 });
 
 mpRoomCode=code; mpRole='host'; mpRoomRef=ref; mpRoomMode='invite-only-v5'; mpRandomMatchSession=false; delete document.body.dataset.randomMatchActive; document.body.dataset.privateFriendActive='1'; mpRoomData=null; mpEntered=false; mpStarted=false; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId='';
@@ -1074,6 +1074,7 @@ resetMultiplayerRoundVisualState();
 p1Score=Number(d.scores?.host||0); p2Score=Number(d.scores?.guest||0); updateScores();
 if (!renderProvidedBoard(d.board)) return;
 hydrateMultiplayerBoardState(d);
+try{ if(mpRoomRef&&mpRole) await mpRoomRef.child('ready/'+mpRole).set(true); }catch(_){}
 }
 if(d.status==='countdown' && d.startAt && !mpStarted) startSyncedMatch(d);
 else if(d.status==='playing' && d.startAt) activateMultiplayerPlaying(d);
@@ -1083,8 +1084,12 @@ async function hostStartWaitingRound(){
 if(mpRole!=='host'||mpStartBusy||!mpRoomRef) return;
 mpStartBusy=true;
 try{
-const guestSnap=await mpRoomRef.child('guestId').once('value');
-if(!guestSnap.val()) return;
+const [guestSnap,readySnap]=await Promise.all([
+mpRoomRef.child('guestId').once('value'),
+mpRoomRef.child('ready').once('value')
+]);
+const ready=readySnap.val()||{};
+if(!guestSnap.val() || !ready.host || !ready.guest) return;
 await mpRoomRef.child('gameState').transaction(gs=>{
 if(!gs||gs.status!=='waiting'||Number(gs.startAt||0)>0) return;
 gs.status='countdown'; gs.startAt=serverNow()+3200;
@@ -1427,6 +1432,7 @@ bindControl('guestId','value',snap=>{mpRoomData={...(mpRoomData||{}),guestId:sna
 bindControl('presence/guest','value',snap=>{const v=snap.val()||{};const online=isOnline(v);mpRoomData={...(mpRoomData||{}),guestOnline:online}; if(mpRole==='host') handleOpponentPresenceState(online); if(mpRoomData.status==='waiting'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
 bindControl('presence/host','value',snap=>{const v=snap.val()||{};const online=isOnline(v);mpRoomData={...(mpRoomData||{}),hostOnline:online}; if(mpRole==='guest') handleOpponentPresenceState(online);});
 bindControl('invite/guest','value',snap=>{mpRoomData={...(mpRoomData||{}),inviteGuest:snap.val()||null}; if(mpRoomData.status==='waiting'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
+bindControl('ready','value',snap=>{mpRoomData={...(mpRoomData||{}),ready:snap.val()||{}}; if(mpRoomData.status==='waiting'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
 bindControl('rematch','value',snap=>{const r=snap.val()||{};mpRoomData={...(mpRoomData||{}),rematch:r}; if(mpRoomData.status==='finished'&&!isRandomHumanRoom()){const d={...mpRoomData,status:'finished'};forcePrivateResultActions();renderRematchState(d); const currentRoundRequest=Number(r.round||0)===Number(mpRoomData.round||1) && (!!r.host||!!r.guest); if(currentRoundRequest){showImmediateRematchSync(); if(mpRole==='host') hostStartRematch();}}});
 bindControl('finalWinner','value',snap=>{mpRoomData={...(mpRoomData||{}),finalWinner:snap.val()||null}; if(mpRoomData.status==='finished'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
 bindControl('longestBonus','value',snap=>{mpRoomData={...(mpRoomData||{}),longestBonus:snap.val()||null}; if(mpRoomData.status==='finished'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
@@ -1800,15 +1806,10 @@ document.getElementById('screen-game')?.classList.remove('hidden');
 document.getElementById('friend-invite-panel')?.classList.add('hidden');
 setDifficultyOpen(false);
 document.body.dataset.inviteFastEntry='1';
+// Hafif karşılama: gerçek tahta/sözlük burada zorlanmaz; önce oda bağlantısı kurulur.
 const grid=document.getElementById('scrabble-grid');
-if(grid){grid.style.filter='blur(6px)';grid.style.opacity='.62';grid.style.pointerEvents='none';}
-ensureWordDataLoaded().catch(()=>{});
+if(grid){grid.style.filter='blur(7px)';grid.style.opacity='.38';grid.style.pointerEvents='none';}
 const ok=await joinRoom(code);
-if(ok && mpRole==='guest'){
-  const gs=mpRoomData||{};
-  if(Array.isArray(gs.board)) renderProvidedBoard(gs.board);
-}
-if(grid){grid.style.filter='';grid.style.opacity='';}
 delete document.body.dataset.inviteFastEntry;
 if(!ok){ disconnectFirebaseNetwork(); return; }
 if(ok){
@@ -1829,11 +1830,11 @@ const btn=document.getElementById('btn-invite-start'); if(btn) btn.disabled=true
 try{
 const inv=(await mpRoomRef.child('invite').once('value')).val()||{};
 if(Number(inv.expiresAt||0)>0 && Number(inv.expiresAt)<=serverNow()){ showToast('Davet süresi doldu.','rose'); await closeAndLockPrivateRoom(mpRoomRef,mpRoomCode,'invite-expired'); returnToHomeFromMultiplayer(); return; }
-await mpRoomRef.child('invite/guest').set('accepted');
 try{ await ensureWordDataLoaded(); }catch(_){ showToast('Oyun sözlüğü yüklenemedi. Tekrar deneyin.','rose'); if(btn) btn.disabled=false; return; }
-
 document.getElementById('modal-room-invite')?.classList.add('hidden');
 await enterMultiplayerRoom();
+await mpRoomRef.child('ready/guest').set(true);
+await mpRoomRef.child('invite/guest').set('accepted');
 }catch(e){showToast('Oyun başlatılamadı.','rose'); if(btn) btn.disabled=false;}
 });
 document.getElementById('btn-invite-cancel')?.addEventListener('click',async()=>{
