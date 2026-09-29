@@ -508,7 +508,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v442';
+const GAME_VERSION='v443';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -1355,8 +1355,9 @@ if(role==='guest' && /^invite-only-/.test(mode) && mpRoomData.status==='waiting'
   showInviteDecisionModal();
   setTimeout(()=>ensureWordDataLoaded().catch(()=>{}),0);
 }
-if(role==='guest' && /^random-match-/.test(mode)){
+if(/^random-match-/.test(mode)){
   await enterMultiplayerRoom();
+  if(mpRole==='host') await hostStartWaitingRound();
 }
 return true;
 }
@@ -1376,6 +1377,7 @@ const mustRefreshBoard=!mpEntered || Number(d.round||1)!==prevRound || (incoming
 if(mustRefreshBoard){
 mpEntered=true; mpStarted=false;
 document.getElementById('screen-home')?.classList.add('hidden');
+document.getElementById('friend-invite-panel')?.classList.add('hidden');
 document.getElementById('screen-game')?.classList.remove('hidden');
 document.getElementById('p1-title').textContent='1. OYUNCU';
 document.getElementById('p2-title').textContent='2. OYUNCU';
@@ -1694,17 +1696,22 @@ mpLastRoomMetaSig=metaSig;
 
 if(gs.status==='waiting'){
 setMpState(MP_STATES.WAITING);
-const inviteAccepted = /^random-match-/.test(String(mpRoomMode||'')) || mpRoomData.inviteGuest==='accepted';
-if(mpRole==='host'){
-if(!mpRoomData.guestId || !mpRoomData.guestOnline || !inviteAccepted){
-if(mpEntered) document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
-else document.getElementById('modal-mp-waiting')?.classList.add('hidden');
-}else{
-stopInviteWaitCountdown();
-document.getElementById('modal-mp-waiting')?.classList.add('hidden');
-if(!mpEntered) await enterMultiplayerRoom();
-await hostStartWaitingRound();
-}
+const randomRoom=/^random-match-/.test(String(mpRoomMode||''));
+const inviteAccepted = randomRoom || mpRoomData.inviteGuest==='accepted';
+if(randomRoom){
+  document.getElementById('modal-mp-waiting')?.classList.add('hidden');
+  if(!mpEntered) await enterMultiplayerRoom();
+  if(mpRole==='host') await hostStartWaitingRound();
+}else if(mpRole==='host'){
+  if(!mpRoomData.guestId || !mpRoomData.guestOnline || !inviteAccepted){
+    if(mpEntered) document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
+    else document.getElementById('modal-mp-waiting')?.classList.add('hidden');
+  }else{
+    stopInviteWaitCountdown();
+    document.getElementById('modal-mp-waiting')?.classList.add('hidden');
+    if(!mpEntered) await enterMultiplayerRoom();
+    await hostStartWaitingRound();
+  }
 }
 }
 if(gs.status==='countdown'){
@@ -1743,7 +1750,12 @@ bindControl('guestId','value',snap=>{mpRoomData={...(mpRoomData||{}),guestId:sna
 bindControl('presence/guest','value',snap=>{const v=snap.val()||{};const online=isOnline(v);mpRoomData={...(mpRoomData||{}),guestOnline:online}; if(mpRole==='host') handleOpponentPresenceState(online); if(mpRoomData.status==='waiting'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
 bindControl('presence/host','value',snap=>{const v=snap.val()||{};const online=isOnline(v);mpRoomData={...(mpRoomData||{}),hostOnline:online}; if(mpRole==='guest') handleOpponentPresenceState(online);});
 bindControl('invite/guest','value',snap=>{mpRoomData={...(mpRoomData||{}),inviteGuest:snap.val()||null}; if(mpRoomData.status==='waiting'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
-bindControl('ready','value',snap=>{mpRoomData={...(mpRoomData||{}),ready:snap.val()||{}}; if(mpRoomData.status==='waiting'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
+bindControl('ready','value',snap=>{
+  mpRoomData={...(mpRoomData||{}),ready:snap.val()||{}};
+  if(mpRoomData.status==='waiting'&&mpListener){
+    mpRoomRef.child('gameState').once('value').then(mpListener);
+  }
+});
 bindControl('rematch','value',snap=>{const r=snap.val()||{};mpRoomData={...(mpRoomData||{}),rematch:r}; if(mpRoomData.status==='finished'&&!isRandomHumanRoom()){const d={...mpRoomData,status:'finished'};forcePrivateResultActions();renderRematchState(d); const currentRoundRequest=Number(r.round||0)===Number(mpRoomData.round||1) && (!!r.host||!!r.guest); if(currentRoundRequest){showImmediateRematchSync(); if(mpRole==='host') hostStartRematch();}}});
 bindControl('finalWinner','value',snap=>{mpRoomData={...(mpRoomData||{}),finalWinner:snap.val()||null}; if(mpRoomData.status==='finished'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
 bindControl('longestBonus','value',snap=>{mpRoomData={...(mpRoomData||{}),longestBonus:snap.val()||null}; if(mpRoomData.status==='finished'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
