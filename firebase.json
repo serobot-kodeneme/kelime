@@ -7,7 +7,10 @@
       "CNAME",
       "index.html.html",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "KAPMACA.apk",
+      ".git/**",
+      ".github/**"
     ],
     "headers": [
       {
