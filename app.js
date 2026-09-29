@@ -1734,7 +1734,7 @@ isMatchActive=false;
 document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
 startInviteWaitCountdown(inviteDeadline);
 if(navigator.share){
- navigator.share({title:'KAPMACA — Meydan Okuma',text:'🔥 60 saniye. Aynı harfler. Kim daha çok kelime bulacak? KAPMACA\'da bana karşı oyna!',url}).catch(()=>{});
+ navigator.share({title:'KAPMACA — Meydan Okuma',text:'🔥 60 saniye. Aynı harfler. Kim daha çok sözcük bulacak? KAPMACA\'da bana karşı oyna!',url}).catch(()=>{});
 }else{
  await navigator.clipboard.writeText(url).catch(()=>{});
  showToast('Davet bağlantısı kopyalandı.','emerald');
@@ -3648,7 +3648,7 @@ const list=document.getElementById('dict-words-list');
 list?.classList.remove('hidden');
 if(list) list.style.display='block';
 document.getElementById('dict-letter-heading').textContent = query ? `"${query}" ARAMA SONUÇLARI` : `"${dictCurrentLetter}" HARFİ KELİMELERİ`;
-document.getElementById('dict-word-count').textContent = `${dictCurrentWords.length} Kelime`;
+document.getElementById('dict-word-count').textContent = `${dictCurrentWords.length} Sözcük`;
 updateAlphabetActive();
 paintDictionaryWords();
 }
