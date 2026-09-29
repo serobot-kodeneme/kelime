@@ -401,25 +401,31 @@ function isUiSoundTarget(target){
   const el=target?.closest?.('button,a,[role="button"]');
   return el && !el.disabled;
 }
-let lastUiHoverEl=null, lastUiPressAt=0;
+let lastUiHoverEl=null, lastUiReleaseAt=0;
 document.addEventListener('pointerover',(e)=>{
   const el=isUiSoundTarget(e.target);
   if(!el || el===lastUiHoverEl || e.pointerType==='touch') return;
-  lastUiHoverEl=el; playUiClickSound();
+  lastUiHoverEl=el;
+  playUiClickSound(); // Fareyle ilk girişte yalnızca bir kez.
 },{passive:true});
 document.addEventListener('pointerout',(e)=>{
   const el=isUiSoundTarget(e.target);
   if(el===lastUiHoverEl && !el?.contains?.(e.relatedTarget)) lastUiHoverEl=null;
 },{passive:true});
 document.addEventListener('pointerdown',(e)=>{
+  if(isUiSoundTarget(e.target)) ensureGameAudio();
+},{passive:true});
+document.addEventListener('pointerup',(e)=>{
   const el=isUiSoundTarget(e.target);
   if(!el) return;
-  lastUiPressAt=performance.now(); ensureGameAudio(); playUiClickSound();
+  lastUiReleaseAt=performance.now();
+  playUiClickSound(); // Basıp bırakınca yalnızca bir kez.
 },{passive:true});
 document.addEventListener('click',(e)=>{
   const el=isUiSoundTarget(e.target);
   if(!el) return;
-  if(performance.now()-lastUiPressAt>350) playUiClickSound();
+  // Klavye/erişilebilirlik tıklamalarında ses kalsın; normal pointerup sonrası tekrar çalmasın.
+  if(performance.now()-lastUiReleaseAt>500) playUiClickSound();
 },{passive:true});
 
 function playErrorBuzzer(){
