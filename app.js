@@ -496,7 +496,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v429';
+const GAME_VERSION='v430';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });

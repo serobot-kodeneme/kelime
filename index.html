@@ -16,7 +16,7 @@
   gtag('js', new Date());
   gtag('config', 'G-S01R78NGGH');
 </script>
-<meta name="game-version" content="v429">
+<meta name="game-version" content="v430">
 <meta name="description" content="KAPMACA - Sözcük Avı; oynayarak öğrenmeyi destekleyen, Türkçe sözcük üretme, kelime bulma, kelime zekâsı ve hızlı düşünme becerilerini geliştirmeye yönelik eğitsel ve çocuklara uygun ücretsiz bir kelime oyunudur.">
 <meta name="keywords" content="kelime oyunu, sözcük oyunu, Türkçe kelime oyunu, sözcük avı, kelime bulmaca, sözcük üretme, kelime üretme, kelime zeka oyunu, kelime zekâ oyunu, zeka oyunu, eğitsel oyun, eğitici oyun, oynayarak öğrenme, çocuklar için kelime oyunu, Türkçe öğrenme oyunu, kelime dağarcığı, kelime hazinesi, sözcük dağarcığı, hızlı düşünme oyunu, online kelime oyunu, çok oyunculu kelime oyunu">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
@@ -31,7 +31,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="kapmaca-icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="kapmaca-icon.svg">
-<script defer src="app.js?v=429"></script>
+<script defer src="app.js?v=430"></script>
 <meta property="og:locale" content="tr_TR">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KAPMACA">
@@ -2270,6 +2270,18 @@ body {
 #screen-about>div,
 #screen-support>div{padding-bottom:18px!important}
 
+/* Alt menü içerikleri: küçük metinleri okunaklı tut, kart boyutlarını gereksiz büyütme. */
+#screen-howto .text-xs{font-size:13.5px!important;line-height:1.58!important}
+#screen-howto .text-\[11px\]{font-size:12.5px!important;line-height:1.55!important}
+#screen-about .text-\[11px\]{font-size:12.5px!important;line-height:1.58!important}
+#screen-about .about-learning-list p{line-height:1.58!important}
+#screen-settings .text-\[11px\]{font-size:13px!important;line-height:1.45!important}
+#screen-settings .sound-step-marks{font-size:14px!important}
+#screen-settings .sound-mute-row{font-size:14px!important}
+#screen-support p{line-height:1.58!important}
+.dict-rules{font-size:10.75px!important;line-height:14.5px!important}
+.dict-meaning-note{font-size:10px!important;line-height:13px!important}
+
 /* Modal başlıkları daha kompakt; içeriğe dokunulmaz. */
 #screen-howto>div>div:first-child,
 #screen-settings>div>div:first-child,
@@ -3763,7 +3775,7 @@ button,a,[role="button"],.dict-word-button,.found-word-badge{cursor:pointer;}
 <div class="sound-step-marks" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
 <label class="sound-mute-row" for="sound-muted"><input id="sound-muted" type="checkbox"> Sessiz</label>
 </div>
-<div class="mt-2 text-center text-[10px] font-black text-slate-400">v414</div>
+<div class="mt-2 text-center text-[11px] font-black text-slate-400">v430</div>
 </div>
 </div>
 </div>
