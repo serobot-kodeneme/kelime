@@ -48,6 +48,13 @@
       "random": {
         ".read": true,
         ".write": "newData.val() == null || newData.hasChild('waiting')"
+      },
+      "randomPool": {
+        ".read": true,
+        ".write": true,
+        ".indexOn": [
+          "enteredAt"
+        ]
       }
     },
     "onlineUsers": {

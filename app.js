@@ -508,7 +508,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v440';
+const GAME_VERSION='v441';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -868,12 +868,14 @@ await requestSynchronizedRoomExit('opponent-disconnected');
 },MP_DISCONNECT_GRACE_MS);
 }
 
-let randomQueueRef=null, randomQueueListener=null, randomSearchActive=false, randomSearchTicket=null, randomWaitCancel=null;
+let randomPoolRef=null, randomOwnEntryRef=null, randomOwnListener=null;
+let randomSearchActive=false, randomSearchTicket=null, randomWaitCancel=null;
 let randomResultAutoExitTimer=null, randomResultAutoExitKey='';
 let inviteWaitCountdownTimer=null;
 let inviteWaitDeadlineAt=0;
 const RANDOM_SEARCH_MS=45000;
 const RANDOM_QUEUE_TTL=RANDOM_SEARCH_MS+5000;
+let randomPairRoomBusy=false, randomJoinBusy=false;
 
 function setRandomStatus(text,visible=true){
 const el=document.getElementById('mp-random-status');
@@ -885,40 +887,100 @@ function randomTicket(){
 const a=new Uint32Array(3); crypto.getRandomValues(a);
 return Array.from(a,n=>n.toString(36)).join('');
 }
-function releaseRandomSearchLocal(){
-if(randomWaitCancel){const cancel=randomWaitCancel;randomWaitCancel=null;try{cancel();}catch(_){}}
-if(randomQueueRef && randomQueueListener){try{randomQueueRef.off('value',randomQueueListener);}catch(_){} }
-randomQueueListener=null;
-randomSearchActive=false;
-randomSearchTicket=null;
-randomQueueRef=null;
-}
 function restoreHodriMeydanButton(){
 const btn=document.getElementById('btn-random-match');
 if(!btn) return;
 btn.disabled=false;
 btn.innerHTML='<span class="text-[88px] leading-none drop-shadow-md" aria-hidden="true">🎲</span><span class="text-[14px] leading-tight">HODRİ MEYDAN!</span><span class="text-[10.5px] leading-snug font-bold text-amber-950">Sürpriz bir oyuncuyla kapış!</span>';
 }
-async function cleanupRandomQueue(onlyIfMine=true){
-const ref=randomQueueRef, ticket=randomSearchTicket, myId=getClientToken();
+function releaseRandomSearchLocal(){
 if(randomWaitCancel){const cancel=randomWaitCancel;randomWaitCancel=null;try{cancel();}catch(_){}}
-if(ref && randomQueueListener){try{ref.off('value',randomQueueListener);}catch(_){} randomQueueListener=null;}
-if(ref){
+if(randomOwnEntryRef && randomOwnListener){try{randomOwnEntryRef.off('value',randomOwnListener);}catch(_){}}
+randomOwnListener=null;
+randomOwnEntryRef=null;
+randomPoolRef=null;
+randomSearchActive=false;
+randomSearchTicket=null;
+randomPairRoomBusy=false;
+randomJoinBusy=false;
+}
+function normalizePoolEntryWaiting(entry){
+if(!entry) return entry;
+entry.state='waiting';
+delete entry.role;
+delete entry.peerTicket;
+delete entry.peerClientId;
+delete entry.pairKey;
+delete entry.pairedAt;
+delete entry.roomCode;
+return entry;
+}
+function pairWaitingEntries(pool,now){
+pool=pool&&typeof pool==='object'?pool:{};
+for(const [ticket,entry] of Object.entries(pool)){
+  if(!entry || Number(entry.expiresAt||0)<=now){delete pool[ticket];continue;}
+  if(entry.state==='paired' && !entry.roomCode){
+    const peer=pool[entry.peerTicket];
+    if(!peer || peer.peerTicket!==ticket || peer.pairKey!==entry.pairKey){
+      normalizePoolEntryWaiting(entry);
+    }
+  }
+}
+const waiting=Object.entries(pool)
+  .filter(([,e])=>e && e.state==='waiting' && Number(e.expiresAt||0)>now)
+  .sort((a,b)=>{
+    const ta=Number(a[1].enteredAt||0), tb=Number(b[1].enteredAt||0);
+    if(ta!==tb) return ta-tb;
+    return a[0].localeCompare(b[0]);
+  });
+const used=new Set();
+for(let i=0;i<waiting.length;i++){
+  const [hostTicket,host]=waiting[i];
+  if(used.has(hostTicket)) continue;
+  let guestIndex=-1;
+  for(let j=i+1;j<waiting.length;j++){
+    const [candidateTicket,candidate]=waiting[j];
+    if(used.has(candidateTicket)) continue;
+    if(candidate.clientId && host.clientId && candidate.clientId===host.clientId) continue;
+    guestIndex=j; break;
+  }
+  if(guestIndex<0) continue;
+  const [guestTicket,guest]=waiting[guestIndex];
+  used.add(hostTicket); used.add(guestTicket);
+  const pairKey=hostTicket+'_'+guestTicket;
+  pool[hostTicket]={...host,state:'paired',role:'host',peerTicket:guestTicket,peerClientId:guest.clientId,pairKey,pairedAt:now,expiresAt:now+RANDOM_QUEUE_TTL};
+  pool[guestTicket]={...guest,state:'paired',role:'guest',peerTicket:hostTicket,peerClientId:host.clientId,pairKey,pairedAt:now,expiresAt:now+RANDOM_QUEUE_TTL};
+}
+return pool;
+}
+async function rebalanceRandomPool(){
+if(!randomPoolRef) return;
+await randomPoolRef.transaction(cur=>pairWaitingEntries(cur,serverNow()));
+}
+async function cleanupRandomQueue(onlyIfMine=true){
+const poolRef=randomPoolRef;
+const ownRef=randomOwnEntryRef;
+const ticket=randomSearchTicket;
+if(randomWaitCancel){const cancel=randomWaitCancel;randomWaitCancel=null;try{cancel();}catch(_){}}
+if(ownRef && randomOwnListener){try{ownRef.off('value',randomOwnListener);}catch(_){}}
+randomOwnListener=null;
+if(ownRef){try{await ownRef.onDisconnect().cancel();}catch(_){}}
+if(poolRef && ticket){
   try{
-    await ref.transaction(cur=>{
-      if(!cur) return cur;
-      if(onlyIfMine && cur.ticket!==ticket && cur.claimedBy!==myId) return;
-      return null;
+    await poolRef.transaction(cur=>{
+      if(!cur || !cur[ticket]) return cur;
+      const mine=cur[ticket];
+      const peerTicket=mine.peerTicket;
+      const hadRoom=!!mine.roomCode;
+      delete cur[ticket];
+      if(!hadRoom && peerTicket && cur[peerTicket] && cur[peerTicket].peerTicket===ticket){
+        normalizePoolEntryWaiting(cur[peerTicket]);
+      }
+      return pairWaitingEntries(cur,serverNow());
     });
-    try{await ref.onDisconnect().cancel();}catch(_){}
   }catch(_){}
 }
-if(randomQueueRef===ref){
-  randomSearchActive=false;
-  randomSearchTicket=null;
-  randomQueueRef=null;
-  randomQueueListener=null;
-}
+releaseRandomSearchLocal();
 restoreHodriMeydanButton();
 }
 async function createRandomMatchedRoom(hostId,guestId){
@@ -928,7 +990,7 @@ prewarmedBoard=null;
 rememberBoard(readyBoard.board,readyBoard.words);
 const created=await createCleanRoomRecord({
   schema:22,
-  mode:'random-match-clean-v1',
+  mode:'random-match-timepool-v1',
   hostId,
   guestId,
   board:readyBoard.board,
@@ -936,52 +998,82 @@ const created=await createCleanRoomRecord({
 });
 return created.code;
 }
-function waitForRandomRoom(ticket,timeoutMs){
+async function publishRandomRoom(ticket,entry,roomCode){
+if(!randomPoolRef || !entry?.peerTicket) return false;
+const peerTicket=entry.peerTicket;
+const updates={};
+updates[ticket+'/state']='ready';
+updates[ticket+'/roomCode']=roomCode;
+updates[peerTicket+'/state']='ready';
+updates[peerTicket+'/roomCode']=roomCode;
+await randomPoolRef.update(updates);
+return true;
+}
+function waitForTimedPoolMatch(ticket,deadline,wordDataLoad){
 return new Promise(resolve=>{
-const ref=randomQueueRef;
-if(!ref) return resolve(null);
-let done=false,timer=null;
-const finish=v=>{
-if(done) return; done=true;
-if(timer) clearTimeout(timer);
-try{if(randomQueueListener) ref.off('value',randomQueueListener);}catch(_){}
-randomQueueListener=null;
-if(randomWaitCancel===cancel) randomWaitCancel=null;
-resolve(v);
+let done=false, timer=null;
+const finish=async(ok)=>{
+  if(done) return;
+  done=true;
+  if(timer) clearTimeout(timer);
+  if(randomOwnEntryRef && randomOwnListener){
+    try{randomOwnEntryRef.off('value',randomOwnListener);}catch(_){}
+  }
+  randomOwnListener=null;
+  if(randomWaitCancel===cancel) randomWaitCancel=null;
+  resolve(ok);
 };
-const cancel=()=>finish(null);
+const cancel=()=>finish(false);
 randomWaitCancel=cancel;
-randomQueueListener=snap=>{
-const d=snap.val();
-if(!d || d.ticket!==ticket) return finish(null);
-if(d.claimedBy && !d.roomCode) setRandomStatus('Rakip bulundu ✓ Oda hazırlanıyor…');
-if(d.roomCode) finish(String(d.roomCode));
+randomOwnListener=async snap=>{
+  if(done || !randomSearchActive || randomSearchTicket!==ticket) return;
+  const entry=snap.val();
+  if(!entry) return;
+  if(entry.state==='paired' || entry.state==='ready'){
+    setRandomStatus(entry.roomCode?'Rakip bulundu ✓ Senkronize ediliyor…':'Rakip bulundu ✓ Oda hazırlanıyor…',true);
+    if(entry.role==='host' && !entry.roomCode && !randomPairRoomBusy){
+      randomPairRoomBusy=true;
+      try{
+        await wordDataLoad;
+        const room=await createRandomMatchedRoom(entry.clientId,entry.peerClientId);
+        if(!randomSearchActive || randomSearchTicket!==ticket){
+          try{await mpDb.ref('rooms/'+room).remove();}catch(_){}
+          return finish(false);
+        }
+        await publishRandomRoom(ticket,entry,room);
+      }catch(err){
+        console.error('Timed pool host room error',err);
+        randomPairRoomBusy=false;
+        try{
+          await randomPoolRef.transaction(cur=>{
+            if(!cur) return cur;
+            if(cur[ticket] && !cur[ticket].roomCode) normalizePoolEntryWaiting(cur[ticket]);
+            if(entry.peerTicket && cur[entry.peerTicket] && !cur[entry.peerTicket].roomCode) normalizePoolEntryWaiting(cur[entry.peerTicket]);
+            return pairWaitingEntries(cur,serverNow());
+          });
+        }catch(_){}
+        setRandomStatus('Eşleşme yeniden deneniyor…',true);
+      }
+    }
+    if(entry.roomCode && !randomJoinBusy){
+      randomJoinBusy=true;
+      try{await wordDataLoad;}catch(_){}
+      const room=String(entry.roomCode);
+      const ok=await joinRoom(room);
+      if(ok){
+        try{await randomOwnEntryRef?.onDisconnect().cancel();}catch(_){}
+        try{await randomOwnEntryRef?.remove();}catch(_){}
+        restoreHodriMeydanButton();
+        return finish(true);
+      }
+      randomJoinBusy=false;
+    }
+  }
 };
-ref.on('value',randomQueueListener);
-timer=setTimeout(()=>finish(null),Math.max(1,timeoutMs||RANDOM_SEARCH_MS));
+randomOwnEntryRef.on('value',randomOwnListener);
+timer=setTimeout(()=>finish(false),Math.max(1,deadline-serverNow()));
 });
 }
-function waitForRandomQueueOpportunity(timeoutMs){
-return new Promise(resolve=>{
-const ref=randomQueueRef;
-if(!ref) return resolve(false);
-let done=false,timer=null;
-const finish=v=>{
-if(done) return; done=true;
-if(timer) clearTimeout(timer);
-try{ref.off('value',onValue);}catch(_){}
-resolve(v);
-};
-const onValue=snap=>{
-const d=snap.val();
-const now=serverNow();
-if(!d || Number(d.expiresAt||0)<now || (!d.claimedBy && d.clientId!==getClientToken())) finish(true);
-};
-ref.on('value',onValue);
-timer=setTimeout(()=>finish(false),Math.max(1,timeoutMs||RANDOM_SEARCH_MS));
-});
-}
-
 async function searchRandomOpponent(){
 if(randomSearchActive) return;
 const btn=document.getElementById('btn-random-match');
@@ -997,92 +1089,34 @@ if(!await waitFirebaseConnected(8000)){
 }
 registerGlobalOnlinePresence().catch(()=>{});
 randomSearchActive=true;
-randomQueueRef=mpDb.ref('matchmaking/random/waiting');
+randomPairRoomBusy=false;
+randomJoinBusy=false;
+randomPoolRef=mpDb.ref('matchmaking/randomPool');
 const ticket=randomTicket();
 randomSearchTicket=ticket;
-const myId=getClientToken();
-const deadline=serverNow()+RANDOM_SEARCH_MS;
-setRandomStatus('Rakip bekleniyor…',true);
-
-while(randomSearchActive && randomSearchTicket===ticket && serverNow()<deadline){
-  const now=serverNow();
-  let tx;
-  try{
-    tx=await randomQueueRef.transaction(cur=>{
-      if(!cur || Number(cur.expiresAt||0)<=now){
-        return {ticket,clientId:myId,createdAt:now,expiresAt:now+RANDOM_QUEUE_TTL,claimedBy:null,roomCode:null};
-      }
-      if(cur.clientId===myId && cur.ticket===ticket) return cur;
-      if(cur.clientId!==myId && !cur.claimedBy){
-        return {...cur,claimedBy:myId,claimedAt:now,expiresAt:now+RANDOM_QUEUE_TTL};
-      }
-      return;
-    });
-  }catch(err){
-    console.error('Clean matchmaking transaction error',err);
-    setRandomStatus('Eşleşme sunucusunda hata oluştu.',true);
-    break;
-  }
-
-  if(!randomSearchActive || randomSearchTicket!==ticket) break;
-  if(!tx?.committed){
-    const opportunity=await waitForRandomQueueOpportunity(Math.max(1,deadline-serverNow()));
-    if(!opportunity) break;
-    continue;
-  }
-
-  const q=tx.snapshot.val()||{};
-  if(q.clientId===myId && q.ticket===ticket){
-    try{await randomQueueRef.onDisconnect().remove();}catch(_){}
-    setRandomStatus(q.claimedBy?'Rakip bulundu ✓ Oda hazırlanıyor…':'Rakip bekleniyor…',true);
-    const room=await waitForRandomRoom(ticket,Math.max(1,deadline-serverNow()));
-    if(!randomSearchActive || randomSearchTicket!==ticket) break;
-    if(room){
-      try{await randomQueueRef.onDisconnect().cancel();}catch(_){}
-      releaseRandomSearchLocal();
-      try{await wordDataLoad;}catch(_){}
-      const ok=await joinRoom(room);
-      if(ok){
-        restoreHodriMeydanButton();
-        setRandomStatus('Rakip bulundu ✓ Senkronize ediliyor…',true);
-      }
-      return;
-    }
-    break;
-  }
-
-  if(q.clientId && q.clientId!==myId && q.claimedBy===myId){
-    setRandomStatus('Rakip bulundu ✓ Ortak oda kuruluyor…',true);
-    try{
-      await wordDataLoad;
-      const room=await createRandomMatchedRoom(q.clientId,myId);
-      const queueRef=randomQueueRef;
-      const publish=await queueRef.transaction(cur=>{
-        if(!cur || cur.ticket!==q.ticket || cur.claimedBy!==myId) return;
-        return {...cur,roomCode:room,expiresAt:serverNow()+9000};
-      });
-      if(!publish.committed){
-        try{await mpDb.ref('rooms/'+room).remove();}catch(_){}
-        throw new Error('match-publish-failed');
-      }
-      releaseRandomSearchLocal();
-      const ok=await joinRoom(room);
-      setTimeout(()=>{
-        queueRef.transaction(cur=>cur?.roomCode===room?null:cur).catch(()=>{});
-      },3000);
-      if(ok){
-        restoreHodriMeydanButton();
-        setRandomStatus('Rakip bulundu ✓ Senkronize ediliyor…',true);
-      }
-      return;
-    }catch(err){
-      console.error('Clean random room error',err);
-      setRandomStatus('Eşleşme kurulamadı. Tekrar deneyin.',true);
-      break;
-    }
-  }
+randomOwnEntryRef=randomPoolRef.child(ticket);
+const enteredAt=serverNow();
+const deadline=enteredAt+RANDOM_SEARCH_MS;
+const entry={ticket,clientId:getClientToken(),enteredAt,expiresAt:deadline,state:'waiting'};
+try{
+  await randomOwnEntryRef.set(entry);
+  await randomOwnEntryRef.onDisconnect().remove();
+}catch(err){
+  console.error('Timed pool entry error',err);
+  releaseRandomSearchLocal();
+  restoreHodriMeydanButton();
+  setRandomStatus('Havuza bağlanılamadı. Tekrar deneyin.',true);
+  disconnectFirebaseNetwork(true);
+  return;
 }
-
+setRandomStatus('Rakip bekleniyor…',true);
+const waitPromise=waitForTimedPoolMatch(ticket,deadline,wordDataLoad);
+try{await rebalanceRandomPool();}catch(err){console.error('Timed pool rebalance error',err);}
+const matched=await waitPromise;
+if(matched){
+  releaseRandomSearchLocal();
+  return;
+}
 if(randomSearchTicket===ticket) await cleanupRandomQueue(true);
 restoreHodriMeydanButton();
 if(!mpRoomRef){
