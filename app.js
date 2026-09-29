@@ -482,6 +482,7 @@ let mpRandomMatchSession=false; // v233: rastgele maç kimliği sonuç ekranı k
 let mpSessionJoinedAt=0, mpExitHandling=false, mpLastExitSignalId='';
 let mpListener=null, mpWordsListener=null, mpScoresListener=null, mpServerOffset=0, mpEntered=false, mpStarted=false, mpClock=null;
 let mpScoreSyncTimer=null, mpScoreSyncInFlight=false, mpScoreDesired=null, mpLastConfirmedOwnScore=null;
+let mpWordScoreCommitted=null;
 let mpControlListeners=[];
 let mpStartBusy=false, mpRematchBusy=false, mpPresenceRef=null, mpLastRoomMetaSig='', mpEndResolveTimer=null, mpRematchExpiryTimer=null;
 let mpSeenWordEvents=new Set(), mpLastBeepSecond=null, mpLastResultRenderSig='';
@@ -2705,6 +2706,7 @@ const normalizedWord = word.toLocaleUpperCase('tr-TR');
 const wordKey = encodeURIComponent(normalizedWord).replace(/\./g, '%2E');
 const claimRef = mpRoomRef.child('words').child(wordKey);
 try {
+const nextOwnScore=Math.max(0,getLocalMpScore()+pts);
 const tx = await claimRef.transaction(current => {
 if (current !== null) return;
 return {
@@ -2714,7 +2716,13 @@ path: encodeClaimPath(selectedPath),
 last: selectedPath.length?{r:selectedPath[selectedPath.length-1].r,c:selectedPath[selectedPath.length-1].c}:null,
 at: firebase.database.ServerValue.TIMESTAMP
 };
-});
+}, undefined, false);
+if(tx.committed){
+  // v371: sözcük olayı rakibe ulaşır ulaşmaz skor da tek küçük yazıyla gönderilir.
+  // Beklemiyoruz; yerel oyun akışı ağ RTT'sine takılmaz.
+  mpWordScoreCommitted=nextOwnScore;
+  mpRoomRef.child('scores/'+mpRole).set(nextOwnScore).then(()=>{mpLastConfirmedOwnScore=nextOwnScore;}).catch(()=>{scheduleMpScoreSync();});
+}
 if (!tx.committed) {
 showToast(`${word} (DAHA ÖNCE BULUNDU)`, 'rose', 1500);
 clearPath();
@@ -2857,7 +2865,11 @@ p2Score = Math.max(0, p2Score + p2Delta);
 updateScores();
 if (mpRole) {
 const delta=mpRole==='host'?Number(p1Delta||0):Number(p2Delta||0);
-if(delta) scheduleMpScoreSync();
+if(delta){
+const own=getLocalMpScore();
+if(mpWordScoreCommitted!==null && own===mpWordScoreCommitted){ mpLastConfirmedOwnScore=own; mpWordScoreCommitted=null; }
+else scheduleMpScoreSync();
+}
 }
 }
 
