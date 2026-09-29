@@ -2890,6 +2890,8 @@ badge.title=`${word} sözcüğünün anlamını göster`;
 badge.setAttribute('aria-label',`${word} sözcüğünün anlamını göster`);
 badge.addEventListener('click',(ev)=>{ev.preventDefault();ev.stopPropagation();openFoundWordMeaning(word);});
 ticker.appendChild(badge);
+// v378: yeni sözcük sağda görünür; satır doldukça eski rozetler sola itilip görünümden çıkar.
+requestAnimationFrame(()=>{ticker.scrollLeft=Math.max(0,ticker.scrollWidth-ticker.clientWidth);});
 return badge;
 }
 
