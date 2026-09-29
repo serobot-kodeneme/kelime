@@ -1,7 +1,7 @@
 {
   "name": "KAPMACA - Sözcük Avı",
   "short_name": "KAPMACA",
-  "description": "KAPMACA - Sözcük Avı",
+  "description": "KAPMACA - Sözcük Avı; oynayarak öğrenmeyi destekleyen, Türkçe sözcük üretme, kelime bulma, kelime zekâsı ve hızlı düşünme becerilerini geliştirmeye yönelik eğitsel ve çocuklara uygun ücretsiz bir kelime oyunudur.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -11,7 +11,9 @@
   "lang": "tr",
   "categories": [
     "games",
-    "word"
+    "word",
+    "education",
+    "family"
   ],
   "icons": [
     {
