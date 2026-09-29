@@ -1732,38 +1732,42 @@ difficultyPanel.classList.toggle('hidden', !open);
 soloArrow.style.transform = open ? 'rotate(90deg)' : '';
 }
 let deferredInstallPrompt=null;
-const installBtn=document.getElementById('btn-install-app');
+const installBtns=[
+  document.getElementById('btn-install-google'),
+  document.getElementById('btn-install-apple')
+].filter(Boolean);
 const isStandalone=()=>window.matchMedia?.('(display-mode: standalone)')?.matches || window.navigator.standalone===true;
-function updateInstallButton(){
-  if(!installBtn) return;
-  installBtn.classList.toggle('hidden', isStandalone());
+function updateInstallButtons(){
+  const installed=isStandalone();
+  installBtns.forEach(btn=>btn.classList.toggle('hidden',installed));
 }
 window.addEventListener('beforeinstallprompt',(e)=>{
   e.preventDefault();
   deferredInstallPrompt=e;
-  updateInstallButton();
+  updateInstallButtons();
 });
 window.addEventListener('appinstalled',()=>{
   deferredInstallPrompt=null;
-  updateInstallButton();
+  updateInstallButtons();
   showToast('KAPMACA uygulaması yüklendi.','emerald');
 });
-updateInstallButton();
-installBtn?.addEventListener('click',async()=>{
-  if(isStandalone()){ installBtn.classList.add('hidden'); return; }
+updateInstallButtons();
+async function requestKapmacaInstall(){
+  if(isStandalone()){ updateInstallButtons(); return; }
   if(!deferredInstallPrompt){
     const isiOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
-    showToast(isiOS?'Paylaş menüsü → Ana Ekrana Ekle':'Chrome menüsü → Uygulamayı yükle / Ana ekrana ekle','amber');
+    showToast(isiOS?'Paylaş → Ana Ekrana Ekle ile KAPMACA’yı yükleyebilirsin.':'Tarayıcı menüsü → Uygulamayı yükle / Ana ekrana ekle seçeneğini kullan.','amber');
     return;
   }
   const promptEvent=deferredInstallPrompt;
   deferredInstallPrompt=null;
-  updateInstallButton();
   try{
     await promptEvent.prompt();
     await promptEvent.userChoice;
   }catch(_){}
-});
+  updateInstallButtons();
+}
+installBtns.forEach(btn=>btn.addEventListener('click',requestKapmacaInstall));
 
 document.getElementById('btn-solo-mode').onclick = () => {
 document.getElementById('friend-invite-panel').classList.add('hidden');
