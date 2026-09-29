@@ -1766,63 +1766,6 @@ function setDifficultyOpen(open) {
 difficultyPanel.classList.toggle('hidden', !open);
 soloArrow.style.transform = open ? 'rotate(90deg)' : '';
 }
-let deferredInstallPrompt=null;
-const androidInstallBtn=document.getElementById('btn-install-google');
-const appleInstallBtn=document.getElementById('btn-install-apple');
-const installBtns=[androidInstallBtn,appleInstallBtn].filter(Boolean);
-const isStandalone=()=>window.matchMedia?.('(display-mode: standalone)')?.matches || window.navigator.standalone===true;
-function updateInstallButtons(){
-  const installed=isStandalone();
-  if(appleInstallBtn) appleInstallBtn.disabled=installed;
-}
-window.addEventListener('beforeinstallprompt',(e)=>{
-  e.preventDefault();
-  deferredInstallPrompt=e;
-  updateInstallButtons();
-});
-window.addEventListener('appinstalled',()=>{
-  deferredInstallPrompt=null;
-  updateInstallButtons();
-  showToast('KAPMACA uygulaması yüklendi.','emerald');
-});
-updateInstallButtons();
-async function requestKapmacaInstall(){
-  if(isStandalone()){ updateInstallButtons(); return; }
-  if(!deferredInstallPrompt){
-    const isiOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
-    showToast(isiOS?'Paylaş → Ana Ekrana Ekle ile KAPMACA’yı yükleyebilirsin.':'Tarayıcı menüsü → Uygulamayı yükle / Ana ekrana ekle seçeneğini kullan.','amber');
-    return;
-  }
-  const promptEvent=deferredInstallPrompt;
-  deferredInstallPrompt=null;
-  try{
-    await promptEvent.prompt();
-    await promptEvent.userChoice;
-  }catch(_){}
-  updateInstallButtons();
-}
-const installConfirmModal=document.getElementById('modal-install-confirm');
-const installConfirmYes=document.getElementById('btn-install-confirm-yes');
-const installConfirmClose=document.getElementById('btn-install-confirm-close');
-
-function closeInstallConfirm(){
-  if(installConfirmModal) installConfirmModal.style.display='none';
-}
-function openInstallConfirm(){
-  if(installConfirmModal) installConfirmModal.style.display='flex';
-}
-androidInstallBtn?.addEventListener('click',()=>{
-  window.location.href='./KAPMACA.apk';
-});
-appleInstallBtn?.addEventListener('click',openInstallConfirm);
-installConfirmClose?.addEventListener('click',closeInstallConfirm);
-installConfirmModal?.addEventListener('click',e=>{ if(e.target===installConfirmModal) closeInstallConfirm(); });
-installConfirmYes?.addEventListener('click',async()=>{
-  closeInstallConfirm();
-  await requestKapmacaInstall();
-});
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeInstallConfirm(); });
-
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});
