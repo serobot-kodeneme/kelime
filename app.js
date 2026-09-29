@@ -496,7 +496,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v432';
+const GAME_VERSION='v433';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -535,31 +535,55 @@ let onlineCountCacheValue=null;
 let onlineCountLastQueryAt=0;
 let onlineCountQueryPromise=null;
 let onlineCountLastMessage='';
+let multiplayerStartupBusy=0;
 const ONLINE_COUNT_CACHE_MS=60000;
-function loadExternalScriptOnce(src,id){
-  const existing=document.getElementById(id);
-  if(existing){
-    if(existing.dataset.loaded==='1') return Promise.resolve(true);
-    return new Promise((resolve,reject)=>{
-      existing.addEventListener('load',()=>resolve(true),{once:true});
-      existing.addEventListener('error',reject,{once:true});
-    });
-  }
+function beginMultiplayerStartup(){multiplayerStartupBusy++;}
+function endMultiplayerStartup(){multiplayerStartupBusy=Math.max(0,multiplayerStartupBusy-1);}
+function loadExternalScriptOnce(src,id,timeoutMs=8000){
+  let existing=document.getElementById(id);
+  if(existing?.dataset.loaded==='1') return Promise.resolve(true);
+  if(existing?.dataset.failed==='1'){try{existing.remove();}catch(_){} existing=null;}
   return new Promise((resolve,reject)=>{
-    const script=document.createElement('script');
-    script.id=id; script.src=src; script.async=true;
-    script.onload=()=>{script.dataset.loaded='1';resolve(true);};
-    script.onerror=reject;
-    document.head.appendChild(script);
+    const script=existing||document.createElement('script');
+    let done=false;
+    const onLoad=()=>finish(true);
+    const onError=()=>finish(false,new Error('script-load-error'));
+    const finish=(ok,err)=>{
+      if(done) return;
+      done=true;
+      clearTimeout(timer);
+      script.removeEventListener('load',onLoad);
+      script.removeEventListener('error',onError);
+      if(ok){script.dataset.loaded='1';delete script.dataset.failed;resolve(true);return;}
+      script.dataset.failed='1';
+      try{script.remove();}catch(_){}
+      reject(err||new Error('script-load-failed'));
+    };
+    script.addEventListener('load',onLoad,{once:true});
+    script.addEventListener('error',onError,{once:true});
+    const timer=setTimeout(()=>finish(false,new Error('script-load-timeout')),timeoutMs);
+    if(!existing){
+      script.id=id;
+      script.src=src;
+      script.async=true;
+      document.head.appendChild(script);
+    }
   });
 }
 function ensureFirebaseSdkLoaded(){
   if(window.firebase?.database) return Promise.resolve(true);
   if(firebaseSdkPromise) return firebaseSdkPromise;
   firebaseSdkPromise=(async()=>{
-    await loadExternalScriptOnce('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js','kapmaca-firebase-app');
-    await loadExternalScriptOnce('https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js','kapmaca-firebase-db');
-    return !!window.firebase?.database;
+    let lastError=null;
+    for(let attempt=0;attempt<2;attempt++){
+      try{
+        await loadExternalScriptOnce('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js','kapmaca-firebase-app');
+        await loadExternalScriptOnce('https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js','kapmaca-firebase-db');
+        if(window.firebase?.database) return true;
+      }catch(err){lastError=err;}
+    }
+    if(lastError) throw lastError;
+    return false;
   })().catch(err=>{
     firebaseSdkPromise=null;
     console.error('Firebase SDK yüklenemedi',err);
@@ -669,7 +693,7 @@ setOnlineCountStatus(`Şu an ${count} kişi çevrimiçi`);
 onlineCountCacheValue=null;
 setOnlineCountStatus('Çevrimiçi sayısı şu an alınamadı. 1 dakika sonra tekrar deneyin.','error');
 }finally{
-if(!keepConnection&&!mpRoomRef&&!randomSearchActive&&!globalOnlinePresenceRef) disconnectFirebaseNetwork();
+if(!keepConnection&&!mpRoomRef&&!randomSearchActive&&!globalOnlinePresenceRef&&multiplayerStartupBusy===0) disconnectFirebaseNetwork();
 }
 })().finally(()=>{onlineCountQueryPromise=null;});
 return onlineCountQueryPromise;
@@ -922,15 +946,21 @@ const wordDataLoad=ensureWordDataLoaded();
 const btn=document.getElementById('btn-random-match');
 if(btn){ btn.disabled=true; btn.textContent='RAKİP ARANIYOR…'; }
 setRandomStatus('Çevrimiçi rakip aranıyor…',true);
-if(!await waitFirebaseConnected()){
+beginMultiplayerStartup();
+let connected=false;
+try{connected=await waitFirebaseConnected();}catch(_){connected=false;}
+if(!connected){
+endMultiplayerStartup();
 restoreHodriMeydanButton();
 setRandomStatus('Sunucuya bağlanılamadı.',true);
 disconnectFirebaseNetwork();
 return;
 }
-await registerGlobalOnlinePresence();
 randomSearchActive=true;
 randomQueueRef=mpDb.ref('matchmaking/random/waiting');
+endMultiplayerStartup();
+// Çevrimiçi görünme eşleşmenin ön koşulu değildir; arka planda kaydolur.
+registerGlobalOnlinePresence().catch(()=>{});
 const ticket=randomTicket();
 randomSearchTicket=ticket;
 const myId=getClientToken(), started=serverNow(), deadline=started+RANDOM_SEARCH_MS;
@@ -1025,23 +1055,40 @@ if(left>0){
 showToast(`Yeni oda oluşturmak için ${Math.ceil(left/1000)} saniye bekleyin.`,'slate');
 return false;
 }
-safeStorageSet('local','kd_last_room_create_at',String(now));
 return true;
+}
+function markPrivateRoomCreated(){
+safeStorageSet('local','kd_last_room_create_at',String(Date.now()));
 }
 async function createRoom(){
 if(privateRoomCreateBusy) return;
 if(!canCreatePrivateRoom()) return;
 privateRoomCreateBusy=true;
+beginMultiplayerStartup();
+let roomCreated=false;
+try{
 const wordDataLoad=ensureWordDataLoaded();
-if(!await waitFirebaseConnected()){ privateRoomCreateBusy=false; showToast('Sunucuya bağlanılamadı. İnternet bağlantını kontrol et.','rose'); disconnectFirebaseNetwork(); return; }
-try{ await wordDataLoad; }catch(_){ privateRoomCreateBusy=false; showToast('Oyun sözlüğü yüklenemedi. Tekrar deneyin.','rose'); return; }
+let connected=false;
+try{connected=await waitFirebaseConnected();}catch(_){connected=false;}
+if(!connected){
+showToast('Sunucuya bağlanılamadı. İnternet bağlantını kontrol et.','rose');
+disconnectFirebaseNetwork();
+return;
+}
+try{await wordDataLoad;}catch(_){
+showToast('Oyun sözlüğü yüklenemedi. Tekrar deneyin.','rose');
+return;
+}
 let alloc;
-try{ alloc=await allocateDailyRoomCode(); }
-catch(e){ privateRoomCreateBusy=false; showToast('Günlük oda kodu oluşturulamadı. Tekrar dene.','rose'); return; }
+try{alloc=await allocateDailyRoomCode();}
+catch(_){
+showToast('Günlük oda kodu oluşturulamadı. Tekrar dene.','rose');
+return;
+}
 const code=alloc.code, ref=mpDb.ref('rooms/'+code);
-
 const hostId=getClientToken();
 const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board, readyBoard.words);
+try{
 await ref.set({
 schema:21, mode:'invite-only-v5', createdAt:firebase.database.ServerValue.TIMESTAMP,
 dayKey:alloc.dayKey,
@@ -1051,14 +1098,25 @@ scores:{host:0,guest:0}, words:{}, longestBonus:null, bonusApplied:false,
 endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0}, pendingRound:null, invite:{guest:'pending',expiresAt:0},
 presence:{host:{online:true,clientId:hostId},guest:{online:false}}, ready:{host:false,guest:false}
 });
-
+}catch(err){
+console.error('Private room create error',err);
+showToast('Oda oluşturulamadı. Tekrar dene.','rose');
+return;
+}
+markPrivateRoomCreated();
 mpRoomCode=code; mpRole='host'; mpRoomRef=ref; mpRoomMode='invite-only-v5'; mpRandomMatchSession=false; delete document.body.dataset.randomMatchActive; document.body.dataset.privateFriendActive='1'; mpRoomData=null; mpEntered=false; mpStarted=false; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId='';
-setRoomUrl(code); await markPresence();
+setRoomUrl(code);
+try{await markPresence();}catch(err){console.warn('Private room presence retry',err);}
 setMpPanelRoom(code);
 document.getElementById('btn-close-room')?.classList.remove('hidden');
 setMpState(MP_STATES.WAITING);
 attachRoomListener();
+roomCreated=true;
+}finally{
+endMultiplayerStartup();
 privateRoomCreateBusy=false;
+if(!roomCreated&&!mpRoomRef&&!randomSearchActive&&!globalOnlinePresenceRef) disconnectFirebaseNetwork();
+}
 }
 
 let inviteDecisionTimer=null;
