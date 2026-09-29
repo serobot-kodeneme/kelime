@@ -1696,7 +1696,7 @@ document.getElementById('modal-mp-waiting')?.classList.add('hidden');
 document.getElementById('screen-game')?.classList.add('hidden');
 document.getElementById('screen-home')?.classList.remove('hidden');
 document.getElementById('friend-invite-panel')?.classList.add('hidden');
-setInstallLinksOpen(false);
+
 document.getElementById('bot-settings-panel')?.classList.add('hidden');
 const soloArrowHome=document.getElementById('solo-arrow'); if(soloArrowHome) soloArrowHome.style.transform='';
 document.getElementById('mp-room-view')?.classList.add('hidden');
@@ -1738,15 +1738,9 @@ const installBtns=[
   document.getElementById('btn-install-apple')
 ].filter(Boolean);
 const isStandalone=()=>window.matchMedia?.('(display-mode: standalone)')?.matches || window.navigator.standalone===true;
-const installLinks=document.getElementById('store-download-links');
-function setInstallLinksOpen(open){
-  if(!installLinks) return;
-  const show=open && !isStandalone();
-  installLinks.classList.toggle('hidden',!show);
-  installLinks.classList.toggle('flex',show);
-}
 function updateInstallButtons(){
-  if(isStandalone()) setInstallLinksOpen(false);
+  const installed=isStandalone();
+  installBtns.forEach(btn=>btn.disabled=installed);
 }
 window.addEventListener('beforeinstallprompt',(e)=>{
   e.preventDefault();
@@ -1790,14 +1784,14 @@ if(willOpen){
 // Önceki bir oturumdan bağlantı kalmışsa menü nötr durumda açılır.
 if(!mpRoomRef && !randomSearchActive) disconnectFirebaseNetwork();
 panel?.classList.remove('hidden');
-setInstallLinksOpen(true);
+
 document.getElementById('mp-create-view')?.classList.remove('hidden');
 document.getElementById('mp-room-view')?.classList.add('hidden');
 }else{
 if(mpRoomRef && mpRole) await requestSynchronizedRoomExit('player-exit');
 else if(randomSearchActive) await cleanupRandomQueue(true);
 panel?.classList.add('hidden');
-setInstallLinksOpen(false);
+
 disconnectFirebaseNetwork();
 }
 };
@@ -1805,7 +1799,7 @@ document.getElementById('btn-close-friend').onclick = async() => {
 if(mpRoomRef && mpRole) await requestSynchronizedRoomExit('player-exit');
 else if(randomSearchActive) await cleanupRandomQueue(true);
 document.getElementById('friend-invite-panel').classList.add('hidden');
-setInstallLinksOpen(false);
+
 disconnectFirebaseNetwork();
 };
 document.getElementById('btn-create-room')?.addEventListener('click',openFreshPrivateRoom);
@@ -1874,7 +1868,7 @@ if(!code) return;
 document.getElementById('screen-home')?.classList.add('hidden');
 document.getElementById('screen-game')?.classList.add('hidden');
 document.getElementById('friend-invite-panel')?.classList.add('hidden');
-setInstallLinksOpen(false);
+
 setDifficultyOpen(false);
 document.body.dataset.inviteFastEntry='1';
 const ok=await joinRoom(code);
