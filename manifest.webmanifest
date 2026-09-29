@@ -1,7 +1,7 @@
 {
-  "name": "KAPMACA — Türkçe Sözcük Keşif ve Öğrenme Aracı",
+  "name": "KAPMACA - Sözcük Avı",
   "short_name": "KAPMACA",
-  "description": "Türkçe sözcük dağarcığını geliştirmeyi ve yeni sözcükler keşfetmeyi destekleyen etkileşimli öğrenme aracı.",
+  "description": "KAPMACA - Sözcük Avı",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
