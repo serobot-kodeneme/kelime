@@ -1767,14 +1767,13 @@ difficultyPanel.classList.toggle('hidden', !open);
 soloArrow.style.transform = open ? 'rotate(90deg)' : '';
 }
 let deferredInstallPrompt=null;
-const installBtns=[
-  document.getElementById('btn-install-google'),
-  document.getElementById('btn-install-apple')
-].filter(Boolean);
+const androidInstallBtn=document.getElementById('btn-install-google');
+const appleInstallBtn=document.getElementById('btn-install-apple');
+const installBtns=[androidInstallBtn,appleInstallBtn].filter(Boolean);
 const isStandalone=()=>window.matchMedia?.('(display-mode: standalone)')?.matches || window.navigator.standalone===true;
 function updateInstallButtons(){
   const installed=isStandalone();
-  installBtns.forEach(btn=>btn.disabled=installed);
+  if(appleInstallBtn) appleInstallBtn.disabled=installed;
 }
 window.addEventListener('beforeinstallprompt',(e)=>{
   e.preventDefault();
@@ -1812,7 +1811,10 @@ function closeInstallConfirm(){
 function openInstallConfirm(){
   if(installConfirmModal) installConfirmModal.style.display='flex';
 }
-installBtns.forEach(btn=>btn.addEventListener('click',openInstallConfirm));
+androidInstallBtn?.addEventListener('click',()=>{
+  window.location.href='./KAPMACA.apk';
+});
+appleInstallBtn?.addEventListener('click',openInstallConfirm);
 installConfirmClose?.addEventListener('click',closeInstallConfirm);
 installConfirmModal?.addEventListener('click',e=>{ if(e.target===installConfirmModal) closeInstallConfirm(); });
 installConfirmYes?.addEventListener('click',async()=>{
