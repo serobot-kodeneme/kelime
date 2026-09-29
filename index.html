@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <title>KAPMACA - Sözcük Avı</title>
-<meta name="game-version" content="v391">
+<meta name="game-version" content="v392">
 <meta name="description" content="KAPMACA, Türkçe sözcük dağarcığını geliştirmeyi, sözcükleri hızlı tanımayı ve yeni sözcükler keşfetmeyi destekleyen ücretsiz etkileşimli sözcük öğrenme aracıdır. Tek başına çalış veya arkadaşınla yarış.">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="theme-color" content="#075458">
@@ -3461,14 +3461,20 @@ button,a,[role="button"],.dict-word-button,.found-word-badge{cursor:pointer;}
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  margin-left:4px;
-  padding:2px 6px 3px;
+  width:clamp(27px,9.9vw,47px);
+  height:clamp(27px,9.9vw,47px);
+  margin-left:2px;
+  padding:0;
+  border:1px solid #991b1b;
   border-radius:8px;
   background:#dc0000!important;
   color:#fff!important;
-  box-shadow:0 2px 0 #7f1d1d,0 3px 8px rgba(127,29,29,.35);
+  font-size:clamp(16px,4vw,23px);
+  font-weight:900;
+  letter-spacing:-1px;
+  box-shadow:0 3px 0 #991b1b,inset 0 1px 0 rgba(255,255,255,.22),0 7px 13px rgba(127,29,29,.28);
   text-shadow:none!important;
-  transform:translateY(-1px);
+  transform:translateY(10px) rotate(11deg)!important;
 }
 </style>
 
@@ -3694,7 +3700,7 @@ button,a,[role="button"],.dict-word-button,.found-word-badge{cursor:pointer;}
 <div class="sound-step-marks" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
 <label class="sound-mute-row" for="sound-muted"><input id="sound-muted" type="checkbox"> Sessiz</label>
 </div>
-<div class="mt-2 text-center text-[10px] font-black text-slate-400">v391</div>
+<div class="mt-2 text-center text-[10px] font-black text-slate-400">v392</div>
 </div>
 </div>
 </div>
@@ -3882,7 +3888,7 @@ button,a,[role="button"],.dict-word-button,.found-word-badge{cursor:pointer;}
 </div>
 </div>
 
-<script src="app.js?v=391"></script>
+<script src="app.js?v=392"></script>
 
 </body>
 </html>
