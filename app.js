@@ -1200,7 +1200,7 @@ if(exitBtn){
 exitBtn.classList.remove('hidden');
 exitBtn.style.setProperty('display','flex','important');
 exitBtn.disabled=false;
-exitBtn.className='w-full mt-2 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-black text-xs py-2.5 rounded-xl uppercase shadow-md transition';
+exitBtn.className='w-full bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 active:scale-[0.97] text-white font-black text-xs py-3 rounded-2xl uppercase shadow-lg transition';
 exitBtn.textContent='ÇIKIŞ';
 }
 if(inline){inline.classList.add('hidden');inline.textContent='';}
@@ -1221,7 +1221,7 @@ const st=document.getElementById('rematch-inline-status');
 if(!btn||!st) return;
 if(requested){
 btn.disabled=true; btn.textContent='YENİ OYUN HAZIRLANIYOR…'; btn.classList.remove('rematch-pulse');
-st.classList.remove('hidden'); st.textContent='Yeni tahta hazırlanıyor…';
+st.classList.remove('hidden'); st.textContent='Yeni oyun başlıyor…';
 }else{
 btn.disabled=false; btn.textContent='YENİDEN OYNA'; btn.classList.add('rematch-pulse');
 st.classList.add('hidden'); st.textContent='';
@@ -3240,8 +3240,8 @@ const finished=await waitUntilRoomFinished();
 if(!finished) throw new Error('room-not-finished');
 if(!mpRoomRef || !mpRole) throw new Error('room-missing');
 
-// v233: Özel odada ilk YENİDEN OYNA basışı yeterlidir.
-// Host/guest rolleri değişmez; host yeni ve farklı tahtayı hazırlayıp aynı iki oyuncuyla başlatır.
+// v390: Özel odada HOST veya GUEST fark etmez; ilk YENİDEN OYNA tıklaması yeterlidir.
+// İkinci oyuncudan onay beklenmez. Host, isteği Firebase'de görür görmez yeni turu başlatır.
 const role=mpRole;
 const rematchRef=mpRoomRef.child('rematch');
 const res=await rematchRef.transaction(current=>{

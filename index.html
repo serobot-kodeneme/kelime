@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <title>KAPMACA — Türkçe Sözcük Keşif ve Öğrenme Aracı</title>
-<meta name="game-version" content="v389">
+<meta name="game-version" content="v390">
 <meta name="description" content="KAPMACA, Türkçe sözcük dağarcığını geliştirmeyi, sözcükleri hızlı tanımayı ve yeni sözcükler keşfetmeyi destekleyen ücretsiz etkileşimli sözcük öğrenme aracıdır. Tek başına çalış veya arkadaşınla yarış.">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="theme-color" content="#075458">
@@ -2355,6 +2355,60 @@ body {
 @keyframes kdPremiumVictory{0%{transform:scale(.96);filter:brightness(.96)}55%{transform:scale(1.045);filter:brightness(1.08)}100%{transform:scale(1);filter:brightness(1)}}
 .victory-avatar-crown{animation:kdCrownSettle .7s cubic-bezier(.16,.84,.3,1) both!important;}
 @keyframes kdCrownSettle{0%{opacity:0;transform:translateX(-50%) translateY(-20px) scale(.65) rotate(-12deg)}70%{opacity:1;transform:translateX(-50%) translateY(2px) scale(1.1) rotate(3deg)}100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1) rotate(-5deg)}}
+
+/* v390: sonuç ekranı tek-tık aksiyonları */
+#gameover-actions{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:10px;
+  align-items:stretch;
+}
+#gameover-actions #btn-play-again,
+#gameover-actions #btn-game-exit{
+  min-height:50px;
+  margin:0!important;
+  border-radius:16px!important;
+  font-size:12px!important;
+  letter-spacing:.035em;
+  box-shadow:0 7px 16px rgba(15,23,42,.16);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+}
+#gameover-actions #btn-play-again{
+  background:linear-gradient(135deg,#facc15,#fb923c)!important;
+  color:#422006!important;
+  border:1px solid rgba(253,186,116,.9);
+}
+#gameover-actions #btn-play-again::before{
+  content:"↻";
+  font-size:20px;
+  line-height:1;
+  font-weight:900;
+}
+#gameover-actions #btn-game-exit{
+  background:linear-gradient(135deg,#fb7185,#dc2626)!important;
+  color:white!important;
+  border:1px solid rgba(254,205,211,.72);
+}
+#gameover-actions #btn-game-exit::before{
+  content:"×";
+  font-size:21px;
+  line-height:1;
+  font-weight:900;
+}
+#gameover-actions #rematch-inline-status{
+  grid-column:1 / -1;
+  margin-top:0!important;
+}
+#gameover-actions button:active{transform:translateY(2px) scale(.98);}
+@media(max-width:360px){
+  #gameover-actions{gap:7px;}
+  #gameover-actions #btn-play-again,
+  #gameover-actions #btn-game-exit{font-size:10.5px!important;min-height:46px;}
+}
+
 </style>
 
 <style>
@@ -3629,7 +3683,7 @@ button,a,[role="button"],.dict-word-button,.found-word-badge{cursor:pointer;}
 <div class="sound-step-marks" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
 <label class="sound-mute-row" for="sound-muted"><input id="sound-muted" type="checkbox"> Sessiz</label>
 </div>
-<div class="mt-2 text-center text-[10px] font-black text-slate-400">v389</div>
+<div class="mt-2 text-center text-[10px] font-black text-slate-400">v390</div>
 </div>
 </div>
 </div>
@@ -3809,15 +3863,15 @@ button,a,[role="button"],.dict-word-button,.found-word-badge{cursor:pointer;}
 </div>
 <div id="random-auto-exit-note" role="status" aria-live="polite" style="display:none;width:100%;margin:2px 0 8px;padding:10px 12px;border-radius:14px;background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3;font-size:11px;font-weight:900;letter-spacing:.045em;text-align:center;">3 SANİYE İÇİNDE ÇIKIŞ YAPILACAK</div>
 <div id="gameover-actions" class="w-full">
-<button id="btn-play-again" onclick="handlePlayAgain()" class="w-full bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 text-amber-950 font-black text-xs py-2.5 rounded-xl uppercase shadow-md">YENİDEN OYNA</button>
+<button id="btn-play-again" onclick="handlePlayAgain()" class="w-full font-black uppercase transition" title="Tek tıkla yeni oyunu başlat">YENİDEN OYNA</button>
 <div id="rematch-inline-status" class="hidden mt-2 w-full rounded-xl bg-slate-100 border border-slate-200 px-3 py-2 text-[11px] font-bold text-slate-600">Rakip bekleniyor…</div>
-<button id="btn-game-exit" class="w-full mt-2 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-black text-xs py-2.5 rounded-xl uppercase shadow-md transition">ÇIKIŞ</button>
+<button id="btn-game-exit" class="w-full font-black uppercase transition" title="Tek tıkla odayı kapat">ÇIKIŞ</button>
 </div>
 </div>
 </div>
 </div>
 
-<script src="app.js?v=389"></script>
+<script src="app.js?v=390"></script>
 
 </body>
 </html>
