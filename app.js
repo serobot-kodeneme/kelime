@@ -508,7 +508,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v441';
+const GAME_VERSION='v442';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -957,28 +957,21 @@ async function rebalanceRandomPool(){
 if(!randomPoolRef) return;
 await randomPoolRef.transaction(cur=>pairWaitingEntries(cur,serverNow()));
 }
-async function cleanupRandomQueue(onlyIfMine=true){
+async function cleanupRandomQueue(){
 const poolRef=randomPoolRef;
 const ownRef=randomOwnEntryRef;
-const ticket=randomSearchTicket;
-if(randomWaitCancel){const cancel=randomWaitCancel;randomWaitCancel=null;try{cancel();}catch(_){}}
-if(ownRef && randomOwnListener){try{ownRef.off('value',randomOwnListener);}catch(_){}}
+if(randomWaitCancel){
+  const cancel=randomWaitCancel;
+  randomWaitCancel=null;
+  try{cancel();}catch(_){}
+}
+if(poolRef && randomOwnListener){
+  try{poolRef.off('value',randomOwnListener);}catch(_){}
+}
 randomOwnListener=null;
-if(ownRef){try{await ownRef.onDisconnect().cancel();}catch(_){}}
-if(poolRef && ticket){
-  try{
-    await poolRef.transaction(cur=>{
-      if(!cur || !cur[ticket]) return cur;
-      const mine=cur[ticket];
-      const peerTicket=mine.peerTicket;
-      const hadRoom=!!mine.roomCode;
-      delete cur[ticket];
-      if(!hadRoom && peerTicket && cur[peerTicket] && cur[peerTicket].peerTicket===ticket){
-        normalizePoolEntryWaiting(cur[peerTicket]);
-      }
-      return pairWaitingEntries(cur,serverNow());
-    });
-  }catch(_){}
+if(ownRef){
+  try{await ownRef.onDisconnect().cancel();}catch(_){}
+  try{await ownRef.remove();}catch(_){}
 }
 releaseRandomSearchLocal();
 restoreHodriMeydanButton();
@@ -1011,13 +1004,14 @@ return true;
 }
 function waitForTimedPoolMatch(ticket,deadline,wordDataLoad){
 return new Promise(resolve=>{
-let done=false, timer=null;
-const finish=async(ok)=>{
+let done=false;
+let timer=null;
+const finish=ok=>{
   if(done) return;
   done=true;
   if(timer) clearTimeout(timer);
-  if(randomOwnEntryRef && randomOwnListener){
-    try{randomOwnEntryRef.off('value',randomOwnListener);}catch(_){}
+  if(randomPoolRef && randomOwnListener){
+    try{randomPoolRef.off('value',randomOwnListener);}catch(_){}
   }
   randomOwnListener=null;
   if(randomWaitCancel===cancel) randomWaitCancel=null;
@@ -1025,52 +1019,77 @@ const finish=async(ok)=>{
 };
 const cancel=()=>finish(false);
 randomWaitCancel=cancel;
+
 randomOwnListener=async snap=>{
   if(done || !randomSearchActive || randomSearchTicket!==ticket) return;
-  const entry=snap.val();
-  if(!entry) return;
-  if(entry.state==='paired' || entry.state==='ready'){
-    setRandomStatus(entry.roomCode?'Rakip bulundu ✓ Senkronize ediliyor…':'Rakip bulundu ✓ Oda hazırlanıyor…',true);
-    if(entry.role==='host' && !entry.roomCode && !randomPairRoomBusy){
-      randomPairRoomBusy=true;
-      try{
-        await wordDataLoad;
-        const room=await createRandomMatchedRoom(entry.clientId,entry.peerClientId);
-        if(!randomSearchActive || randomSearchTicket!==ticket){
-          try{await mpDb.ref('rooms/'+room).remove();}catch(_){}
-          return finish(false);
-        }
-        await publishRandomRoom(ticket,entry,room);
-      }catch(err){
-        console.error('Timed pool host room error',err);
-        randomPairRoomBusy=false;
-        try{
-          await randomPoolRef.transaction(cur=>{
-            if(!cur) return cur;
-            if(cur[ticket] && !cur[ticket].roomCode) normalizePoolEntryWaiting(cur[ticket]);
-            if(entry.peerTicket && cur[entry.peerTicket] && !cur[entry.peerTicket].roomCode) normalizePoolEntryWaiting(cur[entry.peerTicket]);
-            return pairWaitingEntries(cur,serverNow());
-          });
-        }catch(_){}
-        setRandomStatus('Eşleşme yeniden deneniyor…',true);
-      }
+  const now=serverNow();
+  const raw=snap.val()||{};
+  const entries=Object.entries(raw)
+    .map(([key,value])=>({ticket:key,...(value||{})}))
+    .filter(e=>Number(e.enteredAt||0)>0 && Number(e.enteredAt||0)+RANDOM_QUEUE_TTL>now)
+    .sort((a,b)=>{
+      const dt=Number(a.enteredAt||0)-Number(b.enteredAt||0);
+      return dt || String(a.ticket).localeCompare(String(b.ticket));
+    });
+
+  const idx=entries.findIndex(e=>e.ticket===ticket);
+  if(idx<0) return;
+
+  const mateIndex=(idx%2===0)?idx+1:idx-1;
+  if(mateIndex<0 || mateIndex>=entries.length){
+    setRandomStatus('Rakip bekleniyor… Sıra: '+(idx+1),true);
+    return;
+  }
+
+  const host=entries[Math.min(idx,mateIndex)];
+  const guest=entries[Math.max(idx,mateIndex)];
+  const role=(ticket===host.ticket)?'host':'guest';
+  const mine=entries[idx];
+  const roleLabel=role==='host'?'1. oyuncu (HOST)':'2. oyuncu (GUEST)';
+
+  if(mine.roomCode){
+    setRandomStatus('Rakip bulundu ✓ '+roleLabel+' ✓ Senkronize ediliyor…',true);
+    if(randomJoinBusy) return;
+    randomJoinBusy=true;
+    try{await wordDataLoad;}catch(_){}
+    const ok=await joinRoom(String(mine.roomCode));
+    if(ok){
+      try{await randomOwnEntryRef?.onDisconnect().cancel();}catch(_){}
+      try{await randomOwnEntryRef?.remove();}catch(_){}
+      restoreHodriMeydanButton();
+      finish(true);
+      return;
     }
-    if(entry.roomCode && !randomJoinBusy){
-      randomJoinBusy=true;
-      try{await wordDataLoad;}catch(_){}
-      const room=String(entry.roomCode);
-      const ok=await joinRoom(room);
-      if(ok){
-        try{await randomOwnEntryRef?.onDisconnect().cancel();}catch(_){}
-        try{await randomOwnEntryRef?.remove();}catch(_){}
-        restoreHodriMeydanButton();
-        return finish(true);
+    randomJoinBusy=false;
+    return;
+  }
+
+  setRandomStatus('Rakip bulundu ✓ '+roleLabel+' ✓ Oda hazırlanıyor…',true);
+
+  if(role==='host' && !randomPairRoomBusy){
+    randomPairRoomBusy=true;
+    try{
+      await wordDataLoad;
+      const room=await createRandomMatchedRoom(host.clientId,guest.clientId);
+      if(!randomSearchActive || randomSearchTicket!==ticket){
+        try{await mpDb.ref('rooms/'+room).remove();}catch(_){}
+        return finish(false);
       }
-      randomJoinBusy=false;
+      const updates={};
+      updates[host.ticket+'/roomCode']=room;
+      updates[guest.ticket+'/roomCode']=room;
+      updates[host.ticket+'/role']='host';
+      updates[guest.ticket+'/role']='guest';
+      await randomPoolRef.update(updates);
+    }catch(err){
+      console.error('Hodri room create error',err);
+      randomPairRoomBusy=false;
+      setRandomStatus('Eşleşme yeniden deneniyor…',true);
     }
   }
 };
-randomOwnEntryRef.on('value',randomOwnListener);
+
+randomPoolRef.on('value',randomOwnListener);
 timer=setTimeout(()=>finish(false),Math.max(1,deadline-serverNow()));
 });
 }
@@ -1080,6 +1099,7 @@ const btn=document.getElementById('btn-random-match');
 if(btn){btn.disabled=true;btn.textContent='RAKİP ARANIYOR…';}
 setRandomStatus('Sunucuya bağlanılıyor…',true);
 const wordDataLoad=ensureWordDataLoaded();
+
 if(!await waitFirebaseConnected(8000)){
   restoreHodriMeydanButton();
   setRandomStatus('Sunucuya bağlanılamadı. Tekrar deneyin.',true);
@@ -1087,38 +1107,49 @@ if(!await waitFirebaseConnected(8000)){
   disconnectFirebaseNetwork(true);
   return;
 }
+
 registerGlobalOnlinePresence().catch(()=>{});
 randomSearchActive=true;
 randomPairRoomBusy=false;
 randomJoinBusy=false;
 randomPoolRef=mpDb.ref('matchmaking/randomPool');
+
 const ticket=randomTicket();
 randomSearchTicket=ticket;
 randomOwnEntryRef=randomPoolRef.child(ticket);
-const enteredAt=serverNow();
-const deadline=enteredAt+RANDOM_SEARCH_MS;
-const entry={ticket,clientId:getClientToken(),enteredAt,expiresAt:deadline,state:'waiting'};
+
 try{
-  await randomOwnEntryRef.set(entry);
+  await randomOwnEntryRef.set({
+    ticket,
+    clientId:getClientToken(),
+    enteredAt:firebase.database.ServerValue.TIMESTAMP
+  });
   await randomOwnEntryRef.onDisconnect().remove();
 }catch(err){
-  console.error('Timed pool entry error',err);
+  console.error('Hodri pool entry error',err);
   releaseRandomSearchLocal();
   restoreHodriMeydanButton();
   setRandomStatus('Havuza bağlanılamadı. Tekrar deneyin.',true);
   disconnectFirebaseNetwork(true);
   return;
 }
-setRandomStatus('Rakip bekleniyor…',true);
-const waitPromise=waitForTimedPoolMatch(ticket,deadline,wordDataLoad);
-try{await rebalanceRandomPool();}catch(err){console.error('Timed pool rebalance error',err);}
-const matched=await waitPromise;
+
+let enteredAt=serverNow();
+try{
+  const ownSnap=await randomOwnEntryRef.once('value');
+  enteredAt=Number(ownSnap.val()?.enteredAt||enteredAt);
+}catch(_){}
+
+const deadline=enteredAt+RANDOM_SEARCH_MS;
+setRandomStatus('Rakip bekleniyor… Sıra: 1',true);
+const matched=await waitForTimedPoolMatch(ticket,deadline,wordDataLoad);
+
 if(matched){
   releaseRandomSearchLocal();
   return;
 }
-if(randomSearchTicket===ticket) await cleanupRandomQueue(true);
-restoreHodriMeydanButton();
+
+if(randomSearchTicket===ticket) await cleanupRandomQueue();
 if(!mpRoomRef){
   setRandomStatus('45 saniye içinde rakip bulunamadı.',true);
   showToast('Rakip bulunamadı. Tekrar deneyebilirsin.','slate');
