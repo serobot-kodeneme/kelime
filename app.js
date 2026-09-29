@@ -1766,6 +1766,33 @@ function setDifficultyOpen(open) {
 difficultyPanel.classList.toggle('hidden', !open);
 soloArrow.style.transform = open ? 'rotate(90deg)' : '';
 }
+let deferredShortcutPrompt=null;
+window.addEventListener('beforeinstallprompt',(e)=>{
+  e.preventDefault();
+  deferredShortcutPrompt=e;
+});
+window.addEventListener('appinstalled',()=>{
+  deferredShortcutPrompt=null;
+  showToast('KAPMACA kısayolu eklendi.','emerald');
+});
+document.getElementById('btn-add-shortcut')?.addEventListener('click',async()=>{
+  if(window.matchMedia?.('(display-mode: standalone)')?.matches || window.navigator.standalone===true){
+    showToast('KAPMACA zaten ana ekranda.','emerald');
+    return;
+  }
+  if(deferredShortcutPrompt){
+    const promptEvent=deferredShortcutPrompt;
+    deferredShortcutPrompt=null;
+    try{
+      await promptEvent.prompt();
+      await promptEvent.userChoice;
+    }catch(_){}
+    return;
+  }
+  const isiOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı menüsü → Ana ekrana ekle / Uygulamayı yükle seçeneğini kullan.','amber');
+});
+
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});
