@@ -1802,7 +1802,26 @@ async function requestKapmacaInstall(){
   }catch(_){}
   updateInstallButtons();
 }
-installBtns.forEach(btn=>btn.addEventListener('click',requestKapmacaInstall));
+const installConfirmModal=document.getElementById('modal-install-confirm');
+const installConfirmYes=document.getElementById('btn-install-confirm-yes');
+const installConfirmClose=document.getElementById('btn-install-confirm-close');
+
+function closeInstallConfirm(){
+  installConfirmModal?.classList.add('hidden');
+  installConfirmModal?.classList.remove('flex');
+}
+function openInstallConfirm(){
+  installConfirmModal?.classList.remove('hidden');
+  installConfirmModal?.classList.add('flex');
+}
+installBtns.forEach(btn=>btn.addEventListener('click',openInstallConfirm));
+installConfirmClose?.addEventListener('click',closeInstallConfirm);
+installConfirmModal?.addEventListener('click',e=>{ if(e.target===installConfirmModal) closeInstallConfirm(); });
+installConfirmYes?.addEventListener('click',async()=>{
+  closeInstallConfirm();
+  await requestKapmacaInstall();
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeInstallConfirm(); });
 
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
