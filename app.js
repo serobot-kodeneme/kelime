@@ -585,7 +585,7 @@ try{ return !!(await mpDb.ref('meta/closedRoomCodes/'+dayKey+'/'+code).once('val
 }
 async function closeAndLockPrivateRoom(ref,code,reason='closed'){
 if(!ref || !code) return;
-await lockClosedRoomCode(code,ref,reason);
+// v366: kapatılan özel oda sunucuda kalmaz; eski URL yalnızca bulunamayan oda olur.
 try{ await ref.remove(); }catch(_){ }
 }
 function stopInviteWaitCountdown(){
@@ -3356,7 +3356,7 @@ if(randomRoomAtExit && isManualPlayerExit && initiatedBySelf){
   return;
 }
 
-if(shouldDeletePrivate){ try{ await lockClosedRoomCode(exitingCode,exitingRef,reason||'player-exit'); }catch(_){ } }
+if(shouldDeletePrivate){ /* v366: private oda fiziksel olarak aşağıda silinir; ek kapalı-oda meta kaydı tutulmaz. */ }
 const exitMessage=reason==='opponent-disconnected'
 ?'RAKİBİN BAĞLANTISI KESİLDİ'
 :(reason==='invite-timeout'
