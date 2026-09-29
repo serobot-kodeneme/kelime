@@ -2627,36 +2627,6 @@ if(state.count>=2 && score){
 }
 function breakCombo(isP1){const st=kdComboState[isP1?'p1':'p2'];st.count=0;st.last=0;}
 
-// v363 deneme: yalnız görsel taş düşürme/geri getirme efekti; board state değişmez.
-function playWordDropReturn(path){
- if(document.hidden||!Array.isArray(path)||!path.length)return;
- const cells=path.map(p=>({el:p.el,char:p.char})).filter(x=>x.el&&x.el.isConnected);
- cells.forEach(({el,char},i)=>{
-  const r=el.getBoundingClientRect();
-  if(!r.width||!r.height)return;
-  const makeGhost=(cls)=>{
-   const g=document.createElement('span');
-   g.className='kd-falling-tile '+cls;g.textContent=char;
-   g.style.left=r.left+'px';g.style.top=r.top+'px';
-   g.style.width=r.width+'px';g.style.height=r.height+'px';
-   g.style.fontSize=getComputedStyle(el).fontSize;
-   return g;
-  };
-  const delay=i*32;
-  setTimeout(()=>{
-   el.classList.add('kd-source-hide');
-   const out=makeGhost('kd-out');document.body.appendChild(out);
-   setTimeout(()=>out.remove(),500);
-   setTimeout(()=>{
-    const incoming=makeGhost('kd-in');document.body.appendChild(incoming);
-    setTimeout(()=>{
-     incoming.remove();el.classList.remove('kd-source-hide');
-    },610);
-   },170);
-  },delay);
- });
-}
-
 async function submitWord(submitOrigin=null) {
 if (!isMatchActive || selectedPath.length === 0) return;
 const word = selectedPath.map(p => p.char).join('');
@@ -2733,7 +2703,6 @@ mpFoundWords.host.add(word);
 mpFoundWords.guest.add(word);
 } else sessionFoundWords.add(word);
 recordMatchWord(word,pts,isP1);
-playWordDropReturn(selectedPath.slice());
 playCorrectChime();
 flashWordFeedback(true);
 showToast(`${word} (+${pts})`, isP1 ? 'amber' : 'sky');
