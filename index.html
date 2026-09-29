@@ -16,7 +16,7 @@
   gtag('js', new Date());
   gtag('config', 'G-S01R78NGGH');
 </script>
-<meta name="game-version" content="v424">
+<meta name="game-version" content="v425">
 <meta name="description" content="KAPMACA - Sözcük Avı; oynayarak öğrenmeyi destekleyen, Türkçe sözcük üretme, kelime bulma, kelime zekâsı ve hızlı düşünme becerilerini geliştirmeye yönelik eğitsel ve çocuklara uygun ücretsiz bir kelime oyunudur.">
 <meta name="keywords" content="kelime oyunu, sözcük oyunu, Türkçe kelime oyunu, sözcük avı, kelime bulmaca, sözcük üretme, kelime üretme, kelime zeka oyunu, kelime zekâ oyunu, zeka oyunu, eğitsel oyun, eğitici oyun, oynayarak öğrenme, çocuklar için kelime oyunu, Türkçe öğrenme oyunu, kelime dağarcığı, kelime hazinesi, sözcük dağarcığı, hızlı düşünme oyunu, online kelime oyunu, çok oyunculu kelime oyunu">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
@@ -31,7 +31,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="kapmaca-icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="kapmaca-icon.svg">
-<script defer src="app.js?v=424"></script>
+<script defer src="app.js?v=425"></script>
 <meta property="og:locale" content="tr_TR">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KAPMACA">
@@ -3223,6 +3223,22 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 #screen-home.home-v156 .home-logo-tiles span:nth-child(5){transform:translateY(-5px) rotate(4deg)}
 #screen-home.home-v156 .home-logo-tiles span:nth-child(6){transform:translateY(2px) rotate(7deg)}
 #screen-home.home-v156 .home-logo-tiles span:nth-child(7){transform:translateY(10px) rotate(11deg)}
+/* v425: tüm X/kapat düğmeleri kırmızı zemin + beyaz işaret */
+#btn-close-difficulty,#btn-close-friend,#btn-close-room,#btn-howto-back,#btn-settings-back,
+#btn-about-back,#btn-close-support,#btn-close-found-meaning,#btn-close-dict,
+#btn-close-mp-waiting,#btn-close-rematch-waiting{
+  background:#dc2626!important;
+  color:#fff!important;
+  border-color:#b91c1c!important;
+  box-shadow:0 3px 8px rgba(185,28,28,.24)!important;
+}
+#btn-close-difficulty:hover,#btn-close-friend:hover,#btn-close-room:hover,#btn-howto-back:hover,
+#btn-settings-back:hover,#btn-about-back:hover,#btn-close-support:hover,#btn-close-found-meaning:hover,
+#btn-close-dict:hover,#btn-close-mp-waiting:hover,#btn-close-rematch-waiting:hover{
+  background:#b91c1c!important;
+  color:#fff!important;
+}
+
 #screen-home.home-v156 .home-logo-tiles span.home-domain-tile{
   width:clamp(27px,9.9vw,47px);height:clamp(27px,9.9vw,47px);
   margin-left:1px;align-self:auto;border:1px solid #e2e8f0;
