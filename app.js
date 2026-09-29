@@ -1802,7 +1802,7 @@ setDifficultyOpen(false);
 document.body.dataset.inviteFastEntry='1';
 const grid=document.getElementById('scrabble-grid');
 if(grid){grid.style.filter='blur(6px)';grid.style.opacity='.62';grid.style.pointerEvents='none';}
-const fastLoad=ensureWordDataLoaded().catch(()=>false);
+ensureWordDataLoaded().catch(()=>{});
 const ok=await joinRoom(code);
 if(ok && mpRole==='guest'){
   const gs=mpRoomData||{};
@@ -1830,7 +1830,7 @@ try{
 const inv=(await mpRoomRef.child('invite').once('value')).val()||{};
 if(Number(inv.expiresAt||0)>0 && Number(inv.expiresAt)<=serverNow()){ showToast('Davet süresi doldu.','rose'); await closeAndLockPrivateRoom(mpRoomRef,mpRoomCode,'invite-expired'); returnToHomeFromMultiplayer(); return; }
 await mpRoomRef.child('invite/guest').set('accepted');
-try{ await fastLoad; await ensureWordDataLoaded(); }catch(_){ showToast('Oyun sözlüğü yüklenemedi. Tekrar deneyin.','rose'); if(btn) btn.disabled=false; return; }
+try{ await ensureWordDataLoaded(); }catch(_){ showToast('Oyun sözlüğü yüklenemedi. Tekrar deneyin.','rose'); if(btn) btn.disabled=false; return; }
 
 document.getElementById('modal-room-invite')?.classList.add('hidden');
 await enterMultiplayerRoom();
