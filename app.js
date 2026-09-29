@@ -508,7 +508,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v438';
+const GAME_VERSION='v439';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -1922,23 +1922,32 @@ if(opening && !wordDataReady){
 }
 };
 document.getElementById('btn-close-difficulty').onclick = (e) => { e.stopPropagation(); setDifficultyOpen(false); };
-document.getElementById('btn-friend-mode').onclick = () => {
+document.getElementById('btn-friend-mode').onclick = async() => {
 setDifficultyOpen(false);
 const panel=document.getElementById('friend-invite-panel');
-const opening=panel?.classList.contains('hidden');
-panel?.classList.toggle('hidden',!opening);
-if(opening&&!mpRoomRef){
+const willOpen=panel?.classList.contains('hidden');
+if(willOpen){
+// Panel anında açılır; ağır Firebase SDK yalnız kullanıcı çok oyunculuya yönelince arka planda hazırlanır.
+if(!mpRoomRef && !randomSearchActive) disconnectFirebaseNetwork();
+ensureFirebaseSdkLoaded().catch(()=>{});
+panel?.classList.remove('hidden');
+
 document.getElementById('mp-create-view')?.classList.remove('hidden');
 document.getElementById('mp-room-view')?.classList.add('hidden');
-// Firebase'e dokunmadan yalnız yerel oyun sözlüğünü/tahtayı hazırla.
-if(!wordDataReady) ensureWordDataLoaded().then(()=>scheduleBoardPrewarm()).catch(()=>{});
+}else{
+if(mpRoomRef && mpRole) await requestSynchronizedRoomExit('player-exit');
+else if(randomSearchActive) await cleanupRandomQueue(true);
+panel?.classList.add('hidden');
+
+disconnectFirebaseNetwork();
 }
 };
 document.getElementById('btn-close-friend').onclick = async() => {
-if(mpRoomRef&&mpRole) await requestSynchronizedRoomExit('player-exit');
+if(mpRoomRef && mpRole) await requestSynchronizedRoomExit('player-exit');
 else if(randomSearchActive) await cleanupRandomQueue(true);
 document.getElementById('friend-invite-panel').classList.add('hidden');
-if(!mpRoomRef&&!randomSearchActive) disconnectFirebaseNetwork();
+
+disconnectFirebaseNetwork();
 };
 document.getElementById('btn-online-count')?.addEventListener('click',showOnlineCount);
 document.getElementById('btn-create-room')?.addEventListener('click',openFreshPrivateRoom);
@@ -1989,10 +1998,7 @@ if(navigator.share){
 };
 document.getElementById('btn-close-mp-waiting').onclick=async()=>{
 if(mpRoomRef && mpRole){
-const closingRef=mpRoomRef, closingCode=mpRoomCode;
-const closePrivateHost=mpRole==='host' && /^invite-only-/.test(String(mpRoomMode||''));
 await requestSynchronizedRoomExit('player-exit');
-if(closePrivateHost) await closeAndLockPrivateRoom(closingRef,closingCode,'host-waiting-close');
 }else{
 document.getElementById('modal-mp-waiting')?.classList.add('hidden');
 returnToHomeFromMultiplayer();
@@ -2049,18 +2055,8 @@ await requestSynchronizedRoomExit('player-exit');
 });
 
 document.getElementById('btn-close-room').onclick=async()=>{
-if(!mpRoomRef || mpRole!=='host'){
-document.getElementById('mp-room-view')?.classList.add('hidden');
-document.getElementById('mp-create-view')?.classList.remove('hidden');
-document.getElementById('btn-close-room')?.classList.add('hidden');
-setPrivateInviteControlsReady(false);
-if(!randomSearchActive) disconnectFirebaseNetwork();
-return;
-}
-const closingRef=mpRoomRef, closingCode=mpRoomCode;
-const closePrivateHost=/^invite-only-/.test(String(mpRoomMode||''));
+if(!mpRoomRef || mpRole!=='host') return;
 await requestSynchronizedRoomExit('player-exit');
-if(closePrivateHost) await closeAndLockPrivateRoom(closingRef,closingCode,'host-room-close');
 };
 
 document.querySelectorAll('.bot-diff-choice').forEach(btn => {
