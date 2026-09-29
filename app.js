@@ -997,16 +997,12 @@ inviteDecisionTimer=setInterval(tick,500);
 }
 
 function showInactiveRoomAndReturn(){
-const toast=document.getElementById('inactive-room-toast');
-if(toast){toast.classList.remove('hidden');}
 clearInviteFromUrl();
-setTimeout(()=>{
-  if(toast) toast.classList.add('hidden');
-  document.getElementById('modal-room-invite')?.classList.add('hidden');
-  document.getElementById('screen-game')?.classList.add('hidden');
-  document.getElementById('screen-home')?.classList.remove('hidden');
-  returnToHomeFromMultiplayer();
-},1400);
+document.getElementById('inactive-room-toast')?.classList.add('hidden');
+document.getElementById('modal-room-invite')?.classList.add('hidden');
+document.getElementById('screen-game')?.classList.add('hidden');
+document.getElementById('screen-home')?.classList.remove('hidden');
+returnToHomeFromMultiplayer();
 }
 
 async function joinRoom(code){
@@ -1017,6 +1013,11 @@ if(await isRoomCodeClosedToday(code)){ showInactiveRoomAndReturn(); return false
 const ref=mpDb.ref('rooms/'+code); const snap=await ref.once('value');
 if(!snap.exists()){ showInactiveRoomAndReturn(); return false; }
 const d=snap.val()||{}; const clientId=getClientToken();
+if(/^invite-only-/.test(String(d.mode||'')) && String(d.gameState?.status||'')==='finished'){
+  ref.remove().catch(()=>{});
+  showInactiveRoomAndReturn();
+  return false;
+}
 if(/^invite-only-/.test(String(d.mode||'')) && Number(d.invite?.expiresAt||0)>0 && Number(d.invite.expiresAt)<=serverNow() && String(d.gameState?.status||'')==='waiting'){
   await closeAndLockPrivateRoom(ref,code,'invite-expired');
   showInactiveRoomAndReturn(); return false;
@@ -3536,13 +3537,20 @@ else exitCurrentGameToHome();
 });
 
 
-document.getElementById('btn-game-exit')?.addEventListener('click', ()=>{
+document.getElementById('btn-game-exit')?.addEventListener('click', async()=>{
 if(activeGameMode!=='multi' && !mpRoomRef && !mpRole){
   exitCurrentGameToHome();
   return;
 }
 if(isRandomHumanRoom()){
   exitRandomResultImmediately();
+  return;
+}
+if(mpRoomRef && mpRole && isPrivateFriendRoom() && mpState===MP_STATES.FINISHED){
+  const ref=mpRoomRef, code=mpRoomCode;
+  detachMultiplayerListeners();
+  await closeAndLockPrivateRoom(ref,code,'result-closed');
+  returnToHomeFromMultiplayer();
   return;
 }
 if(mpRoomRef && mpRole) requestSynchronizedRoomExit('player-exit');
