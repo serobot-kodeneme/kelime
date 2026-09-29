@@ -2632,14 +2632,28 @@ function playWordDropReturn(path){
  if(document.hidden||!Array.isArray(path)||!path.length)return;
  const cells=path.map(p=>({el:p.el,char:p.char})).filter(x=>x.el&&x.el.isConnected);
  cells.forEach(({el,char},i)=>{
-  el.classList.remove('kd-word-drop');
-  el.querySelectorAll('.kd-drop-ghost,.kd-return-ghost').forEach(n=>n.remove());
-  const out=document.createElement('span');out.className='kd-drop-ghost';out.textContent=char;
-  const incoming=document.createElement('span');incoming.className='kd-return-ghost';incoming.textContent=char;
-  incoming.style.animationDelay=(160+i*18)+'ms';
-  out.style.animationDelay=(i*18)+'ms';
-  el.classList.add('kd-word-drop');el.append(out,incoming);
-  setTimeout(()=>{out.remove();incoming.remove();el.classList.remove('kd-word-drop');},620+i*18);
+  const r=el.getBoundingClientRect();
+  if(!r.width||!r.height)return;
+  const makeGhost=(cls)=>{
+   const g=document.createElement('span');
+   g.className='kd-falling-tile '+cls;g.textContent=char;
+   g.style.left=r.left+'px';g.style.top=r.top+'px';
+   g.style.width=r.width+'px';g.style.height=r.height+'px';
+   g.style.fontSize=getComputedStyle(el).fontSize;
+   return g;
+  };
+  const delay=i*32;
+  setTimeout(()=>{
+   el.classList.add('kd-source-hide');
+   const out=makeGhost('kd-out');document.body.appendChild(out);
+   setTimeout(()=>out.remove(),500);
+   setTimeout(()=>{
+    const incoming=makeGhost('kd-in');document.body.appendChild(incoming);
+    setTimeout(()=>{
+     incoming.remove();el.classList.remove('kd-source-hide');
+    },610);
+   },170);
+  },delay);
  });
 }
 
