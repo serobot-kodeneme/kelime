@@ -996,17 +996,30 @@ tick();
 inviteDecisionTimer=setInterval(tick,500);
 }
 
+function showInactiveRoomAndReturn(){
+const toast=document.getElementById('inactive-room-toast');
+if(toast){toast.classList.remove('hidden');}
+clearInviteFromUrl();
+setTimeout(()=>{
+  if(toast) toast.classList.add('hidden');
+  document.getElementById('modal-room-invite')?.classList.add('hidden');
+  document.getElementById('screen-game')?.classList.add('hidden');
+  document.getElementById('screen-home')?.classList.remove('hidden');
+  returnToHomeFromMultiplayer();
+},1400);
+}
+
 async function joinRoom(code){
 code=String(code||'').toLowerCase().replace(/[^a-z]/g,'').slice(0,5);
 if(!/^[a-z]{5}$/.test(code)) return false;
 if(!await waitFirebaseConnected()){ showToast('Sunucuya bağlanılamadı.','rose'); return false; }
-if(await isRoomCodeClosedToday(code)){ showToast('Bu oda kapatılmış.','rose'); clearInviteFromUrl(); returnToHomeFromMultiplayer(); return false; }
+if(await isRoomCodeClosedToday(code)){ showInactiveRoomAndReturn(); return false; }
 const ref=mpDb.ref('rooms/'+code); const snap=await ref.once('value');
-if(!snap.exists()){ showToast('Davet odası bulunamadı veya kapatılmış.','rose'); clearInviteFromUrl(); returnToHomeFromMultiplayer(); return false; }
+if(!snap.exists()){ showInactiveRoomAndReturn(); return false; }
 const d=snap.val()||{}; const clientId=getClientToken();
 if(/^invite-only-/.test(String(d.mode||'')) && Number(d.invite?.expiresAt||0)>0 && Number(d.invite.expiresAt)<=serverNow() && String(d.gameState?.status||'')==='waiting'){
   await closeAndLockPrivateRoom(ref,code,'invite-expired');
-  showToast('Davet süresi dolmuş.','rose'); clearInviteFromUrl(); returnToHomeFromMultiplayer(); return false;
+  showInactiveRoomAndReturn(); return false;
 }
 // Gün değişimi aktif odayı kapatmaz. dayKey yalnızca yeni oda kodu havuzunu ayırır.
 let role=null;
@@ -1816,7 +1829,7 @@ setDifficultyOpen(false);
 document.body.dataset.inviteFastEntry='1';
 const ok=await joinRoom(code);
 delete document.body.dataset.inviteFastEntry;
-if(!ok){ disconnectFirebaseNetwork(); return; }
+if(!ok){ return; }
 if(ok){
 if(mpRole==='guest' && /^invite-only-/.test(String(mpRoomMode||'')) && mpRoomData?.status==='waiting') {
 showInviteDecisionModal();
