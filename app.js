@@ -2703,7 +2703,6 @@ mpFoundWords.host.add(word);
 mpFoundWords.guest.add(word);
 } else sessionFoundWords.add(word);
 recordMatchWord(word,pts,isP1);
-flyFoundTiles(selectedPath.slice());
 playCorrectChime();
 flashWordFeedback(true);
 showToast(`${word} (+${pts})`, isP1 ? 'amber' : 'sky');
@@ -2780,56 +2779,6 @@ part.style.setProperty('--duration',duration+'ms');frag.appendChild(part);
 }
 layer.appendChild(frag);board.appendChild(layer);
 setTimeout(()=>layer.remove(),duration+80);
-}
-
-// v363: flyScore ile aynı çalışma modeli; yalnız hedef ekranın altıdır.
-function flyFoundTiles(path){
- if(document.hidden||!Array.isArray(path)||!path.length)return;
- path.forEach((p,i)=>{
-  const source=p.el;if(!source||!source.isConnected)return;
-  const sr=source.getBoundingClientRect();
-  if(!sr.width||!sr.height)return;
-  const size=Math.min(sr.width,sr.height);
-  const el=document.createElement('div');
-  el.textContent=p.char;
-  el.style.position='fixed';
-  el.style.zIndex='99999';
-  el.style.pointerEvents='none';
-  el.style.left=(sr.left+sr.width/2)+'px';
-  el.style.top=(sr.top+sr.height/2)+'px';
-  el.style.width=size+'px';
-  el.style.height=size+'px';
-  el.style.display='flex';
-  el.style.alignItems='center';
-  el.style.justifyContent='center';
-  el.style.boxSizing='border-box';
-  el.style.background='#fff';
-  el.style.color='#0f172a';
-  el.style.border='1px solid #e2e8f0';
-  el.style.borderRadius=getComputedStyle(source).borderRadius||'9px';
-  el.style.boxShadow='0 2px 0 #cbd5e1,0 5px 10px rgba(15,23,42,.18)';
-  el.style.fontFamily="'Quicksand',sans-serif";
-  el.style.fontWeight='900';
-  el.style.fontSize=getComputedStyle(source).fontSize;
-  el.style.transform='translate3d(-50%,-50%,0) scale(.9)';
-  document.body.appendChild(el);
-  const fall=(innerHeight-(sr.top+sr.height/2))+size+30;
-  const drift=(i%2?1:-1)*(6+(i%3)*5);
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-   if(typeof el.animate==='function'){
-    const anim=el.animate([
-     {transform:'translate3d(-50%,-50%,0) scale(.9)',opacity:.95},
-     {transform:`translate3d(calc(-50% + ${drift}px),calc(-50% + ${fall}px),0) rotate(${(i%2?1:-1)*(45+i*12)}deg) scale(.9)`,opacity:0}
-    ],{duration:760,delay:i*24,easing:'cubic-bezier(.35,.05,.7,.3)',fill:'forwards'});
-    anim.onfinish=()=>el.remove();
-   }else{
-    el.style.transition='transform 760ms ease-in,opacity 760ms ease-in';
-    el.style.transform=`translate3d(calc(-50% + ${drift}px),calc(-50% + ${fall}px),0)`;
-    el.style.opacity='0';setTimeout(()=>el.remove(),820);
-   }
-  }));
-  setTimeout(()=>{if(el.isConnected)el.remove();},1100+i*24);
- });
 }
 
 function flyScore(pts, isP1, originPoint=null) {
