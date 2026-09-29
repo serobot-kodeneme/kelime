@@ -2654,7 +2654,7 @@ function playBoardDropRefresh(path){
    const old=makeTile(s,'kd-drop-old');
    old.style.setProperty('--fall-out',(Math.max(innerHeight,boardRect.bottom)-s.r.top+80)+'px');
    document.body.appendChild(old);
-   setTimeout(()=>old.remove(),430);
+   setTimeout(()=>old.remove(),680);
   },stagger);
   setTimeout(()=>{
    const fresh=makeTile(s,'kd-drop-new');
@@ -2664,8 +2664,8 @@ function playBoardDropRefresh(path){
    setTimeout(()=>{
     fresh.remove();
     s.el.classList.remove('kd-drop-empty');
-   },560);
-  },190+stagger);
+   },830);
+  },310+stagger);
  });
 }
 
