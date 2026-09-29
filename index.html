@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <title>KAPMACA - Sözcük Avı</title>
-<meta name="game-version" content="v413">
+<meta name="game-version" content="v414">
 <meta name="description" content="KAPMACA - Sözcük Avı; oynayarak öğrenmeyi destekleyen, Türkçe sözcük üretme, kelime bulma, kelime zekâsı ve hızlı düşünme becerilerini geliştirmeye yönelik eğitsel ve çocuklara uygun ücretsiz bir kelime oyunudur.">
 <meta name="keywords" content="kelime oyunu, sözcük oyunu, Türkçe kelime oyunu, sözcük avı, kelime bulmaca, sözcük üretme, kelime üretme, kelime zeka oyunu, kelime zekâ oyunu, zeka oyunu, eğitsel oyun, eğitici oyun, oynayarak öğrenme, çocuklar için kelime oyunu, Türkçe öğrenme oyunu, kelime dağarcığı, kelime hazinesi, sözcük dağarcığı, hızlı düşünme oyunu, online kelime oyunu, çok oyunculu kelime oyunu">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
@@ -23,7 +23,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="kapmaca-icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="kapmaca-icon.svg">
-<script defer src="app.js?v=413"></script>
+<script defer src="app.js?v=414"></script>
 <meta property="og:locale" content="tr_TR">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KAPMACA">
@@ -2162,7 +2162,6 @@ body {
 }
 
 
-
 /* v233 — Tahta okunabilirliği: puanlar daha büyük, aktif taşlar daha belirgin. */
 #scrabble-grid .letter-cell .tile-score{
   font-size:clamp(.56rem,2.15vw,.74rem)!important;
@@ -2357,13 +2356,13 @@ body {
 }
 .result-party-fx,.result-card-party,.result-global-confetti,.word-confetti-layer{display:none!important;}
 
-/* v379: sade premium zafer — konfetti yok */
+
 .victory-card{animation:kdPremiumVictory 1.05s cubic-bezier(.2,.8,.2,1) both;}
 @keyframes kdPremiumVictory{0%{transform:scale(.96);filter:brightness(.96)}55%{transform:scale(1.045);filter:brightness(1.08)}100%{transform:scale(1);filter:brightness(1)}}
 .victory-avatar-crown{animation:kdCrownSettle .7s cubic-bezier(.16,.84,.3,1) both!important;}
 @keyframes kdCrownSettle{0%{opacity:0;transform:translateX(-50%) translateY(-20px) scale(.65) rotate(-12deg)}70%{opacity:1;transform:translateX(-50%) translateY(2px) scale(1.1) rotate(3deg)}100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1) rotate(-5deg)}}
 
-/* v390: sonuç ekranı tek-tık aksiyonları */
+
 #gameover-actions{
   display:grid;
   grid-template-columns:minmax(0,1fr) minmax(0,1fr);
@@ -2449,8 +2448,7 @@ touch-action: none;
 overflow: hidden;
 margin: 0;
 padding: 0;
-/* v327: Mobile browser toolbars change 100vh. Keep the app pinned to the
-   visual viewport top instead of vertically centering it in the layout viewport. */
+
 height: 100vh;
 height: 100dvh;
 min-height: 100svh;
@@ -2545,8 +2543,7 @@ box-shadow: 0 2px 0 #94a3b8 !important;
 }
 .tile-claimed-p1.tile-claimed-p2 .tile-score { color: #475569 !important; }
 
-/* v292: Rakibin bulduğu sözcük, izleyen oyuncunun ekranında RAKİBİN kendi renginde
-   güçlü ve kolay fark edilen iki darbeli parlama ile gösterilir. */
+
 @keyframes remoteWordFlashP1{
   0%,100%{filter:brightness(1) saturate(1);box-shadow:0 2px 0 #fbbf24}
   16%,56%{filter:brightness(1.52) saturate(1.48);box-shadow:0 0 0 5px rgba(251,191,36,1),0 0 30px rgba(245,158,11,.95),inset 0 0 0 3px rgba(255,255,255,.94)}
@@ -2839,7 +2836,6 @@ text-shadow:0 2px 8px rgba(0,0,0,.22); filter:saturate(.96); will-change:transfo
 .score-fly.go { transform: translate3d(var(--dx),var(--dy),0) scale(1.22); opacity:0; }
 
 
-/* v233: hafif ödül efektleri — tahta hattından bağımsız */
 @keyframes kdScorePop{0%{transform:scale(1)}42%{transform:scale(1.13)}100%{transform:scale(1)}}
 .kd-score-pop{animation:kdScorePop .24s ease-out;will-change:transform}
 @keyframes kdAvatarRing{0%{box-shadow:0 0 0 0 rgba(255,255,255,.9),0 2px 6px rgba(0,0,0,.24)}55%{box-shadow:0 0 0 5px rgba(255,255,255,.18),0 2px 6px rgba(0,0,0,.24)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0),0 2px 6px rgba(0,0,0,.24)}}
@@ -2946,7 +2942,7 @@ background: radial-gradient(circle at 35% 35%, rgba(45,212,191,.58) 0 10%, rgba(
 .fullscreen-btn svg{width:17px;height:17px;stroke-width:2.2}
 @supports (height:100dvh){#app-container{height:100dvh}}
 .dict-letter-active{background:#f59e0b!important;color:#0f172a!important;border-color:#f59e0b!important}
-/* v233: Sözlük — tam Türk alfabesi, dikey kelime listesi ve satır içi TDK anlamı. */
+
 #alphabet-bar{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;padding:8px;background:#f1f5f9;border-radius:14px}
 .dict-letter-btn{width:100%!important;height:42px!important;min-width:0!important;padding:0!important;font-size:16px!important;font-weight:1000!important;border-radius:12px!important}
 .dict-word-entry{display:block;width:100%;border-bottom:1px solid #e2e8f0;background:#fff}
@@ -2965,7 +2961,7 @@ background: radial-gradient(circle at 35% 35%, rgba(45,212,191,.58) 0 10%, rgba(
 .dict-rules{font-size:9.5px;line-height:13px;font-weight:700;color:#475569}
 .dict-rules b{font-weight:1000;color:#0f172a}
 @media(max-width:370px){#alphabet-bar{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}.dict-letter-btn{height:40px!important;font-size:15px!important}}
-/* v379: mobil sözlükte alfabe daha kompakt, sözcük listesine daha fazla dikey alan */
+
 @media(max-width:600px){
   #modal-dictionary{padding:6px!important;}
   #modal-dictionary>div{padding:10px!important;border-radius:20px!important;}
@@ -2987,7 +2983,7 @@ background: radial-gradient(circle at 35% 35%, rgba(45,212,191,.58) 0 10%, rgba(
 @media (prefers-reduced-motion: reduce){.home-mode-btn{transition:none}.home-mode-btn:hover,.home-mode-btn:active{transform:none}}
 @media (prefers-reduced-motion: reduce){.home-shortcut{transition:none}.support-heart-icon{animation:supportHeartbeat 1.7s ease-in-out infinite}}
 
-/* v159: hafif ama belirgin etkileşim kontrastı */
+
 button:not(:disabled){transition-property:transform,filter,box-shadow,background-color,border-color;transition-duration:.12s;}
 @media (hover:hover) and (pointer:fine){
 button:not(:disabled):hover{filter:brightness(1.08) saturate(1.10);box-shadow:0 7px 18px rgba(15,23,42,.16);}
@@ -3144,7 +3140,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 .sound-mute-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;font-size:13px;font-weight:900;color:#475569}
 #sound-muted{width:18px;height:18px;accent-color:#ef4444;cursor:pointer}
 
-/* v345: Windows alışkanlığı — çıkış/kapat eylemleri sağda. */
+
 #btn-quick-exit{order:2!important}
 #btn-fullscreen-game{order:1!important}
 #btn-close-friend,
@@ -3303,7 +3299,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 .support-official-logo{display:block;width:min(82%,270px);height:110px;object-fit:contain;margin:8px auto 0}
 @media(max-height:650px){#screen-home.home-v156 .home-title-wrap{margin-top:12px!important}#screen-home.home-v156 .home-modes{margin-top:18px}}
 
-/* v258: Seçilen 4. üst panel. Oyun tahtası ve alt alanlar aynen kalır. */
+
 #compact-game-header.game-header-v4{
   display:grid!important;grid-template-columns:minmax(0,1fr) 70px minmax(0,1fr)!important;
   align-items:center!important;gap:6px!important;padding:5px 7px!important;
@@ -3424,7 +3420,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 #screen-howto .demo-board .demo-tile{font-size:12px!important;border-radius:5px!important}
 @media(prefers-reduced-motion:reduce){.demo-board .demo-tile{transition:none;animation:none}}
 
-/* v312: authoritative final-10-second timer alarm; last in cascade by design. */
+
 @keyframes v312TimerAlarm{
 0%,44%{background:#ef0000;box-shadow:0 0 0 2px #ff8a8a,0 0 30px rgba(255,0,0,.95),inset 0 0 12px rgba(255,255,255,.18)}
 45%,100%{background:#000;box-shadow:0 0 0 2px #111,0 0 8px rgba(0,0,0,.95),inset 0 0 12px rgba(0,0,0,.92)}
@@ -3434,7 +3430,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 #compact-game-header.game-header-v4 .compact-timer.timer-danger #game-timer{color:#fff!important;text-shadow:0 0 8px rgba(255,255,255,.5),0 0 14px rgba(255,0,0,.8)!important}
 @media(prefers-reduced-motion:reduce){#compact-game-header.game-header-v4 .compact-timer.timer-danger{animation:none!important;background:#dc2626!important}}
 
-/* v379: authoritative mobile game centering — parent-relative, never viewport-wide */
+
 @media (max-width:600px){
   #screen-game{width:100%!important;max-width:100%!important;inset:0!important;overflow-x:hidden!important;}
   #screen-game>div:last-child{width:100%!important;max-width:100%!important;box-sizing:border-box!important;padding-left:2px!important;padding-right:2px!important;align-items:center!important;}
@@ -3445,14 +3441,14 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
   #scrabble-grid{width:min(calc(100% - 4px),calc(100dvh - 170px),440px)!important;}
 }
 
-/* v379: Android mobil tarayıcıda body flex + w-screen kaynaklı sağa kaymayı engelle */
+
 @media (max-width:600px){
   html,body{width:100%!important;max-width:100%!important;margin:0!important;padding:0!important;overflow-x:hidden!important;}
   body{display:block!important;}
   #app-container{width:100%!important;max-width:100%!important;margin:0!important;left:0!important;right:auto!important;transform:none!important;}
 }
 
-/* v379: BULUNANLAR biraz daha okunaklı; rozetler sözlük anlamı için tıklanabilir */
+
 #screen-game>div:nth-of-type(2){height:28px!important;min-height:28px!important;}
 #screen-game>div:nth-of-type(2)>span{font-size:10px!important;}
 #words-ticker .found-word-badge{font-size:11px!important;padding:3px 9px!important;cursor:pointer;touch-action:manipulation;border:0;line-height:16px;}
@@ -3467,7 +3463,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 #screen-about{overflow-y:auto!important;}
 .about-learning-list p{margin-top:7px;}
 
-/* v379: etkileşim geri bildirimi */
+
 button,a,[role="button"],.dict-word-button,.found-word-badge{cursor:pointer;}
 #scrabble-grid,.letter-cell{cursor:grab!important;}
 #scrabble-grid:active,.letter-cell:active,.letter-cell.tile-dragging{cursor:grabbing!important;}
@@ -3589,7 +3585,6 @@ button,a,[role="button"],.dict-word-button,.found-word-badge{cursor:pointer;}
 </div>
 
 <div class="mt-auto pt-3 w-full max-w-sm shrink-0">
-
 
 
 <div class="home-shortcut-grid">
@@ -3732,7 +3727,7 @@ button,a,[role="button"],.dict-word-button,.found-word-badge{cursor:pointer;}
 <div class="sound-step-marks" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
 <label class="sound-mute-row" for="sound-muted"><input id="sound-muted" type="checkbox"> Sessiz</label>
 </div>
-<div class="mt-2 text-center text-[10px] font-black text-slate-400">v400</div>
+<div class="mt-2 text-center text-[10px] font-black text-slate-400">v414</div>
 </div>
 </div>
 </div>
