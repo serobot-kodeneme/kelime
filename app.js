@@ -2627,6 +2627,48 @@ if(state.count>=2 && score){
 }
 function breakCombo(isP1){const st=kdComboState[isP1?'p1':'p2'];st.count=0;st.last=0;}
 
+// v363: Düşmece mantığı. Tahta verisi değişmez; aynı harf aynı hücreye geri gelir.
+function playBoardDropRefresh(path){
+ if(document.hidden||!Array.isArray(path)||!path.length)return;
+ const board=document.getElementById('scrabble-grid');
+ if(!board)return;
+ const boardRect=board.getBoundingClientRect();
+ const snapshots=path.map(p=>{
+  const el=p.el;
+  if(!el||!el.isConnected)return null;
+  const r=el.getBoundingClientRect();
+  return {el,char:p.char,score:TILE_SCORE_CACHE[p.char]||1,r};
+ }).filter(Boolean);
+ const makeTile=(s,cls)=>{
+  const t=document.createElement('div');t.className='kd-drop-tile '+cls;
+  t.style.left=s.r.left+'px';t.style.top=s.r.top+'px';
+  t.style.width=s.r.width+'px';t.style.height=s.r.height+'px';
+  t.style.fontSize=getComputedStyle(s.el).fontSize;
+  t.innerHTML='<span>'+s.char+'</span><span class="kd-drop-score">'+s.score+'</span>';
+  return t;
+ };
+ snapshots.forEach((s,i)=>{
+  const stagger=i*28;
+  setTimeout(()=>{
+   s.el.classList.add('kd-drop-empty');
+   const old=makeTile(s,'kd-drop-old');
+   old.style.setProperty('--fall-out',(Math.max(innerHeight,boardRect.bottom)-s.r.top+80)+'px');
+   document.body.appendChild(old);
+   setTimeout(()=>old.remove(),430);
+  },stagger);
+  setTimeout(()=>{
+   const fresh=makeTile(s,'kd-drop-new');
+   // Her yeni taş, Candy Crush gibi tahtanın üst kenarının üstünden kendi hücresine düşer.
+   fresh.style.setProperty('--fall-in',(-Math.max(70,s.r.top-boardRect.top+s.r.height*1.6))+'px');
+   document.body.appendChild(fresh);
+   setTimeout(()=>{
+    fresh.remove();
+    s.el.classList.remove('kd-drop-empty');
+   },560);
+  },190+stagger);
+ });
+}
+
 async function submitWord(submitOrigin=null) {
 if (!isMatchActive || selectedPath.length === 0) return;
 const word = selectedPath.map(p => p.char).join('');
@@ -2703,6 +2745,7 @@ mpFoundWords.host.add(word);
 mpFoundWords.guest.add(word);
 } else sessionFoundWords.add(word);
 recordMatchWord(word,pts,isP1);
+playBoardDropRefresh(selectedPath.slice());
 playCorrectChime();
 flashWordFeedback(true);
 showToast(`${word} (+${pts})`, isP1 ? 'amber' : 'sky');
