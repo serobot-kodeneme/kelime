@@ -1770,6 +1770,12 @@ async function requestKapmacaInstall(){
 }
 installBtns.forEach(btn=>btn.addEventListener('click',requestKapmacaInstall));
 
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});
+  },{once:true});
+}
+
 document.getElementById('btn-solo-mode').onclick = () => {
 document.getElementById('friend-invite-panel').classList.add('hidden');
 setDifficultyOpen(difficultyPanel.classList.contains('hidden'));
