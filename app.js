@@ -2882,9 +2882,13 @@ function addTickerBadge(word, isP1) {
 const ticker=document.getElementById('words-ticker');
 if(!ticker) return null;
 while(ticker.children.length>=36) ticker.firstElementChild?.remove();
-const badge = document.createElement('span');
-badge.className = `${isP1 ? 'bg-amber-400' : 'bg-sky-400'} text-slate-950 font-black px-2 py-0.5 rounded-full text-[10px] uppercase mx-0.5`;
+const badge = document.createElement('button');
+badge.type='button';
+badge.className = `${isP1 ? 'bg-amber-400' : 'bg-sky-400'} found-word-badge text-slate-950 font-black rounded-full uppercase mx-0.5`;
 badge.textContent = word;
+badge.title=`${word} sözcüğünün anlamını göster`;
+badge.setAttribute('aria-label',`${word} sözcüğünün anlamını göster`);
+badge.addEventListener('click',(ev)=>{ev.preventDefault();ev.stopPropagation();openFoundWordMeaning(word);});
 ticker.appendChild(badge);
 return badge;
 }
@@ -3566,6 +3570,24 @@ return out;
 ensureLetterSorted(letter);
 return DICT_BY_LETTER[letter] || [];
 }
+
+function closeFoundWordMeaning(){
+const modal=document.getElementById('modal-found-meaning');
+if(modal) modal.classList.add('hidden');
+closeDictionaryMeaning();
+}
+function openFoundWordMeaning(word){
+const modal=document.getElementById('modal-found-meaning');
+const title=document.getElementById('found-meaning-word');
+const host=document.getElementById('found-meaning-content');
+if(!modal||!title||!host) return;
+title.textContent=String(word||'').toLocaleUpperCase('tr-TR');
+host.textContent='';
+modal.classList.remove('hidden');
+showDictionaryMeaning(word,host,true);
+}
+document.getElementById('btn-close-found-meaning')?.addEventListener('click',closeFoundWordMeaning);
+document.getElementById('modal-found-meaning')?.addEventListener('click',e=>{if(e.target===e.currentTarget)closeFoundWordMeaning();});
 
 const dictMeaningCache = new Map();
 let dictMeaningAbortController = null;
