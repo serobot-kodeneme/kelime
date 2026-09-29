@@ -5,7 +5,7 @@
     "rooms": {
       "$room": {
         ".read": "$room.matches(/^[a-z]{5}$/)",
-        ".write": "$room.matches(/^[a-z]{5}$/) && (!newData.exists() || newData.hasChildren(['schema','mode','createdAt','dayKey','hostId','gameState','scores','words','presence']))",
+        ".write": "$room.matches(/^[a-z]{5}$/) && (!newData.exists() || newData.hasChildren(['schema','mode','createdAt','dayKey','hostId','gameState','scores','presence']))",
         "schema": {
           ".validate": "newData.isNumber() && (newData.val() == 21 || newData.val() == 22)"
         },
