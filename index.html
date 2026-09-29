@@ -16,7 +16,7 @@
   gtag('js', new Date());
   gtag('config', 'G-S01R78NGGH');
 </script>
-<meta name="game-version" content="v428">
+<meta name="game-version" content="v429">
 <meta name="description" content="KAPMACA - Sözcük Avı; oynayarak öğrenmeyi destekleyen, Türkçe sözcük üretme, kelime bulma, kelime zekâsı ve hızlı düşünme becerilerini geliştirmeye yönelik eğitsel ve çocuklara uygun ücretsiz bir kelime oyunudur.">
 <meta name="keywords" content="kelime oyunu, sözcük oyunu, Türkçe kelime oyunu, sözcük avı, kelime bulmaca, sözcük üretme, kelime üretme, kelime zeka oyunu, kelime zekâ oyunu, zeka oyunu, eğitsel oyun, eğitici oyun, oynayarak öğrenme, çocuklar için kelime oyunu, Türkçe öğrenme oyunu, kelime dağarcığı, kelime hazinesi, sözcük dağarcığı, hızlı düşünme oyunu, online kelime oyunu, çok oyunculu kelime oyunu">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
@@ -31,7 +31,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="kapmaca-icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="kapmaca-icon.svg">
-<script defer src="app.js?v=428"></script>
+<script defer src="app.js?v=429"></script>
 <meta property="og:locale" content="tr_TR">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KAPMACA">
@@ -2949,10 +2949,29 @@ background: radial-gradient(circle at 35% 35%, rgba(45,212,191,.58) 0 10%, rgba(
 .fullscreen-btn:active{transform:scale(.97)}
 .fullscreen-btn svg{width:17px;height:17px;stroke-width:2.2}
 @supports (height:100dvh){#app-container{height:100dvh}}
-.dict-letter-active{background:#f59e0b!important;color:#0f172a!important;border-color:#f59e0b!important}
-
+.dict-letter-active{
+  background:#fef3c7!important;
+  color:#713f12!important;
+  border-color:#fbbf24!important;
+  box-shadow:0 3px 0 #fbbf24,inset 0 1px 0 rgba(255,255,255,.78)!important;
+}
 #alphabet-bar{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;padding:8px;background:#f1f5f9;border-radius:14px}
-.dict-letter-btn{width:100%!important;height:42px!important;min-width:0!important;padding:0!important;font-size:16px!important;font-weight:1000!important;border-radius:12px!important}
+.dict-letter-btn{
+  width:100%!important;height:42px!important;min-width:0!important;padding:0!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  font-family:'Quicksand',sans-serif!important;
+  font-size:clamp(1rem,3.2vw,1.18rem)!important;font-weight:900!important;line-height:1!important;
+  color:#0f172a!important;background:#fff!important;
+  border:0!important;border-radius:10px!important;
+  box-shadow:0 3px 0 #cbd5e1,inset 0 1px 0 rgba(255,255,255,.78)!important;
+  transition:transform .08s ease-out,box-shadow .08s ease-out,background-color .08s linear,color .08s linear!important;
+}
+@media(hover:hover) and (pointer:fine){
+  .dict-letter-btn:hover{transform:translateY(-1px);box-shadow:0 4px 0 #cbd5e1,0 4px 8px rgba(15,23,42,.10),inset 0 1px 0 rgba(255,255,255,.78)!important}
+  .dict-letter-btn.dict-letter-active:hover{box-shadow:0 4px 0 #fbbf24,0 4px 8px rgba(180,83,9,.12),inset 0 1px 0 rgba(255,255,255,.78)!important}
+}
+.dict-letter-btn:active{transform:translateY(2px)!important;box-shadow:0 1px 0 #cbd5e1,inset 0 1px 0 rgba(255,255,255,.78)!important}
+.dict-letter-btn.dict-letter-active:active{box-shadow:0 1px 0 #fbbf24,inset 0 1px 0 rgba(255,255,255,.78)!important}
 .dict-word-entry{display:block;width:100%;border-bottom:1px solid #e2e8f0;background:#fff}
 .dict-word-entry:last-child{border-bottom:0}
 .dict-word-button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 11px;text-align:left;background:#fff;cursor:pointer;transition:background-color .12s ease}
@@ -2975,13 +2994,13 @@ background: radial-gradient(circle at 35% 35%, rgba(45,212,191,.58) 0 10%, rgba(
   #modal-dictionary>div{padding:10px!important;border-radius:20px!important;}
   #modal-dictionary .mt-2\.5{margin-top:6px!important;}
   #alphabet-bar{grid-template-columns:repeat(8,minmax(0,1fr));gap:4px;padding:5px;border-radius:11px}
-  .dict-letter-btn{height:31px!important;font-size:12px!important;border-radius:8px!important}
+  .dict-letter-btn{height:31px!important;font-size:13px!important;border-radius:7px!important}
   #dict-list-heading{padding-top:5px!important;padding-bottom:5px!important}
   .dict-word-button{padding:8px 10px}
 }
 @media(max-width:370px){
   #alphabet-bar{grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
-  .dict-letter-btn{height:30px!important;font-size:11.5px!important}
+  .dict-letter-btn{height:30px!important;font-size:12.5px!important}
 }
 
 .home-mode-btn{transition:transform .16s ease,filter .16s ease,box-shadow .16s ease;will-change:transform}

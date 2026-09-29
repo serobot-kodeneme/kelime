@@ -496,7 +496,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v428';
+const GAME_VERSION='v429';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -3712,7 +3712,7 @@ if(bar.dataset.ready==='1') { updateAlphabetActive(); return; }
 const frag=document.createDocumentFragment();
 TURKISH_ALPHABET.forEach(l => {
 const btn = document.createElement('button');
-btn.className = "dict-letter-btn w-7 h-7 bg-white text-slate-700 border border-slate-200 rounded-lg text-xs font-bold shadow-sm";
+btn.className = "dict-letter-btn";
 btn.textContent = l;
 btn.dataset.letter=l;
 btn.onclick = () => {
