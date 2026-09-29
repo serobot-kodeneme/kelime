@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <title>KAPMACA - Sözcük Avı</title>
-<meta name="game-version" content="v397">
+<meta name="game-version" content="v398">
 <meta name="description" content="KAPMACA - Sözcük Avı; oynayarak öğrenmeyi destekleyen, Türkçe sözcük üretme, kelime bulma, kelime zekâsı ve hızlı düşünme becerilerini geliştirmeye yönelik eğitsel ve çocuklara uygun ücretsiz bir kelime oyunudur.">
 <meta name="keywords" content="kelime oyunu, sözcük oyunu, Türkçe kelime oyunu, sözcük avı, kelime bulmaca, sözcük üretme, kelime üretme, kelime zeka oyunu, kelime zekâ oyunu, zeka oyunu, eğitsel oyun, eğitici oyun, oynayarak öğrenme, çocuklar için kelime oyunu, Türkçe öğrenme oyunu, kelime dağarcığı, kelime hazinesi, sözcük dağarcığı, hızlı düşünme oyunu, online kelime oyunu, çok oyunculu kelime oyunu">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
@@ -2417,20 +2417,6 @@ body {
 }
 
 
-#btn-install-app{position:relative;}
-#btn-install-app::after{
-  content:"UYGULAMAYI YÜKLE";
-  position:absolute;
-  top:64px;
-  left:50%;
-  transform:translateX(-50%);
-  white-space:nowrap;
-  font-size:9px;
-  font-weight:900;
-  letter-spacing:.04em;
-  color:#334155;
-}
-@media(max-width:600px){#btn-install-app{margin-bottom:14px;}}
 </style>
 
 <style>
@@ -3556,18 +3542,19 @@ button,a,[role="button"],.dict-word-button,.found-word-badge{cursor:pointer;}
 <button id="btn-friend-mode" class="home-mode-btn w-full min-h-[76px] flex items-center gap-4 px-5 bg-gradient-to-b from-sky-400 to-blue-600 text-white rounded-[24px] border-4 border-sky-200/70 shadow-[0_8px_0_#1e40af] active:translate-y-1 active:shadow-[0_4px_0_#1e40af] transition-all duration-200">
 <span aria-hidden="true"><svg viewBox="0 0 24 24" class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="9" r="2.7"/><circle cx="16" cy="9.5" r="2.7"/><path d="M3.9 18.5c.45-2.3 2.2-3.9 4.3-3.9 1.15 0 2.15.34 2.95 1.04"/><path d="M12.8 15.6c.85-.68 1.8-1 3-1 2.15 0 3.92 1.62 4.3 3.9"/></svg></span><span class="text-left flex-1"><b class="block text-xl leading-5 font-black">ÇOK OYUNCULU</b><small class="font-bold text-sky-50">Karşılıklı oyna</small></span><span class="text-3xl font-black">›</span>
 </button>
-<button id="btn-install-app" type="button" class="mx-auto mt-3 w-[58px] h-[58px] rounded-2xl bg-white/95 border-2 border-white shadow-[0_6px_0_#cbd5e1,0_10px_18px_rgba(15,23,42,.16)] active:translate-y-1 active:shadow-[0_3px_0_#cbd5e1] transition flex items-center justify-center" aria-label="KAPMACA uygulamasını yükle" title="KAPMACA uygulamasını yükle">
-  <svg viewBox="0 0 24 24" class="w-8 h-8 text-slate-800" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <path d="M12 3v11"/>
-    <path d="m8 10 4 4 4-4"/>
-    <path d="M5 18h14"/>
-  </svg>
+<button id="btn-install-app" type="button" class="w-full mt-3 min-h-[58px] rounded-[20px] border-2 border-emerald-200 bg-gradient-to-b from-emerald-300 to-emerald-500 text-emerald-950 shadow-[0_6px_0_#047857,0_10px_18px_rgba(4,120,87,.20)] active:translate-y-1 active:shadow-[0_3px_0_#047857] transition flex items-center gap-3 px-4" aria-label="KAPMACA uygulamasını yükle" title="KAPMACA uygulamasını yükle">
+  <span class="w-10 h-10 rounded-xl bg-white/35 border border-white/45 flex items-center justify-center shrink-0" aria-hidden="true">
+    <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3v10"/>
+      <path d="m8 10 4 4 4-4"/>
+      <path d="M5 18h14"/>
+    </svg>
+  </span>
+  <span class="text-left flex-1"><b class="block text-[15px] leading-4 font-black">UYGULAMAYI YÜKLE</b><small class="block mt-1 text-[10.5px] leading-tight font-bold text-emerald-900">KAPMACA’yı ana ekrana ekle</small></span>
+  <span class="text-2xl font-black" aria-hidden="true">›</span>
 </button>
 </div>
 
-<section id="home-seo-copy" class="w-full max-w-sm mt-3 px-4 py-3 rounded-2xl bg-white/70 border border-white/80 text-center text-[11px] leading-relaxed font-bold text-slate-700 shadow-sm shrink-0" aria-label="KAPMACA hakkında">
-KAPMACA - Sözcük Avı; <strong>oynayarak öğrenme</strong> yaklaşımıyla Türkçe sözcük dağarcığını, sözcük üretme becerisini, kelime zekâsını ve hızlı düşünmeyi destekleyen eğitsel bir kelime oyunudur. Tek başına veya çok oyunculu oynanabilir; sade, aile dostu ve çocuklara uygun bir oyun deneyimi sunar.
-</section>
 
 <div id="friend-invite-panel" class="hidden w-full max-w-sm mt-2 bg-white/95 p-3 rounded-[20px] border-2 border-sky-100 shadow-xl shrink-0">
 <div class="flex justify-between items-center"><b class="text-sm text-slate-800">👥 ÇOK OYUNCULU</b><button id="btn-close-friend" class="w-7 h-7 rounded-full bg-slate-100 text-lg font-black text-slate-500 leading-none">×</button></div>
@@ -3740,7 +3727,7 @@ KAPMACA - Sözcük Avı; <strong>oynayarak öğrenme</strong> yaklaşımıyla T�
 <div class="sound-step-marks" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
 <label class="sound-mute-row" for="sound-muted"><input id="sound-muted" type="checkbox"> Sessiz</label>
 </div>
-<div class="mt-2 text-center text-[10px] font-black text-slate-400">v397</div>
+<div class="mt-2 text-center text-[10px] font-black text-slate-400">v398</div>
 </div>
 </div>
 </div>
@@ -3928,7 +3915,7 @@ KAPMACA - Sözcük Avı; <strong>oynayarak öğrenme</strong> yaklaşımıyla T�
 </div>
 </div>
 
-<script src="app.js?v=397"></script>
+<script src="app.js?v=398"></script>
 
 </body>
 </html>
