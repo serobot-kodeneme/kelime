@@ -1731,6 +1731,38 @@ function setDifficultyOpen(open) {
 difficultyPanel.classList.toggle('hidden', !open);
 soloArrow.style.transform = open ? 'rotate(90deg)' : '';
 }
+let deferredInstallPrompt=null;
+const installBtn=document.getElementById('btn-install-app');
+const isStandalone=()=>window.matchMedia?.('(display-mode: standalone)')?.matches || window.navigator.standalone===true;
+function updateInstallButton(){
+  if(!installBtn) return;
+  installBtn.classList.toggle('hidden', isStandalone() || !deferredInstallPrompt);
+}
+window.addEventListener('beforeinstallprompt',(e)=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  updateInstallButton();
+});
+window.addEventListener('appinstalled',()=>{
+  deferredInstallPrompt=null;
+  updateInstallButton();
+  showToast('KAPMACA uygulaması yüklendi.','emerald');
+});
+installBtn?.addEventListener('click',async()=>{
+  if(isStandalone()){ installBtn.classList.add('hidden'); return; }
+  if(!deferredInstallPrompt){
+    showToast('Yükleme seçeneği bu tarayıcıda şu an kullanılamıyor.','amber');
+    return;
+  }
+  const promptEvent=deferredInstallPrompt;
+  deferredInstallPrompt=null;
+  updateInstallButton();
+  try{
+    await promptEvent.prompt();
+    await promptEvent.userChoice;
+  }catch(_){}
+});
+
 document.getElementById('btn-solo-mode').onclick = () => {
 document.getElementById('friend-invite-panel').classList.add('hidden');
 setDifficultyOpen(difficultyPanel.classList.contains('hidden'));
