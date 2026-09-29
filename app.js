@@ -76,7 +76,7 @@ wordDataPromise=new Promise((resolve,reject)=>{
   };
   if(window.KAPMACA_WORD_DATA){finish();return;}
   const script=document.createElement('script');
-  script.src='word-data.js?v=343';
+  script.src='word-data.js?v=411';
   script.async=true;
   script.onload=finish;
   script.onerror=()=>{wordDataPromise=null;reject(new Error('word-data-load-failed'));};
@@ -524,6 +524,38 @@ return t;
 }
 let firebaseNetworkOnline=false;
 let serverOffsetListener=null;
+let firebaseSdkPromise=null;
+function loadExternalScriptOnce(src,id){
+  const existing=document.getElementById(id);
+  if(existing){
+    if(existing.dataset.loaded==='1') return Promise.resolve(true);
+    return new Promise((resolve,reject)=>{
+      existing.addEventListener('load',()=>resolve(true),{once:true});
+      existing.addEventListener('error',reject,{once:true});
+    });
+  }
+  return new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
+    script.id=id; script.src=src; script.async=true;
+    script.onload=()=>{script.dataset.loaded='1';resolve(true);};
+    script.onerror=reject;
+    document.head.appendChild(script);
+  });
+}
+function ensureFirebaseSdkLoaded(){
+  if(window.firebase?.database) return Promise.resolve(true);
+  if(firebaseSdkPromise) return firebaseSdkPromise;
+  firebaseSdkPromise=(async()=>{
+    await loadExternalScriptOnce('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js','kapmaca-firebase-app');
+    await loadExternalScriptOnce('https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js','kapmaca-firebase-db');
+    return !!window.firebase?.database;
+  })().catch(err=>{
+    firebaseSdkPromise=null;
+    console.error('Firebase SDK yüklenemedi',err);
+    return false;
+  });
+  return firebaseSdkPromise;
+}
 function ensureFirebase(){
 if(!window.firebase){ showToast('Firebase yüklenemedi. İnternet bağlantını kontrol et.','rose'); return false; }
 if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
@@ -553,6 +585,7 @@ firebaseWasConnected=null;
 reconnectPresenceBusy=false;
 }
 async function syncServerClock(){
+if(!window.firebase && !await ensureFirebaseSdkLoaded()) return false;
 if(!ensureFirebase()) return false;
 try{
 const snap=await mpDb.ref('.info/serverTimeOffset').once('value');
@@ -561,6 +594,7 @@ return true;
 }catch(_){ return false; }
 }
 async function waitFirebaseConnected(timeoutMs=6000){
+if(!await ensureFirebaseSdkLoaded()) return false;
 if(!ensureFirebase()) return false;
 const connectedRef=mpDb.ref('.info/connected');
 const first=await connectedRef.once('value');
@@ -1778,7 +1812,11 @@ if('serviceWorker' in navigator){
 
 document.getElementById('btn-solo-mode').onclick = () => {
 document.getElementById('friend-invite-panel').classList.add('hidden');
-setDifficultyOpen(difficultyPanel.classList.contains('hidden'));
+const opening=difficultyPanel.classList.contains('hidden');
+setDifficultyOpen(opening);
+if(opening && !wordDataReady){
+  ensureWordDataLoaded().then(()=>scheduleBoardPrewarm()).catch(()=>{});
+}
 };
 document.getElementById('btn-close-difficulty').onclick = (e) => { e.stopPropagation(); setDifficultyOpen(false); };
 document.getElementById('btn-friend-mode').onclick = async() => {
@@ -1786,9 +1824,9 @@ setDifficultyOpen(false);
 const panel=document.getElementById('friend-invite-panel');
 const willOpen=panel?.classList.contains('hidden');
 if(willOpen){
-// Çok oyunculu menüsünü açmak tek başına Firebase bağlantısı başlatmaz.
-// Önceki bir oturumdan bağlantı kalmışsa menü nötr durumda açılır.
+// Panel anında açılır; ağır Firebase SDK yalnız kullanıcı çok oyunculuya yönelince arka planda hazırlanır.
 if(!mpRoomRef && !randomSearchActive) disconnectFirebaseNetwork();
+ensureFirebaseSdkLoaded().catch(()=>{});
 panel?.classList.remove('hidden');
 
 document.getElementById('mp-create-view')?.classList.remove('hidden');
@@ -3837,9 +3875,5 @@ document.getElementById('btn-close-rematch-waiting')?.addEventListener('click',(
 document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePlayAgain);
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
-const initialRoomCode=new URL(location.href).searchParams.get('room');
-if(!initialRoomCode){
-  const warm=()=>ensureWordDataLoaded().then(()=>{scheduleBoardPrewarm();console.info(`KAPMACA v333: ${WORD_LIST.length} sözcük | lazy veri yükleme aktif.`);}).catch(()=>{});
-  if('requestIdleCallback' in window) requestIdleCallback(warm,{timeout:2600});
-  else setTimeout(warm,1600);
-}
+// v411: Ana sayfada ağır sözlük/tahta ön hazırlığı yapılmaz.
+// Sözlük Tek Oyuncu, Sözlük veya oyun akışında gerçekten gerektiğinde yüklenir.
