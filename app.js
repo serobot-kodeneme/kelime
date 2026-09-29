@@ -1720,10 +1720,27 @@ startInviteWaitCountdown(inviteDeadline);
 document.getElementById('btn-share-link').onclick = async()=>{
 if(!mpRoomCode) return;
 const url=inviteUrl(mpRoomCode);
+const sharedRoom=mpRoomCode;
 try{
 if(navigator.share) await navigator.share({title:'KAPMACA — Meydan Okuma',text:'🔥 60 saniye. Aynı harfler. Kim daha çok kelime bulacak? KAPMACA\'da bana karşı oyna!',url});
 else { await navigator.clipboard.writeText(url); showToast('Davet bağlantısı kopyalandı.','emerald'); }
-}catch(e){}
+}catch(e){
+if(e?.name==='AbortError') return;
+return;
+}
+const inviteDeadline=serverNow()+60000;
+if(mpRole!=='host' || !mpRoomRef || !/^invite-only-/.test(String(mpRoomMode||''))) return;
+try{
+await mpRoomRef.child('invite').update({guest:'pending',expiresAt:inviteDeadline});
+mpRoomData={...(mpRoomData||{}),inviteGuest:'pending',inviteExpiresAt:inviteDeadline};
+clearTimeout(copyLinkEnterTimer); copyLinkEnterTimer=null;
+setRoomUrl(sharedRoom);
+await enterMultiplayerRoom();
+if(!mpEntered || mpRoomCode!==sharedRoom || mpRole!=='host') return;
+isMatchActive=false;
+document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
+startInviteWaitCountdown(inviteDeadline);
+}catch(e){ showToast('Bekleme odasına geçilemedi.','rose'); }
 };
 document.getElementById('btn-close-mp-waiting').onclick=async()=>{
 if(mpRoomRef && mpRole){
