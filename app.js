@@ -1736,7 +1736,7 @@ const installBtn=document.getElementById('btn-install-app');
 const isStandalone=()=>window.matchMedia?.('(display-mode: standalone)')?.matches || window.navigator.standalone===true;
 function updateInstallButton(){
   if(!installBtn) return;
-  installBtn.classList.toggle('hidden', isStandalone() || !deferredInstallPrompt);
+  installBtn.classList.toggle('hidden', isStandalone());
 }
 window.addEventListener('beforeinstallprompt',(e)=>{
   e.preventDefault();
@@ -1748,10 +1748,12 @@ window.addEventListener('appinstalled',()=>{
   updateInstallButton();
   showToast('KAPMACA uygulaması yüklendi.','emerald');
 });
+updateInstallButton();
 installBtn?.addEventListener('click',async()=>{
   if(isStandalone()){ installBtn.classList.add('hidden'); return; }
   if(!deferredInstallPrompt){
-    showToast('Yükleme seçeneği bu tarayıcıda şu an kullanılamıyor.','amber');
+    const isiOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+    showToast(isiOS?'Paylaş menüsü → Ana Ekrana Ekle':'Chrome menüsü → Uygulamayı yükle / Ana ekrana ekle','amber');
     return;
   }
   const promptEvent=deferredInstallPrompt;
@@ -1831,7 +1833,7 @@ isMatchActive=false;
 document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
 startInviteWaitCountdown(inviteDeadline);
 if(navigator.share){
- navigator.share({title:'KAPMACA — Meydan Okuma',text:'🔥 60 saniye. Aynı harfler. Kim daha çok sözcük bulacak? KAPMACA\'da bana karşı oyna!',url}).catch(()=>{});
+ navigator.share({title:'KAPMACA - Sözcük Avı',text:'🔥 60 saniye. Aynı harfler. Kim daha çok sözcük bulacak? KAPMACA\'da bana karşı oyna!',url}).catch(()=>{});
 }else{
  await navigator.clipboard.writeText(url).catch(()=>{});
  showToast('Davet bağlantısı kopyalandı.','emerald');
@@ -2986,7 +2988,7 @@ const ownWords=mpRole==='guest'?Array.from(roundWordResults.p2.values()):Array.f
 const longest=ownWords.reduce((best,x)=>String(x?.word||'').length>String(best||'').length?String(x.word):best,'');
 const scoreLine=myScore>0?`KAPMACA'da ${myScore} puan yaptım!`:`KAPMACA'da kapışmaya var mısın?`;
 const longestLine=longest?` En uzun sözcüğüm: ${longest} (${longest.length} harf).`:'';
-return {title:'KAPMACA — Meydan Okuma',text:`🔥 ${scoreLine}${longestLine} 60 saniyede beni geçebilir misin?`,url:location.origin+location.pathname};
+return {title:'KAPMACA - Sözcük Avı',text:`🔥 ${scoreLine}${longestLine} 60 saniyede beni geçebilir misin?`,url:location.origin+location.pathname};
 }
 async function shareChallengeResult(){
 const data=getChallengeShareData();
