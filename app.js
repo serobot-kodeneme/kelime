@@ -1883,7 +1883,10 @@ if(navigator.share){
 };
 document.getElementById('btn-close-mp-waiting').onclick=async()=>{
 if(mpRoomRef && mpRole){
+const closingRef=mpRoomRef, closingCode=mpRoomCode;
+const closePrivateHost=mpRole==='host' && /^invite-only-/.test(String(mpRoomMode||''));
 await requestSynchronizedRoomExit('player-exit');
+if(closePrivateHost) await closeAndLockPrivateRoom(closingRef,closingCode,'host-waiting-close');
 }else{
 document.getElementById('modal-mp-waiting')?.classList.add('hidden');
 returnToHomeFromMultiplayer();
@@ -1941,7 +1944,10 @@ await requestSynchronizedRoomExit('player-exit');
 
 document.getElementById('btn-close-room').onclick=async()=>{
 if(!mpRoomRef || mpRole!=='host') return;
+const closingRef=mpRoomRef, closingCode=mpRoomCode;
+const closePrivateHost=/^invite-only-/.test(String(mpRoomMode||''));
 await requestSynchronizedRoomExit('player-exit');
+if(closePrivateHost) await closeAndLockPrivateRoom(closingRef,closingCode,'host-room-close');
 };
 
 document.querySelectorAll('.bot-diff-choice').forEach(btn => {
