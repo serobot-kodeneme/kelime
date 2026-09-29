@@ -65,22 +65,34 @@ return true;
 function ensureWordDataLoaded(){
 if(wordDataReady) return Promise.resolve(true);
 if(wordDataPromise) return wordDataPromise;
-wordDataPromise=new Promise((resolve,reject)=>{
-  const finish=()=>{
-    try{
-      initializeWordData(window.KAPMACA_WORD_DATA);
-      try{delete window.KAPMACA_WORD_DATA;}catch(_){}
-      resolve(true);
-    }catch(e){wordDataPromise=null;reject(e);}
-  };
-  if(window.KAPMACA_WORD_DATA){finish();return;}
+const loadAttempt=(src,timeoutMs=10000)=>new Promise((resolve,reject)=>{
+  if(window.KAPMACA_WORD_DATA){resolve(true);return;}
   const script=document.createElement('script');
-  script.src='word-data.js?v=411';
-  script.async=true;
-  script.onload=finish;
-  script.onerror=()=>{wordDataPromise=null;reject(new Error('word-data-load-failed'));};
+  let done=false;
+  const finish=(ok,err)=>{
+    if(done)return; done=true; clearTimeout(timer);
+    script.onload=null; script.onerror=null;
+    if(!ok){try{script.remove();}catch(_){} reject(err||new Error('word-data-load-failed'));return;}
+    resolve(true);
+  };
+  const timer=setTimeout(()=>finish(false,new Error('word-data-load-timeout')),timeoutMs);
+  script.src=src; script.async=true;
+  script.onload=()=>finish(true);
+  script.onerror=()=>finish(false,new Error('word-data-load-failed'));
   document.head.appendChild(script);
 });
+wordDataPromise=(async()=>{
+  if(!window.KAPMACA_WORD_DATA){
+    let ok=false;
+    for(const src of ['word-data.js?v=436','word-data.js?v=436&retry=1']){
+      try{await loadAttempt(src);ok=true;break;}catch(_){}
+    }
+    if(!ok&&!window.KAPMACA_WORD_DATA) throw new Error('word-data-unavailable');
+  }
+  initializeWordData(window.KAPMACA_WORD_DATA);
+  try{delete window.KAPMACA_WORD_DATA;}catch(_){}
+  return true;
+})().catch(err=>{wordDataPromise=null;throw err;});
 return wordDataPromise;
 }
 
@@ -496,7 +508,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v435';
+const GAME_VERSION='v436';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -895,7 +907,7 @@ restoreHodriMeydanButton();
 async function createRandomMatchedRoom(hostId,guestId){
 const alloc=await allocateDailyRoomCode();
 const code=alloc.code, ref=mpDb.ref('rooms/'+code);
-const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board, readyBoard.words);
+const readyBoard=makeQuickRoomBoard(); rememberBoard(readyBoard.board,readyBoard.words||[]);
 await ref.set({
 schema:22, mode:'random-match-v7', createdAt:firebase.database.ServerValue.TIMESTAMP,
 dayKey:alloc.dayKey,
@@ -968,6 +980,7 @@ return;
 
 randomSearchActive=true;
 randomQueueRef=mpDb.ref('matchmaking/random/waiting');
+setRandomStatus('Sunucuya bağlandı ✓ Rakip bekleniyor…',true);
 registerGlobalOnlinePresence().catch(()=>{});
 const ticket=randomTicket();
 randomSearchTicket=ticket;
@@ -1002,7 +1015,6 @@ if(!randomSearchActive || randomSearchTicket!==ticket) break;
 if(room){
 try{ await randomQueueRef?.onDisconnect().cancel(); }catch(_){}
 releaseRandomSearchLocal();
-await wordDataLoad;
 const ok=await joinRoom(room);
 if(ok){ restoreHodriMeydanButton(); setRandomStatus('Rakip bulundu ✓ Senkronize ediliyor…',true); }
 return;
@@ -1012,7 +1024,6 @@ break;
 if(q.clientId && q.clientId!==myId && q.claimedBy===myId){
 setRandomStatus('Rakip bulundu ✓ Ortak oda kuruluyor…',true);
 try{
-await wordDataLoad;
 const room=await createRandomMatchedRoom(q.clientId,myId);
 if(!randomSearchActive || randomSearchTicket!==ticket){try{await mpDb.ref('rooms/'+room).remove();}catch(_){} break;}
 const queueRef=randomQueueRef;
@@ -1054,6 +1065,28 @@ showToast('Rakip bulunamadı. Tekrar deneyebilirsin.','slate');
 setTimeout(()=>setRandomStatus('',false),1800);
 }
 
+function makeQuickRoomBoard(){
+if(prewarmedBoard){const ready=prewarmedBoard;prewarmedBoard=null;return ready;}
+if(wordDataReady) return generateOptimizedBoard(2);
+const board=Array.from({length:BOARD_SIZE},()=>Array.from({length:BOARD_SIZE},()=>FILL_LETTERS[Math.floor(Math.random()*FILL_LETTERS.length)]));
+return {board,words:[]};
+}
+async function upgradeWaitingRoomBoard(ref,wordDataLoad){
+try{
+await wordDataLoad;
+if(!ref) return;
+const [gsSnap,invSnap]=await Promise.all([ref.child('gameState').once('value'),ref.child('invite/guest').once('value')]);
+const gs=gsSnap.val()||{};
+if(gs.status!=='waiting'||invSnap.val()==='accepted') return;
+const ready=prewarmedBoard||generateOptimizedBoard(3);prewarmedBoard=null;rememberBoard(ready.board,ready.words);
+await ref.child('gameState/board').set(ready.board);
+}catch(err){console.warn('Background board preparation skipped',err);}
+}
+function setPrivateRoomProgress(text){
+const c=document.getElementById('mp-room-code');
+if(c)c.textContent=String(text||'ODA HAZIRLANIYOR…');
+}
+
 const PRIVATE_ROOM_CREATE_COOLDOWN_MS=10000;
 let privateRoomCreateBusy=false;
 function canCreatePrivateRoom(){
@@ -1070,19 +1103,26 @@ function markPrivateRoomCreated(){
 safeStorageSet('local','kd_last_room_create_at',String(Date.now()));
 }
 async function createRoom(){
-if(privateRoomCreateBusy) return;
-if(!canCreatePrivateRoom()) return;
+if(privateRoomCreateBusy) return false;
+if(!canCreatePrivateRoom()) return false;
 privateRoomCreateBusy=true;
 const wordDataLoad=ensureWordDataLoaded();
-if(!await waitFirebaseConnected()){ privateRoomCreateBusy=false; showToast('Sunucuya bağlanılamadı. İnternet bağlantını kontrol et.','rose'); disconnectFirebaseNetwork(); return; }
-try{ await wordDataLoad; }catch(_){ privateRoomCreateBusy=false; showToast('Oyun sözlüğü yüklenemedi. Tekrar deneyin.','rose'); return; }
+try{
+setPrivateRoomProgress('SUNUCUYA BAĞLANILIYOR…');
+if(!await waitFirebaseConnected()){
+showToast('Sunucuya bağlanılamadı. İnternet bağlantını kontrol et.','rose');
+setPrivateRoomProgress('SUNUCUYA BAĞLANILAMADI — TEKRAR DENE');
+disconnectFirebaseNetwork();
+return false;
+}
+setPrivateRoomProgress('ODA KODU OLUŞTURULUYOR…');
 let alloc;
-try{ alloc=await allocateDailyRoomCode(); }
-catch(e){ privateRoomCreateBusy=false; showToast('Günlük oda kodu oluşturulamadı. Tekrar dene.','rose'); return; }
+try{alloc=await allocateDailyRoomCode();}
+catch(e){showToast('Oda kodu oluşturulamadı. Tekrar dene.','rose');setPrivateRoomProgress('ODA KODU OLUŞTURULAMADI — TEKRAR DENE');return false;}
 const code=alloc.code, ref=mpDb.ref('rooms/'+code);
-
 const hostId=getClientToken();
-const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board, readyBoard.words);
+const readyBoard=makeQuickRoomBoard();
+try{
 await ref.set({
 schema:21, mode:'invite-only-v5', createdAt:firebase.database.ServerValue.TIMESTAMP,
 dayKey:alloc.dayKey,
@@ -1092,15 +1132,24 @@ scores:{host:0,guest:0}, words:{}, longestBonus:null, bonusApplied:false,
 endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0}, pendingRound:null, invite:{guest:'pending',expiresAt:0},
 presence:{host:{online:true,clientId:hostId},guest:{online:false}}, ready:{host:false,guest:false}
 });
-
+}catch(e){
+console.error('Private room create error',e);
+showToast('Oda oluşturulamadı. Tekrar dene.','rose');
+setPrivateRoomProgress('ODA OLUŞTURULAMADI — TEKRAR DENE');
+return false;
+}
 mpRoomCode=code; mpRole='host'; mpRoomRef=ref; mpRoomMode='invite-only-v5'; mpRandomMatchSession=false; delete document.body.dataset.randomMatchActive; document.body.dataset.privateFriendActive='1'; mpRoomData=null; mpEntered=false; mpStarted=false; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId='';
-setRoomUrl(code); await markPresence();
-setMpPanelRoom(code,'Bağlantıyı kopyala ve arkadaşına gönder.');
+setRoomUrl(code);
+setMpPanelRoom(code);
 document.getElementById('btn-close-room')?.classList.remove('hidden');
 setMpState(MP_STATES.WAITING);
 attachRoomListener();
-privateRoomCreateBusy=false;
+markPresence().catch(err=>console.warn('Presence registration delayed',err));
+upgradeWaitingRoomBoard(ref,wordDataLoad);
 return true;
+}finally{
+privateRoomCreateBusy=false;
+}
 }
 
 let inviteDecisionTimer=null;
