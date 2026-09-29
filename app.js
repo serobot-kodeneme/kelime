@@ -496,7 +496,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v433';
+const GAME_VERSION='v434';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -574,21 +574,17 @@ function ensureFirebaseSdkLoaded(){
   if(window.firebase?.database) return Promise.resolve(true);
   if(firebaseSdkPromise) return firebaseSdkPromise;
   firebaseSdkPromise=(async()=>{
-    let lastError=null;
-    for(let attempt=0;attempt<2;attempt++){
-      try{
-        await loadExternalScriptOnce('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js','kapmaca-firebase-app');
-        await loadExternalScriptOnce('https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js','kapmaca-firebase-db');
-        if(window.firebase?.database) return true;
-      }catch(err){lastError=err;}
+    // v379'daki güvenilir model geri getirildi: normalde defer scriptler app.js'den önce hazırdır.
+    // Bu bölüm yalnız ağ/cache kaynaklı eksik yükleme olursa yedek olarak çalışır.
+    try{
+      await loadExternalScriptOnce('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js','kapmaca-firebase-app-fallback');
+      await loadExternalScriptOnce('https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js','kapmaca-firebase-db-fallback');
+      return !!window.firebase?.database;
+    }catch(err){
+      console.error('Firebase SDK yüklenemedi',err);
+      return false;
     }
-    if(lastError) throw lastError;
-    return false;
-  })().catch(err=>{
-    firebaseSdkPromise=null;
-    console.error('Firebase SDK yüklenemedi',err);
-    return false;
-  });
+  })().finally(()=>{firebaseSdkPromise=null;});
   return firebaseSdkPromise;
 }
 function ensureFirebase(){
@@ -629,20 +625,29 @@ mpServerOffset=Number(snap.val()||0);
 return true;
 }catch(_){ return false; }
 }
-async function waitFirebaseConnected(timeoutMs=6000){
+async function waitFirebaseConnected(timeoutMs=8000){
 if(!await ensureFirebaseSdkLoaded()) return false;
 if(!ensureFirebase()) return false;
 const connectedRef=mpDb.ref('.info/connected');
+try{
 const first=await connectedRef.once('value');
-if(first.val()===true){ startServerOffsetListener(); await syncServerClock(); return true; }
+if(first.val()===true){
+startServerOffsetListener();
+syncServerClock().catch?.(()=>{});
+return true;
+}
+}catch(_){}
 const connected=await new Promise(resolve=>{
 let done=false, timer=null;
 const finish=v=>{ if(done)return; done=true; if(timer) clearTimeout(timer); connectedRef.off('value',listener); resolve(v); };
 const listener=s=>{ if(s.val()===true) finish(true); };
 connectedRef.on('value',listener);
-timer=setTimeout(()=>finish(false),timeoutMs);
+timer=setTimeout(()=>finish(false),Math.max(1000,timeoutMs||8000));
 });
-if(connected){startServerOffsetListener();await syncServerClock();}
+if(connected){
+startServerOffsetListener();
+syncServerClock().catch?.(()=>{});
+}
 return connected;
 }
 function serverNow(){ return Date.now()+mpServerOffset; }
@@ -979,7 +984,11 @@ return {...cur,claimedBy:myId,claimedAt:now,expiresAt:now+RANDOM_QUEUE_TTL};
 }
 return;
 });
-}catch(_){}
+}catch(err){
+console.error('Random matchmaking transaction error',err);
+setRandomStatus('Eşleşme bağlantısında hata oluştu.',true);
+break;
+}
 
 if(!randomSearchActive || randomSearchTicket!==ticket) break;
 if(serverNow()>=deadline) break;
@@ -1875,7 +1884,18 @@ await discardCurrentPrivateRoom();
 document.getElementById('friend-invite-panel')?.classList.remove('hidden');
 document.getElementById('mp-create-view')?.classList.remove('hidden');
 document.getElementById('mp-room-view')?.classList.add('hidden');
+const btn=document.getElementById('btn-create-room');
+const oldHtml=btn?.innerHTML||'';
+if(btn){btn.disabled=true;btn.textContent='ODA HAZIRLANIYOR…';}
+try{
 await createRoom();
+if(mpRoomRef&&mpRole==='host'){
+document.getElementById('mp-create-view')?.classList.add('hidden');
+document.getElementById('mp-room-view')?.classList.remove('hidden');
+}
+}finally{
+if(btn){btn.disabled=false;if(oldHtml)btn.innerHTML=oldHtml;}
+}
 }
 const difficultyPanel = document.getElementById('bot-settings-panel');
 const soloArrow = document.getElementById('solo-arrow');
@@ -1933,6 +1953,8 @@ panel?.classList.toggle('hidden',!opening);
 if(opening&&!mpRoomRef){
 document.getElementById('mp-create-view')?.classList.remove('hidden');
 document.getElementById('mp-room-view')?.classList.add('hidden');
+// Firebase'e dokunmadan yalnız yerel oyun sözlüğünü/tahtayı hazırla.
+if(!wordDataReady) ensureWordDataLoaded().then(()=>scheduleBoardPrewarm()).catch(()=>{});
 }
 };
 document.getElementById('btn-close-friend').onclick = async() => {
