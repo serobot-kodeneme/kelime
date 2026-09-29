@@ -2627,6 +2627,22 @@ if(state.count>=2 && score){
 }
 function breakCombo(isP1){const st=kdComboState[isP1?'p1':'p2'];st.count=0;st.last=0;}
 
+// v363 deneme: yalnız görsel taş düşürme/geri getirme efekti; board state değişmez.
+function playWordDropReturn(path){
+ if(document.hidden||!Array.isArray(path)||!path.length)return;
+ const cells=path.map(p=>({el:p.el,char:p.char})).filter(x=>x.el&&x.el.isConnected);
+ cells.forEach(({el,char},i)=>{
+  el.classList.remove('kd-word-drop');
+  el.querySelectorAll('.kd-drop-ghost,.kd-return-ghost').forEach(n=>n.remove());
+  const out=document.createElement('span');out.className='kd-drop-ghost';out.textContent=char;
+  const incoming=document.createElement('span');incoming.className='kd-return-ghost';incoming.textContent=char;
+  incoming.style.animationDelay=(160+i*18)+'ms';
+  out.style.animationDelay=(i*18)+'ms';
+  el.classList.add('kd-word-drop');el.append(out,incoming);
+  setTimeout(()=>{out.remove();incoming.remove();el.classList.remove('kd-word-drop');},620+i*18);
+ });
+}
+
 async function submitWord(submitOrigin=null) {
 if (!isMatchActive || selectedPath.length === 0) return;
 const word = selectedPath.map(p => p.char).join('');
@@ -2703,6 +2719,7 @@ mpFoundWords.host.add(word);
 mpFoundWords.guest.add(word);
 } else sessionFoundWords.add(word);
 recordMatchWord(word,pts,isP1);
+playWordDropReturn(selectedPath.slice());
 playCorrectChime();
 flashWordFeedback(true);
 showToast(`${word} (+${pts})`, isP1 ? 'amber' : 'sky');
