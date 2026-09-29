@@ -392,25 +392,28 @@ const n=Math.min(10,Math.max(1,step));
 const base=430 + (n-1)*28;
 playTone(base,.060,.065,'sine',base+115);
 }
-// Event delegation kullanıldığı için düğme başına ayrı dinleyici oluşturmaz.
+// Arayüz pıt sesi: hover ve bırakma başına yalnızca bir kez.
+// pointerover iç öğeler arasında dolaşırken tekrar tetiklenebildiği için
+// relatedTarget ile gerçek düğme girişini ayırır; ayrıca çok kısa ses patlamalarını kilitler.
+let lastUiSoundAt=0, lastUiReleaseAt=0;
 function playUiClickSound(){
   if(document.hidden) return;
+  const now=performance.now();
+  if(now-lastUiSoundAt<85) return;
+  lastUiSoundAt=now;
   playTone(560,.028,.028,'sine',690);
 }
 function isUiSoundTarget(target){
   const el=target?.closest?.('button,a,[role="button"]');
-  return el && !el.disabled;
+  return el && !el.disabled ? el : null;
 }
-let lastUiHoverEl=null, lastUiReleaseAt=0;
 document.addEventListener('pointerover',(e)=>{
+  if(e.pointerType==='touch') return;
   const el=isUiSoundTarget(e.target);
-  if(!el || el===lastUiHoverEl || e.pointerType==='touch') return;
-  lastUiHoverEl=el;
-  playUiClickSound(); // Fareyle ilk girişte yalnızca bir kez.
-},{passive:true});
-document.addEventListener('pointerout',(e)=>{
-  const el=isUiSoundTarget(e.target);
-  if(el===lastUiHoverEl && !el?.contains?.(e.relatedTarget)) lastUiHoverEl=null;
+  if(!el) return;
+  const fromEl=isUiSoundTarget(e.relatedTarget);
+  if(fromEl===el) return; // Aynı düğmenin ikon/yazı gibi iç öğeleri arasında geçiş.
+  playUiClickSound();
 },{passive:true});
 document.addEventListener('pointerdown',(e)=>{
   if(isUiSoundTarget(e.target)) ensureGameAudio();
