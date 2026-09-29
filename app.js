@@ -1793,11 +1793,23 @@ window.addEventListener('DOMContentLoaded',async()=>{
 const u=new URL(location.href);
 const code=String(u.searchParams.get('room')||'').toLowerCase().replace(/[^a-z]/g,'').slice(0,5);
 if(!code) return;
-document.getElementById('screen-game')?.classList.add('hidden');
-document.getElementById('screen-home')?.classList.remove('hidden');
+// v381: Davet bağlantısında ana sayfayı hiç göstermeden doğrudan oyun sahnesine geç.
+// Firebase oda bilgisi alınırken tahta bulanık bir yükleme yüzeyi olarak görünür.
+document.getElementById('screen-home')?.classList.add('hidden');
+document.getElementById('screen-game')?.classList.remove('hidden');
 document.getElementById('friend-invite-panel')?.classList.add('hidden');
 setDifficultyOpen(false);
+document.body.dataset.inviteFastEntry='1';
+const grid=document.getElementById('scrabble-grid');
+if(grid){grid.style.filter='blur(6px)';grid.style.opacity='.62';grid.style.pointerEvents='none';}
+const fastLoad=ensureWordDataLoaded().catch(()=>false);
 const ok=await joinRoom(code);
+if(ok && mpRole==='guest'){
+  const gs=mpRoomData||{};
+  if(Array.isArray(gs.board)) renderProvidedBoard(gs.board);
+}
+if(grid){grid.style.filter='';grid.style.opacity='';}
+delete document.body.dataset.inviteFastEntry;
 if(!ok){ disconnectFirebaseNetwork(); return; }
 if(ok){
 if(mpRole==='guest' && /^invite-only-/.test(String(mpRoomMode||'')) && mpRoomData?.status==='waiting') {
@@ -1818,7 +1830,7 @@ try{
 const inv=(await mpRoomRef.child('invite').once('value')).val()||{};
 if(Number(inv.expiresAt||0)>0 && Number(inv.expiresAt)<=serverNow()){ showToast('Davet süresi doldu.','rose'); await closeAndLockPrivateRoom(mpRoomRef,mpRoomCode,'invite-expired'); returnToHomeFromMultiplayer(); return; }
 await mpRoomRef.child('invite/guest').set('accepted');
-try{ await ensureWordDataLoaded(); }catch(_){ showToast('Oyun sözlüğü yüklenemedi. Tekrar deneyin.','rose'); if(btn) btn.disabled=false; return; }
+try{ await fastLoad; await ensureWordDataLoaded(); }catch(_){ showToast('Oyun sözlüğü yüklenemedi. Tekrar deneyin.','rose'); if(btn) btn.disabled=false; return; }
 
 document.getElementById('modal-room-invite')?.classList.add('hidden');
 await enterMultiplayerRoom();
