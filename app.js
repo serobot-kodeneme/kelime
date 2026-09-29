@@ -599,12 +599,20 @@ if(!window.firebase?.database){
 }
 if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
 if(!mpDb) mpDb=firebase.database();
+if(!serverOffsetListener){
+  serverOffsetListener=snap=>{mpServerOffset=Number(snap.val()||0);};
+  mpDb.ref('.info/serverTimeOffset').on('value',serverOffsetListener);
+}
+if(!firebaseNetworkOnline){
+  try{mpDb.goOnline();}catch(_){}
+  firebaseNetworkOnline=true;
+}
 return true;
 }
 let mpConnectPromise=null;
 function disconnectFirebaseNetwork(force=false){
 if(!mpDb) return;
-if(!force && (mpRoomRef||randomSearchActive)) return;
+if(!force && (mpRoomRef||randomSearchActive||multiplayerStartupBusy>0)) return;
 if(serverOffsetListener){
   try{mpDb.ref('.info/serverTimeOffset').off('value',serverOffsetListener);}catch(_){}
   serverOffsetListener=null;
@@ -615,17 +623,20 @@ if(onlineRef){
   try{onlineRef.onDisconnect().cancel().catch(()=>{});}catch(_){}
   try{onlineRef.remove().catch(()=>{});}catch(_){}
 }
-try{mpDb.goOffline();}catch(_){}
+if(firebaseNetworkOnline || force){
+  try{mpDb.goOffline();}catch(_){}
+}
 firebaseNetworkOnline=false;
 firebaseWasConnected=null;
 reconnectPresenceBusy=false;
 }
 async function syncServerClock(){
-if(!mpDb) return false;
+if(!await ensureFirebaseSdkLoaded()) return false;
+if(!ensureFirebase()) return false;
 try{
   const snap=await Promise.race([
     mpDb.ref('.info/serverTimeOffset').once('value'),
-    new Promise((_,reject)=>setTimeout(()=>reject(new Error('clock-timeout')),1500))
+    new Promise((_,reject)=>setTimeout(()=>reject(new Error('clock-timeout')),1800))
   ]);
   mpServerOffset=Number(snap.val()||0);
   return true;
@@ -636,29 +647,36 @@ if(mpConnectPromise) return mpConnectPromise;
 mpConnectPromise=(async()=>{
   if(!await ensureFirebaseSdkLoaded()) return false;
   if(!ensureFirebase()) return false;
-  try{mpDb.goOnline();}catch(_){}
-  firebaseNetworkOnline=true;
+  try{mpDb.goOnline();firebaseNetworkOnline=true;}catch(_){}
+
   const connectedRef=mpDb.ref('.info/connected');
+  try{
+    const first=await Promise.race([
+      connectedRef.once('value'),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('connected-first-timeout')),1800))
+    ]);
+    if(first.val()===true){
+      await syncServerClock();
+      return true;
+    }
+  }catch(_){}
+
   const connected=await new Promise(resolve=>{
-    let done=false;
+    let done=false,timer=null;
     const finish=value=>{
       if(done)return;
       done=true;
-      clearTimeout(timer);
+      if(timer)clearTimeout(timer);
       try{connectedRef.off('value',listener);}catch(_){}
       resolve(!!value);
     };
     const listener=snap=>{if(snap.val()===true) finish(true);};
     connectedRef.on('value',listener);
-    const timer=setTimeout(()=>finish(false),Math.max(1500,Number(timeoutMs)||8000));
+    timer=setTimeout(()=>finish(false),Math.max(2500,Number(timeoutMs)||8000));
   });
   if(!connected){
     firebaseNetworkOnline=false;
     return false;
-  }
-  if(!serverOffsetListener){
-    serverOffsetListener=snap=>{mpServerOffset=Number(snap.val()||0);};
-    mpDb.ref('.info/serverTimeOffset').on('value',serverOffsetListener);
   }
   await syncServerClock();
   return true;
