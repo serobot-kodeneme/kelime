@@ -6,7 +6,7 @@ const TILE_SCORES = {
 };
 let WORD_DB_FC='';
 let WORD_LIST=[];
-;
+
 // Küfür/argo filtresi: bu sözcükler Sözlük ekranında gösterilmez ve oyun için geçerli sayılmaz.
 // Kökler özellikle dar tutulur; "götürmek", "bisiklet", "amaç" gibi masum sözcükler yanlış eşleşmez.
 const ARGO_EXACT = new Set(['AM','GÖT','YARAK','TAŞAK','TAŞAKLI','ÇÜK','SİK','SİKME','SİKMEK']);
@@ -24,7 +24,6 @@ function isForeignWord(word){
 const w=String(word||'').toLocaleUpperCase('tr-TR');
 return !TURKISH_WORD_CHARS.test(w) || FOREIGN_EXACT.has(w);
 }
-// v298: 2–9 harfli Türkiye il/ilçe adları ve ülke adları oyun sözlüğüne dahildir.
 // Yer adlarının açıklamaları TDK özel ad maddesine bağlı kalmadan sonuç/sözlük ekranında yerel olarak gösterilir.
 let GEO_DICTIONARY=Object.freeze({});
 let GEO_WORD_LIST=[];
@@ -246,7 +245,6 @@ if(label) label.textContent=active?'TAM EKRANDAN ÇIK':'TAM EKRAN';
 const gameLabel=document.getElementById('fullscreen-game-label');
 if(gameLabel) gameLabel.textContent=active?'TAM EKRANDAN ÇIK':'TAM EKRAN';
 }
-// v233: Tam ekran hiçbir platformda otomatik olarak zorlanmaz.
 // Yalnız kullanıcı TAM EKRAN düğmesine kendi isteğiyle bastığında çalışır.
 async function requestGameFullscreen(silent=false){
 if(isFullscreenActive()){ updateFullscreenUi(); return true; }
@@ -394,8 +392,6 @@ const n=Math.min(10,Math.max(1,step));
 const base=430 + (n-1)*28;
 playTone(base,.060,.065,'sine',base+115);
 }
-
-// v278: Tüm düğmeler için tek, çok hafif ve kısa "pit" sesi.
 // Event delegation kullanıldığı için düğme başına ayrı dinleyici oluşturmaz.
 function playUiClickSound(){
   if(document.hidden) return;
@@ -639,7 +635,6 @@ try{ return !!(await mpDb.ref('meta/closedRoomCodes/'+dayKey+'/'+code).once('val
 }
 async function closeAndLockPrivateRoom(ref,code,reason='closed'){
 if(!ref || !code) return;
-// v366: kapatılan özel oda sunucuda kalmaz; eski URL yalnızca bulunamayan oda olur.
 try{ await ref.remove(); }catch(_){ }
 }
 function stopInviteWaitCountdown(){
@@ -1241,7 +1236,6 @@ if(inline){inline.classList.add('hidden');inline.textContent='';}
 }
 
 async function hostExpireRematchIfNeeded(d){
-// v233: Özel odada yeniden oynama için ikinci oyuncu onayı veya zaman aşımı yok.
 // Oda, biri YENİDEN OYNA ya da ÇIKIŞ diyene kadar açık kalır.
 return;
 }
@@ -1322,7 +1316,6 @@ function emphasizeWinner(side){
   avatar?.classList.add('winner-avatar-big');
   card?.classList.add('victory-flash-strong','kd-winner-glow');
   setTimeout(()=>card?.classList.remove('victory-flash-strong'),2200);
-  // v361: konfetti kaldırıldı; zafer taç + halo + kart vurgusuyla kutlanır.
 }
 function showRandomResultExitButton(){
 const actions=document.getElementById('gameover-actions');
@@ -1397,7 +1390,6 @@ const inline=document.getElementById('rematch-inline-status');
 const actions=document.getElementById('gameover-actions');
 const randomResultSession=isRandomHumanRoom();
 if(randomResultSession){
-  // v233: butonlar ve bildirim armRandomResultAutoExit tarafından yönetilir.
   // Burada yalnız görünümün yanlışlıkla geri açılmamasını garanti ediyoruz.
   armRandomResultAutoExit(d);
 }else{
@@ -1468,7 +1460,6 @@ if(gs.status==='playing'){if(!mpEntered) await enterMultiplayerRoom();activateMu
 if(gs.status==='finished'){
 setMpState(MP_STATES.FINISHED); document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
 const d={...(mpRoomData||{}),...gs};
-// v233: sonuç kesinleştiği anda, render/konfeti kodundan bağımsız otomatik çıkışı kur.
 if(isRandomHumanRoom()){
 showRandomResultExitButton();
 showMultiplayerSeriesResult(d);
@@ -1924,7 +1915,6 @@ window.addEventListener('DOMContentLoaded',async()=>{
 const u=new URL(location.href);
 const code=String(u.searchParams.get('room')||'').toLowerCase().replace(/[^a-z]/g,'').slice(0,5);
 if(!code) return;
-// v386: Davet bağlantısı hafif statik karşılama katmanında açılır.
 // Gerçek ana sayfa ve oyun tahtası, oyuncu başlayana kadar çizilmez/etkileşime girmez.
 document.getElementById('screen-home')?.classList.add('hidden');
 document.getElementById('screen-game')?.classList.add('hidden');
@@ -1992,7 +1982,6 @@ function startHowtoDemo(){
  const demoScreens=['screen-howto','screen-home','modal-room-invite','modal-mp-waiting','modal-rematch-waiting'];
  const demoVisible=()=>demoScreens.some(id=>!document.getElementById(id).classList.contains('hidden'))||(!document.getElementById('modal-countdown').classList.contains('hidden')&&!document.querySelector('#modal-countdown .mp-demo').classList.contains('hidden'));
  const rounds=[
-  // v276: Beş kısa hareket; yalnız komşu harf toplamayı gösterir.
   {word:'KAP',path:[7,8,9]},        // soldan sağa
   {word:'CAM',path:[12,11,10]},    // sağdan sola
   {word:'TAŞ',path:[18,11,4]},      // aşağıdan yukarı
@@ -2001,7 +1990,6 @@ function startHowtoDemo(){
  ];
  let round=0,step=0;
  function advance(){
-  // v274: Tam ekranda ana sayfa / geri sayım demosu CPU ve paint üretmesin.
   // Demo görünür kalır ama animasyon dondurulur.
   if(document.hidden||!demoVisible()||isFullscreenActive()){stopHowtoDemo();return;}
   const item=rounds[round];
@@ -2046,8 +2034,6 @@ document.addEventListener('visibilitychange',()=>{
 new MutationObserver(()=>{if(!document.getElementById('screen-home').classList.contains('hidden'))startHowtoDemo();}).observe(document.getElementById('screen-home'),{attributes:true,attributeFilter:['class']});
 for(const id of ['modal-room-invite','modal-mp-waiting','modal-rematch-waiting','modal-countdown'])new MutationObserver(()=>startHowtoDemo()).observe(document.getElementById(id),{attributes:true,attributeFilter:['class']});
 startHowtoDemo();
-
-// v284: Ana sayfa alt menüleri tek merkezi click yöneticisiyle çalışır.
 // Böylece başka bir modülün handler'ı bozulsa bile Ayarlar/Oynanış/Hakkında/Sözlük/Destek bağımsız kalır.
 document.addEventListener('click',(event)=>{
   const target=event.target?.closest?.('#btn-settings,#btn-settings-back,#btn-howto,#btn-howto-back,#btn-about,#btn-about-back,#btn-open-dictionary,#btn-support,#btn-close-support');
@@ -2135,7 +2121,6 @@ sessionFoundWords.clear();
 const ticker=document.getElementById('words-ticker'); if(ticker)ticker.innerHTML='';
 document.getElementById('screen-home').classList.add('hidden');
 document.getElementById('screen-game').classList.remove('hidden');
-// v361: geri sayım görünürken tahta hazırlanır; BAŞLA anında yalnız oyun aktive edilir.
 triggerCountdownSequence(()=>{isMatchActive=true;startTimer();planBot();});
 requestAnimationFrame(()=>{
   try{ buildGrid(); }
@@ -2706,8 +2691,6 @@ function processPointerSegment(clientX,clientY,metrics=activeGridMetrics){
 if(lastPointerX===null||lastPointerY===null){processPointerAt(clientX,clientY,metrics);lastPointerX=clientX;lastPointerY=clientY;return;}
 const dx=clientX-lastPointerX,dy=clientY-lastPointerY;
 const cellPx=metrics?Math.min(metrics.cellW,metrics.cellH):40;
-
-// v273: Masaüstünde coalesced pointer örnekleri zaten gerçek fare yolunu veriyor.
 // Küçük hücrelerde gereksiz 8-10 ara hesap üretmek fullscreen'de tutukluk yapıyordu.
 // Dokunmatik yolu eski hassasiyetinde kalır; fine-pointer yolu daha hafif çalışır.
 const finePointer=!IS_COARSE_POINTER;
@@ -2873,7 +2856,6 @@ at: firebase.database.ServerValue.TIMESTAMP
 };
 }, undefined, false);
 if(tx.committed){
-  // v371: sözcük olayı rakibe ulaşır ulaşmaz skor da tek küçük yazıyla gönderilir.
   // Beklemiyoruz; yerel oyun akışı ağ RTT'sine takılmaz.
   mpWordScoreCommitted=nextOwnScore;
   mpRoomRef.child('scores/'+mpRole).set(nextOwnScore).then(()=>{mpLastConfirmedOwnScore=nextOwnScore;}).catch(()=>{scheduleMpScoreSync();});
@@ -3045,7 +3027,6 @@ badge.title=`${word} sözcüğünün anlamını göster`;
 badge.setAttribute('aria-label',`${word} sözcüğünün anlamını göster`);
 badge.addEventListener('click',(ev)=>{ev.preventDefault();ev.stopPropagation();openFoundWordMeaning(word);});
 ticker.appendChild(badge);
-// v379: yeni sözcük sağda görünür; satır doldukça eski rozetler sola itilip görünümden çıkar.
 requestAnimationFrame(()=>{ticker.scrollLeft=Math.max(0,ticker.scrollWidth-ticker.clientWidth);});
 return badge;
 }
@@ -3286,7 +3267,6 @@ function startWinnerConfettiWaterfall(winnerSide=null){
 function launchGrandCelebration(winnerSide=null) {
 stopGrandCelebrationFx();
 stopWinnerConfettiWaterfall();
-// v361: parçacık/konfetti yok; premium zafer CSS vurgusu kullanılır.
 }
 
 async function waitUntilRoomFinished(timeoutMs=3500){
@@ -3343,8 +3323,6 @@ try{
 const finished=await waitUntilRoomFinished();
 if(!finished) throw new Error('room-not-finished');
 if(!mpRoomRef || !mpRole) throw new Error('room-missing');
-
-// v390: Özel odada HOST veya GUEST fark etmez; ilk YENİDEN OYNA tıklaması yeterlidir.
 // İkinci oyuncudan onay beklenmez. Host, isteği Firebase'de görür görmez yeni turu başlatır.
 const role=mpRole;
 const rematchRef=mpRoomRef.child('rematch');
@@ -3423,8 +3401,6 @@ mpEndResolveTimer=setTimeout(()=>{mpEndResolveTimer=null;hostResolveMatchEnd().c
 }else showToast('Maç sonucu senkronize ediliyor…','sky');
 return;
 }
-
-// v342: 1 saniyelik SÜRE DOLDU bildirimi biter bitmez sonuç modali açılır.
 // Ağır sonuç süslemeleri modal görünür olduktan sonra çalışır; geçişi artık bloke etmez.
 showTimeUpPreview(()=>{
   const modal=document.getElementById('modal-gameover');
@@ -3456,7 +3432,6 @@ if(el) el.style.display='none';
 }
 
 function finishRandomMatchAfterResult(expectedKey='',capturedRef=null,capturedRole=''){
-// v233: zamanlayıcı kurulduktan sonra canlı oda/mod değişkenlerine bağımlı değiliz.
 // Yalnız aynı sonuç oturumu hâlâ geçerliyse cihaz çıkış komutunu uygular.
 if(expectedKey && randomResultAutoExitKey!==expectedKey) return;
 const ref=capturedRef||mpRoomRef;
@@ -3535,8 +3510,6 @@ if(randomRoomAtExit && (isAutomaticRandomTimeout||isRandomResultManualExit)){
   hideRoomExitNotice();
   return;
 }
-
-// v233: Rastgele maçta oyunculardan biri ÇIKIŞ yaptığında iki tarafta da
 // kısa "OYUN SONLANDIRILDI" bildirimi görünür ve ardından ana sayfaya dönülür.
 if(randomRoomAtExit && isManualPlayerExit && initiatedBySelf){
   showRoomExitNotice('OYUN SONLANDIRILDI');
@@ -3891,6 +3864,4 @@ document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
 document.getElementById('btn-close-rematch-waiting')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePlayAgain);
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
-
-// v411: Ana sayfada ağır sözlük/tahta ön hazırlığı yapılmaz.
 // Sözlük Tek Oyuncu, Sözlük veya oyun akışında gerçekten gerektiğinde yüklenir.
