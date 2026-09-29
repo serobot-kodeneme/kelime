@@ -1721,13 +1721,6 @@ document.getElementById('btn-share-link').onclick = async()=>{
 if(!mpRoomCode) return;
 const url=inviteUrl(mpRoomCode);
 const sharedRoom=mpRoomCode;
-try{
-if(navigator.share) await navigator.share({title:'KAPMACA — Meydan Okuma',text:'🔥 60 saniye. Aynı harfler. Kim daha çok kelime bulacak? KAPMACA\'da bana karşı oyna!',url});
-else { await navigator.clipboard.writeText(url); showToast('Davet bağlantısı kopyalandı.','emerald'); }
-}catch(e){
-if(e?.name==='AbortError') return;
-return;
-}
 const inviteDeadline=serverNow()+60000;
 if(mpRole!=='host' || !mpRoomRef || !/^invite-only-/.test(String(mpRoomMode||''))) return;
 try{
@@ -1740,7 +1733,13 @@ if(!mpEntered || mpRoomCode!==sharedRoom || mpRole!=='host') return;
 isMatchActive=false;
 document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
 startInviteWaitCountdown(inviteDeadline);
-}catch(e){ showToast('Bekleme odasına geçilemedi.','rose'); }
+if(navigator.share){
+ navigator.share({title:'KAPMACA — Meydan Okuma',text:'🔥 60 saniye. Aynı harfler. Kim daha çok kelime bulacak? KAPMACA\'da bana karşı oyna!',url}).catch(()=>{});
+}else{
+ await navigator.clipboard.writeText(url).catch(()=>{});
+ showToast('Davet bağlantısı kopyalandı.','emerald');
+}
+}catch(e){ showToast('Davet başlatılamadı.','rose'); }
 };
 document.getElementById('btn-close-mp-waiting').onclick=async()=>{
 if(mpRoomRef && mpRole){
