@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <title>KAPMACA — Türkçe Sözcük Keşif ve Öğrenme Aracı</title>
-<meta name="game-version" content="v376">
+<meta name="game-version" content="v377">
 <meta name="description" content="KAPMACA, Türkçe sözcük dağarcığını geliştirmeyi, sözcükleri hızlı tanımayı ve yeni sözcükler keşfetmeyi destekleyen ücretsiz etkileşimli sözcük öğrenme aracıdır. Tek başına çalış veya arkadaşınla yarış.">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="theme-color" content="#075458">
@@ -2348,7 +2348,7 @@ body {
 }
 .result-party-fx,.result-card-party,.result-global-confetti,.word-confetti-layer{display:none!important;}
 
-/* v376: sade premium zafer — konfetti yok */
+/* v377: sade premium zafer — konfetti yok */
 .victory-card{animation:kdPremiumVictory 1.05s cubic-bezier(.2,.8,.2,1) both;}
 @keyframes kdPremiumVictory{0%{transform:scale(.96);filter:brightness(.96)}55%{transform:scale(1.045);filter:brightness(1.08)}100%{transform:scale(1);filter:brightness(1)}}
 .victory-avatar-crown{animation:kdCrownSettle .7s cubic-bezier(.16,.84,.3,1) both!important;}
@@ -2901,7 +2901,7 @@ background: radial-gradient(circle at 35% 35%, rgba(45,212,191,.58) 0 10%, rgba(
 .dict-rules{font-size:9.5px;line-height:13px;font-weight:700;color:#475569}
 .dict-rules b{font-weight:1000;color:#0f172a}
 @media(max-width:370px){#alphabet-bar{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}.dict-letter-btn{height:40px!important;font-size:15px!important}}
-/* v376: mobil sözlükte alfabe daha kompakt, sözcük listesine daha fazla dikey alan */
+/* v377: mobil sözlükte alfabe daha kompakt, sözcük listesine daha fazla dikey alan */
 @media(max-width:600px){
   #modal-dictionary{padding:6px!important;}
   #modal-dictionary>div{padding:10px!important;border-radius:20px!important;}
@@ -3363,7 +3363,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 #compact-game-header.game-header-v4 .compact-timer.timer-danger #game-timer{color:#fff!important;text-shadow:0 0 8px rgba(255,255,255,.5),0 0 14px rgba(255,0,0,.8)!important}
 @media(prefers-reduced-motion:reduce){#compact-game-header.game-header-v4 .compact-timer.timer-danger{animation:none!important;background:#dc2626!important}}
 
-/* v376: authoritative mobile game centering — parent-relative, never viewport-wide */
+/* v377: authoritative mobile game centering — parent-relative, never viewport-wide */
 @media (max-width:600px){
   #screen-game{width:100%!important;max-width:100%!important;inset:0!important;overflow-x:hidden!important;}
   #screen-game>div:last-child{width:100%!important;max-width:100%!important;box-sizing:border-box!important;padding-left:2px!important;padding-right:2px!important;align-items:center!important;}
@@ -3374,12 +3374,20 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
   #scrabble-grid{width:min(calc(100% - 4px),calc(100dvh - 170px),440px)!important;}
 }
 
-/* v376: Android mobil tarayıcıda body flex + w-screen kaynaklı sağa kaymayı engelle */
+/* v377: Android mobil tarayıcıda body flex + w-screen kaynaklı sağa kaymayı engelle */
 @media (max-width:600px){
   html,body{width:100%!important;max-width:100%!important;margin:0!important;padding:0!important;overflow-x:hidden!important;}
   body{display:block!important;}
   #app-container{width:100%!important;max-width:100%!important;margin:0!important;left:0!important;right:auto!important;transform:none!important;}
 }
+
+/* v377: BULUNANLAR biraz daha okunaklı; rozetler sözlük anlamı için tıklanabilir */
+#screen-game>div:nth-of-type(2){height:28px!important;min-height:28px!important;}
+#screen-game>div:nth-of-type(2)>span{font-size:10px!important;}
+#words-ticker .found-word-badge{font-size:11px!important;padding:3px 9px!important;cursor:pointer;touch-action:manipulation;border:0;line-height:16px;}
+#words-ticker .found-word-badge:active{transform:scale(.96);}
+#modal-found-meaning{z-index:95;}
+#found-meaning-content{max-height:min(52dvh,360px);overflow-y:auto;}
 </style>
 
 <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -3604,7 +3612,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 <div class="sound-step-marks" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
 <label class="sound-mute-row" for="sound-muted"><input id="sound-muted" type="checkbox"> Sessiz</label>
 </div>
-<div class="mt-2 text-center text-[10px] font-black text-slate-400">v376</div>
+<div class="mt-2 text-center text-[10px] font-black text-slate-400">v377</div>
 </div>
 </div>
 </div>
@@ -3640,6 +3648,16 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 <a href="https://www.losev.org.tr/tr/bagis" target="_blank" rel="noopener noreferrer" class="block mt-4 rounded-xl bg-rose-600 px-4 py-3 text-sm font-black text-white shadow">RESMÎ BAĞIŞ SAYFASINA GİT ›</a>
 </div>
 </div>
+</div>
+</div>
+
+<div id="modal-found-meaning" class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-[95] hidden p-4">
+<div class="w-full max-w-sm bg-white rounded-3xl border border-slate-200 shadow-2xl p-4">
+<div class="flex items-center justify-between pb-3 border-b border-slate-200">
+<div><div class="text-[10px] font-black tracking-widest text-amber-600 uppercase">SÖZLÜK ANLAMI</div><h3 id="found-meaning-word" class="text-xl font-black text-slate-900 mt-0.5"></h3></div>
+<button id="btn-close-found-meaning" type="button" aria-label="Anlam penceresini kapat" class="w-9 h-9 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-black">✕</button>
+</div>
+<div id="found-meaning-content" class="dict-inline-meaning mt-2 !border-0 !p-0" aria-live="polite"></div>
 </div>
 </div>
 
