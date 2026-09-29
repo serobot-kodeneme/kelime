@@ -508,7 +508,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v436';
+const GAME_VERSION='v437';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -641,20 +641,27 @@ mpServerOffset=Number(snap.val()||0);
 return true;
 }catch(_){ return false; }
 }
-async function waitFirebaseConnected(timeoutMs=6000){
+async function waitFirebaseConnected(timeoutMs=8000){
 if(!await ensureFirebaseSdkLoaded()) return false;
 if(!ensureFirebase()) return false;
 const connectedRef=mpDb.ref('.info/connected');
-const first=await connectedRef.once('value');
-if(first.val()===true){ await syncServerClock(); return true; }
 const connected=await new Promise(resolve=>{
-let done=false, timer=null;
-const finish=v=>{ if(done)return; done=true; if(timer) clearTimeout(timer); connectedRef.off('value',listener); resolve(v); };
-const listener=s=>{ if(s.val()===true) finish(true); };
+let done=false;
+const finish=v=>{
+if(done)return;
+done=true;
+clearTimeout(timer);
+try{connectedRef.off('value',listener);}catch(_){}
+resolve(v);
+};
+const listener=s=>{if(s.val()===true) finish(true);};
 connectedRef.on('value',listener);
-timer=setTimeout(()=>finish(false),timeoutMs);
+const timer=setTimeout(()=>finish(false),Math.max(1500,Number(timeoutMs)||8000));
 });
-if(connected) await syncServerClock();
+if(connected){
+try{startServerOffsetListener();}catch(_){}
+syncServerClock().catch(()=>{});
+}
 return connected;
 }
 function serverNow(){ return Date.now()+mpServerOffset; }
@@ -966,12 +973,15 @@ timer=setTimeout(()=>finish(false),Math.max(1,timeoutMs||RANDOM_SEARCH_MS));
 }
 
 async function searchRandomOpponent(){
-if(randomSearchActive) return;
+if(randomSearchActive){
+await cleanupRandomQueue(true).catch(()=>{});
+randomSearchActive=false;
+}
 const wordDataLoad=ensureWordDataLoaded();
 const btn=document.getElementById('btn-random-match');
 if(btn){ btn.disabled=true; btn.textContent='RAKİP ARANIYOR…'; }
-setRandomStatus('Çevrimiçi rakip aranıyor…',true);
-if(!await waitFirebaseConnected()){
+setRandomStatus('Sunucuya bağlanılıyor…',true);
+if(!await waitFirebaseConnected(8000)){
 restoreHodriMeydanButton();
 setRandomStatus('Sunucuya bağlanılamadı.',true);
 disconnectFirebaseNetwork();
@@ -1000,7 +1010,11 @@ return {...cur,claimedBy:myId,claimedAt:now,expiresAt:now+RANDOM_QUEUE_TTL};
 }
 return;
 });
-}catch(_){}
+}catch(e){
+console.error('Random matchmaking transaction error',e);
+setRandomStatus('Eşleşme sunucusunda hata oluştu. Tekrar deneyin.',true);
+break;
+}
 
 if(!randomSearchActive || randomSearchTicket!==ticket) break;
 if(serverNow()>=deadline) break;
@@ -1087,29 +1101,17 @@ const c=document.getElementById('mp-room-code');
 if(c)c.textContent=String(text||'ODA HAZIRLANIYOR…');
 }
 
-const PRIVATE_ROOM_CREATE_COOLDOWN_MS=10000;
 let privateRoomCreateBusy=false;
-function canCreatePrivateRoom(){
-const last=Number(safeStorageGet('local','kd_last_room_create_at')||0);
-const now=Date.now();
-const left=PRIVATE_ROOM_CREATE_COOLDOWN_MS-(now-last);
-if(left>0){
-showToast(`Yeni oda oluşturmak için ${Math.ceil(left/1000)} saniye bekleyin.`,'slate');
-return false;
-}
-return true;
-}
-function markPrivateRoomCreated(){
-safeStorageSet('local','kd_last_room_create_at',String(Date.now()));
-}
+let privateRoomCreateSeq=0;
 async function createRoom(){
-if(privateRoomCreateBusy) return false;
-if(!canCreatePrivateRoom()) return false;
+const seq=++privateRoomCreateSeq;
 privateRoomCreateBusy=true;
+setPrivateRoomProgress('SUNUCUYA BAĞLANILIYOR…');
 const wordDataLoad=ensureWordDataLoaded();
 try{
-setPrivateRoomProgress('SUNUCUYA BAĞLANILIYOR…');
-if(!await waitFirebaseConnected()){
+const connected=await waitFirebaseConnected(8000);
+if(seq!==privateRoomCreateSeq) return false;
+if(!connected){
 showToast('Sunucuya bağlanılamadı. İnternet bağlantını kontrol et.','rose');
 setPrivateRoomProgress('SUNUCUYA BAĞLANILAMADI — TEKRAR DENE');
 disconnectFirebaseNetwork();
@@ -1118,10 +1120,18 @@ return false;
 setPrivateRoomProgress('ODA KODU OLUŞTURULUYOR…');
 let alloc;
 try{alloc=await allocateDailyRoomCode();}
-catch(e){showToast('Oda kodu oluşturulamadı. Tekrar dene.','rose');setPrivateRoomProgress('ODA KODU OLUŞTURULAMADI — TEKRAR DENE');return false;}
+catch(e){
+console.error('Room code allocation error',e);
+if(seq!==privateRoomCreateSeq) return false;
+showToast('Oda kodu oluşturulamadı. Tekrar dene.','rose');
+setPrivateRoomProgress('ODA KODU OLUŞTURULAMADI — TEKRAR DENE');
+return false;
+}
+if(seq!==privateRoomCreateSeq) return false;
 const code=alloc.code, ref=mpDb.ref('rooms/'+code);
 const hostId=getClientToken();
 const readyBoard=makeQuickRoomBoard();
+setPrivateRoomProgress('ODA OLUŞTURULUYOR…');
 try{
 await ref.set({
 schema:21, mode:'invite-only-v5', createdAt:firebase.database.ServerValue.TIMESTAMP,
@@ -1134,8 +1144,13 @@ presence:{host:{online:true,clientId:hostId},guest:{online:false}}, ready:{host:
 });
 }catch(e){
 console.error('Private room create error',e);
+if(seq!==privateRoomCreateSeq) return false;
 showToast('Oda oluşturulamadı. Tekrar dene.','rose');
 setPrivateRoomProgress('ODA OLUŞTURULAMADI — TEKRAR DENE');
+return false;
+}
+if(seq!==privateRoomCreateSeq){
+try{await ref.remove();}catch(_){}
 return false;
 }
 mpRoomCode=code; mpRole='host'; mpRoomRef=ref; mpRoomMode='invite-only-v5'; mpRandomMatchSession=false; delete document.body.dataset.randomMatchActive; document.body.dataset.privateFriendActive='1'; mpRoomData=null; mpEntered=false; mpStarted=false; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId='';
@@ -1148,7 +1163,7 @@ markPresence().catch(err=>console.warn('Presence registration delayed',err));
 upgradeWaitingRoomBoard(ref,wordDataLoad);
 return true;
 }finally{
-privateRoomCreateBusy=false;
+if(seq===privateRoomCreateSeq) privateRoomCreateBusy=false;
 }
 }
 
@@ -1905,16 +1920,19 @@ clearInviteFromUrl();
 }
 async function openFreshPrivateRoom(){
 if(randomSearchActive) await cleanupRandomQueue(true);
+privateRoomCreateSeq++;
+privateRoomCreateBusy=false;
 await discardCurrentPrivateRoom();
 document.getElementById('friend-invite-panel')?.classList.remove('hidden');
 document.getElementById('mp-create-view')?.classList.add('hidden');
 document.getElementById('mp-room-view')?.classList.remove('hidden');
 document.getElementById('btn-close-room')?.classList.remove('hidden');
 setPrivateInviteControlsReady(false);
+setPrivateRoomProgress('SUNUCUYA BAĞLANILIYOR…');
 const ok=await createRoom();
 if(!ok&&!mpRoomRef){
 const c=document.getElementById('mp-room-code');
-if(c)c.textContent='ODA OLUŞTURULAMADI — DOST ATEŞİNE TEKRAR DOKUN';
+if(c && /HAZIRLANIYOR|BAĞLANILIYOR|OLUŞTURULUYOR/.test(c.textContent||'')) c.textContent='ODA OLUŞTURULAMADI — DOST ATEŞİNE TEKRAR DOKUN';
 setPrivateInviteControlsReady(false);
 }
 }
