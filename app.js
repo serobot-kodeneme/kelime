@@ -1807,16 +1807,13 @@ window.addEventListener('DOMContentLoaded',async()=>{
 const u=new URL(location.href);
 const code=String(u.searchParams.get('room')||'').toLowerCase().replace(/[^a-z]/g,'').slice(0,5);
 if(!code) return;
-// v381: Davet bağlantısında ana sayfayı hiç göstermeden doğrudan oyun sahnesine geç.
-// Firebase oda bilgisi alınırken tahta bulanık bir yükleme yüzeyi olarak görünür.
+// v386: Davet bağlantısı hafif statik karşılama katmanında açılır.
+// Gerçek ana sayfa ve oyun tahtası, oyuncu başlayana kadar çizilmez/etkileşime girmez.
 document.getElementById('screen-home')?.classList.add('hidden');
-document.getElementById('screen-game')?.classList.remove('hidden');
+document.getElementById('screen-game')?.classList.add('hidden');
 document.getElementById('friend-invite-panel')?.classList.add('hidden');
 setDifficultyOpen(false);
 document.body.dataset.inviteFastEntry='1';
-// Hafif karşılama: gerçek tahta/sözlük burada zorlanmaz; önce oda bağlantısı kurulur.
-const grid=document.getElementById('scrabble-grid');
-if(grid){grid.style.filter='blur(7px)';grid.style.opacity='.38';grid.style.pointerEvents='none';}
 const ok=await joinRoom(code);
 delete document.body.dataset.inviteFastEntry;
 if(!ok){ disconnectFirebaseNetwork(); return; }
