@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <title>KAPMACA — Türkçe Sözcük Keşif ve Öğrenme Aracı</title>
-<meta name="game-version" content="v373">
+<meta name="game-version" content="v374">
 <meta name="description" content="KAPMACA, Türkçe sözcük dağarcığını geliştirmeyi, sözcükleri hızlı tanımayı ve yeni sözcükler keşfetmeyi destekleyen ücretsiz etkileşimli sözcük öğrenme aracıdır. Tek başına çalış veya arkadaşınla yarış.">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="theme-color" content="#075458">\n<meta name="referrer" content="strict-origin-when-cross-origin">\n<meta name="format-detection" content="telephone=no">
@@ -2345,7 +2345,7 @@ body {
 }
 .result-party-fx,.result-card-party,.result-global-confetti,.word-confetti-layer{display:none!important;}
 
-/* v373: sade premium zafer — konfetti yok */
+/* v374: sade premium zafer — konfetti yok */
 .victory-card{animation:kdPremiumVictory 1.05s cubic-bezier(.2,.8,.2,1) both;}
 @keyframes kdPremiumVictory{0%{transform:scale(.96);filter:brightness(.96)}55%{transform:scale(1.045);filter:brightness(1.08)}100%{transform:scale(1);filter:brightness(1)}}
 .victory-avatar-crown{animation:kdCrownSettle .7s cubic-bezier(.16,.84,.3,1) both!important;}
@@ -2747,7 +2747,7 @@ border-radius: 11px !important;
 #compact-game-header #game-timer { font-size:24px !important; line-height:24px !important; }
 .compact-timer{width:51px;height:51px;min-width:51px;border-radius:9px;}
 #words-ticker { min-height:18px; }
-#scrabble-grid { width:min(calc(100vw - 6px), calc(100dvh - 190px), 440px) !important; max-width:none !important; }
+#scrabble-grid { width:min(calc(100% - 6px), calc(100dvh - 190px), 440px) !important; max-width:none !important; }
 }
 @media (max-height:680px) {
 #compact-game-header { min-height:43px; }
@@ -2755,7 +2755,7 @@ border-radius: 11px !important;
 #compact-game-header #game-timer { font-size:22px !important; line-height:22px !important; }
 .compact-timer{width:47px;height:47px;min-width:47px;border-radius:8px;}
 .score-orb { width:47px; height:47px; border-radius:8px; font-size:28px; line-height:.92; }
-#scrabble-grid { width:min(calc(100vw - 6px), calc(100dvh - 170px), 440px) !important; }
+#scrabble-grid { width:min(calc(100% - 6px), calc(100dvh - 170px), 440px) !important; }
 }
 
 #scrabble-grid { position:relative; overflow:hidden; contain: layout paint; -webkit-tap-highlight-color: transparent; }
@@ -2807,7 +2807,7 @@ text-shadow:0 2px 8px rgba(0,0,0,.22); filter:saturate(.96); will-change:transfo
 #btn-quick-exit:hover{background:#b91c1c!important}
 #btn-fullscreen-game{background:#2563eb!important;border-color:#60a5fa!important;color:#fff!important}
 #btn-fullscreen-game:hover{background:#1d4ed8!important}
-@media (max-width:520px){.game-bottom-controls{width:min(calc(100vw - 10px),440px);margin-top:18px;gap:8px}.game-bottom-controls button{min-width:108px;padding:7px 11px!important;font-size:9px!important}}
+@media (max-width:520px){.game-bottom-controls{width:min(calc(100% - 10px),440px);margin-top:18px;gap:8px}.game-bottom-controls button{min-width:108px;padding:7px 11px!important;font-size:9px!important}}
 #toast-layer .floating-toast{opacity:.78;backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px)}
 
 #scrabble-grid {
@@ -2898,7 +2898,7 @@ background: radial-gradient(circle at 35% 35%, rgba(45,212,191,.58) 0 10%, rgba(
 .dict-rules{font-size:9.5px;line-height:13px;font-weight:700;color:#475569}
 .dict-rules b{font-weight:1000;color:#0f172a}
 @media(max-width:370px){#alphabet-bar{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}.dict-letter-btn{height:40px!important;font-size:15px!important}}
-/* v373: mobil sözlükte alfabe daha kompakt, sözcük listesine daha fazla dikey alan */
+/* v374: mobil sözlükte alfabe daha kompakt, sözcük listesine daha fazla dikey alan */
 @media(max-width:600px){
   #modal-dictionary{padding:6px!important;}
   #modal-dictionary>div{padding:10px!important;border-radius:20px!important;}
@@ -3359,6 +3359,17 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 #compact-game-header.game-header-v4 .compact-timer.timer-danger .timer-label{color:#fff!important}
 #compact-game-header.game-header-v4 .compact-timer.timer-danger #game-timer{color:#fff!important;text-shadow:0 0 8px rgba(255,255,255,.5),0 0 14px rgba(255,0,0,.8)!important}
 @media(prefers-reduced-motion:reduce){#compact-game-header.game-header-v4 .compact-timer.timer-danger{animation:none!important;background:#dc2626!important}}
+
+/* v374: authoritative mobile game centering — parent-relative, never viewport-wide */
+@media (max-width:600px){
+  #screen-game{width:100%!important;max-width:100%!important;inset:0!important;overflow-x:hidden!important;}
+  #screen-game>div:last-child{width:100%!important;max-width:100%!important;box-sizing:border-box!important;padding-left:2px!important;padding-right:2px!important;align-items:center!important;}
+  #scrabble-grid{width:min(calc(100% - 4px),calc(100dvh - 190px),440px)!important;max-width:calc(100% - 4px)!important;margin-left:auto!important;margin-right:auto!important;justify-self:center!important;}
+  .game-bottom-controls{width:calc(100% - 8px)!important;max-width:440px!important;margin-left:auto!important;margin-right:auto!important;}
+}
+@media (max-width:600px) and (max-height:680px){
+  #scrabble-grid{width:min(calc(100% - 4px),calc(100dvh - 170px),440px)!important;}
+}
 </style>
 
 <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -3583,7 +3594,7 @@ body[data-private-friend-active="1"] #btn-game-exit{display:flex!important;}
 <div class="sound-step-marks" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
 <label class="sound-mute-row" for="sound-muted"><input id="sound-muted" type="checkbox"> Sessiz</label>
 </div>
-<div class="mt-2 text-center text-[10px] font-black text-slate-400">v373</div>
+<div class="mt-2 text-center text-[10px] font-black text-slate-400">v374</div>
 </div>
 </div>
 </div>
