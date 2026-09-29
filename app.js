@@ -2627,6 +2627,36 @@ if(state.count>=2 && score){
 }
 function breakCombo(isP1){const st=kdComboState[isP1?'p1':'p2'];st.count=0;st.last=0;}
 
+// v363: konfetti gibi bağımsız görsel katman; gerçek hücrelere/board state'e dokunmaz.
+function spillFoundLetters(path){
+ if(document.hidden||!Array.isArray(path)||!path.length)return;
+ const frag=document.createDocumentFragment();
+ const pieces=[];
+ path.forEach((p,i)=>{
+  const el=p.el;
+  if(!el||!el.isConnected)return;
+  const r=el.getBoundingClientRect();
+  if(!r.width||!r.height)return;
+  const piece=document.createElement('div');
+  piece.className='kd-letter-rain-piece';
+  piece.style.width=Math.min(r.width,46)+'px';
+  piece.style.height=Math.min(r.height,46)+'px';
+  piece.style.fontSize=Math.max(18,Math.min(30,r.height*.58))+'px';
+  piece.style.setProperty('--x',(r.left+(r.width-Math.min(r.width,46))/2)+'px');
+  piece.style.setProperty('--y',(r.top+(r.height-Math.min(r.height,46))/2)+'px');
+  piece.style.setProperty('--drift',((i%2?1:-1)*(8+(i%3)*7))+'px');
+  piece.style.setProperty('--tilt',((i%2?1:-1)*(2+i%3))+'deg');
+  piece.style.setProperty('--spin',((i%2?1:-1)*(70+i*24))+'deg');
+  piece.style.setProperty('--delay',(i*35)+'ms');
+  piece.style.setProperty('--dur',(720+Math.min(i,6)*35)+'ms');
+  const letter=document.createElement('span');letter.textContent=p.char;
+  const score=document.createElement('span');score.className='kd-letter-rain-score';score.textContent=String(TILE_SCORE_CACHE[p.char]||1);
+  piece.append(letter,score);frag.appendChild(piece);pieces.push(piece);
+ });
+ document.body.appendChild(frag);
+ setTimeout(()=>pieces.forEach(x=>x.remove()),1400);
+}
+
 async function submitWord(submitOrigin=null) {
 if (!isMatchActive || selectedPath.length === 0) return;
 const word = selectedPath.map(p => p.char).join('');
@@ -2703,6 +2733,7 @@ mpFoundWords.host.add(word);
 mpFoundWords.guest.add(word);
 } else sessionFoundWords.add(word);
 recordMatchWord(word,pts,isP1);
+spillFoundLetters(selectedPath.slice());
 playCorrectChime();
 flashWordFeedback(true);
 showToast(`${word} (+${pts})`, isP1 ? 'amber' : 'sky');
