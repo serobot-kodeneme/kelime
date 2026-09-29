@@ -401,10 +401,29 @@ function playUiClickSound(){
   if(document.hidden) return;
   playTone(560,.028,.028,'sine',690);
 }
+function isUiSoundTarget(target){
+  const el=target?.closest?.('button,a,[role="button"]');
+  return el && !el.disabled;
+}
+let lastUiHoverEl=null, lastUiPressAt=0;
+document.addEventListener('pointerover',(e)=>{
+  const el=isUiSoundTarget(e.target);
+  if(!el || el===lastUiHoverEl || e.pointerType==='touch') return;
+  lastUiHoverEl=el; playUiClickSound();
+},{passive:true});
+document.addEventListener('pointerout',(e)=>{
+  const el=isUiSoundTarget(e.target);
+  if(el===lastUiHoverEl && !el?.contains?.(e.relatedTarget)) lastUiHoverEl=null;
+},{passive:true});
+document.addEventListener('pointerdown',(e)=>{
+  const el=isUiSoundTarget(e.target);
+  if(!el) return;
+  lastUiPressAt=performance.now(); ensureGameAudio(); playUiClickSound();
+},{passive:true});
 document.addEventListener('click',(e)=>{
-  const btn=e.target?.closest?.('button');
-  if(!btn || btn.disabled) return;
-  playUiClickSound();
+  const el=isUiSoundTarget(e.target);
+  if(!el) return;
+  if(performance.now()-lastUiPressAt>350) playUiClickSound();
 },{passive:true});
 
 function playErrorBuzzer(){
@@ -2890,7 +2909,7 @@ badge.title=`${word} sözcüğünün anlamını göster`;
 badge.setAttribute('aria-label',`${word} sözcüğünün anlamını göster`);
 badge.addEventListener('click',(ev)=>{ev.preventDefault();ev.stopPropagation();openFoundWordMeaning(word);});
 ticker.appendChild(badge);
-// v378: yeni sözcük sağda görünür; satır doldukça eski rozetler sola itilip görünümden çıkar.
+// v379: yeni sözcük sağda görünür; satır doldukça eski rozetler sola itilip görünümden çıkar.
 requestAnimationFrame(()=>{ticker.scrollLeft=Math.max(0,ticker.scrollWidth-ticker.clientWidth);});
 return badge;
 }
