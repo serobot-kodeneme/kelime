@@ -336,8 +336,8 @@ let gameAudioCtx = null;
 let lastHeartbeatSecond = null;
 let lastGongSecond = null;
 const SOUND_VOLUME_KEY = 'kd_sound_volume_v2';
-const AUDIO_GAIN_BOOST = 1.56574; // v335: genel ses seviyesi +%10
-const AUDIO_GAIN_CAP = 0.315;
+const AUDIO_GAIN_BOOST = 1.722314; // v431: mevcut genel ses seviyesi +%10
+const AUDIO_GAIN_CAP = 0.3465;
 function safeStorageGet(kind,key){
 try{return (kind==='session'?window.sessionStorage:window.localStorage).getItem(key);}catch(_){return null;}
 }
@@ -351,7 +351,7 @@ let lastNonMutedSoundVolume=masterSoundVolume>0?masterSoundVolume:.8;
 function renderSoundControls(){
 const range=document.getElementById('sound-volume-range');
 const mute=document.getElementById('sound-muted');
-if(range) range.value=String(Math.max(1,Math.min(5,Math.round((masterSoundVolume>0?masterSoundVolume:lastNonMutedSoundVolume)*5))));
+if(range) range.value=String(Math.max(1,Math.min(6,Math.round((masterSoundVolume>0?masterSoundVolume:lastNonMutedSoundVolume)*6))));
 if(mute) mute.checked=masterSoundVolume<=0;
 }
 function setMasterSoundVolume(v){
@@ -496,7 +496,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v430';
+const GAME_VERSION='v431';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -2124,13 +2124,13 @@ function previewSoundLevel(){
   playTone(620,.055,.065,'sine',760);
 }
 soundRange?.addEventListener('pointerdown',()=>{
-  const level=Math.max(1,Math.min(5,Number(soundRange.value||1)));
-  setMasterSoundVolume(level/5);
+  const level=Math.max(1,Math.min(6,Number(soundRange.value||1)));
+  setMasterSoundVolume(level/6);
   previewSoundLevel();
 });
 soundRange?.addEventListener('input',()=>{
-  const level=Math.max(1,Math.min(5,Number(soundRange.value||1)));
-  setMasterSoundVolume(level/5);
+  const level=Math.max(1,Math.min(6,Number(soundRange.value||1)));
+  setMasterSoundVolume(level/6);
   previewSoundLevel();
 });
 soundMuted?.addEventListener('change',()=>{
@@ -2138,7 +2138,7 @@ soundMuted?.addEventListener('change',()=>{
     if(masterSoundVolume>0) lastNonMutedSoundVolume=masterSoundVolume;
     setMasterSoundVolume(0);
   }else{
-    setMasterSoundVolume(Math.max(1,Math.min(5,Math.round((lastNonMutedSoundVolume>0?lastNonMutedSoundVolume:.8)*5)))/5);
+    setMasterSoundVolume(Math.max(1,Math.min(6,Math.round((lastNonMutedSoundVolume>0?lastNonMutedSoundVolume:.8)*6)))/6);
     previewSoundLevel();
   }
 });
