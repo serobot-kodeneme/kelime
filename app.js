@@ -496,7 +496,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v434';
+const GAME_VERSION='v435';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -591,9 +591,13 @@ function ensureFirebase(){
 if(!window.firebase){ showToast('Firebase yüklenemedi. İnternet bağlantını kontrol et.','rose'); return false; }
 if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
 if(!mpDb) mpDb=firebase.database();
+if(!serverOffsetListener){
+  serverOffsetListener=s=>{ mpServerOffset=Number(s.val()||0); };
+  mpDb.ref('.info/serverTimeOffset').on('value',serverOffsetListener);
+}
 if(!firebaseNetworkOnline){
-try{mpDb.goOnline();}catch(_){}
-firebaseNetworkOnline=true;
+  try{ mpDb.goOnline(); }catch(_){}
+  firebaseNetworkOnline=true;
 }
 return true;
 }
@@ -625,29 +629,20 @@ mpServerOffset=Number(snap.val()||0);
 return true;
 }catch(_){ return false; }
 }
-async function waitFirebaseConnected(timeoutMs=8000){
+async function waitFirebaseConnected(timeoutMs=6000){
 if(!await ensureFirebaseSdkLoaded()) return false;
 if(!ensureFirebase()) return false;
 const connectedRef=mpDb.ref('.info/connected');
-try{
 const first=await connectedRef.once('value');
-if(first.val()===true){
-startServerOffsetListener();
-syncServerClock().catch?.(()=>{});
-return true;
-}
-}catch(_){}
+if(first.val()===true){ await syncServerClock(); return true; }
 const connected=await new Promise(resolve=>{
 let done=false, timer=null;
 const finish=v=>{ if(done)return; done=true; if(timer) clearTimeout(timer); connectedRef.off('value',listener); resolve(v); };
 const listener=s=>{ if(s.val()===true) finish(true); };
 connectedRef.on('value',listener);
-timer=setTimeout(()=>finish(false),Math.max(1000,timeoutMs||8000));
+timer=setTimeout(()=>finish(false),timeoutMs);
 });
-if(connected){
-startServerOffsetListener();
-syncServerClock().catch?.(()=>{});
-}
+if(connected) await syncServerClock();
 return connected;
 }
 function serverNow(){ return Date.now()+mpServerOffset; }
@@ -796,10 +791,23 @@ const u=new URL(location.href); u.searchParams.set('room',code); u.searchParams.
 function clearInviteFromUrl(){
 const u=new URL(location.href); ['room','join','as'].forEach(k=>u.searchParams.delete(k)); history.replaceState(null,'',u.toString());
 }
+function setPrivateInviteControlsReady(ready,code=''){
+const copy=document.getElementById('btn-copy-link');
+const share=document.getElementById('btn-share-link');
+if(copy) copy.disabled=!ready;
+if(share) share.disabled=!ready;
+for(const el of [copy,share]){
+if(!el) continue;
+el.style.opacity=ready?'1':'.55';
+el.style.cursor=ready?'pointer':'wait';
+}
+const c=document.getElementById('mp-room-code');
+if(c)c.textContent=ready&&code?'https://kapmaca.tr/?room='+String(code).toLowerCase():'ODA HAZIRLANIYOR…';
+}
 function setMpPanelRoom(code){
 document.getElementById('mp-create-view')?.classList.add('hidden');
 document.getElementById('mp-room-view')?.classList.remove('hidden');
-const c=document.getElementById('mp-room-code'); if(c)c.textContent='https://kapmaca.tr/?room='+String(code||mpRoomCode||'-----').toLowerCase();
+setPrivateInviteControlsReady(true,String(code||mpRoomCode||''));
 }
 async function markPresence(){
 if(!mpRoomRef||!mpRole) return;
@@ -951,20 +959,15 @@ const wordDataLoad=ensureWordDataLoaded();
 const btn=document.getElementById('btn-random-match');
 if(btn){ btn.disabled=true; btn.textContent='RAKİP ARANIYOR…'; }
 setRandomStatus('Çevrimiçi rakip aranıyor…',true);
-beginMultiplayerStartup();
-let connected=false;
-try{connected=await waitFirebaseConnected();}catch(_){connected=false;}
-if(!connected){
-endMultiplayerStartup();
+if(!await waitFirebaseConnected()){
 restoreHodriMeydanButton();
 setRandomStatus('Sunucuya bağlanılamadı.',true);
 disconnectFirebaseNetwork();
 return;
 }
+
 randomSearchActive=true;
 randomQueueRef=mpDb.ref('matchmaking/random/waiting');
-endMultiplayerStartup();
-// Çevrimiçi görünme eşleşmenin ön koşulu değildir; arka planda kaydolur.
 registerGlobalOnlinePresence().catch(()=>{});
 const ticket=randomTicket();
 randomSearchTicket=ticket;
@@ -984,11 +987,7 @@ return {...cur,claimedBy:myId,claimedAt:now,expiresAt:now+RANDOM_QUEUE_TTL};
 }
 return;
 });
-}catch(err){
-console.error('Random matchmaking transaction error',err);
-setRandomStatus('Eşleşme bağlantısında hata oluştu.',true);
-break;
-}
+}catch(_){}
 
 if(!randomSearchActive || randomSearchTicket!==ticket) break;
 if(serverNow()>=deadline) break;
@@ -1037,6 +1036,8 @@ break;
 }
 }
 
+// Başka bir istemci kuyruğu kullanıyorsa 450 ms polling yapma.
+// Kuyruk boşaldığında/değiştiğinde Firebase value olayı bizi uyandırsın.
 const opportunity=await waitForRandomQueueOpportunity(Math.max(1,deadline-serverNow()));
 if(!opportunity) break;
 }
@@ -1048,7 +1049,6 @@ return;
 }
 await cleanupRandomQueue(true);
 restoreHodriMeydanButton();
-disconnectFirebaseNetwork();
 setRandomStatus('45 saniye içinde rakip bulunamadı.',true);
 showToast('Rakip bulunamadı. Tekrar deneyebilirsin.','slate');
 setTimeout(()=>setRandomStatus('',false),1800);
@@ -1073,31 +1073,16 @@ async function createRoom(){
 if(privateRoomCreateBusy) return;
 if(!canCreatePrivateRoom()) return;
 privateRoomCreateBusy=true;
-beginMultiplayerStartup();
-let roomCreated=false;
-try{
 const wordDataLoad=ensureWordDataLoaded();
-let connected=false;
-try{connected=await waitFirebaseConnected();}catch(_){connected=false;}
-if(!connected){
-showToast('Sunucuya bağlanılamadı. İnternet bağlantını kontrol et.','rose');
-disconnectFirebaseNetwork();
-return;
-}
-try{await wordDataLoad;}catch(_){
-showToast('Oyun sözlüğü yüklenemedi. Tekrar deneyin.','rose');
-return;
-}
+if(!await waitFirebaseConnected()){ privateRoomCreateBusy=false; showToast('Sunucuya bağlanılamadı. İnternet bağlantını kontrol et.','rose'); disconnectFirebaseNetwork(); return; }
+try{ await wordDataLoad; }catch(_){ privateRoomCreateBusy=false; showToast('Oyun sözlüğü yüklenemedi. Tekrar deneyin.','rose'); return; }
 let alloc;
-try{alloc=await allocateDailyRoomCode();}
-catch(_){
-showToast('Günlük oda kodu oluşturulamadı. Tekrar dene.','rose');
-return;
-}
+try{ alloc=await allocateDailyRoomCode(); }
+catch(e){ privateRoomCreateBusy=false; showToast('Günlük oda kodu oluşturulamadı. Tekrar dene.','rose'); return; }
 const code=alloc.code, ref=mpDb.ref('rooms/'+code);
+
 const hostId=getClientToken();
 const readyBoard=prewarmedBoard || generateOptimizedBoard(3); prewarmedBoard=null; rememberBoard(readyBoard.board, readyBoard.words);
-try{
 await ref.set({
 schema:21, mode:'invite-only-v5', createdAt:firebase.database.ServerValue.TIMESTAMP,
 dayKey:alloc.dayKey,
@@ -1107,25 +1092,15 @@ scores:{host:0,guest:0}, words:{}, longestBonus:null, bonusApplied:false,
 endReady:{host:false,guest:false}, rematch:{host:false,guest:false,expiresAt:0}, pendingRound:null, invite:{guest:'pending',expiresAt:0},
 presence:{host:{online:true,clientId:hostId},guest:{online:false}}, ready:{host:false,guest:false}
 });
-}catch(err){
-console.error('Private room create error',err);
-showToast('Oda oluşturulamadı. Tekrar dene.','rose');
-return;
-}
-markPrivateRoomCreated();
+
 mpRoomCode=code; mpRole='host'; mpRoomRef=ref; mpRoomMode='invite-only-v5'; mpRandomMatchSession=false; delete document.body.dataset.randomMatchActive; document.body.dataset.privateFriendActive='1'; mpRoomData=null; mpEntered=false; mpStarted=false; mpSessionJoinedAt=serverNow(); mpExitHandling=false; mpLastExitSignalId='';
-setRoomUrl(code);
-try{await markPresence();}catch(err){console.warn('Private room presence retry',err);}
-setMpPanelRoom(code);
+setRoomUrl(code); await markPresence();
+setMpPanelRoom(code,'Bağlantıyı kopyala ve arkadaşına gönder.');
 document.getElementById('btn-close-room')?.classList.remove('hidden');
 setMpState(MP_STATES.WAITING);
 attachRoomListener();
-roomCreated=true;
-}finally{
-endMultiplayerStartup();
 privateRoomCreateBusy=false;
-if(!roomCreated&&!mpRoomRef&&!randomSearchActive&&!globalOnlinePresenceRef) disconnectFirebaseNetwork();
-}
+return true;
 }
 
 let inviteDecisionTimer=null;
@@ -1862,6 +1837,7 @@ const soloArrowHome=document.getElementById('solo-arrow'); if(soloArrowHome) sol
 document.getElementById('mp-room-view')?.classList.add('hidden');
 document.getElementById('mp-create-view')?.classList.remove('hidden');
 document.getElementById('btn-close-room')?.classList.add('hidden');
+setPrivateInviteControlsReady(false);
 restoreHodriMeydanButton();
 setRandomStatus('',false);
 disconnectFirebaseNetwork();
@@ -1882,19 +1858,15 @@ async function openFreshPrivateRoom(){
 if(randomSearchActive) await cleanupRandomQueue(true);
 await discardCurrentPrivateRoom();
 document.getElementById('friend-invite-panel')?.classList.remove('hidden');
-document.getElementById('mp-create-view')?.classList.remove('hidden');
-document.getElementById('mp-room-view')?.classList.add('hidden');
-const btn=document.getElementById('btn-create-room');
-const oldHtml=btn?.innerHTML||'';
-if(btn){btn.disabled=true;btn.textContent='ODA HAZIRLANIYOR…';}
-try{
-await createRoom();
-if(mpRoomRef&&mpRole==='host'){
 document.getElementById('mp-create-view')?.classList.add('hidden');
 document.getElementById('mp-room-view')?.classList.remove('hidden');
-}
-}finally{
-if(btn){btn.disabled=false;if(oldHtml)btn.innerHTML=oldHtml;}
+document.getElementById('btn-close-room')?.classList.remove('hidden');
+setPrivateInviteControlsReady(false);
+const ok=await createRoom();
+if(!ok&&!mpRoomRef){
+const c=document.getElementById('mp-room-code');
+if(c)c.textContent='ODA OLUŞTURULAMADI — DOST ATEŞİNE TEKRAR DOKUN';
+setPrivateInviteControlsReady(false);
 }
 }
 const difficultyPanel = document.getElementById('bot-settings-panel');
@@ -2072,7 +2044,14 @@ await requestSynchronizedRoomExit('player-exit');
 });
 
 document.getElementById('btn-close-room').onclick=async()=>{
-if(!mpRoomRef || mpRole!=='host') return;
+if(!mpRoomRef || mpRole!=='host'){
+document.getElementById('mp-room-view')?.classList.add('hidden');
+document.getElementById('mp-create-view')?.classList.remove('hidden');
+document.getElementById('btn-close-room')?.classList.add('hidden');
+setPrivateInviteControlsReady(false);
+if(!randomSearchActive) disconnectFirebaseNetwork();
+return;
+}
 const closingRef=mpRoomRef, closingCode=mpRoomCode;
 const closePrivateHost=/^invite-only-/.test(String(mpRoomMode||''));
 await requestSynchronizedRoomExit('player-exit');
