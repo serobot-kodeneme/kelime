@@ -1,7 +1,7 @@
 {
-  "name": "KAPMACA — Türkçe Kelime Oyunu",
+  "name": "KAPMACA — Türkçe Sözcük Keşif ve Öğrenme Aracı",
   "short_name": "KAPMACA",
-  "description": "60 saniyede aynı harflerden en çok Türkçe sözcüğü bul. Tek başına oyna veya arkadaşına meydan oku.",
+  "description": "Türkçe sözcük dağarcığını geliştirmeyi ve yeni sözcükler keşfetmeyi destekleyen etkileşimli öğrenme aracı.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
