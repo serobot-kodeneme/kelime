@@ -1807,12 +1807,10 @@ const installConfirmYes=document.getElementById('btn-install-confirm-yes');
 const installConfirmClose=document.getElementById('btn-install-confirm-close');
 
 function closeInstallConfirm(){
-  installConfirmModal?.classList.add('hidden');
-  installConfirmModal?.classList.remove('flex');
+  if(installConfirmModal) installConfirmModal.style.display='none';
 }
 function openInstallConfirm(){
-  installConfirmModal?.classList.remove('hidden');
-  installConfirmModal?.classList.add('flex');
+  if(installConfirmModal) installConfirmModal.style.display='flex';
 }
 installBtns.forEach(btn=>btn.addEventListener('click',openInstallConfirm));
 installConfirmClose?.addEventListener('click',closeInstallConfirm);
