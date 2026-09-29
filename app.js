@@ -898,13 +898,29 @@ showToast('Rakip bulunamadı. Tekrar deneyebilirsin.','slate');
 setTimeout(()=>setRandomStatus('',false),1800);
 }
 
+const PRIVATE_ROOM_CREATE_COOLDOWN_MS=10000;
+let privateRoomCreateBusy=false;
+function canCreatePrivateRoom(){
+const last=Number(safeStorageGet('local','kd_last_room_create_at')||0);
+const now=Date.now();
+const left=PRIVATE_ROOM_CREATE_COOLDOWN_MS-(now-last);
+if(left>0){
+showToast(`Yeni oda oluşturmak için ${Math.ceil(left/1000)} saniye bekleyin.`,'slate');
+return false;
+}
+safeStorageSet('local','kd_last_room_create_at',String(now));
+return true;
+}
 async function createRoom(){
+if(privateRoomCreateBusy) return;
+if(!canCreatePrivateRoom()) return;
+privateRoomCreateBusy=true;
 const wordDataLoad=ensureWordDataLoaded();
-if(!await waitFirebaseConnected()){ showToast('Sunucuya bağlanılamadı. İnternet bağlantını kontrol et.','rose'); disconnectFirebaseNetwork(); return; }
-try{ await wordDataLoad; }catch(_){ showToast('Oyun sözlüğü yüklenemedi. Tekrar deneyin.','rose'); return; }
+if(!await waitFirebaseConnected()){ privateRoomCreateBusy=false; showToast('Sunucuya bağlanılamadı. İnternet bağlantını kontrol et.','rose'); disconnectFirebaseNetwork(); return; }
+try{ await wordDataLoad; }catch(_){ privateRoomCreateBusy=false; showToast('Oyun sözlüğü yüklenemedi. Tekrar deneyin.','rose'); return; }
 let alloc;
 try{ alloc=await allocateDailyRoomCode(); }
-catch(e){ showToast('Günlük oda kodu oluşturulamadı. Tekrar dene.','rose'); return; }
+catch(e){ privateRoomCreateBusy=false; showToast('Günlük oda kodu oluşturulamadı. Tekrar dene.','rose'); return; }
 const code=alloc.code, ref=mpDb.ref('rooms/'+code);
 
 const hostId=getClientToken();
@@ -925,6 +941,7 @@ setMpPanelRoom(code,'Bağlantıyı kopyala ve arkadaşına gönder.');
 document.getElementById('btn-close-room')?.classList.remove('hidden');
 setMpState(MP_STATES.WAITING);
 attachRoomListener();
+privateRoomCreateBusy=false;
 }
 
 let inviteDecisionTimer=null;
