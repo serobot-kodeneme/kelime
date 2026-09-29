@@ -1073,6 +1073,12 @@ document.getElementById('p2-title').textContent='2. OYUNCU';
 resetMultiplayerRoundVisualState();
 p1Score=Number(d.scores?.host||0); p2Score=Number(d.scores?.guest||0); updateScores();
 if (!renderProvidedBoard(d.board)) return;
+const liveGrid=document.getElementById('scrabble-grid');
+if(liveGrid){
+  liveGrid.style.filter='';
+  liveGrid.style.opacity='';
+  liveGrid.style.pointerEvents='none';
+}
 hydrateMultiplayerBoardState(d);
 try{ if(mpRoomRef&&mpRole) await mpRoomRef.child('ready/'+mpRole).set(true); }catch(_){}
 }
@@ -1534,6 +1540,8 @@ document.getElementById('modal-mp-waiting')?.classList.add('hidden');
 document.getElementById('modal-gameover')?.classList.add('hidden');
 const grid=document.getElementById('scrabble-grid');
 if(grid){
+grid.style.filter='';
+grid.style.opacity='';
 grid.style.pointerEvents='auto';
 grid.style.touchAction='none';
 }
