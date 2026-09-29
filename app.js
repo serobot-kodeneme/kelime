@@ -621,7 +621,7 @@ const gs=gsSnap.val()||{}, inv=invSnap.val()||{};
 if(gs.status!=='waiting'||inv.guest==='accepted') return;
 await requestSynchronizedRoomExit('invite-timeout');
 }catch(_){
-showRoomExitNotice('OYUNDAN ÇIKIŞ YAPILDI');
+showRoomExitNotice('OYUN SONLANDIRILDI');
 await new Promise(r=>setTimeout(r,1250));
 returnToHomeFromMultiplayer();
 hideRoomExitNotice();
@@ -738,7 +738,7 @@ function restoreHodriMeydanButton(){
 const btn=document.getElementById('btn-random-match');
 if(!btn) return;
 btn.disabled=false;
-btn.innerHTML='<span class="text-[88px] leading-none drop-shadow-md" aria-hidden="true">🎲</span><span class="text-[14px] leading-tight">HODRİ MEYDAN!</span><span class="text-[10.5px] leading-snug font-bold text-amber-950">Sürpriz bir rakiple oyna</span>';
+btn.innerHTML='<span class="text-[88px] leading-none drop-shadow-md" aria-hidden="true">🎲</span><span class="text-[14px] leading-tight">HODRİ MEYDAN!</span><span class="text-[10.5px] leading-snug font-bold text-amber-950">Sürpriz bir oyuncuyla kapış!</span>';
 }
 async function cleanupRandomQueue(onlyIfMine=true){
 const ref=randomQueueRef, ticket=randomSearchTicket;
@@ -3333,13 +3333,13 @@ showTimeUpPreview(()=>{
 });
 }
 
-function showRoomExitNotice(message='OYUNDAN ÇIKIŞ YAPILDI'){
+function showRoomExitNotice(message='OYUN SONLANDIRILDI'){
 let el=document.getElementById('mp-room-exit-notice');
 if(!el){
 el=document.createElement('div');
 el.id='mp-room-exit-notice';
 el.style.cssText='position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.52);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);pointer-events:auto;';
-el.innerHTML='<div id="mp-room-exit-notice-text" style="background:#7f1d1d;color:#fff;font-weight:900;font-size:18px;letter-spacing:.06em;padding:16px 24px;border-radius:18px;box-shadow:0 16px 40px rgba(0,0,0,.28)">OYUNDAN ÇIKIŞ YAPILDI</div>';
+el.innerHTML='<div id="mp-room-exit-notice-text" style="background:#7f1d1d;color:#fff;font-weight:900;font-size:18px;letter-spacing:.06em;padding:16px 24px;border-radius:18px;box-shadow:0 16px 40px rgba(0,0,0,.28)">OYUN SONLANDIRILDI</div>';
 document.body.appendChild(el);
 }
 const txt=el.querySelector('#mp-room-exit-notice-text'); if(txt) txt.textContent=message;
@@ -3433,9 +3433,9 @@ if(randomRoomAtExit && (isAutomaticRandomTimeout||isRandomResultManualExit)){
 }
 
 // v233: Rastgele maçta oyunculardan biri ÇIKIŞ yaptığında iki tarafta da
-// kısa "OYUNDAN ÇIKIŞ YAPILDI" bildirimi görünür ve ardından ana sayfaya dönülür.
+// kısa "OYUN SONLANDIRILDI" bildirimi görünür ve ardından ana sayfaya dönülür.
 if(randomRoomAtExit && isManualPlayerExit && initiatedBySelf){
-  showRoomExitNotice('OYUNDAN ÇIKIŞ YAPILDI');
+  showRoomExitNotice('OYUN SONLANDIRILDI');
   await new Promise(r=>setTimeout(r,700));
   returnToHomeFromMultiplayer();
   hideRoomExitNotice();
