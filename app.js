@@ -2455,6 +2455,7 @@ function advance(){
 if(document.hidden||!demoVisible()||isFullscreenActive()){stopHowtoDemo();return;}
 const item=rounds[round];
 const visible=visibleBoards();
+const isP1=round%2===0;
 const setPicked=(count)=>{
 const chars=Array.from(item.word).slice(0,count);
 for(const board of visible){
@@ -2463,7 +2464,7 @@ const picked=wrap?.querySelector('.demo-picked');
 if(!picked)continue;
 picked.replaceChildren(...chars.map(ch=>{
 const tile=document.createElement('span');
-tile.className='demo-picked-tile';
+tile.className='demo-picked-tile '+(isP1?'demo-picked-p1':'demo-picked-p2');
 tile.textContent=ch;
 return tile;
 }));
@@ -2471,15 +2472,15 @@ return tile;
 };
 if(step===0){
 for(const board of visible){
-board.querySelectorAll('.demo-active').forEach(t=>t.classList.remove('demo-active'));
+board.querySelectorAll('.demo-active-p1,.demo-active-p2').forEach(t=>t.classList.remove('demo-active-p1','demo-active-p2'));
 clearDemoRoute(board);
 }
 setPicked(0);
 }
 if(step<item.path.length){
-for(const board of visible)board.querySelectorAll('.demo-tile')[item.path[step]]?.classList.add('demo-active');
+for(const board of visible)board.querySelectorAll('.demo-tile')[item.path[step]]?.classList.add(isP1?'demo-active-p1':'demo-active-p2');
 step++;
-for(const board of visible)renderDemoRoute(board,item.path,step,round%2===0);
+for(const board of visible)renderDemoRoute(board,item.path,step,isP1);
 setPicked(step);
 howtoDemoTimer=setTimeout(advance,170);
 return;
