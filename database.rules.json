@@ -42,6 +42,10 @@
             ".write": "$day.matches(/^\\d{8}$/) && $room.matches(/^[a-z]{5}$/)"
           }
         }
+      },
+      "nextMemberRoom": {
+        ".read": "auth != null",
+        ".write": "auth != null && newData.isNumber() && newData.val() >= 100000 && newData.val() <= 9999999 && (data.val() == null || newData.val() == data.val() + 1)"
       }
     },
     "matchmaking": {
@@ -61,6 +65,12 @@
       "$uid": {
         ".read": "auth != null && auth.uid == $uid",
         ".write": "auth != null && auth.uid == $uid"
+      }
+    },
+    "memberRooms": {
+      "$room": {
+        ".read": "$room.matches(/^\\d{6,7}$/)",
+        ".write": "auth != null && $room.matches(/^\\d{6,7}$/) && ((!data.exists() && newData.child('ownerUid').val() == auth.uid) || data.child('ownerUid').val() == auth.uid)"
       }
     }
   }
