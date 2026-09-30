@@ -3836,14 +3836,17 @@ modal?.classList.remove('hidden');
 }
 async function handlePlayAgain(){
 if(activeGameMode==='multi'&&isRandomHumanRoom()){
+const btn=document.getElementById('btn-play-again');
+if(btn){btn.disabled=true;btn.textContent='RAKİP ARANIYOR…';}
 if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
 randomResultAutoExitKey='';
-exitRandomResultImmediately();
+setRandomAutoExitNotice(false);
+await exitRandomResultImmediately();
 const panel=document.getElementById('friend-invite-panel');
 panel?.classList.remove('hidden');
 document.getElementById('mp-create-view')?.classList.remove('hidden');
 document.getElementById('mp-room-view')?.classList.add('hidden');
-setTimeout(()=>searchRandomOpponent(),0);
+await searchRandomOpponent();
 return;
 }
 if(activeGameMode!=='multi'){
