@@ -2081,7 +2081,7 @@ if(!ok)throw new Error('member-room-create-failed');
 await accountDb.ref('memberRooms/'+roomNo).update({online:true,activeRoomCode:mpRoomCode,updatedAt:firebase.database.ServerValue.TIMESTAMP});
 setRoomUrl(roomNo);
 setPrivateInviteControlsReady(true,roomNo);
-showToast('Özel odan hazır.','emerald');
+await beginPrivateHostWaiting(true,false);
 }catch(err){
 console.error('Permanent member room error',err);
 activeMemberRoomNo='';activeMemberRoomOwner=false;
@@ -2227,12 +2227,6 @@ await renderAccountState(user);
 document.getElementById('account-profile-editor')?.classList.add('hidden');
 setAccountUserMessage('Profil güncellendi ✓');
 }catch(err){setAccountUserMessage(accountErrorMessage(err),false);}
-});
-document.getElementById('btn-account-copy-room')?.addEventListener('click',async()=>{
-const roomNo=String(accountProfile?.roomNo||'');
-if(!/^\d{6,7}$/.test(roomNo))return;
-try{await navigator.clipboard.writeText(memberRoomUrl(roomNo));setAccountUserMessage('Oda bağlantısı kopyalandı ✓');}
-catch(_){setAccountUserMessage('Bağlantı kopyalanamadı.',false);}
 });
 document.getElementById('btn-account-open-room')?.addEventListener('click',openPermanentMemberRoom);
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!document.getElementById('screen-account')?.classList.contains('hidden'))closeAccountScreen();});
