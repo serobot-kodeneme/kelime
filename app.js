@@ -3445,21 +3445,65 @@ if(!el)return;
 el.classList.add(isP1?'tile-claimed-p1':'tile-claimed-p2');
 });
 }
-function flashOpponentWord(path,isP1,badge=null){
-if(document.hidden||!Array.isArray(path)||!path.length)return;
-const cls=isP1?'remote-word-flash-p1':'remote-word-flash-p2';
+function animateOpponentRoute(path,isP1){
+if(document.hidden||!Array.isArray(path)||path.length<2)return;
+const pts=[];
 for(const pos of path){
 const el=domCells[pos.r*BOARD_SIZE+pos.c]||document.getElementById(`cell-${pos.r}-${pos.c}`);
-if(!el)continue;
+const r=el?.getBoundingClientRect?.();
+if(r&&r.width&&r.height)pts.push({x:r.left+r.width/2,y:r.top+r.height/2});
+}
+if(pts.length<2)return;
+const ns='http://www.w3.org/2000/svg';
+const svg=document.createElementNS(ns,'svg');
+svg.setAttribute('viewBox',`0 0 ${innerWidth} ${innerHeight}`);
+Object.assign(svg.style,{position:'fixed',inset:'0',width:'100vw',height:'100vh',pointerEvents:'none',zIndex:'58',overflow:'visible'});
+const route=document.createElementNS(ns,'polyline');
+route.setAttribute('points',pts.map(p=>`${p.x},${p.y}`).join(' '));
+route.setAttribute('fill','none');
+route.setAttribute('stroke',isP1?'#f59e0b':'#0ea5e9');
+route.setAttribute('stroke-width','4');
+route.setAttribute('stroke-linecap','round');
+route.setAttribute('stroke-linejoin','round');
+route.setAttribute('opacity','.92');
+svg.appendChild(route);
+const dot=document.createElementNS(ns,'circle');
+dot.setAttribute('r','5');
+dot.setAttribute('fill',isP1?'#fbbf24':'#38bdf8');
+dot.setAttribute('cx',String(pts[0].x));
+dot.setAttribute('cy',String(pts[0].y));
+svg.appendChild(dot);
+document.body.appendChild(svg);
+let len=0;
+try{len=route.getTotalLength();}catch(_){}
+if(len>0){
+route.style.strokeDasharray=String(len);
+route.style.strokeDashoffset=String(len);
+route.animate([{strokeDashoffset:String(len),opacity:.95},{strokeDashoffset:'0',opacity:.95},{strokeDashoffset:'0',opacity:0}],{duration:900,easing:'ease-out',fill:'forwards'});
+}
+const keyframes=pts.map((p,i)=>({offset:pts.length===1?1:i/(pts.length-1),cx:String(p.x),cy:String(p.y)}));
+try{dot.animate(keyframes,{duration:720,easing:'linear',fill:'forwards'});}catch(_){}
+setTimeout(()=>svg.remove(),980);
+}
+function flashOpponentWord(path,isP1,badge=null){
+if(document.hidden||!Array.isArray(path)||!path.length)return;
+animateOpponentRoute(path,isP1);
+const cls=isP1?'remote-word-flash-p1':'remote-word-flash-p2';
+path.forEach((pos,i)=>{
+const el=domCells[pos.r*BOARD_SIZE+pos.c]||document.getElementById(`cell-${pos.r}-${pos.c}`);
+if(!el)return;
+setTimeout(()=>{
+if(!el.isConnected)return;
 el.classList.remove('remote-word-flash-p1','remote-word-flash-p2');
 void el.offsetWidth;
 el.classList.add(cls);
-setTimeout(()=>el.classList.remove(cls),1080);
-}
+setTimeout(()=>el.classList.remove(cls),520);
+},i*75);
+});
 if(badge){
 const badgeCls=isP1?'remote-word-badge-p1':'remote-word-badge-p2';
 badge.classList.add(badgeCls);
-setTimeout(()=>badge.classList.remove(badgeCls),1080);
+setTimeout(()=>badge.classList.remove(badgeCls),980);
 }
 }
 function playWordConfetti(length){
