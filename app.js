@@ -2227,6 +2227,16 @@ await renderAccountState(cred.user);
 refreshAfterAccountLogin();
 }catch(err){const msg=accountErrorMessage(err);if(msg)setAccountMessage(msg);}
 });
+document.getElementById('btn-account-yahoo')?.addEventListener('click',async()=>{
+setAccountMessage('');
+try{
+await ensureAccountBackend();
+const provider=new firebase.auth.OAuthProvider('yahoo.com');
+const cred=await accountAuth.signInWithPopup(provider);
+await renderAccountState(cred.user);
+refreshAfterAccountLogin();
+}catch(err){const msg=accountErrorMessage(err);if(msg)setAccountMessage(msg);}
+});
 document.getElementById('btn-account-logout')?.addEventListener('click',async()=>{
 try{await accountAuth?.signOut();setAccountUserMessage('');}catch(err){setAccountUserMessage(accountErrorMessage(err),false);}
 });
