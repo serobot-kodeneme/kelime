@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v450-epicconfetti1';
+const CACHE_NAME='kapmaca-shell-v450-closedroomredirect1';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=450-epicconfetti1',
+  './app.js?v=450-closedroomredirect1',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
