@@ -2184,28 +2184,6 @@ break;
 case 'btn-open-dictionary':
 ensureWordDataLoaded().then(openDictionary).catch(()=>showToast('Sözlük yüklenemedi. Tekrar deneyin.','rose'));
 break;
-case 'btn-recommend':{
-const label=document.getElementById('btn-recommend-label');
-const shareData={title:'KAPMACA - Sözcük Avı',text:'KAPMACA; seni kapışmaya davet ediyorum!',url:'https://kapmaca.tr/'};
-const done=text=>{if(label){label.textContent=text;setTimeout(()=>{label.textContent='Öner';},1800);}};
-const fallbackCopy=()=>{
-if(navigator.clipboard?.writeText)return navigator.clipboard.writeText(shareData.url).then(()=>done('Kopyalandı ✓'));
-return new Promise((resolve,reject)=>{
-try{
-const ta=document.createElement('textarea');ta.value=shareData.url;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();
-const ok=document.execCommand('copy');ta.remove();if(!ok)throw new Error('copy-failed');done('Kopyalandı ✓');resolve();
-}catch(err){reject(err);}
-});
-};
-if(navigator.share){
-navigator.share(shareData).then(()=>done('Paylaşıldı ✓')).catch(err=>{
-if(err?.name!=='AbortError')fallbackCopy().catch(()=>done('Tekrar dene'));
-});
-}else{
-fallbackCopy().catch(()=>done('Tekrar dene'));
-}
-break;
-}
 case 'btn-support':{
 event.preventDefault();
 document.getElementById('screen-support')?.classList.remove('hidden');
@@ -2219,6 +2197,52 @@ if(location.hash==='#screen-support')history.replaceState(null,'',location.pathn
 break;
 }
 });
+const recommendModal=document.getElementById('modal-recommend');
+const recommendStatus=document.getElementById('recommend-share-status');
+const RECOMMEND_URL='https://kapmaca.tr/';
+const RECOMMEND_TEXT='KAPMACA; seni kapışmaya davet ediyorum!';
+function setRecommendStatus(text=''){
+if(!recommendStatus)return;
+recommendStatus.textContent=text;
+if(text)setTimeout(()=>{if(recommendStatus.textContent===text)recommendStatus.textContent='';},1800);
+}
+function openRecommendModal(){recommendModal?.classList.remove('hidden');}
+function closeRecommendModal(){recommendModal?.classList.add('hidden');setRecommendStatus('');}
+function openShareWindow(url){
+const w=window.open(url,'_blank','noopener,noreferrer,width=720,height=640');
+if(!w)location.href=url;
+}
+async function copyRecommendLink(){
+try{
+if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(RECOMMEND_URL);
+else{
+const ta=document.createElement('textarea');ta.value=RECOMMEND_URL;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+}
+setRecommendStatus('Bağlantı kopyalandı ✓');
+}catch(_){setRecommendStatus('Kopyalanamadı');}
+}
+document.getElementById('btn-recommend')?.addEventListener('click',openRecommendModal);
+document.getElementById('btn-close-recommend')?.addEventListener('click',closeRecommendModal);
+recommendModal?.addEventListener('click',event=>{if(event.target===recommendModal)closeRecommendModal();});
+document.querySelectorAll('.recommend-share-option').forEach(btn=>{
+btn.addEventListener('click',()=>{
+const type=btn.dataset.share;
+const u=encodeURIComponent(RECOMMEND_URL);
+const t=encodeURIComponent(RECOMMEND_TEXT+' '+RECOMMEND_URL);
+if(type==='whatsapp')openShareWindow('https://wa.me/?text='+t);
+else if(type==='facebook')openShareWindow('https://www.facebook.com/sharer/sharer.php?u='+u);
+else if(type==='x')openShareWindow('https://twitter.com/intent/tweet?text='+encodeURIComponent(RECOMMEND_TEXT)+'&url='+u);
+else if(type==='telegram')openShareWindow('https://t.me/share/url?url='+u+'&text='+encodeURIComponent(RECOMMEND_TEXT));
+else if(type==='email')location.href='mailto:?subject='+encodeURIComponent('KAPMACA - Sözcük Avı')+'&body='+t;
+else if(type==='copy')copyRecommendLink();
+});
+});
+document.getElementById('btn-native-share')?.addEventListener('click',()=>{
+if(navigator.share){
+navigator.share({title:'KAPMACA - Sözcük Avı',text:RECOMMEND_TEXT,url:RECOMMEND_URL}).catch(()=>{});
+}else copyRecommendLink();
+});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&recommendModal&&!recommendModal.classList.contains('hidden'))closeRecommendModal();});
 const supportScreen=document.getElementById('screen-support');
 const COFFEE_LOCK_KEY='kapmaca_coffee_next_allowed_v1';
 const COFFEE_LOCK_MS=24*60*60*1000;
