@@ -2403,6 +2403,39 @@ catch(err){console.error('Single game startup failed',err);showToast('Oyun hazı
 });
 let howtoDemoTimer=null;
 function stopHowtoDemo(){clearTimeout(howtoDemoTimer);howtoDemoTimer=null;}
+function clearDemoRoute(board){
+const svg=board?.querySelector(':scope > .demo-route-layer');
+if(svg)svg.remove();
+}
+function renderDemoRoute(board,path,count){
+if(!board||!Array.isArray(path)||count<1)return;
+let svg=board.querySelector(':scope > .demo-route-layer');
+const ns='http://www.w3.org/2000/svg';
+if(!svg){
+svg=document.createElementNS(ns,'svg');
+svg.classList.add('demo-route-layer');
+svg.setAttribute('aria-hidden','true');
+Object.assign(svg.style,{position:'absolute',inset:'0',width:'100%',height:'100%',pointerEvents:'none',overflow:'visible',zIndex:'5'});
+const line=document.createElementNS(ns,'polyline');
+line.classList.add('demo-route-line');
+line.setAttribute('fill','none');line.setAttribute('stroke','#f59e0b');line.setAttribute('stroke-width','2.8');
+line.setAttribute('stroke-linecap','round');line.setAttribute('stroke-linejoin','round');line.setAttribute('opacity','.9');
+const head=document.createElementNS(ns,'polygon');
+head.classList.add('demo-route-head');head.setAttribute('fill','#f59e0b');head.setAttribute('opacity','.95');
+svg.append(line,head);board.appendChild(svg);
+}
+const tiles=[...board.querySelectorAll('.demo-tile')];
+const pts=path.slice(0,count).map(i=>tiles[i]).filter(Boolean).map(el=>({x:el.offsetLeft+el.offsetWidth/2,y:el.offsetTop+el.offsetHeight/2}));
+const line=svg.querySelector('.demo-route-line'),head=svg.querySelector('.demo-route-head');
+if(!pts.length){svg.style.display='none';return;}
+svg.style.display='';
+line.setAttribute('points',pts.map(p=>`${p.x},${p.y}`).join(' '));
+if(pts.length<2){head.setAttribute('points','');return;}
+const a=pts[pts.length-2],b=pts[pts.length-1],ang=Math.atan2(b.y-a.y,b.x-a.x),size=6.5;
+const backX=b.x-Math.cos(ang)*size,backY=b.y-Math.sin(ang)*size;
+const wing=size*.58,px=-Math.sin(ang)*wing,py=Math.cos(ang)*wing;
+head.setAttribute('points',`${b.x},${b.y} ${backX+px},${backY+py} ${backX-px},${backY-py}`);
+}
 function startHowtoDemo(){
 if(howtoDemoTimer||document.hidden||isFullscreenActive())return;
 const boards=[...document.querySelectorAll('.demo-board')];
@@ -2436,12 +2469,16 @@ return tile;
 }
 };
 if(step===0){
-for(const board of visible)board.querySelectorAll('.demo-active').forEach(t=>t.classList.remove('demo-active'));
+for(const board of visible){
+board.querySelectorAll('.demo-active').forEach(t=>t.classList.remove('demo-active'));
+clearDemoRoute(board);
+}
 setPicked(0);
 }
 if(step<item.path.length){
 for(const board of visible)board.querySelectorAll('.demo-tile')[item.path[step]]?.classList.add('demo-active');
 step++;
+for(const board of visible)renderDemoRoute(board,item.path,step);
 setPicked(step);
 howtoDemoTimer=setTimeout(advance,170);
 return;
