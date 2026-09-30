@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v447-sharefix1';
+const CACHE_NAME='kapmaca-shell-v448';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=447-sharefix1',
+  './app.js?v=448',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
