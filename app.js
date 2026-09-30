@@ -3838,14 +3838,7 @@ async function handlePlayAgain(){
 if(activeGameMode==='multi'&&isRandomHumanRoom()){
 const btn=document.getElementById('btn-play-again');
 if(btn){btn.disabled=true;btn.textContent='RAKİP ARANIYOR…';}
-if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
-randomResultAutoExitKey='';
-setRandomAutoExitNotice(false);
-await exitRandomResultImmediately();
-const panel=document.getElementById('friend-invite-panel');
-panel?.classList.remove('hidden');
-document.getElementById('mp-create-view')?.classList.remove('hidden');
-document.getElementById('mp-room-view')?.classList.add('hidden');
+await resetRandomRoomForReplay();
 await searchRandomOpponent();
 return;
 }
@@ -3983,6 +3976,35 @@ if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResu
 try{await cleanupRandomRoomBeforeReset(ref,role,'random-result-exit');}catch(_){}
 returnToHomeFromMultiplayer();
 hideRoomExitNotice();
+return true;
+}
+async function resetRandomRoomForReplay(){
+if(!isRandomHumanRoom())return false;
+const ref=mpRoomRef;
+const role=mpRole;
+if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
+randomResultAutoExitKey='';
+setRandomAutoExitNotice(false);
+detachMultiplayerListeners();
+if(mpPresenceRef){
+try{await mpPresenceRef.onDisconnect().cancel();}catch(_){}
+}
+try{await cleanupRandomRoomBeforeReset(ref,role,'random-replay');}catch(_){}
+releaseRandomSearchLocal();
+resetMultiplayerClientState();
+clearInviteFromUrl();
+hideRoomExitNotice();
+document.getElementById('modal-countdown')?.classList.add('hidden');
+document.getElementById('modal-gameover')?.classList.add('hidden');
+document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
+document.getElementById('modal-mp-waiting')?.classList.add('hidden');
+document.getElementById('screen-game')?.classList.add('hidden');
+document.getElementById('screen-home')?.classList.remove('hidden');
+document.getElementById('friend-invite-panel')?.classList.remove('hidden');
+document.getElementById('mp-create-view')?.classList.remove('hidden');
+document.getElementById('mp-room-view')?.classList.add('hidden');
+document.getElementById('btn-close-room')?.classList.add('hidden');
+setRandomStatus('Yeni rakip aranıyor…',true);
 return true;
 }
 async function handleSynchronizedRoomExit(reason='game-cancelled',sourceRole=''){
