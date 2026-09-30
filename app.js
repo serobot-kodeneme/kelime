@@ -2158,7 +2158,7 @@ new MutationObserver(()=>{if(!document.getElementById('screen-home').classList.c
 for(const id of['modal-room-invite','modal-mp-waiting','modal-rematch-waiting','modal-countdown'])new MutationObserver(()=>startHowtoDemo()).observe(document.getElementById(id),{attributes:true,attributeFilter:['class']});
 startHowtoDemo();
 document.addEventListener('click',(event)=>{
-const target=event.target?.closest?.('#btn-settings,#btn-settings-back,#btn-howto,#btn-howto-back,#btn-about,#btn-about-back,#btn-open-dictionary,#btn-support,#btn-close-support');
+const target=event.target?.closest?.('#btn-settings,#btn-settings-back,#btn-howto,#btn-howto-back,#btn-about,#btn-about-back,#btn-open-dictionary,#btn-recommend,#btn-support,#btn-close-support');
 if(!target)return;
 switch(target.id){
 case 'btn-settings':
@@ -2183,6 +2183,9 @@ document.getElementById('screen-about')?.classList.add('hidden');
 break;
 case 'btn-open-dictionary':
 ensureWordDataLoaded().then(openDictionary).catch(()=>showToast('Sözlük yüklenemedi. Tekrar deneyin.','rose'));
+break;
+case 'btn-recommend':
+openRecommendModal();
 break;
 case 'btn-support':{
 event.preventDefault();
@@ -2221,7 +2224,6 @@ const ta=document.createElement('textarea');ta.value=RECOMMEND_URL;ta.style.posi
 setRecommendStatus('Bağlantı kopyalandı ✓');
 }catch(_){setRecommendStatus('Kopyalanamadı');}
 }
-document.getElementById('btn-recommend')?.addEventListener('click',openRecommendModal);
 document.getElementById('btn-close-recommend')?.addEventListener('click',closeRecommendModal);
 recommendModal?.addEventListener('click',event=>{if(event.target===recommendModal)closeRecommendModal();});
 document.querySelectorAll('.recommend-share-option').forEach(btn=>{
