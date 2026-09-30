@@ -2656,7 +2656,7 @@ function prepareGame(){
 stopLocalCountdown();
 activeGameMode='single';setLongestBonusBadges(false,false);
 document.getElementById('p1-title').textContent='OYUNCU';
-document.getElementById('p2-title').textContent='BİLGİSAYAR';
+document.getElementById('p2-title').textContent=getBotDisplayName();
 p1Score=0;p2Score=0;resetRewardFx();updateScores();remainingSeconds=60;
 resetMatchWordResults();resetSeriesWordResults();
 sessionFoundWords.clear();
@@ -3716,6 +3716,15 @@ medium:{delay:4200,focus:.50,top:7,minLen:2,maxLen:5},
 hard:{delay:2600,focus:.76,top:5,minLen:3,maxLen:6},
 expert:{delay:1650,focus:.91,top:3,minLen:4,maxLen:9}
 };
+const BOT_DISPLAY_NAMES={
+easy:'DURGUN',
+medium:'BİLGİN',
+hard:'ÜSTAD',
+expert:'FİLOZOF'
+};
+function getBotDisplayName(){
+return BOT_DISPLAY_NAMES[botDiffLevel]||'DURGUN';
+}
 let botRankedBoard=null,botRankedWords=[];
 function getBotRankedWords(){
 if(botRankedBoard!==boardFoundWords){
