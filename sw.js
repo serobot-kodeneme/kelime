@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v452-githublogin1';
+const CACHE_NAME='kapmaca-shell-v452-yahoologin1';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=452-githublogin1',
+  './app.js?v=452-yahoologin1',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
