@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v452-socialicons1';
+const CACHE_NAME='kapmaca-shell-v452-closecircle1';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=452-socialicons1',
+  './app.js?v=452-closecircle1',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
