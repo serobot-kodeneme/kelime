@@ -2140,7 +2140,7 @@ await stopMemberRoomPresence();
 accountProfile=null;activeMemberRoomNo='';activeMemberRoomOwner=false;
 paintAccountRoom(null);
 guest.classList.remove('hidden');signed.classList.add('hidden');
-const homeLabel=document.getElementById('account-home-label');if(homeLabel)homeLabel.textContent='Hesap';
+const homeLabel=document.getElementById('account-home-label');if(homeLabel)homeLabel.textContent='Üyelik';
 return;
 }
 setAccountLoading(true);
