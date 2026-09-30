@@ -1060,18 +1060,45 @@ randomOwnListener=async snap=>{
 
   setRandomStatus('Rakip bulundu ✓ '+roleLabel+' ✓ Oda hazırlanıyor…',true);
 
-  if(role==='host' && !randomPairRoomBusy){
+  // v446: Odayı yalnız "ilk giren/host" cihazın hazırlamasına bağımlı kalma.
+  // İki cihaz da hazırlamayı deneyebilir; Firebase transaction ile ilk tamamlanan
+  // oda kazanır. Böylece telefon önce girdiğinde yavaş cihazın oda kurmasına
+  // mecbur kalınmaz ve PC↔telefon yönü fark etmez.
+  if(!randomPairRoomBusy){
     randomPairRoomBusy=true;
     try{
       await wordDataLoad;
       const room=await createRandomMatchedRoom(host.clientId,guest.clientId);
       if(!randomSearchActive || randomSearchTicket!==ticket){
-        try{await mpDb.ref('rooms/'+room).remove();}catch(_){}
+        await removeRefWithRetry(mpDb.ref('rooms/'+room),2,120);
         return finish(false);
       }
+
+      const roomCodeRef=randomPoolRef.child(host.ticket+'/roomCode');
+      const claim=await roomCodeRef.transaction(current=>{
+        if(current) return;
+        return room;
+      });
+
+      let winningRoom=room;
+      if(!claim.committed){
+        try{
+          winningRoom=String((await roomCodeRef.once('value')).val()||'');
+        }catch(_){winningRoom='';}
+        if(winningRoom && winningRoom!==room){
+          await removeRefWithRetry(mpDb.ref('rooms/'+room),2,120);
+        }
+      }
+
+      if(!winningRoom){
+        randomPairRoomBusy=false;
+        setRandomStatus('Eşleşme yeniden deneniyor…',true);
+        return;
+      }
+
       const updates={};
-      updates[host.ticket+'/roomCode']=room;
-      updates[guest.ticket+'/roomCode']=room;
+      updates[host.ticket+'/roomCode']=winningRoom;
+      updates[guest.ticket+'/roomCode']=winningRoom;
       updates[host.ticket+'/role']='host';
       updates[guest.ticket+'/role']='guest';
       await randomPoolRef.update(updates);
