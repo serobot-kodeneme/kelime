@@ -2419,7 +2419,7 @@ Object.assign(svg.style,{position:'absolute',inset:'0',width:'100%',height:'100%
 const line=document.createElementNS(ns,'polyline');
 line.classList.add('demo-route-line');
 const routeColor=isP1?'#c2410c':'#6d28d9';
-line.setAttribute('fill','none');line.setAttribute('stroke',routeColor);line.setAttribute('stroke-width','3');
+line.setAttribute('fill','none');line.setAttribute('stroke',routeColor);line.setAttribute('stroke-width','2.1');
 line.setAttribute('stroke-linecap','round');line.setAttribute('stroke-linejoin','round');line.setAttribute('opacity','.94');
 const head=document.createElementNS(ns,'polygon');
 head.classList.add('demo-route-head');head.setAttribute('fill',routeColor);head.setAttribute('opacity','.98');
@@ -2434,9 +2434,9 @@ if(!pts.length){svg.style.display='none';return;}
 svg.style.display='';
 line.setAttribute('points',pts.map(p=>`${p.x},${p.y}`).join(' '));
 if(pts.length<2){head.setAttribute('points','');return;}
-const a=pts[pts.length-2],b=pts[pts.length-1],ang=Math.atan2(b.y-a.y,b.x-a.x),size=6.5;
+const a=pts[pts.length-2],b=pts[pts.length-1],ang=Math.atan2(b.y-a.y,b.x-a.x),size=5.2;
 const backX=b.x-Math.cos(ang)*size,backY=b.y-Math.sin(ang)*size;
-const wing=size*.58,px=-Math.sin(ang)*wing,py=Math.cos(ang)*wing;
+const wing=size*.5,px=-Math.sin(ang)*wing,py=Math.cos(ang)*wing;
 head.setAttribute('points',`${b.x},${b.y} ${backX+px},${backY+py} ${backX-px},${backY-py}`);
 }
 function startHowtoDemo(){
