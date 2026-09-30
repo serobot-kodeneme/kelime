@@ -41,6 +41,71 @@ const COMMON_IMPERATIVE_WORDS = Object.freeze([
   'ZORLA'
 ]);
 
+/* v446 — Kontrollü sözlük genişletme katmanı.
+   Amaç: ana sözlüğü bozmadan günlük kullanımda oyuncunun beklediği doğal biçimleri artırmak.
+   Katmanlar: yaygın çekimli fiiller, çoğullar/günlük sözcükler, meslek-eşya-hayvan-bitki
+   ve daha seyrek fakat doğal sözcükler. 2–9 harf kuralı ve argo/yabancı filtreleri aynen geçerlidir. */
+const CURATED_EXPANSION_WORDS = Object.freeze([
+  // Yaygın çekimli fiiller
+  'AÇTI','AÇAR','AÇAN','AÇILDI','ALDI','ALIR','ALAN','ALMIŞ','ANLADI','ANLAR','ANLAYAN',
+  'ARADI','ARAR','ARAYAN','ATTI','ATAR','ATAN','AYIRDI','AYIRIR','BAKTI','BAKAR','BAKAN',
+  'BASAR','BASAN','BAŞLADI','BEKLEDİ','BEKLER','BİLDİ','BİLİR','BİLEN','BİNDİ','BİNER',
+  'BİTİRDİ','BİTİRİR','BOZDU','BOZAR','BÖLDÜ','BÖLER','BULDU','BULUR','BULAN',
+  'ÇAĞIRDI','ÇAĞIRIR','ÇALDI','ÇALAR','ÇALIŞTI','ÇALIŞIR','ÇEKTİ','ÇEKER','ÇIKTI','ÇIKAR',
+  'ÇİZDİ','ÇİZER','ÇİZEN','ÇÖZDÜ','ÇÖZER','DAĞITTI','DAYANDI','DEĞİŞTİ','DENEDİ','DİNLER',
+  'DÖKTÜ','DÖKER','DÖNDÜ','DÖNER','DÖNEN','DURDU','DURUR','DURAN','DÜŞTÜ','DÜŞER','DÜŞÜNDÜ',
+  'EKLEDİ','EKLER','GEÇTİ','GEÇER','GELDİ','GELİR','GELEN','GELMİŞ','GETİRDİ','GETİRİR',
+  'GİRDİ','GİRER','GİTTİ','GİDER','GİDEN','GÖRDÜ','GÖRÜR','GÖREN','GÖSTERDİ','GÖTÜRDÜ','GÖTÜRÜR',
+  'HAZIRDI','İÇTİ','İÇER','İÇEN','İNDİ','İNER','İNDİRDİ','İNDİRİR','İZLEDİ','İZLER',
+  'KALDI','KALIR','KALAN','KALDIRDI','KAPADI','KAPAR','KAPAN','KATTI','KATAR','KAYDETTİ',
+  'KAZANDI','KAZANIR','KESTİ','KESER','KIRDI','KIRAR','KONUŞTU','KONUŞUR','KORUDU','KORUR',
+  'KOŞTU','KOŞAR','KOŞAN','KULLANDI','OKUDU','OKUR','OKUYAN','OLDU','OLUR','OLAN',
+  'OYNADI','OYNAR','ÖĞRENDİ','ÖĞRENİR','ÖLÇTÜ','ÖLÇER','PAYLAŞTI','PİŞİRDİ','SAKLADI',
+  'SARDI','SARAR','SAYDI','SAYAR','SEÇTİ','SEÇER','SEÇEN','SEVDİ','SEVER','SEVEN',
+  'SİLDİ','SİLER','SİLEN','SORDU','SORAR','SÖYLEDİ','SÖYLER','SÜRDÜ','SÜRER',
+  'TAKTI','TAKAR','TAŞIDI','TAŞIR','TOPLADI','TOPLAR','TUTTU','TUTAR','TUTAN',
+  'UÇTU','UÇAR','UYUDU','UYUR','UYANDI','UYGULADI','ÜRETTİ','ÜRETİR','VERDİ','VERİR','VEREN',
+  'VURDU','VURUR','YAKTI','YAKAR','YAKALADI','YAPTI','YAPAR','YAPAN','YAZDI','YAZAR','YAZAN',
+  'YEDİ','YER','YIKTI','YIKAR','YÜKLEDİ','YÜKLER','YÜRÜDÜ','YÜRÜR','YÜRÜTEN',
+
+  // Günlük ve doğal çoğullar
+  'EVLER','YOLLAR','TAŞLAR','KUŞLAR','KEDİLER','KÖPEKLER','AĞAÇLAR','ÇİÇEKLER','KALEMLER',
+  'KİTAPLAR','MASALAR','ODALAR','KAPILAR','CAMLAR','DAĞLAR','GÖLLER','DENİZLER','OKULLAR',
+  'ÇOCUKLAR','OYUNLAR','SÖZLER','HARFLER','RENKLER','SESLER','ELLER','GÖZLER','YÜZLER',
+  'GÜNLER','AYLAR','YILLAR','SAATLER','ŞEHİRLER','ÜLKELER','DOSTLAR','SORULAR','CEVAPLAR',
+  'SAYILAR','ŞEKİLLER','RESİMLER','ARAÇLAR','ÇANTALAR','BARDAKLAR','TABAKLAR','KAŞIKLAR',
+
+  // Günlük kullanım
+  'AYNEN','HADİ','TAMAM','KEŞKE','BELKİ','ZATEN','NEDEN','NASIL','NEREDE','NEREYE','NEREDEN',
+  'ŞİMDİ','SONRA','ÖNCE','BUGÜN','YARIN','DÜN','HEMEN','BAZEN','ÇÜNKÜ','FAKAT','YİNE','ARTIK',
+  'PEKİ','TABİİ','GALİBA','SANIRIM','ELBETTE','ÜSTELİK','AYRICA','BİRLİKTE','TEKRAR','İLK',
+  'SON','HERKES','KİMSE','BİRKAÇ','BİRÇOK','BAŞKA','BÜTÜN','KADAR','KENDİ','BÖYLE','ŞÖYLE',
+
+  // Meslekler ve günlük yaşam
+  'DOKTOR','TERZİ','KASAP','ŞOFÖR','GARSON','BERBER','MİMAR','AVUKAT','ECZACI','POLİS','HAKİM',
+  'SAVCI','AŞÇI','ÇİFTÇİ','İŞÇİ','ŞAİR','YAZAR','RESSAM','MARANGOZ','MÜHENDİS','HEMŞİRE',
+  'ÖĞRETMEN','PASTACI','MANAV','BAKKAL','KASİYER','MEMUR','USTA','ÇIRAK','ŞOFÖRLÜK',
+
+  // Hayvanlar
+  'KEDİ','KÖPEK','KUŞ','AT','İNEK','KOYUN','KEÇİ','TAVUK','HOROZ','ÖRDEK','KAZ','ARI','KARINCA',
+  'SİNEK','KELEBEK','BALIK','YILAN','KURBAĞA','TAVŞAN','ASLAN','KAPLAN','AYI','KURT','TİLKİ',
+  'GEYİK','CEYLAN','MAYMUN','ZEBRA','FİL','DEVE','PENGUEN','YUNUS','BALİNA','MARTI','SERÇE',
+  'KARGA','GÜVERCİN','KARTAL','ŞAHİN','LEYLEK','KİRPİ','SİNCAP','KAPLUMBAĞA',
+
+  // Bitkiler, yiyecekler ve eşyalar
+  'GÜL','LALE','MENEKŞE','PAPATYA','ÇAM','MEŞE','KAVAK','SÖĞÜT','ZEYTİN','İNCİR','ELMA','ARMUT',
+  'KİRAZ','VİŞNE','ÜZÜM','KAVUN','KARPUZ','ERİK','ŞEFTALİ','PORTAKAL','MANDALİN','LİMON',
+  'DOMATES','BİBER','PATATES','SOĞAN','SARIMSAK','HAVUÇ','SALATALIK','MARUL','ISPANAK',
+  'EKMEK','PEYNİR','YOĞURT','SÜT','AYRAN','ÇORBA','PİLAV','MAKARNA','YUMURTA','BAL',
+  'KALEM','DEFTER','KİTAP','SİLGİ','CETVEL','MASA','SANDALYE','KAPI','PENCERE','BARDAK',
+  'TABAK','KAŞIK','ÇATAL','BIÇAK','ÇANTA','KUTU','ANAHTAR','SAAT','TELEFON','EKRAN','MODEM',
+
+  // Daha seyrek ama doğal ve oyunda değerli sözcükler
+  'ÇEHRE','SEHER','SEDA','YAREN','SERİN','ESİNTİ','GÖLGE','ŞAFAK','UFUK','PINAR','IRMAK',
+  'KORU','VADİ','YAMAÇ','DORUK','KIYI','KUMSAL','DALGA','ESEN','DURU','PARLAK','YALIN',
+  'NAZİK','ÇEVİK','SAKİN','CESUR','ÖZGÜR','BİLGE','MERAK','UMUT','NEŞE','SEVİNÇ','DOSTLUK'
+]);
+
 function isForeignWord(word){
 const w=String(word||'').toLocaleUpperCase('tr-TR');
 return !TURKISH_WORD_CHARS.test(w) || FOREIGN_EXACT.has(w);
@@ -70,7 +135,7 @@ for(const row of WORD_DB_FC.split('\n')){
 WORD_LIST=out;
 GEO_DICTIONARY=data.GEO_DICTIONARY;
 GEO_WORD_LIST=Object.keys(GEO_DICTIONARY);
-GAME_WORD_LIST=Array.from(new Set([...WORD_LIST,...GEO_WORD_LIST,...COMMON_IMPERATIVE_WORDS]))
+GAME_WORD_LIST=Array.from(new Set([...WORD_LIST,...GEO_WORD_LIST,...COMMON_IMPERATIVE_WORDS,...CURATED_EXPANSION_WORDS]))
   .filter(w=>w.length>=2&&w.length<=9&&!isArgoWord(w)&&!isForeignWord(w)).sort();
 GAME_WORD_SET=new Set(GAME_WORD_LIST);
 GAME_WORDS_BY_LENGTH.clear();
