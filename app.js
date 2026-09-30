@@ -3495,7 +3495,7 @@ const epic=!!options.epic;
 const secondary=!!options.secondary;
 const board=document.getElementById('scrabble-grid');
 if(!board||board.closest('.hidden')||board.clientWidth<1||board.clientHeight<1)return;
-const layer=document.createElement('div');layer.className='word-confetti-layer'+(epic?' epic':'');
+const layer=document.createElement('div');layer.className='word-confetti-layer'+(epic?' epic':'');layer.style.setProperty('display','block','important');
 const frag=document.createDocumentFragment();
 const x=board.clientWidth/2+(secondary?(Math.random()-.5)*board.clientWidth*.08:0);
 const y=board.clientHeight/2+(secondary?(Math.random()-.5)*board.clientHeight*.06:0);
