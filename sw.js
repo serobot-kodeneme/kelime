@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v450-route2';
+const CACHE_NAME='kapmaca-shell-v450-route3';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=450-route2',
+  './app.js?v=450-route3',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
