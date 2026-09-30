@@ -20,6 +20,27 @@ return w.startsWith('BOK') && !w.startsWith('BOKS') && !w.startsWith('BOKSİT');
 // Bariz İngilizce/yabancı girişler. Türkçede yerleşmiş ortak sözcükleri yanlışlıkla silmemek için tam eşleşme dar tutulur.
 const FOREIGN_EXACT = new Set(['ASK','CHANGE','CHAT','RUN','TALK']);
 const TURKISH_WORD_CHARS = /^[ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ]+$/;
+// Günlük Türkçede doğal ve yaygın kullanılan emir kipleri.
+// Ana sözlükten bağımsız bir oyun katmanıdır; yalnızca kontrollü, yerleşik fiil biçimleri eklenir.
+const COMMON_IMPERATIVE_WORDS = Object.freeze([
+  'AÇ','AÇIL','AÇMA','AK','AL','AN','ANLA','ARA','ART','AS','AT','ATLA','AYIR',
+  'BAK','BAS','BAŞLA','BEKLE','BELİRLE','BIRAK','BİL','BİLDİR','BİN','BİTİR','BOZ','BÖL','BUL',
+  'ÇAĞIR','ÇAL','ÇALIŞ','ÇEK','ÇEVİR','ÇIK','ÇIKAR','ÇİZ','ÇÖZ',
+  'DAĞIT','DAYAN','DE','DEĞİŞ','DENE','DİNLE','DÖK','DÖN','DÖNDÜR','DUR','DÜŞ','DÜŞÜN',
+  'EKLE','GEÇ','GEL','GENİŞLET','GETİR','GİR','GİT','GÖNDER','GÖR','GÖSTER','GÖTÜR',
+  'HATIRLA','HAZIRLA','İÇ','İLERLE','İN','İNDİR','İNCELE','İZLE',
+  'KAL','KALDIR','KAPAT','KARŞILA','KAT','KAYDET','KAZAN','KES','KIR','KIRP','KONUŞ','KORU','KOŞ','KULLAN',
+  'OKU','OL','OYNA','ÖĞREN','ÖLÇ','ÖP',
+  'PAYLAŞ','PİŞİR',
+  'SAKLA','SAR','SAY','SEÇ','SEV','SİL','SOR','SÖYLE','SÜR',
+  'TAK','TAŞI','TOPLA','TUT',
+  'UÇ','UY','UYAN','UYGULA',
+  'ÜRET',
+  'VAR','VER','VUR',
+  'YAK','YAKALA','YAP','YAZ','YERLEŞ','YE','YIK','YÜKLE','YÜRÜ','YÜRÜT',
+  'ZORLA'
+]);
+
 function isForeignWord(word){
 const w=String(word||'').toLocaleUpperCase('tr-TR');
 return !TURKISH_WORD_CHARS.test(w) || FOREIGN_EXACT.has(w);
@@ -49,7 +70,7 @@ for(const row of WORD_DB_FC.split('\n')){
 WORD_LIST=out;
 GEO_DICTIONARY=data.GEO_DICTIONARY;
 GEO_WORD_LIST=Object.keys(GEO_DICTIONARY);
-GAME_WORD_LIST=Array.from(new Set([...WORD_LIST,...GEO_WORD_LIST]))
+GAME_WORD_LIST=Array.from(new Set([...WORD_LIST,...GEO_WORD_LIST,...COMMON_IMPERATIVE_WORDS]))
   .filter(w=>w.length>=2&&w.length<=9&&!isArgoWord(w)&&!isForeignWord(w)).sort();
 GAME_WORD_SET=new Set(GAME_WORD_LIST);
 GAME_WORDS_BY_LENGTH.clear();
@@ -508,7 +529,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v445';
+const GAME_VERSION='v446';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
