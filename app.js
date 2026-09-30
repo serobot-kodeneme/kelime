@@ -7,8 +7,6 @@ const TILE_SCORES = {
 let WORD_DB_FC='';
 let WORD_LIST=[];
 
-// Küfür/argo filtresi: bu sözcükler Sözlük ekranında gösterilmez ve oyun için geçerli sayılmaz.
-// Kökler özellikle dar tutulur; "götürmek", "bisiklet", "amaç" gibi masum sözcükler yanlış eşleşmez.
 const ARGO_EXACT = new Set(['AM','GÖT','YARAK','TAŞAK','TAŞAKLI','ÇÜK','SİK','SİKME','SİKMEK']);
 const ARGO_PREFIXES = ['OROSPU','PEZEVENK','KAHPE','İBNE','PUŞT','SÜRTÜK','KALTAK','DALYARAK','PİÇ','SİKTİR','AMCIK','AMINA','YARRAK','GÖTVEREN','SIÇMA','SIÇTIR'];
 function isArgoWord(word){
@@ -17,11 +15,8 @@ if(ARGO_EXACT.has(w)) return true;
 for(const root of ARGO_PREFIXES) if(w.startsWith(root)) return true;
 return w.startsWith('BOK') && !w.startsWith('BOKS') && !w.startsWith('BOKSİT');
 }
-// Bariz İngilizce/yabancı girişler. Türkçede yerleşmiş ortak sözcükleri yanlışlıkla silmemek için tam eşleşme dar tutulur.
 const FOREIGN_EXACT = new Set(['ASK','CHANGE','CHAT','RUN','TALK']);
 const TURKISH_WORD_CHARS = /^[ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ]+$/;
-// Günlük Türkçede doğal ve yaygın kullanılan emir kipleri.
-// Ana sözlükten bağımsız bir oyun katmanıdır; yalnızca kontrollü, yerleşik fiil biçimleri eklenir.
 const COMMON_IMPERATIVE_WORDS = Object.freeze([
   'AÇ','AÇIL','AÇMA','AK','AL','AN','ANLA','ARA','ART','AS','AT','ATLA','AYIR',
   'BAK','BAS','BAŞLA','BEKLE','BELİRLE','BIRAK','BİL','BİLDİR','BİN','BİTİR','BOZ','BÖL','BUL',
@@ -45,7 +40,6 @@ function isForeignWord(word){
 const w=String(word||'').toLocaleUpperCase('tr-TR');
 return !TURKISH_WORD_CHARS.test(w) || FOREIGN_EXACT.has(w);
 }
-// Yer adlarının açıklamaları TDK özel ad maddesine bağlı kalmadan sonuç/sözlük ekranında yerel olarak gösterilir.
 let GEO_DICTIONARY=Object.freeze({});
 let GEO_WORD_LIST=[];
 let GAME_WORD_LIST=[];
@@ -278,7 +272,6 @@ if(label) label.textContent=active?'TAM EKRANDAN ÇIK':'TAM EKRAN';
 const gameLabel=document.getElementById('fullscreen-game-label');
 if(gameLabel) gameLabel.textContent=active?'TAM EKRANDAN ÇIK':'TAM EKRAN';
 }
-// Yalnız kullanıcı TAM EKRAN düğmesine kendi isteğiyle bastığında çalışır.
 async function requestGameFullscreen(silent=false){
 if(isFullscreenActive()){ updateFullscreenUi(); return true; }
 const el=document.documentElement;
@@ -310,9 +303,6 @@ await requestGameFullscreen(false);
 }
 function handleFullscreenLayoutChange(){
 updateFullscreenUi();
-// Tam ekran geçişinde tahta boyutu değişir. Sürükleme aktif değilse eski
-// koordinat önbelleğini temizleyip yeni boyutları bir sonraki frame'de ölç.
-// Aktif sürükleme sırasında dokunmayız; aksi halde yol hesabı yarıda bozulabilir.
 if(typeof isPointerDown!=='undefined' && isPointerDown) return;
 hoverGridRect=null; hoverGridMetrics=null; activeGridRect=null; activeGridMetrics=null;
 requestAnimationFrame(()=>{
@@ -378,7 +368,6 @@ function safeStorageSet(kind,key,value){
 try{(kind==='session'?window.sessionStorage:window.localStorage).setItem(key,value);return true;}catch(_){return false;}
 }
 let masterSoundVolume = Math.max(0, Math.min(1, Number(safeStorageGet('local',SOUND_VOLUME_KEY) ?? 0.80)));
-// Tek standart, hafif görsel profil. Grafik kalite seçeneği yoktur.
 
 let lastNonMutedSoundVolume=masterSoundVolume>0?masterSoundVolume:.8;
 function renderSoundControls(){
@@ -425,9 +414,6 @@ const n=Math.min(10,Math.max(1,step));
 const base=430 + (n-1)*28;
 playTone(base,.060,.065,'sine',base+115);
 }
-// Arayüz pıt sesi: hover ve bırakma başına yalnızca bir kez.
-// pointerover iç öğeler arasında dolaşırken tekrar tetiklenebildiği için
-// relatedTarget ile gerçek düğme girişini ayırır; ayrıca çok kısa ses patlamalarını kilitler.
 let lastUiSoundAt=0, lastUiReleaseAt=0;
 function playUiClickSound(){
   if(document.hidden) return;
@@ -460,7 +446,6 @@ document.addEventListener('pointerup',(e)=>{
 document.addEventListener('click',(e)=>{
   const el=isUiSoundTarget(e.target);
   if(!el) return;
-  // Klavye/erişilebilirlik tıklamalarında ses kalsın; normal pointerup sonrası tekrar çalmasın.
   if(performance.now()-lastUiReleaseAt>500) playUiClickSound();
 },{passive:true});
 
@@ -529,7 +514,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v446';
+const GAME_VERSION='v447';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -1442,7 +1427,6 @@ await mpRoomRef.update({
 finally{mpRematchBusy=false;}
 }
 
-
 function isRandomHumanRoom(){
 return mpRandomMatchSession || /^random-match-/.test(String(mpRoomMode||'')) || /^random-match-/.test(String(mpRoomData?.mode||''));
 }
@@ -1475,7 +1459,6 @@ if(inline){inline.classList.add('hidden');inline.textContent='';}
 }
 
 async function hostExpireRematchIfNeeded(d){
-// Oda, biri YENİDEN OYNA ya da ÇIKIŞ diyene kadar açık kalır.
 return;
 }
 
@@ -1518,7 +1501,6 @@ const gameState=gsSnap.val()||{}; if(gameState.status!=='playing') return;
 const sc=scoreSnap.val()||{host:0,guest:0}; const hs=Number(sc.host||0),guestScore=Number(sc.guest||0);
 const randomRoom=isRandomHumanRoom();
 await mpRoomRef.update({'finalWinner':hs===guestScore?'tie':(hs>guestScore?'host':'guest'),'gameState/status':'finished','gameState/startAt':0,'rematch':{host:false,guest:false,expiresAt:0,round:Number(gameState.round||1)},'pendingRound':null});
-// Özel davetli odalarda bir sonraki tur arka planda hazırlanır.
 if(!randomRoom) hostPrepareNextRound().catch(()=>{});
 }
 
@@ -1580,8 +1562,6 @@ showRandomResultExitButton();
 const inline=document.getElementById('rematch-inline-status');
 if(inline){inline.classList.add('hidden');inline.textContent='';}
 setRandomAutoExitNotice(true);
-// Kritik: sayaç sonuç ekranının çiziminden ve kutlama efektlerinden bağımsızdır.
-// Aynı maç için yalnız bir kez kurulur ve Firebase güncellemeleri onu resetleyemez.
 if(randomResultAutoExitTimer && randomResultAutoExitKey===autoKey) return true;
 if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
 randomResultAutoExitKey=autoKey;
@@ -1629,7 +1609,6 @@ const inline=document.getElementById('rematch-inline-status');
 const actions=document.getElementById('gameover-actions');
 const randomResultSession=isRandomHumanRoom();
 if(randomResultSession){
-  // Burada yalnız görünümün yanlışlıkla geri açılmamasını garanti ediyoruz.
   armRandomResultAutoExit(d);
 }else{
   setRandomAutoExitNotice(false);
@@ -1981,7 +1960,6 @@ setRandomStatus('',false);
 disconnectFirebaseNetwork();
 }
 
-
 async function discardCurrentPrivateRoom(){
 const oldRef=mpRoomRef;
 const oldRole=mpRole;
@@ -2214,7 +2192,6 @@ function startHowtoDemo(){
  ];
  let round=0,step=0;
  function advance(){
-  // Demo görünür kalır ama animasyon dondurulur.
   if(document.hidden||!demoVisible()||isFullscreenActive()){stopHowtoDemo();return;}
   const item=rounds[round];
   const visible=visibleBoards();
@@ -2258,7 +2235,6 @@ document.addEventListener('visibilitychange',()=>{
 new MutationObserver(()=>{if(!document.getElementById('screen-home').classList.contains('hidden'))startHowtoDemo();}).observe(document.getElementById('screen-home'),{attributes:true,attributeFilter:['class']});
 for(const id of ['modal-room-invite','modal-mp-waiting','modal-rematch-waiting','modal-countdown'])new MutationObserver(()=>startHowtoDemo()).observe(document.getElementById(id),{attributes:true,attributeFilter:['class']});
 startHowtoDemo();
-// Böylece başka bir modülün handler'ı bozulsa bile Ayarlar/Oynanış/Hakkında/Sözlük/Destek bağımsız kalır.
 document.addEventListener('click',(event)=>{
   const target=event.target?.closest?.('#btn-settings,#btn-settings-back,#btn-howto,#btn-howto-back,#btn-about,#btn-about-back,#btn-open-dictionary,#btn-support,#btn-close-support');
   if(!target) return;
@@ -2627,7 +2603,6 @@ for(let i=0;i<maxAttempts;i++){
 const next=generateOptimizedBoard(i<2?2:3);
 if(boardSignature(next.board)!==currentSig) return next;
 }
-// 9x9 rastgele tahta için pratikte buraya düşülmez; yine de kesin farklılık sağla.
 let next=generateOptimizedBoard(3);
 if(boardSignature(next.board)===currentSig){
 next={...next,board:next.board.map(row=>row.slice())};
@@ -2687,7 +2662,6 @@ try{
 }
 prewarmedBoard=null;
 
-// Fail-safe: the game must never open with an empty grey board.
 if(!ready || !Array.isArray(ready.board) || ready.board.length!==BOARD_SIZE){
   try{
     const board=makeCandidateBoard();
@@ -2786,7 +2760,6 @@ tile.append(letter,score); frag.appendChild(tile); previewTiles.push({tile,lette
 selectedWordPreviewEl.replaceChildren(frag);
 return;
 }
-// Oyun ekranı yeniden açıldığında taşlar DOM'dan kopmuşsa aynı hafif taşları yeniden bağla.
 if(previewTiles[0]?.tile?.parentNode!==selectedWordPreviewEl){
 const frag=document.createDocumentFragment();
 for(const pv of previewTiles) frag.appendChild(pv.tile);
@@ -2915,8 +2888,6 @@ function processPointerSegment(clientX,clientY,metrics=activeGridMetrics){
 if(lastPointerX===null||lastPointerY===null){processPointerAt(clientX,clientY,metrics);lastPointerX=clientX;lastPointerY=clientY;return;}
 const dx=clientX-lastPointerX,dy=clientY-lastPointerY;
 const cellPx=metrics?Math.min(metrics.cellW,metrics.cellH):40;
-// Küçük hücrelerde gereksiz 8-10 ara hesap üretmek fullscreen'de tutukluk yapıyordu.
-// Dokunmatik yolu eski hassasiyetinde kalır; fine-pointer yolu daha hafif çalışır.
 const finePointer=!IS_COARSE_POINTER;
 const fullscreenFine=finePointer && isFullscreenActive();
 const maxSteps=fullscreenFine?3:(finePointer?5:10);
@@ -3028,7 +2999,6 @@ if (!isMatchActive || selectedPath.length === 0) return;
 const word = selectedPath.map(p => p.char).join('');
 const pts = word.split('').reduce((sum, ch) => sum + (TILE_SCORE_CACHE[ch] || 1), 0);
 const isP1 = mpRole ? (mpRole === 'host') : (chosenAvatarId === 'av_1');
-// Pointer bırakıldığı anda alınan koordinatı kullan. Böylece async işlemler bu noktayı değiştiremez.
 let scoreFxOrigin=(submitOrigin&&Number.isFinite(submitOrigin.x)&&Number.isFinite(submitOrigin.y))?submitOrigin:null;
 if(!scoreFxOrigin){
  const scoreFxLastEl=selectedPath[selectedPath.length-1]?.el || null;
@@ -3080,7 +3050,6 @@ at: firebase.database.ServerValue.TIMESTAMP
 };
 }, undefined, false);
 if(tx.committed){
-  // Beklemiyoruz; yerel oyun akışı ağ RTT'sine takılmaz.
   mpWordScoreCommitted=nextOwnScore;
   mpRoomRef.child('scores/'+mpRole).set(nextOwnScore).then(()=>{mpLastConfirmedOwnScore=nextOwnScore;}).catch(()=>{scheduleMpScoreSync();});
 }
@@ -3115,7 +3084,6 @@ p.el.classList.add(isP1 ? 'tile-claimed-p1' : 'tile-claimed-p2');
 });
 
 addTickerBadge(word, isP1);
-// Konfeti sadece sözcüğü bu cihazda bulan oyuncuda görünür.
 flyScore(pts, isP1, scoreFxOrigin);
 rewardWordFx(isP1);
 adjustScore(isP1 ? pts : 0, !isP1 ? pts : 0);
@@ -3154,7 +3122,6 @@ const count=Math.round((IS_COARSE_POINTER?8:10)+(letters-2)*(IS_COARSE_POINTER?2
 confetti({particleCount:count});
 }
 
-// Yerel oyuncunun sözcük kutlaması yalnız oyun tahtasının içinde çizilir.
 function confetti(options={}){
 const count=Math.max(0,Math.min(48,Math.round(Number(options.particleCount)||0)));
 if(!count||document.hidden)return;
@@ -3191,12 +3158,9 @@ const tr=target.getBoundingClientRect();
 const el=document.createElement('div'); el.className='score-fly'; el.textContent=`+${pts}`;
 el.style.color=isP1?'#fbbf24':'#38bdf8';
 const gridRect=document.getElementById('scrabble-grid')?.getBoundingClientRect?.();
-// originPoint submit anında kaydedilen SABİT piksel koordinatıdır.
-// Örn. ARALIK -> K hücresinin merkezi; async işlem sonrası DOM'a tekrar bakılmaz.
 const validOrigin=originPoint&&Number.isFinite(originPoint.x)&&Number.isFinite(originPoint.y);
 const cx=validOrigin ? originPoint.x : (gridRect?gridRect.left+gridRect.width/2:innerWidth/2);
 const cy=validOrigin ? originPoint.y : (gridRect?gridRect.top+gridRect.height/2:Math.min(innerHeight*.38,innerHeight-120));
-// Yazıyı başlangıç merkezine gerçek ölçüsüyle sabitle; sonraki frame'de skora taşı.
 el.style.left=cx+'px'; el.style.top=cy+'px';
 el.style.transform='translate3d(-50%,-50%,0) scale(.9)';
 document.body.appendChild(el);
@@ -3204,7 +3168,6 @@ const er=el.getBoundingClientRect();
 const startCx=er.left+er.width/2,startCy=er.top+er.height/2;
 el.style.setProperty('--dx',(tr.left+tr.width/2-startCx)+'px');
 el.style.setProperty('--dy',(tr.top+tr.height/2-startCy)+'px');
-// CSS .go transform'ı yüzde merkezlemeyi korumadığı için hedefi inline keyframe ile kesinleştir.
 requestAnimationFrame(()=>requestAnimationFrame(()=>{
  if(typeof el.animate==='function'){
   const anim=el.animate([
@@ -3547,7 +3510,6 @@ try{
 const finished=await waitUntilRoomFinished();
 if(!finished) throw new Error('room-not-finished');
 if(!mpRoomRef || !mpRole) throw new Error('room-missing');
-// İkinci oyuncudan onay beklenmez. Host, isteği Firebase'de görür görmez yeni turu başlatır.
 const role=mpRole;
 const rematchRef=mpRoomRef.child('rematch');
 const res=await rematchRef.transaction(current=>{
@@ -3625,7 +3587,6 @@ mpEndResolveTimer=setTimeout(()=>{mpEndResolveTimer=null;hostResolveMatchEnd().c
 }else showToast('Maç sonucu senkronize ediliyor…','sky');
 return;
 }
-// Ağır sonuç süslemeleri modal görünür olduktan sonra çalışır; geçişi artık bloke etmez.
 showTimeUpPreview(()=>{
   const modal=document.getElementById('modal-gameover');
   modal?.classList.remove('hidden');
@@ -3656,7 +3617,6 @@ if(el) el.style.display='none';
 }
 
 function finishRandomMatchAfterResult(expectedKey='',capturedRef=null,capturedRole=''){
-// Yalnız aynı sonuç oturumu hâlâ geçerliyse cihaz çıkış komutunu uygular.
 if(expectedKey && randomResultAutoExitKey!==expectedKey) return;
 const ref=capturedRef||mpRoomRef;
 const role=capturedRole||mpRole;
@@ -3664,12 +3624,7 @@ const signal={id:`${Date.now().toString(36)}-${Math.random().toString(36).slice(
 if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
 randomResultAutoExitKey='';
 setRandomAutoExitNotice(false);
-// Tam 6 saniye sonunda cihaz otomatik ÇIKIŞ komutunu verir. Kendi ekranı
-// Firebase yanıtını beklemeden ana sayfaya döner. Host/guest fark etmeksizin
-// aynı anda oda kapatma best-effort olarak gönderilir; ilk başarılı silme yeterlidir.
 if(ref){
-  // Çıkış sinyali best-effort gönderilir; oda silme bunun tamamlanmasını beklemez.
-  // Böylece 6. saniyede oda kapanışı Firebase ağ gecikmesiyle ötelenmez.
   try{ref.child('roomExit').set(signal).catch(()=>{});}catch(_){}
   try{ref.remove().catch(()=>{});}catch(_){}
 }
@@ -3682,10 +3637,8 @@ if(!isRandomHumanRoom()) return false;
 const ref=mpRoomRef;
 const role=mpRole;
 if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
-// ÇIKIŞ düğmesi: kendi cihazında ağ beklemeden anında ana sayfa.
 returnToHomeFromMultiplayer();
 hideRoomExitNotice();
-// Diğer tarafı da hemen kapatmak için best-effort ortak sinyal.
 if(ref && role){
   const signal={id:`${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`,at:serverNow(),by:role,reason:'random-result-exit'};
   try{ref.child('roomExit').set(signal).catch(()=>{});}catch(_){}
@@ -3725,16 +3678,12 @@ const shouldDeletePrivate=!!(exitingRef && /^invite-only-/.test(String(mpRoomMod
 const shouldDeleteRandom=!!(exitingRef && randomRoomAtExit && (roleAtExit==='host'||forceCloseForDisconnect));
 if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
 
-// v233 — Rastgele maçın normal bitişi otomatik kapanır; sonuç ekranında düğme yoktur:
-// host/guest ayrımı olmadan anında ana sayfaya dönülür. Odayı host tarafı
-// arka planda temizler; guest sinyal gönderirse host aynı sinyali alıp temizler.
 if(randomRoomAtExit && (isAutomaticRandomTimeout||isRandomResultManualExit)){
   if(shouldDeleteRandom) setTimeout(()=>exitingRef?.remove().catch(()=>{}),120);
   returnToHomeFromMultiplayer();
   hideRoomExitNotice();
   return;
 }
-// kısa "OYUN SONLANDIRILDI" bildirimi görünür ve ardından ana sayfaya dönülür.
 if(randomRoomAtExit && isManualPlayerExit && initiatedBySelf){
   showRoomExitNotice('OYUN SONLANDIRILDI');
   await new Promise(r=>setTimeout(r,700));
@@ -3771,12 +3720,9 @@ at:serverNow(),
 by:role,
 reason
 };
-// Kendi roomExit listener'ımız aynı sinyali ikinci kez işlememeli.
 mpLastExitSignalId=signal.id;
 const randomImmediate=isRandomHumanRoom() && ['player-exit','random-result-exit','random-result-timeout'].includes(reason);
 if(randomImmediate){
-  // Rastgele maç tek kullanımlıktır. Manuel çıkış sinyalini önce diğer oyuncuya
-  // ulaştırmaya çalışırız; ardından oda host/guest ayrımı olmadan temizlenir.
   ref.child('roomExit').set(signal).then(()=>{
     if(reason==='player-exit') setTimeout(()=>ref.remove().catch(()=>{}),1100);
     else setTimeout(()=>ref.child('roomExit').transaction(cur=>cur?.id===signal.id?null:cur).catch(()=>{}),2200);
@@ -3836,7 +3782,6 @@ document.getElementById('btn-quick-exit')?.addEventListener('click', ()=>{
 if(activeGameMode==='multi' && mpRoomRef && mpRole) requestSynchronizedRoomExit('player-exit');
 else exitCurrentGameToHome();
 });
-
 
 document.getElementById('btn-game-exit')?.addEventListener('click', async()=>{
 if(activeGameMode!=='multi' && !mpRoomRef && !mpRole){
@@ -4088,4 +4033,3 @@ document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
 document.getElementById('btn-close-rematch-waiting')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePlayAgain);
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
-// Sözlük Tek Oyuncu, Sözlük veya oyun akışında gerçekten gerektiğinde yüklenir.
