@@ -648,6 +648,7 @@ return true;
 }
 let mpConnectPromise=null;
 function disconnectFirebaseNetwork(force=false){
+if(accountAuth?.currentUser)return;
 if(!mpDb)return;
 if(!force&&(mpRoomRef||randomSearchActive))return;
 if(serverOffsetListener){
@@ -788,10 +789,12 @@ if(tx.committed)return{code,ref,dayKey};
 throw new Error('room-reservation-failed');
 }
 function inviteUrl(code){
-const u=new URL(location.href);u.searchParams.set('room',code);u.searchParams.delete('join');u.searchParams.delete('as');u.hash='';return u.toString();
+const publicCode=activeMemberRoomNo||code;
+const u=new URL(location.href);u.searchParams.set('room',publicCode);u.searchParams.delete('join');u.searchParams.delete('as');u.hash='';return u.toString();
 }
 function setRoomUrl(code){
-const u=new URL(location.href);u.searchParams.set('room',code);u.searchParams.delete('join');u.searchParams.delete('as');u.hash='';history.replaceState(null,'',u.toString());
+const publicCode=activeMemberRoomNo||code;
+const u=new URL(location.href);u.searchParams.set('room',publicCode);u.searchParams.delete('join');u.searchParams.delete('as');u.hash='';history.replaceState(null,'',u.toString());
 }
 function clearInviteFromUrl(){
 const u=new URL(location.href);['room','join','as'].forEach(k=>u.searchParams.delete(k));history.replaceState(null,'',u.toString());
@@ -1888,6 +1891,12 @@ mpSeenWordEvents.clear();mpFoundWords.host.clear();mpFoundWords.guest.clear();mp
 setMpState(MP_STATES.IDLE);
 }
 function returnToHomeFromMultiplayer(){
+const memberNoToClear=activeMemberRoomNo;
+const memberWasOwner=activeMemberRoomOwner;
+activeMemberRoomNo='';activeMemberRoomOwner=false;
+if(memberWasOwner&&memberNoToClear&&accountDb){
+accountDb.ref('memberRooms/'+memberNoToClear).update({activeRoomCode:'',updatedAt:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
+}
 const randomExitBtn=document.getElementById('btn-random-result-exit');
 if(randomExitBtn){randomExitBtn.disabled=true;randomExitBtn.classList.add('hidden');randomExitBtn.style.removeProperty('display');randomExitBtn.style.removeProperty('visibility');randomExitBtn.style.removeProperty('opacity');}
 stopInviteDecisionTimer();
@@ -1945,6 +1954,7 @@ difficultyPanel.classList.toggle('hidden',!open);
 soloArrow.style.transform=open?'rotate(90deg)':'';
 }
 let accountAuth=null,accountDb=null,accountAuthUnsub=null,accountFormMode='login',accountProfile=null;
+let accountRoomPresenceRef=null,activeMemberRoomNo='',activeMemberRoomOwner=false;
 function accountErrorMessage(err){
 const code=String(err?.code||'');
 if(code.includes('invalid-credential')||code.includes('wrong-password')||code.includes('user-not-found'))return 'E-posta veya şifre hatalı.';
@@ -1991,6 +2001,112 @@ accountAuthUnsub=accountAuth.onAuthStateChanged(user=>renderAccountState(user).c
 }
 return true;
 }
+function memberRoomUrl(roomNo){
+const u=new URL('https://kapmaca.tr/');
+u.searchParams.set('room',String(roomNo||''));
+return u.toString();
+}
+async function ensurePermanentRoomForUser(user,profile){
+if(!user||!accountDb)return profile;
+let roomNo=String(profile?.roomNo||'');
+if(/^\d{6,7}$/.test(roomNo))return profile;
+for(let attempt=0;attempt<8;attempt++){
+const counterRef=accountDb.ref('meta/nextMemberRoom');
+const tx=await counterRef.transaction(current=>{
+const n=Math.max(99999,Number(current||99999));
+return n+1;
+});
+if(!tx.committed)continue;
+roomNo=String(tx.snapshot.val()||'');
+if(!/^\d{6,7}$/.test(roomNo))throw new Error('member-room-range');
+const roomRef=accountDb.ref('memberRooms/'+roomNo);
+const reserve=await roomRef.transaction(current=>{
+if(current===null)return{ownerUid:user.uid,createdAt:firebase.database.ServerValue.TIMESTAMP,online:false,activeRoomCode:'',updatedAt:firebase.database.ServerValue.TIMESTAMP};
+if(current?.ownerUid===user.uid)return current;
+return;
+});
+if(!reserve.committed)continue;
+await accountDb.ref('users/'+user.uid).update({roomNo,updatedAt:Date.now()});
+return{...(profile||{}),roomNo};
+}
+throw new Error('member-room-allocation-failed');
+}
+async function stopMemberRoomPresence(){
+const ref=accountRoomPresenceRef;
+accountRoomPresenceRef=null;
+if(!ref)return;
+try{await ref.onDisconnect().cancel();}catch(_){}
+try{await ref.parent.update({online:false,updatedAt:firebase.database.ServerValue.TIMESTAMP});}catch(_){}
+}
+async function startMemberRoomPresence(user,roomNo){
+if(!user||!accountDb||!/^\d{6,7}$/.test(String(roomNo||'')))return;
+try{accountDb.goOnline();}catch(_){}
+if(accountRoomPresenceRef&&accountRoomPresenceRef.toString().includes('/'+roomNo+'/presence'))return;
+await stopMemberRoomPresence();
+const roomRef=accountDb.ref('memberRooms/'+roomNo);
+accountRoomPresenceRef=roomRef.child('presence');
+await roomRef.update({ownerUid:user.uid,online:true,updatedAt:firebase.database.ServerValue.TIMESTAMP});
+await accountRoomPresenceRef.set({online:true,at:firebase.database.ServerValue.TIMESTAMP});
+accountRoomPresenceRef.onDisconnect().set({online:false,at:firebase.database.ServerValue.TIMESTAMP});
+roomRef.child('online').onDisconnect().set(false);
+}
+function paintAccountRoom(profile){
+const roomNo=String(profile?.roomNo||'');
+const no=document.getElementById('account-room-number');
+const st=document.getElementById('account-room-status');
+const dot=document.getElementById('account-room-dot');
+if(no)no.textContent=roomNo||'------';
+if(st)st.textContent=roomNo?'Çevrimiçi':'Hazırlanıyor…';
+if(dot)dot.style.background=roomNo?'#22c55e':'#94a3b8';
+}
+async function openPermanentMemberRoom(){
+const user=accountAuth?.currentUser;
+const roomNo=String(accountProfile?.roomNo||'');
+if(!user||!/^\d{6,7}$/.test(roomNo)){setAccountUserMessage('Özel oda henüz hazır değil.',false);return;}
+closeAccountScreen();
+activeMemberRoomNo=roomNo;
+activeMemberRoomOwner=true;
+try{
+if(randomSearchActive)await cleanupRandomQueue(true);
+await discardCurrentPrivateRoom();
+document.getElementById('friend-invite-panel')?.classList.remove('hidden');
+document.getElementById('mp-create-view')?.classList.add('hidden');
+document.getElementById('mp-room-view')?.classList.remove('hidden');
+document.getElementById('btn-close-room')?.classList.remove('hidden');
+setPrivateInviteControlsReady(false);
+setPrivateRoomProgress('ÖZEL ODA HAZIRLANIYOR…');
+const ok=await createRoom();
+if(!ok)throw new Error('member-room-create-failed');
+await accountDb.ref('memberRooms/'+roomNo).update({online:true,activeRoomCode:mpRoomCode,updatedAt:firebase.database.ServerValue.TIMESTAMP});
+setRoomUrl(roomNo);
+setPrivateInviteControlsReady(true,roomNo);
+showToast('Özel odan hazır.','emerald');
+}catch(err){
+console.error('Permanent member room error',err);
+activeMemberRoomNo='';activeMemberRoomOwner=false;
+setAccountUserMessage('Özel oda açılamadı. Tekrar deneyin.',false);
+document.getElementById('screen-account')?.classList.remove('hidden');
+}
+}
+async function resolveMemberRoom(roomNo){
+roomNo=String(roomNo||'').replace(/\D/g,'').slice(0,7);
+if(!/^\d{6,7}$/.test(roomNo))return false;
+if(!await waitFirebaseConnected(8000)){showToast('Sunucuya bağlanılamadı.','rose');return false;}
+let data=null;
+try{data=(await mpDb.ref('memberRooms/'+roomNo).once('value')).val();}catch(_){}
+if(!data){showToast('Özel oda bulunamadı.','rose');return false;}
+if(data.online!==true){
+showToast('Oda sahibi şu anda çevrimdışı.','slate');
+return false;
+}
+const liveCode=String(data.activeRoomCode||'').toLowerCase();
+if(!/^[a-z]{5}$/.test(liveCode)){
+showToast('Oda sahibi çevrimiçi; oda henüz açılmadı.','amber');
+return false;
+}
+activeMemberRoomNo=roomNo;activeMemberRoomOwner=false;
+return joinRoom(liveCode);
+}
 function defaultAccountProfile(user){
 const fallback=(user?.displayName||String(user?.email||'').split('@')[0]||'Oyuncu').slice(0,18);
 return{nickname:fallback,games:0,wins:0,losses:0,bestScore:0,longestWord:'',createdAt:Date.now(),updatedAt:Date.now()};
@@ -2010,7 +2126,9 @@ await ref.set(data);
 console.warn('Profil okunamadı',err);
 data=defaultAccountProfile(user);
 }
+data=await ensurePermanentRoomForUser(user,data);
 accountProfile=data;
+await startMemberRoomPresence(user,data?.roomNo);
 return data;
 }
 async function renderAccountState(user){
@@ -2018,7 +2136,9 @@ const guest=document.getElementById('account-guest-view');
 const signed=document.getElementById('account-user-view');
 if(!guest||!signed)return;
 if(!user){
-accountProfile=null;
+await stopMemberRoomPresence();
+accountProfile=null;activeMemberRoomNo='';activeMemberRoomOwner=false;
+paintAccountRoom(null);
 guest.classList.remove('hidden');signed.classList.add('hidden');
 const homeLabel=document.getElementById('account-home-label');if(homeLabel)homeLabel.textContent='Hesap';
 return;
@@ -2033,6 +2153,7 @@ const stats=document.getElementById('account-user-stats');if(stats)stats.textCon
 const emailEl=document.getElementById('account-user-email');if(emailEl)emailEl.textContent=user.email||'';
 const editor=document.getElementById('account-profile-nickname');if(editor)editor.value=name;
 const homeLabel=document.getElementById('account-home-label');if(homeLabel)homeLabel.textContent=name;
+paintAccountRoom(profile);
 setAccountLoading(false);
 }
 async function openAccountScreen(){
@@ -2099,6 +2220,13 @@ document.getElementById('account-profile-editor')?.classList.add('hidden');
 setAccountUserMessage('Profil güncellendi ✓');
 }catch(err){setAccountUserMessage(accountErrorMessage(err),false);}
 });
+document.getElementById('btn-account-copy-room')?.addEventListener('click',async()=>{
+const roomNo=String(accountProfile?.roomNo||'');
+if(!/^\d{6,7}$/.test(roomNo))return;
+try{await navigator.clipboard.writeText(memberRoomUrl(roomNo));setAccountUserMessage('Oda bağlantısı kopyalandı ✓');}
+catch(_){setAccountUserMessage('Bağlantı kopyalanamadı.',false);}
+});
+document.getElementById('btn-account-open-room')?.addEventListener('click',openPermanentMemberRoom);
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!document.getElementById('screen-account')?.classList.contains('hidden'))closeAccountScreen();});
 let deferredShortcutPrompt=null;
 window.addEventListener('beforeinstallprompt',(e)=>{
@@ -2207,13 +2335,15 @@ document.getElementById('btn-fullscreen-home')?.addEventListener('click',toggleG
 document.getElementById('btn-fullscreen-game')?.addEventListener('click',toggleGameFullscreen);
 window.addEventListener('DOMContentLoaded',async()=>{
 const u=new URL(location.href);
-const code=String(u.searchParams.get('room')||'').toLowerCase().replace(/[^a-z]/g,'').slice(0,5);
-if(!code)return;
+const raw=String(u.searchParams.get('room')||'').trim().toLowerCase();
+const memberNo=raw.replace(/\D/g,'').slice(0,7);
+const code=raw.replace(/[^a-z]/g,'').slice(0,5);
+if(!memberNo&&!code)return;
 document.getElementById('screen-home')?.classList.add('hidden');
 document.getElementById('screen-game')?.classList.add('hidden');
 document.getElementById('friend-invite-panel')?.classList.add('hidden');
 setDifficultyOpen(false);
-const ok=await joinRoom(code);
+const ok=/^\d{6,7}$/.test(memberNo)?await resolveMemberRoom(memberNo):await joinRoom(code);
 if(!ok){
 document.getElementById('screen-home')?.classList.remove('hidden');
 return;
