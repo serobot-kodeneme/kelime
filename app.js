@@ -1193,12 +1193,8 @@ tick();
 inviteDecisionTimer=setInterval(tick,500);
 }
 function showInactiveRoomAndReturn(){
-clearInviteFromUrl();
-document.getElementById('inactive-room-toast')?.classList.add('hidden');
-document.getElementById('modal-room-invite')?.classList.add('hidden');
-document.getElementById('screen-game')?.classList.add('hidden');
-document.getElementById('screen-home')?.classList.remove('hidden');
-returnToHomeFromMultiplayer();
+try{history.replaceState(null,'','https://kapmaca.tr/');}catch(_){}
+window.location.replace('https://kapmaca.tr/');
 }
 async function joinRoom(code){
 code=String(code||'').toLowerCase().replace(/[^a-z]/g,'').slice(0,5);
@@ -1244,6 +1240,7 @@ role='guest';
 d.guestId=clientId;
 }
 }else{
+showInactiveRoomAndReturn();
 return false;
 }
 mpRoomCode=code;
@@ -1265,6 +1262,10 @@ ref.child('invite').once('value')
 ]);
 const game=gameSnap.val()||{};
 const invite=inviteSnap.val()||{};
+if(!game||!Array.isArray(game.board)||game.board.length!==9){
+showInactiveRoomAndReturn();
+return false;
+}
 mpRoomData={
 ...game,
 scores:scoreSnap.val()||{host:0,guest:0},
