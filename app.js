@@ -3489,35 +3489,82 @@ confetti({particleCount:first,epic:true});
 setTimeout(()=>confetti({particleCount:second,epic:true,secondary:true}),150);
 }
 function confetti(options={}){
-const count=Math.max(0,Math.min(48,Math.round(Number(options.particleCount)||0)));
+const count=Math.max(0,Math.min(64,Math.round(Number(options.particleCount)||0)));
 if(!count||document.hidden)return;
 const epic=!!options.epic;
 const secondary=!!options.secondary;
 const board=document.getElementById('scrabble-grid');
-if(!board||board.closest('.hidden')||board.clientWidth<1||board.clientHeight<1)return;
-const layer=document.createElement('div');layer.className='word-confetti-layer'+(epic?' epic':'');layer.style.setProperty('display','block','important');
+if(!board)return;
+const rect=board.getBoundingClientRect();
+if(rect.width<1||rect.height<1)return;
+
+const layer=document.createElement('div');
+Object.assign(layer.style,{
+position:'absolute',
+inset:'0',
+overflow:'hidden',
+pointerEvents:'none',
+zIndex:'120',
+display:'block'
+});
+const computed=getComputedStyle(board);
+if(computed.position==='static')board.style.position='relative';
+board.appendChild(layer);
+
 const frag=document.createDocumentFragment();
-const x=board.clientWidth/2+(secondary?(Math.random()-.5)*board.clientWidth*.08:0);
-const y=board.clientHeight/2+(secondary?(Math.random()-.5)*board.clientHeight*.06:0);
-const colors=['#fbbf24','#38bdf8','#fb7185','#a78bfa','#34d399','#ffffff','#f97316','#1d4ed8'];
-const duration=epic?(secondary?1050:1250):1000;
+const parts=[];
+const cx=rect.width/2+(secondary?(Math.random()-.5)*rect.width*.10:0);
+const cy=rect.height/2+(secondary?(Math.random()-.5)*rect.height*.08:0);
+const colors=['#facc15','#f97316','#ef4444','#22c55e','#0ea5e9','#2563eb','#8b5cf6','#ec4899','#ffffff'];
+const duration=secondary?900:1150;
+
 for(let i=0;i<count;i++){
-const part=document.createElement('i');
+const part=document.createElement('span');
 const angle=Math.random()*Math.PI*2;
-const reach=Math.min(board.clientWidth,board.clientHeight)*(epic?(.20+Math.random()*.30):(.12+Math.random()*.25));
-part.style.setProperty('--x',x+'px');part.style.setProperty('--y',y+'px');
-const dx=Math.round(Math.cos(angle)*reach),dy=Math.round(Math.sin(angle)*reach+14+Math.random()*24);
-part.style.setProperty('--dx',dx+'px');part.style.setProperty('--dy',dy+'px');
-part.style.setProperty('--mid-x',Math.round(dx*.56)+'px');part.style.setProperty('--mid-y',Math.round(dy*.34-(epic?52:38))+'px');
-const rotation=Math.round((Math.random()-.5)*(epic?1080:720));
-part.style.setProperty('--rot',rotation+'deg');part.style.setProperty('--mid-rot',Math.round(rotation*.48)+'deg');
-part.style.setProperty('--w',((epic?5:4)+Math.random()*(epic?5:4))+'px');
-part.style.setProperty('--h',((epic?8:7)+Math.random()*(epic?7:5))+'px');
-part.style.setProperty('--color',colors[i%colors.length]);
-part.style.setProperty('--duration',duration+'ms');frag.appendChild(part);
+const reach=Math.min(rect.width,rect.height)*(.24+Math.random()*.34);
+const dx=Math.cos(angle)*reach;
+const dy=Math.sin(angle)*reach+28+Math.random()*34;
+const midX=dx*.52;
+const midY=dy*.28-(50+Math.random()*34);
+const rot=(Math.random()-.5)*1080;
+const w=5+Math.random()*5;
+const h=8+Math.random()*8;
+
+Object.assign(part.style,{
+position:'absolute',
+left:cx+'px',
+top:cy+'px',
+width:w+'px',
+height:h+'px',
+borderRadius:Math.random()>.72?'50%':'2px',
+background:colors[i%colors.length],
+opacity:'1',
+pointerEvents:'none',
+boxShadow:'0 1px 2px rgba(15,23,42,.16)',
+transform:'translate3d(-50%,-50%,0) scale(.7)'
+});
+frag.appendChild(part);
+parts.push({part,dx,dy,midX,midY,rot});
 }
-layer.appendChild(frag);board.appendChild(layer);
-setTimeout(()=>layer.remove(),duration+80);
+layer.appendChild(frag);
+
+for(const p of parts){
+if(typeof p.part.animate==='function'){
+p.part.animate([
+{transform:'translate3d(-50%,-50%,0) rotate(0deg) scale(.55)',opacity:0},
+{offset:.10,transform:'translate3d(-50%,-50%,0) rotate(0deg) scale(1.15)',opacity:1},
+{offset:.48,transform:`translate3d(calc(-50% + ${p.midX}px),calc(-50% + ${p.midY}px),0) rotate(${p.rot*.45}deg) scale(1)`,opacity:1},
+{transform:`translate3d(calc(-50% + ${p.dx}px),calc(-50% + ${p.dy}px),0) rotate(${p.rot}deg) scale(.82)`,opacity:0}
+],{duration,easing:'cubic-bezier(.15,.72,.28,1)',fill:'forwards'});
+}else{
+p.part.style.transition=`transform ${duration}ms ease-out,opacity ${duration}ms ease-out`;
+requestAnimationFrame(()=>requestAnimationFrame(()=>{
+p.part.style.transform=`translate3d(calc(-50% + ${p.dx}px),calc(-50% + ${p.dy}px),0) rotate(${p.rot}deg) scale(.82)`;
+p.part.style.opacity='0';
+}));
+}
+}
+setTimeout(()=>layer.remove(),duration+120);
 }
 function flyScore(pts,isP1,originPoint=null){
 if(document.hidden)return;
