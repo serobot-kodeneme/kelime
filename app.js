@@ -3479,11 +3479,11 @@ try{len=route.getTotalLength();}catch(_){}
 if(len>0){
 route.style.strokeDasharray=String(len);
 route.style.strokeDashoffset=String(len);
-route.animate([{strokeDashoffset:String(len),opacity:.95},{strokeDashoffset:'0',opacity:.95},{strokeDashoffset:'0',opacity:0}],{duration:900,easing:'ease-out',fill:'forwards'});
+route.animate([{strokeDashoffset:String(len),opacity:.95},{strokeDashoffset:'0',opacity:.95},{strokeDashoffset:'0',opacity:0}],{duration:650,easing:'ease-out',fill:'forwards'});
 }
 const keyframes=pts.map((p,i)=>({offset:pts.length===1?1:i/(pts.length-1),cx:String(p.x),cy:String(p.y)}));
-try{dot.animate(keyframes,{duration:720,easing:'linear',fill:'forwards'});}catch(_){}
-setTimeout(()=>svg.remove(),980);
+try{dot.animate(keyframes,{duration:520,easing:'linear',fill:'forwards'});}catch(_){}
+setTimeout(()=>svg.remove(),720);
 }
 function flashOpponentWord(path,isP1,badge=null){
 if(document.hidden||!Array.isArray(path)||!path.length)return;
@@ -3497,13 +3497,13 @@ if(!el.isConnected)return;
 el.classList.remove('remote-word-flash-p1','remote-word-flash-p2');
 void el.offsetWidth;
 el.classList.add(cls);
-setTimeout(()=>el.classList.remove(cls),520);
-},i*75);
+setTimeout(()=>el.classList.remove(cls),400);
+},i*50);
 });
 if(badge){
 const badgeCls=isP1?'remote-word-badge-p1':'remote-word-badge-p2';
 badge.classList.add(badgeCls);
-setTimeout(()=>badge.classList.remove(badgeCls),980);
+setTimeout(()=>badge.classList.remove(badgeCls),720);
 }
 }
 function playWordConfetti(length){
