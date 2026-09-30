@@ -2148,9 +2148,7 @@ setAccountLoading(true);
 const profile=await loadAccountProfile(user);
 guest.classList.add('hidden');signed.classList.remove('hidden');
 const name=String(profile?.nickname||user.displayName||'Oyuncu').slice(0,18);
-const games=Number(profile?.games||0),wins=Number(profile?.wins||0);
 const nameEl=document.getElementById('account-user-name');if(nameEl)nameEl.textContent=name;
-const stats=document.getElementById('account-user-stats');if(stats)stats.textContent=`${games} oyun • ${wins} galibiyet`;
 const emailEl=document.getElementById('account-user-email');if(emailEl)emailEl.textContent=user.email||'';
 const editor=document.getElementById('account-profile-nickname');if(editor)editor.value=name;
 const homeLabel=document.getElementById('account-home-label');if(homeLabel)homeLabel.textContent=name;
@@ -3482,10 +3480,10 @@ setTimeout(()=>badge.classList.remove(badgeCls),720);
 }
 }
 function playWordConfetti(length){
-const letters=Math.max(2,Math.min(9,Number(length)||2));
-if(letters<5)return;
-const first=IS_COARSE_POINTER?20:26;
-const second=IS_COARSE_POINTER?8:10;
+const letters=Math.max(1,Math.min(9,Number(length)||1));
+const scale=Math.max(.55,Math.min(1,(letters+2)/7));
+const first=Math.round((IS_COARSE_POINTER?20:26)*scale);
+const second=Math.round((IS_COARSE_POINTER?8:10)*scale);
 confetti({particleCount:first,epic:true});
 setTimeout(()=>confetti({particleCount:second,epic:true,secondary:true}),135);
 }
