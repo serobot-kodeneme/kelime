@@ -1377,7 +1377,7 @@ if(role==='guest' && /^invite-only-/.test(mode) && mpRoomData.status==='waiting'
 }
 if(/^random-match-/.test(mode)){
   await enterMultiplayerRoom();
-  if(mpRole==='host') await hostStartWaitingRound();
+  await hostStartWaitingRound();
 }
 return true;
 }
@@ -1418,7 +1418,7 @@ else if(d.status==='playing' && d.startAt) activateMultiplayerPlaying(d);
 }
 
 async function hostStartWaitingRound(){
-if(mpRole!=='host'||mpStartBusy||!mpRoomRef) return;
+if(!mpRole||mpStartBusy||!mpRoomRef) return;
 mpStartBusy=true;
 try{
 const [guestSnap,readySnap]=await Promise.all([
@@ -1427,6 +1427,9 @@ mpRoomRef.child('ready').once('value')
 ]);
 const ready=readySnap.val()||{};
 if(!guestSnap.val() || !ready.host || !ready.guest) return;
+// Hodri Meydan başlangıcı host cihazına bağımlı değildir.
+// İki cihaz da bu transaction'ı çağırabilir; waiting -> countdown geçişini
+// Firebase atomik olarak yalnız bir kez kabul eder.
 await mpRoomRef.child('gameState').transaction(gs=>{
 if(!gs||gs.status!=='waiting'||Number(gs.startAt||0)>0) return;
 gs.status='countdown'; gs.startAt=serverNow()+3200;
@@ -1721,7 +1724,7 @@ const inviteAccepted = randomRoom || mpRoomData.inviteGuest==='accepted';
 if(randomRoom){
   document.getElementById('modal-mp-waiting')?.classList.add('hidden');
   if(!mpEntered) await enterMultiplayerRoom();
-  if(mpRole==='host') await hostStartWaitingRound();
+  await hostStartWaitingRound();
 }else if(mpRole==='host'){
   if(!mpRoomData.guestId || !mpRoomData.guestOnline || !inviteAccepted){
     if(mpEntered) document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
@@ -1772,6 +1775,9 @@ bindControl('presence/host','value',snap=>{const v=snap.val()||{};const online=i
 bindControl('invite/guest','value',snap=>{mpRoomData={...(mpRoomData||{}),inviteGuest:snap.val()||null}; if(mpRoomData.status==='waiting'&&mpListener) mpRoomRef.child('gameState').once('value').then(mpListener);});
 bindControl('ready','value',snap=>{
   mpRoomData={...(mpRoomData||{}),ready:snap.val()||{}};
+  if(mpRoomData.status==='waiting'&&isRandomHumanRoom()){
+    hostStartWaitingRound().catch(()=>{});
+  }
   if(mpRoomData.status==='waiting'&&mpListener){
     mpRoomRef.child('gameState').once('value').then(mpListener);
   }
