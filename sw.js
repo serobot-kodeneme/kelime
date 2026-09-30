@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v454-dictplus1';
+const CACHE_NAME='kapmaca-shell-v455-arrowlight1';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=454-dictplus1',
+  './app.js?v=455-arrowlight1',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
