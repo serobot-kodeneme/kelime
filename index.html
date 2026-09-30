@@ -3652,9 +3652,17 @@ button,a,[role="button"],.dict-word-button,.found-word-badge{cursor:pointer;}
 <span class="w-8 h-8 rounded-[11px] bg-white/90 border border-amber-200 flex items-center justify-center text-base shadow-inner">📚</span>
 <span>Sözlük</span>
 </button>
-<a id="btn-support" href="#screen-support" class="home-shortcut min-h-[54px] rounded-[15px] bg-gradient-to-br from-amber-100 to-orange-200 border border-amber-300 shadow-[0_5px_13px_rgba(120,53,15,.12)] flex flex-col items-center justify-center gap-1 text-amber-950 font-black text-[9px] leading-tight active:scale-95" aria-label="Kahve Molası'nı aç">
-<span class="w-8 h-8 rounded-[11px] bg-white/90 border border-amber-200 flex items-center justify-center text-xl shadow-inner" aria-hidden="true">☕</span>
-<span>Kahve Molası</span>
+<a id="btn-support" href="#screen-support" class="home-shortcut min-h-[54px] rounded-[15px] bg-gradient-to-br from-amber-100 to-orange-200 border border-amber-300 shadow-[0_5px_13px_rgba(120,53,15,.12)] flex flex-col items-center justify-center gap-1 text-amber-950 font-black text-[9px] leading-tight active:scale-95" aria-label="Kahve bölümünü aç">
+<span class="w-8 h-8 rounded-[11px] bg-white/90 border border-amber-200 flex items-center justify-center shadow-inner" aria-hidden="true">
+<svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:#7b4b2a">
+<path d="M6 9h10v5.2A4.8 4.8 0 0 1 11.2 19H10.8A4.8 4.8 0 0 1 6 14.2V9Z"/>
+<path d="M16 10h1.2a2.3 2.3 0 0 1 0 4.6H16"/>
+<path d="M8.5 5.2c-.9 1 .9 1.6 0 2.6"/>
+<path d="M11.5 4.5c-.9 1 .9 1.6 0 2.6"/>
+<path d="M5 20h13"/>
+</svg>
+</span>
+<span>Kahve</span>
 </a>
 </div>
 </div>
@@ -3823,21 +3831,20 @@ button,a,[role="button"],.dict-word-button,.found-word-badge{cursor:pointer;}
 <div id="screen-support" class="absolute inset-0 z-[80] hidden bg-gradient-to-b from-amber-50 via-orange-50 to-white p-4 overflow-y-auto hide-scroll">
 <div class="max-w-sm mx-auto pb-6">
 <div class="flex items-center justify-between">
-<h2 class="font-black text-xl text-amber-950 text-left">☕ KAHVE MOLASI</h2>
-<button id="btn-close-support" aria-label="Kahve Molası'nı kapat" class="ml-auto w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center font-black shadow">✕</button>
+<h2 class="font-black text-xl text-amber-950 text-left">☕ KAHVE</h2>
+<button id="btn-close-support" aria-label="Kahve bölümünü kapat" class="ml-auto w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center font-black shadow">✕</button>
 </div>
 
 <div class="mt-5 bg-white/95 border-2 border-amber-200 rounded-3xl p-5 shadow-lg text-center">
 <div class="text-5xl leading-none" aria-hidden="true">☕</div>
-<h3 class="mt-3 text-xl font-black text-amber-950">Kahve Molası</h3>
 
 <p class="mt-4 text-sm font-bold leading-relaxed text-slate-700">
 Bu oyun tamamen ücretsiz, reklamsız olup oyun içi eşya satın alma gibi özelliklere gerek olmaksızın oyun yoluyla öğrenme yöntemiyle Türkçe sözcük dağarcığını geliştirme amacıyla hazırlanmıştır.
 </p>
 
 <div class="mt-5 text-4xl leading-none" aria-hidden="true">☕</div>
-<button id="btn-buy-coffee" type="button" class="mt-3 w-full rounded-2xl bg-[#7b4b2a] px-4 py-3 text-sm font-black text-white shadow-lg active:scale-[.98]">
-KAHVE ISMARLA
+<button id="btn-buy-coffee" type="button" class="mt-3 w-full rounded-2xl px-4 py-3 text-sm font-black shadow-lg active:scale-[.98]" style="background:#7b4b2a!important;color:#fff!important;border:1px solid #62391f!important;box-shadow:0 6px 14px rgba(123,75,42,.24)!important;">
+<span aria-hidden="true" style="font-size:17px;vertical-align:-1px;margin-right:6px;">☕</span>KAHVE ISMARLA
 </button>
 <div id="coffee-thanks" class="hidden mt-3 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2 text-sm font-black text-emerald-700">
 Kahve ısmarladınız, sağ olun ☕
