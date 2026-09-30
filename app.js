@@ -1242,7 +1242,7 @@ mpRoomRef.child('invite/expiresAt').set(deadline).catch(()=>{});
 }
 const tick=()=>{
 const left=Math.max(0,Math.ceil((deadline-serverNow())/1000));
-if(countdownEl)countdownEl.textContent=`${left} saniye içinde seçim yapın`;
+if(countdownEl)countdownEl.textContent=String(left);
 if(left<=0){
 stopInviteDecisionTimer();
 if(mpRole==='guest'&&mpRoomRef)requestSynchronizedRoomExit('invite-timeout').catch(()=>{});
