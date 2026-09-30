@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v450-demo-players1';
+const CACHE_NAME='kapmaca-shell-v450-hodri-replayfix1';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=450-demo-players1',
+  './app.js?v=450-hodri-replayfix1',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
