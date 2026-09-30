@@ -103,7 +103,17 @@ const CURATED_EXPANSION_WORDS = Object.freeze([
   // Daha seyrek ama doğal ve oyunda değerli sözcükler
   'ÇEHRE','SEHER','SEDA','YAREN','SERİN','ESİNTİ','GÖLGE','ŞAFAK','UFUK','PINAR','IRMAK',
   'KORU','VADİ','YAMAÇ','DORUK','KIYI','KUMSAL','DALGA','ESEN','DURU','PARLAK','YALIN',
-  'NAZİK','ÇEVİK','SAKİN','CESUR','ÖZGÜR','BİLGE','MERAK','UMUT','NEŞE','SEVİNÇ','DOSTLUK'
+  'NAZİK','ÇEVİK','SAKİN','CESUR','ÖZGÜR','BİLGE','MERAK','UMUT','NEŞE','SEVİNÇ','DOSTLUK',
+
+  // Akıcı tahta desteği: günlük, kısa/orta ve çok bağlantı kurabilen sözcükler
+  'ADIM','AKIL','ALAN','ANLIK','ARAÇ','ARALIK','ARTI','AŞAMA','BAĞ','BAĞLI','BAŞ','BİÇİM','BİLGİ',
+  'BİRİ','BİZ','BOY','BOYUT','BÖLÜM','ÇABA','ÇARE','ÇEVRE','DENGE','DEĞER','DİZİ','DÜZEN','DÜZEY',
+  'ETKİ','EVRE','FİKİR','GEREK','GÜÇ','HAL','HIZ','İLKE','İPUCU','İŞLEM','İZ','KARAR','KONU',
+  'KURAL','KÜME','NOKTA','OLAY','ORTA','ÖLÇEK','ÖRNEK','PAY','PLAN','SIRA','SINIR','SONUÇ','SÜRE',
+  'TARAF','TÜR','YOL','YÖN','ZAMAN','ZEMİN','AÇIK','CANLI','DERİN','DOĞAL','ERKEN','GENÇ','GÜZEL',
+  'HIZLI','İNCE','KOLAY','KÜÇÜK','NET','ORTAK','SAĞLAM','SICAK','TEMİZ','UZAK','YAKIN','YENİ',
+  'YÜKSEK','AZ','ÇOK','DAHA','EN','HER','İYİ','KÖTÜ','VARSA','YOKSA','İÇİN','GİBİ','KİM','NE',
+  'NİYE','HANGİ','BURA','ŞURA','ORADA','BURADA','İLERİ','GERİ','YUKARI','AŞAĞI'
 ]);
 
 function isForeignWord(word){
@@ -941,59 +951,6 @@ randomSearchTicket=null;
 randomPairRoomBusy=false;
 randomJoinBusy=false;
 }
-function normalizePoolEntryWaiting(entry){
-if(!entry) return entry;
-entry.state='waiting';
-delete entry.role;
-delete entry.peerTicket;
-delete entry.peerClientId;
-delete entry.pairKey;
-delete entry.pairedAt;
-delete entry.roomCode;
-return entry;
-}
-function pairWaitingEntries(pool,now){
-pool=pool&&typeof pool==='object'?pool:{};
-for(const [ticket,entry] of Object.entries(pool)){
-  if(!entry || Number(entry.expiresAt||0)<=now){delete pool[ticket];continue;}
-  if(entry.state==='paired' && !entry.roomCode){
-    const peer=pool[entry.peerTicket];
-    if(!peer || peer.peerTicket!==ticket || peer.pairKey!==entry.pairKey){
-      normalizePoolEntryWaiting(entry);
-    }
-  }
-}
-const waiting=Object.entries(pool)
-  .filter(([,e])=>e && e.state==='waiting' && Number(e.expiresAt||0)>now)
-  .sort((a,b)=>{
-    const ta=Number(a[1].enteredAt||0), tb=Number(b[1].enteredAt||0);
-    if(ta!==tb) return ta-tb;
-    return a[0].localeCompare(b[0]);
-  });
-const used=new Set();
-for(let i=0;i<waiting.length;i++){
-  const [hostTicket,host]=waiting[i];
-  if(used.has(hostTicket)) continue;
-  let guestIndex=-1;
-  for(let j=i+1;j<waiting.length;j++){
-    const [candidateTicket,candidate]=waiting[j];
-    if(used.has(candidateTicket)) continue;
-    if(candidate.clientId && host.clientId && candidate.clientId===host.clientId) continue;
-    guestIndex=j; break;
-  }
-  if(guestIndex<0) continue;
-  const [guestTicket,guest]=waiting[guestIndex];
-  used.add(hostTicket); used.add(guestTicket);
-  const pairKey=hostTicket+'_'+guestTicket;
-  pool[hostTicket]={...host,state:'paired',role:'host',peerTicket:guestTicket,peerClientId:guest.clientId,pairKey,pairedAt:now,expiresAt:now+RANDOM_QUEUE_TTL};
-  pool[guestTicket]={...guest,state:'paired',role:'guest',peerTicket:hostTicket,peerClientId:host.clientId,pairKey,pairedAt:now,expiresAt:now+RANDOM_QUEUE_TTL};
-}
-return pool;
-}
-async function rebalanceRandomPool(){
-if(!randomPoolRef) return;
-await randomPoolRef.transaction(cur=>pairWaitingEntries(cur,serverNow()));
-}
 async function removeRefWithRetry(ref,attempts=3,delayMs=180){
 if(!ref) return true;
 for(let attempt=1;attempt<=attempts;attempt++){
@@ -1049,17 +1006,6 @@ const created=await createCleanRoomRecord({
   inviteGuest:'accepted'
 });
 return created.code;
-}
-async function publishRandomRoom(ticket,entry,roomCode){
-if(!randomPoolRef || !entry?.peerTicket) return false;
-const peerTicket=entry.peerTicket;
-const updates={};
-updates[ticket+'/state']='ready';
-updates[ticket+'/roomCode']=roomCode;
-updates[peerTicket+'/state']='ready';
-updates[peerTicket+'/roomCode']=roomCode;
-await randomPoolRef.update(updates);
-return true;
 }
 function waitForTimedPoolMatch(ticket,deadline,wordDataLoad){
 return new Promise(resolve=>{
@@ -2630,16 +2576,20 @@ const ratio=vowels/Math.max(1,w.length);
 return vowels>0 && ratio>=.22 && ratio<=.72 && maxConsonantRun<=3 && rare<=1;
 }
 let FRIENDLY_WORDS_BY_LENGTH = new Map();
-let BOARD_POOLS = {easy2:[],medium34:[],bridge5:[],hidden69:[]};
+let BOARD_POOLS = {easy2:[],medium3:[],medium4:[],medium34:[],bridge5:[],hidden69:[]};
 function rebuildBoardWordPools(){
 FRIENDLY_WORDS_BY_LENGTH=new Map();
 for(const [len,list] of GAME_WORDS_BY_LENGTH){
   const friendly=list.filter(isFriendlyBoardSeed);
   FRIENDLY_WORDS_BY_LENGTH.set(len,friendly.length>=Math.min(12,list.length)?friendly:list);
 }
+const medium3=FRIENDLY_WORDS_BY_LENGTH.get(3)||[];
+const medium4=FRIENDLY_WORDS_BY_LENGTH.get(4)||[];
 BOARD_POOLS={
   easy2:GAME_WORDS_BY_LENGTH.get(2)||[],
-  medium34:[...(FRIENDLY_WORDS_BY_LENGTH.get(3)||[]),...(FRIENDLY_WORDS_BY_LENGTH.get(4)||[])],
+  medium3,
+  medium4,
+  medium34:[...medium3,...medium4],
   bridge5:FRIENDLY_WORDS_BY_LENGTH.get(5)||[],
   hidden69:[...(FRIENDLY_WORDS_BY_LENGTH.get(6)||[]),...(FRIENDLY_WORDS_BY_LENGTH.get(7)||[]),...(FRIENDLY_WORDS_BY_LENGTH.get(8)||[]),...(FRIENDLY_WORDS_BY_LENGTH.get(9)||[])]
 };
@@ -2656,6 +2606,27 @@ coverageMin: 57, coverageIdeal: 77,
 longVarietyMin: 3, initialVarietyMin: 16
 });
 const FILL_LETTERS = "AAAAAAAABCCÇDDEEEEEEEFGĞHHIIIIIİİİİJKKKLLLMMMNNNOOÖPRRRRSSSŞTTTUUÜVYYZ";
+
+// Her tahta farklı bir "tat" taşır; ancak bütün profiller bol sözcüklü kalır.
+// Profil oyuncuya gösterilmez. Yalnız üretim ritmini ve gömülü sözcük dağılımını değiştirir.
+const BOARD_FLAVORS = Object.freeze([
+  {id:'akici', easy:8, m3:28, m4:10, bridge:11, long:7, fill:"AAAAAAAABCCÇDDEEEEEEEGHIIIIIİİİİKKKLLLLMMMNNNNOOÖPRRRRSSSSŞTTTTUUÜVYYZ"},
+  {id:'dengeli',easy:6, m3:21, m4:15, bridge:14, long:9, fill:FILL_LETTERS},
+  {id:'orta',   easy:6, m3:18, m4:19, bridge:15, long:8, fill:"AAAAAAABCCÇDDEEEEEEEFGĞHIIIIIİİİİKKKLLLMMMNNNOOÖPRRRRSSSŞTTTUUÜVYYZ"},
+  {id:'uzun',   easy:5, m3:17, m4:17, bridge:17, long:11,fill:FILL_LETTERS},
+  {id:'ritim',  easy:9, m3:30, m4:9,  bridge:10, long:6, fill:"AAAAAAAAABCCÇDDEEEEEEEEEGHHIIIIIİİİİİKKLLLMMMNNNNOOÖPRRRRSSSSŞTTTTUUUÜVYYZ"},
+  {id:'karma',  easy:7, m3:23, m4:14, bridge:13, long:8, fill:"AAAAAAAABCCÇDDEEEEEEEFGHIIIIIİİİİKKKLLLMMMNNNOOÖPRRRRSSSŞTTTUUÜVYYZ"}
+]);
+const RECENT_FLAVOR_KEY='kd_recent_board_flavors_v446';
+function chooseBoardFlavor(){
+  let recent=[];
+  try{recent=JSON.parse(safeStorageGet('session',RECENT_FLAVOR_KEY)||'[]');if(!Array.isArray(recent))recent=[];}catch(_){recent=[];}
+  const blocked=new Set(recent.slice(-2));
+  const choices=BOARD_FLAVORS.filter(x=>!blocked.has(x.id));
+  const flavor=choices[Math.floor(Math.random()*choices.length)]||BOARD_FLAVORS[0];
+  try{recent.push(flavor.id);safeStorageSet('session',RECENT_FLAVOR_KEY,JSON.stringify(recent.slice(-5)));}catch(_){}
+  return flavor;
+}
 
 function shuffledSample(source, count) {
 const out = [];
@@ -2688,47 +2659,57 @@ return true;
 return false;
 }
 
-function makeCandidateBoard() {
+function makeCandidateBoard(flavor=BOARD_FLAVORS[1]) {
 const board = Array.from({length:BOARD_SIZE}, () => Array(BOARD_SIZE).fill(''));
 
-const bridgeSeeds = shuffledSample(BOARD_POOLS.bridge5, 56);
-const mediumSeeds = shuffledSample(BOARD_POOLS.medium34, 240);
-const easySeeds = shuffledSample(BOARD_POOLS.easy2, 72);
+const bridgeSeeds = shuffledSample(BOARD_POOLS.bridge5, 52);
+const medium3Seeds = shuffledSample(BOARD_POOLS.medium3, 180);
+const medium4Seeds = shuffledSample(BOARD_POOLS.medium4, 160);
+const easySeeds = shuffledSample(BOARD_POOLS.easy2, 64);
 
 let placedLong = 0;
+// Her profilde 6–9 harften en az birer doğal aday denenir.
 for (const len of [9,8,7,6]) {
-const candidates = shuffledSample(FRIENDLY_WORDS_BY_LENGTH.get(len) || GAME_WORDS_BY_LENGTH.get(len) || [], 14);
+const candidates = shuffledSample(FRIENDLY_WORDS_BY_LENGTH.get(len) || GAME_WORDS_BY_LENGTH.get(len) || [], 12);
 for (const word of candidates) {
 if (tryPlaceWord(board, word, placedLong >= 3)) { placedLong++; break; }
 }
 }
-const longSeeds = shuffledSample(BOARD_POOLS.hidden69, 30);
+const longSeeds = shuffledSample(BOARD_POOLS.hidden69, 28);
 for (const word of longSeeds) {
-if (placedLong >= 9) break;
+if (placedLong >= flavor.long) break;
 if (tryPlaceWord(board, word, placedLong >= 5)) placedLong++;
 }
+
 let bridgePlaced=0;
 for (const word of bridgeSeeds) {
-if (bridgePlaced >= 14) break;
+if (bridgePlaced >= flavor.bridge) break;
 if (tryPlaceWord(board, word, true) || tryPlaceWord(board, word, false)) bridgePlaced++;
 }
-let mediumPlaced=0;
-for (const word of mediumSeeds) {
-if (mediumPlaced >= 32) break;
-if (tryPlaceWord(board, word, true) || tryPlaceWord(board, word, false)) mediumPlaced++;
+
+let m4Placed=0;
+for (const word of medium4Seeds) {
+if (m4Placed >= flavor.m4) break;
+if (tryPlaceWord(board, word, true) || tryPlaceWord(board, word, false)) m4Placed++;
 }
+let m3Placed=0;
+for (const word of medium3Seeds) {
+if (m3Placed >= flavor.m3) break;
+if (tryPlaceWord(board, word, true) || tryPlaceWord(board, word, false)) m3Placed++;
+}
+
 let easyPlaced = 0;
 for (const word of easySeeds) {
-if (easyPlaced >= 5) break;
+if (easyPlaced >= flavor.easy) break;
 if (tryPlaceWord(board, word, false)) easyPlaced++;
 }
 
+const fill=flavor.fill||FILL_LETTERS;
 for (let r=0;r<BOARD_SIZE;r++) for (let c=0;c<BOARD_SIZE;c++) {
-if (!board[r][c]) board[r][c] = FILL_LETTERS[Math.floor(Math.random()*FILL_LETTERS.length)];
+if (!board[r][c]) board[r][c] = fill[Math.floor(Math.random()*fill.length)];
 }
 return board;
 }
-
 function analyzeBoardWords(words) {
 const stats = { easy:0, medium:0, bridge:0, core:0, hidden:0, total:words.length, coverage:0, longVariety:0, initialVariety:0 };
 const productiveCells = new Set();
@@ -2808,22 +2789,24 @@ return { board, words };
 function generateOptimizedBoard(maxCandidates = 3) {
 let bestBoard = null, bestWords = [], bestEval = {score:-Infinity, accepted:false, stats:null};
 const recentProfiles = getRecentBoardProfiles();
+const flavor=chooseBoardFlavor();
 const tries = Math.max(maxCandidates, 2);
 for (let i=0; i<tries; i++) {
-const candidate = makeCandidateBoard();
+const candidate = makeCandidateBoard(flavor);
 const solved = solveBoardWords(candidate);
 const evaluation = analyzeBoardWords(solved);
 let similarity=0; for(const profile of recentProfiles) similarity=Math.max(similarity,boardProfileSimilarity(solved,profile));
 if(similarity>.48) evaluation.score-=500; else if(similarity>.34) evaluation.score-=180;
 if (evaluation.score > bestEval.score) { bestBoard = candidate; bestWords = solved; bestEval = evaluation; }
 const st = evaluation.stats;
+// Hızlı sözcük bulma tabanı korunur: orta/core yoğunluğu yüksek değilse ilk aday kabul edilmez.
 if (evaluation.accepted && st.easy <= BOARD_BALANCE.easyMax &&
 st.medium >= BOARD_BALANCE.mediumIdeal && st.core >= BOARD_BALANCE.coreIdeal &&
 st.hidden >= BOARD_BALANCE.hiddenIdeal && st.hidden <= BOARD_BALANCE.hiddenMax &&
 st.total >= BOARD_BALANCE.totalIdeal && st.coverage >= BOARD_BALANCE.coverageIdeal &&
 st.longVariety >= 4 && st.initialVariety >= BOARD_BALANCE.initialVarietyMin) break;
 }
-const board = bestBoard || makeCandidateBoard();
+const board = bestBoard || makeCandidateBoard(flavor);
 const words = bestWords.length ? bestWords : solveBoardWords(board);
 return packBoardResult(board, words);
 }
