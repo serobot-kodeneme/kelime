@@ -1963,7 +1963,7 @@ if(code.includes('email-already-in-use'))return 'Bu e-posta zaten kayıtlı.';
 if(code.includes('weak-password'))return 'Şifre en az 6 karakter olmalı.';
 if(code.includes('invalid-email'))return 'Geçerli bir e-posta yazın.';
 if(code.includes('popup-closed-by-user'))return '';
-if(code.includes('popup-blocked'))return 'Tarayıcı Google giriş penceresini engelledi.';
+if(code.includes('popup-blocked'))return 'Tarayıcı giriş penceresini engelledi.';
 if(code.includes('operation-not-allowed'))return 'Bu giriş yöntemi Firebase Authentication içinde henüz etkin değil.';
 if(code.includes('unauthorized-domain'))return 'kapmaca.tr Firebase yetkili alan adlarına eklenmeli.';
 return 'Hesap işlemi tamamlanamadı. Tekrar deneyin.';
@@ -2202,6 +2202,16 @@ try{
 await ensureAccountBackend();
 const provider=new firebase.auth.GoogleAuthProvider();
 provider.setCustomParameters({prompt:'select_account'});
+const cred=await accountAuth.signInWithPopup(provider);
+await renderAccountState(cred.user);
+refreshAfterAccountLogin();
+}catch(err){const msg=accountErrorMessage(err);if(msg)setAccountMessage(msg);}
+});
+document.getElementById('btn-account-x')?.addEventListener('click',async()=>{
+setAccountMessage('');
+try{
+await ensureAccountBackend();
+const provider=new firebase.auth.TwitterAuthProvider();
 const cred=await accountAuth.signInWithPopup(provider);
 await renderAccountState(cred.user);
 refreshAfterAccountLogin();
