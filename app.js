@@ -3521,14 +3521,14 @@ const duration=secondary?820:1020;
 for(let i=0;i<count;i++){
 const part=document.createElement('span');
 const angle=Math.random()*Math.PI*2;
-const reach=Math.min(rect.width,rect.height)*(.30+Math.random()*.36);
+const reach=Math.min(rect.width,rect.height)*(.36+Math.random()*.40);
 const dx=Math.cos(angle)*reach;
 const dy=Math.sin(angle)*reach+28+Math.random()*34;
 const midX=dx*.52;
 const midY=dy*.28-(50+Math.random()*34);
 const rot=(Math.random()-.5)*1080;
-const w=3+Math.random()*3;
-const h=5+Math.random()*4;
+const w=4+Math.random()*3.5;
+const h=6+Math.random()*5;
 
 Object.assign(part.style,{
 position:'absolute',
