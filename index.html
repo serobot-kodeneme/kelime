@@ -33,7 +33,7 @@
 <link rel="apple-touch-icon" href="kapmaca-icon.svg">
 <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
-<script defer src="app.js?v=444"></script>
+<script defer src="app.js?v=446"></script>
 <meta property="og:locale" content="tr_TR">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KAPMACA">
@@ -3866,31 +3866,6 @@ LÖSEV'E BAĞIŞ YAP ›
 </div>
 </div>
 </div>
-
-<script>
-(function(){
-  const KEY='kapmaca_coffee_count_v1';
-  const counter=document.getElementById('coffee-counter');
-  const thanks=document.getElementById('coffee-thanks');
-  const btn=document.getElementById('btn-buy-coffee');
-  function readCount(){
-    try{return Math.max(0,parseInt(localStorage.getItem(KEY)||'0',10)||0);}catch(_){return 0;}
-  }
-  function render(){
-    if(counter) counter.textContent='Ismarlanan kahve: '+readCount();
-  }
-  render();
-  btn?.addEventListener('click',function(){
-    const next=readCount()+1;
-    try{localStorage.setItem(KEY,String(next));}catch(_){}
-    render();
-    if(thanks){
-      thanks.textContent='Kahve ısmarladınız, sağ olun';
-      thanks.classList.remove('hidden');
-    }
-  });
-})();
-</script>
 
 <div id="modal-found-meaning" class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-[95] hidden p-4">
 <div class="w-full max-w-sm bg-white rounded-3xl border border-slate-200 shadow-2xl p-4">
