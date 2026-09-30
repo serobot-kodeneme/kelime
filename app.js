@@ -2169,6 +2169,10 @@ setAccountMessage(accountErrorMessage(err));
 }
 }
 function closeAccountScreen(){document.getElementById('screen-account')?.classList.add('hidden');}
+function refreshAfterAccountLogin(){
+setTimeout(()=>{window.location.reload();},180);
+}
+
 document.getElementById('btn-account-login')?.addEventListener('click',()=>setAccountForm('login'));
 document.getElementById('btn-account-signup')?.addEventListener('click',()=>setAccountForm('signup'));
 document.getElementById('btn-account-submit')?.addEventListener('click',async()=>{
@@ -2186,9 +2190,11 @@ await cred.user.updateProfile({displayName:nickname});
 const data={...defaultAccountProfile(cred.user),nickname,updatedAt:Date.now()};
 await accountDb.ref('users/'+cred.user.uid).set(data);
 await renderAccountState(cred.user);
+refreshAfterAccountLogin();
 }else{
 const cred=await accountAuth.signInWithEmailAndPassword(email,password);
 await renderAccountState(cred.user);
+refreshAfterAccountLogin();
 }
 }catch(err){setAccountMessage(accountErrorMessage(err));}
 });
@@ -2200,6 +2206,7 @@ const provider=new firebase.auth.GoogleAuthProvider();
 provider.setCustomParameters({prompt:'select_account'});
 const cred=await accountAuth.signInWithPopup(provider);
 await renderAccountState(cred.user);
+refreshAfterAccountLogin();
 }catch(err){const msg=accountErrorMessage(err);if(msg)setAccountMessage(msg);}
 });
 document.getElementById('btn-account-logout')?.addEventListener('click',async()=>{
