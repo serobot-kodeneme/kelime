@@ -2196,46 +2196,28 @@ refreshAfterAccountLogin();
 }
 }catch(err){setAccountMessage(accountErrorMessage(err));}
 });
-document.getElementById('btn-account-google')?.addEventListener('click',async()=>{
+async function signInWithAccountProvider(providerFactory,configure){
 setAccountMessage('');
 try{
 await ensureAccountBackend();
-const provider=new firebase.auth.GoogleAuthProvider();
-provider.setCustomParameters({prompt:'select_account'});
+const provider=providerFactory();
+if(configure)configure(provider);
 const cred=await accountAuth.signInWithPopup(provider);
 await renderAccountState(cred.user);
 refreshAfterAccountLogin();
-}catch(err){const msg=accountErrorMessage(err);if(msg)setAccountMessage(msg);}
+}catch(err){
+const msg=accountErrorMessage(err);
+if(msg)setAccountMessage(msg);
+}
+}
+document.getElementById('btn-account-google')?.addEventListener('click',()=>{
+signInWithAccountProvider(
+()=>new firebase.auth.GoogleAuthProvider(),
+provider=>provider.setCustomParameters({prompt:'select_account'})
+);
 });
-document.getElementById('btn-account-x')?.addEventListener('click',async()=>{
-setAccountMessage('');
-try{
-await ensureAccountBackend();
-const provider=new firebase.auth.TwitterAuthProvider();
-const cred=await accountAuth.signInWithPopup(provider);
-await renderAccountState(cred.user);
-refreshAfterAccountLogin();
-}catch(err){const msg=accountErrorMessage(err);if(msg)setAccountMessage(msg);}
-});
-document.getElementById('btn-account-github')?.addEventListener('click',async()=>{
-setAccountMessage('');
-try{
-await ensureAccountBackend();
-const provider=new firebase.auth.GithubAuthProvider();
-const cred=await accountAuth.signInWithPopup(provider);
-await renderAccountState(cred.user);
-refreshAfterAccountLogin();
-}catch(err){const msg=accountErrorMessage(err);if(msg)setAccountMessage(msg);}
-});
-document.getElementById('btn-account-yahoo')?.addEventListener('click',async()=>{
-setAccountMessage('');
-try{
-await ensureAccountBackend();
-const provider=new firebase.auth.OAuthProvider('yahoo.com');
-const cred=await accountAuth.signInWithPopup(provider);
-await renderAccountState(cred.user);
-refreshAfterAccountLogin();
-}catch(err){const msg=accountErrorMessage(err);if(msg)setAccountMessage(msg);}
+document.getElementById('btn-account-github')?.addEventListener('click',()=>{
+signInWithAccountProvider(()=>new firebase.auth.GithubAuthProvider());
 });
 document.getElementById('btn-account-logout')?.addEventListener('click',async()=>{
 try{await accountAuth?.signOut();setAccountUserMessage('');}catch(err){setAccountUserMessage(accountErrorMessage(err),false);}
