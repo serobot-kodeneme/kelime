@@ -3836,24 +3836,24 @@ button,a,[role="button"],.dict-word-button,.found-word-badge{cursor:pointer;}
 </div>
 
 <div class="mt-5 bg-white/95 border-2 border-amber-200 rounded-3xl p-5 shadow-lg text-center">
-<div class="text-5xl leading-none" aria-hidden="true">☕</div>
 
-<p class="mt-4 text-sm font-bold leading-relaxed text-slate-700">
+<p class="mt-1 text-sm font-bold leading-relaxed text-slate-700">
 Bu oyun tamamen ücretsiz, reklamsız olup oyun içi eşya satın alma gibi özelliklere gerek olmaksızın oyun yoluyla öğrenme yöntemiyle Türkçe sözcük dağarcığını geliştirme amacıyla hazırlanmıştır.
 </p>
 
-<div class="mt-5 text-4xl leading-none" aria-hidden="true">☕</div>
-<button id="btn-buy-coffee" type="button" class="mt-3 w-full rounded-2xl px-4 py-3 text-sm font-black shadow-lg active:scale-[.98]" style="background:#7b4b2a!important;color:#fff!important;border:1px solid #62391f!important;box-shadow:0 6px 14px rgba(123,75,42,.24)!important;">
-<span aria-hidden="true" style="font-size:17px;vertical-align:-1px;margin-right:6px;">☕</span>KAHVE ISMARLA
+<button id="btn-buy-coffee" type="button" class="mt-4 mx-auto block w-[82%] px-4 py-2.5 text-sm font-black shadow-lg active:scale-[.98]" style="background:#7b4b2a!important;color:#fff!important;border:1px solid #62391f!important;border-radius:999px!important;box-shadow:0 6px 14px rgba(123,75,42,.24)!important;">
+KAHVE ISMARLA
 </button>
 <div id="coffee-thanks" class="hidden mt-3 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2 text-sm font-black text-emerald-700">
-Kahve ısmarladınız, sağ olun ☕
+Kahve ısmarladınız, sağ olun
 </div>
 <div id="coffee-counter" class="mt-3 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-sm font-black text-amber-950" aria-live="polite">
 Ismarlanan kahve: 0
 </div>
 
-<div class="mt-6 rounded-[20px] bg-gradient-to-r from-rose-50 via-white to-red-50 border-2 border-rose-200 p-4 shadow-md">
+<div class="mt-5 mb-4 h-px w-full bg-amber-200"></div>
+
+<div class="rounded-[20px] bg-gradient-to-r from-rose-50 via-white to-red-50 border-2 border-rose-200 p-4 shadow-md">
 <div class="text-3xl" aria-hidden="true">❤️</div>
 <h3 class="mt-1 text-lg font-black text-rose-950">LÖSEV Bağış Modülü</h3>
 <p class="text-sm font-bold leading-relaxed text-rose-800 mt-2">
@@ -3885,7 +3885,7 @@ LÖSEV'E BAĞIŞ YAP ›
     try{localStorage.setItem(KEY,String(next));}catch(_){}
     render();
     if(thanks){
-      thanks.textContent='Kahve ısmarladınız, sağ olun ☕';
+      thanks.textContent='Kahve ısmarladınız, sağ olun';
       thanks.classList.remove('hidden');
     }
   });
