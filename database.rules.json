@@ -56,22 +56,6 @@
           "enteredAt"
         ]
       }
-    },
-    "onlineUsers": {
-      ".read": true,
-      "$client": {
-        ".write": "$client.matches(/^[a-z0-9]{8,64}$/)",
-        ".validate": "!newData.exists() || (newData.hasChildren(['online','at']) && newData.child('online').val() == true && newData.child('at').isNumber())",
-        "online": {
-          ".validate": "newData.isBoolean() && newData.val() == true"
-        },
-        "at": {
-          ".validate": "newData.isNumber() && newData.val() <= now + 10000"
-        },
-        "$other": {
-          ".validate": false
-        }
-      }
     }
   }
 }

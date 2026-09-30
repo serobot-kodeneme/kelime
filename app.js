@@ -508,7 +508,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v443';
+const GAME_VERSION='v444';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -542,15 +542,6 @@ return t;
 let firebaseNetworkOnline=false;
 let serverOffsetListener=null;
 let firebaseSdkPromise=null;
-let globalOnlinePresenceRef=null;
-let onlineCountCacheValue=null;
-let onlineCountLastQueryAt=0;
-let onlineCountQueryPromise=null;
-let onlineCountLastMessage='';
-let multiplayerStartupBusy=0;
-const ONLINE_COUNT_CACHE_MS=60000;
-function beginMultiplayerStartup(){multiplayerStartupBusy++;}
-function endMultiplayerStartup(){multiplayerStartupBusy=Math.max(0,multiplayerStartupBusy-1);}
 function loadExternalScriptOnce(src,id,timeoutMs=5000){
   let existing=document.getElementById(id);
   if(existing?.dataset.loaded==='1') return Promise.resolve(true);
@@ -612,16 +603,10 @@ return true;
 let mpConnectPromise=null;
 function disconnectFirebaseNetwork(force=false){
 if(!mpDb) return;
-if(!force && (mpRoomRef||randomSearchActive||multiplayerStartupBusy>0)) return;
+if(!force && (mpRoomRef||randomSearchActive)) return;
 if(serverOffsetListener){
   try{mpDb.ref('.info/serverTimeOffset').off('value',serverOffsetListener);}catch(_){}
   serverOffsetListener=null;
-}
-const onlineRef=globalOnlinePresenceRef;
-globalOnlinePresenceRef=null;
-if(onlineRef){
-  try{onlineRef.onDisconnect().cancel().catch(()=>{});}catch(_){}
-  try{onlineRef.remove().catch(()=>{});}catch(_){}
 }
 if(firebaseNetworkOnline || force){
   try{mpDb.goOffline();}catch(_){}
@@ -685,57 +670,6 @@ return mpConnectPromise;
 }
 function serverNow(){ return Date.now()+mpServerOffset; }
 
-function setOnlineCountStatus(message, tone='ok'){
-const el=document.getElementById('mp-online-count-status');
-if(!el) return;
-onlineCountLastMessage=String(message||'');
-el.textContent=onlineCountLastMessage;
-el.classList.remove('hidden','bg-emerald-50','border-emerald-200','text-emerald-900','bg-rose-50','border-rose-200','text-rose-800');
-if(tone==='error') el.classList.add('bg-rose-50','border-rose-200','text-rose-800');
-else el.classList.add('bg-emerald-50','border-emerald-200','text-emerald-900');
-}
-async function registerGlobalOnlinePresence(){
-if(globalOnlinePresenceRef) return true;
-if(!firebaseNetworkOnline&&!await waitFirebaseConnected()) return false;
-const ref=mpDb.ref('onlineUsers/'+getClientToken());
-try{
-await ref.set({online:true,at:firebase.database.ServerValue.TIMESTAMP});
-await ref.onDisconnect().remove();
-globalOnlinePresenceRef=ref;
-return true;
-}catch(_){ return false; }
-}
-async function showOnlineCount(){
-const now=Date.now();
-if(onlineCountQueryPromise) return onlineCountQueryPromise;
-if(onlineCountLastQueryAt&&now-onlineCountLastQueryAt<ONLINE_COUNT_CACHE_MS){
-setOnlineCountStatus(onlineCountCacheValue===null?(onlineCountLastMessage||'Çevrimiçi sayısı şu an alınamadı. 1 dakika sonra tekrar deneyin.'):`Şu an ${onlineCountCacheValue} kişi çevrimiçi`,onlineCountCacheValue===null?'error':'ok');
-return;
-}
-onlineCountLastQueryAt=now;
-setOnlineCountStatus('Çevrimiçi oyuncular kontrol ediliyor…');
-const keepConnection=!!(mpRoomRef||randomSearchActive||globalOnlinePresenceRef);
-onlineCountQueryPromise=(async()=>{
-if(!await ensureFirebaseSdkLoaded()||!ensureFirebase()){
-onlineCountCacheValue=null;
-setOnlineCountStatus('Çevrimiçi sayısı şu an alınamadı. 1 dakika sonra tekrar deneyin.','error');
-return;
-}
-try{
-const snap=await mpDb.ref('onlineUsers').once('value');
-let count=0;
-snap.forEach(child=>{if(child.val()?.online===true) count++;});
-onlineCountCacheValue=count;
-setOnlineCountStatus(`Şu an ${count} kişi çevrimiçi`);
-}catch(_){
-onlineCountCacheValue=null;
-setOnlineCountStatus('Çevrimiçi sayısı şu an alınamadı. 1 dakika sonra tekrar deneyin.','error');
-}finally{
-if(!keepConnection&&!mpRoomRef&&!randomSearchActive&&!globalOnlinePresenceRef&&multiplayerStartupBusy===0) disconnectFirebaseNetwork();
-}
-})().finally(()=>{onlineCountQueryPromise=null;});
-return onlineCountQueryPromise;
-}
 function turkeyRoomDayInfo(ts=serverNow()){
 const shifted=new Date(ts+3*60*60*1000);
 const y=shifted.getUTCFullYear(), m=shifted.getUTCMonth(), d=shifted.getUTCDate();
@@ -857,7 +791,6 @@ mpPresenceRef=mpRoomRef.child('presence/'+mpRole);
 const payload={online:true,clientId:getClientToken(),at:firebase.database.ServerValue.TIMESTAMP};
 await mpPresenceRef.set(payload);
 mpPresenceRef.onDisconnect().set({online:false,clientId:getClientToken(),at:firebase.database.ServerValue.TIMESTAMP});
-if(!globalOnlinePresenceRef) registerGlobalOnlinePresence().catch(()=>{});
 }
 function isOnline(p){ return !!(p && (p===true || p.online===true)); }
 
@@ -1126,7 +1059,6 @@ if(!await waitFirebaseConnected(8000)){
   return;
 }
 
-registerGlobalOnlinePresence().catch(()=>{});
 randomSearchActive=true;
 randomPairRoomBusy=false;
 randomJoinBusy=false;
@@ -2125,7 +2057,6 @@ else if(randomSearchActive) await cleanupRandomQueue(true);
 document.getElementById('friend-invite-panel')?.classList.add('hidden');
 disconnectFirebaseNetwork(true);
 };
-document.getElementById('btn-online-count')?.addEventListener('click',showOnlineCount);
 document.getElementById('btn-create-room')?.addEventListener('click',openFreshPrivateRoom);
 document.getElementById('btn-random-match')?.addEventListener('click',searchRandomOpponent);
 let copyLinkEnterTimer=null;
