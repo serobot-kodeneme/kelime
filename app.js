@@ -1162,7 +1162,7 @@ mpRoomRef.child('invite/expiresAt').set(deadline).catch(()=>{});
 }
 const tick=()=>{
 const left=Math.max(0,Math.ceil((deadline-serverNow())/1000));
-if(countdownEl)countdownEl.textContent=`${left}saniye içinde seçim yapın`;
+if(countdownEl)countdownEl.textContent=`${left} saniye içinde seçim yapın`;
 if(left<=0){
 stopInviteDecisionTimer();
 if(mpRole==='guest'&&mpRoomRef)requestSynchronizedRoomExit('invite-timeout').catch(()=>{});
@@ -3189,7 +3189,7 @@ if(!ticker)return null;
 while(ticker.children.length>=36)ticker.firstElementChild?.remove();
 const badge=document.createElement('button');
 badge.type='button';
-badge.className=`${isP1?'bg-amber-400':'bg-sky-400'}found-word-badge text-slate-950 font-black rounded-full uppercase mx-0.5`;
+badge.className=`${isP1?'bg-amber-400':'bg-sky-400'} found-word-badge text-slate-950 font-black rounded-full uppercase mx-0.5`;
 badge.textContent=word;
 badge.title=`${word}sözcüğünün anlamını göster`;
 badge.setAttribute('aria-label',`${word}sözcüğünün anlamını göster`);
