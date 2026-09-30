@@ -1508,9 +1508,9 @@ function showRandomResultExitButton(){
 const actions=document.getElementById('gameover-actions');
 const replay=document.getElementById('btn-play-again');
 const exitBtn=document.getElementById('btn-game-exit');
-if(actions){actions.classList.remove('hidden');actions.style.setProperty('display','grid','important');}
-if(replay){replay.disabled=false;replay.classList.remove('hidden');replay.style.setProperty('display','flex','important');replay.textContent='YENİDEN OYNA';replay.classList.remove('rematch-pulse');}
-if(exitBtn){exitBtn.disabled=false;exitBtn.classList.remove('hidden');exitBtn.style.setProperty('display','flex','important');exitBtn.textContent='ÇIKIŞ';}
+if(actions){actions.classList.remove('hidden');actions.style.setProperty('display','grid','important');actions.style.setProperty('grid-template-columns','1fr','important');}
+if(replay){replay.disabled=true;replay.classList.add('hidden');replay.style.setProperty('display','none','important');replay.classList.remove('rematch-pulse');}
+if(exitBtn){exitBtn.disabled=false;exitBtn.classList.remove('hidden');exitBtn.style.setProperty('display','flex','important');exitBtn.style.setProperty('width','100%','important');exitBtn.textContent='ÇIKIŞ';}
 }
 function setRandomAutoExitNotice(visible){
 const el=document.getElementById('random-auto-exit-note');
@@ -3845,10 +3845,7 @@ modal?.classList.remove('hidden');
 }
 async function handlePlayAgain(){
 if(activeGameMode==='multi'&&isRandomHumanRoom()){
-const btn=document.getElementById('btn-play-again');
-if(btn){btn.disabled=true;btn.textContent='RAKİP ARANIYOR…';}
-await resetRandomRoomForReplay();
-await searchRandomOpponent();
+showToast('Hodri Meydan tek maçlık moddur.','slate',1200);
 return;
 }
 if(activeGameMode!=='multi'){
