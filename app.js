@@ -929,6 +929,19 @@ async function rebalanceRandomPool(){
 if(!randomPoolRef) return;
 await randomPoolRef.transaction(cur=>pairWaitingEntries(cur,serverNow()));
 }
+async function removeRefWithRetry(ref,attempts=3,delayMs=180){
+if(!ref) return true;
+for(let attempt=1;attempt<=attempts;attempt++){
+  try{
+    await ref.remove();
+    return true;
+  }catch(err){
+    if(attempt>=attempts){console.warn('Firebase remove failed after retries',err);return false;}
+    await new Promise(r=>setTimeout(r,delayMs*attempt));
+  }
+}
+return false;
+}
 async function cleanupRandomQueue(){
 const poolRef=randomPoolRef;
 const ownRef=randomOwnEntryRef;
@@ -943,10 +956,19 @@ if(poolRef && randomOwnListener){
 randomOwnListener=null;
 if(ownRef){
   try{await ownRef.onDisconnect().cancel();}catch(_){}
-  try{await ownRef.remove();}catch(_){}
+  await removeRefWithRetry(ownRef,3,140);
 }
 releaseRandomSearchLocal();
 restoreHodriMeydanButton();
+}
+async function cleanupRandomRoomBeforeReset(ref,role,reason='random-exit'){
+if(!ref) return;
+const signal={id:`${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`,at:serverNow(),by:role||'player',reason};
+if(mpPresenceRef){
+  try{await mpPresenceRef.set({online:false,clientId:getClientToken(),at:firebase.database.ServerValue.TIMESTAMP});}catch(_){}
+}
+try{await ref.child('roomExit').set(signal);}catch(_){}
+await removeRefWithRetry(ref,3,160);
 }
 async function createRandomMatchedRoom(hostId,guestId){
 await ensureWordDataLoaded();
@@ -1960,7 +1982,8 @@ const randomExitBtn=document.getElementById('btn-random-result-exit');
 if(randomExitBtn){randomExitBtn.disabled=true;randomExitBtn.classList.add('hidden');randomExitBtn.style.removeProperty('display');randomExitBtn.style.removeProperty('visibility');randomExitBtn.style.removeProperty('opacity');}
 
 stopInviteDecisionTimer();
-if(randomSearchActive) cleanupRandomQueue(true).catch(()=>{}); else releaseRandomSearchLocal();
+const queueCleanup=randomSearchActive?cleanupRandomQueue().catch(()=>{}):null;
+if(!randomSearchActive) releaseRandomSearchLocal();
 resetMultiplayerClientState();
 clearInviteFromUrl();
 document.getElementById('modal-countdown')?.classList.add('hidden');
@@ -1978,7 +2001,8 @@ document.getElementById('mp-create-view')?.classList.remove('hidden');
 document.getElementById('btn-close-room')?.classList.add('hidden');
 restoreHodriMeydanButton();
 setRandomStatus('',false);
-disconnectFirebaseNetwork();
+if(queueCleanup) queueCleanup.finally(()=>disconnectFirebaseNetwork(true));
+else disconnectFirebaseNetwork();
 }
 
 
@@ -3751,42 +3775,29 @@ const el=document.getElementById('mp-room-exit-notice');
 if(el) el.style.display='none';
 }
 
-function finishRandomMatchAfterResult(expectedKey='',capturedRef=null,capturedRole=''){
+async function finishRandomMatchAfterResult(expectedKey='',capturedRef=null,capturedRole=''){
 // Yalnız aynı sonuç oturumu hâlâ geçerliyse cihaz çıkış komutunu uygular.
 if(expectedKey && randomResultAutoExitKey!==expectedKey) return;
 const ref=capturedRef||mpRoomRef;
 const role=capturedRole||mpRole;
-const signal={id:`${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`,at:serverNow(),by:role||'player',reason:'random-result-timeout'};
 if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
 randomResultAutoExitKey='';
 setRandomAutoExitNotice(false);
-// Tam 6 saniye sonunda cihaz otomatik ÇIKIŞ komutunu verir. Kendi ekranı
-// Firebase yanıtını beklemeden ana sayfaya döner. Host/guest fark etmeksizin
-// aynı anda oda kapatma best-effort olarak gönderilir; ilk başarılı silme yeterlidir.
-if(ref){
-  // Çıkış sinyali best-effort gönderilir; oda silme bunun tamamlanmasını beklemez.
-  // Böylece 6. saniyede oda kapanışı Firebase ağ gecikmesiyle ötelenmez.
-  try{ref.child('roomExit').set(signal).catch(()=>{});}catch(_){}
-  try{ref.remove().catch(()=>{});}catch(_){}
-}
+// Hodri Meydan tek kullanımlık oda: önce presence/roomExit/oda temizliği,
+// sonra yerel state sıfırlanır. Böylece goOffline temizliği yarıda kesmez.
+try{await cleanupRandomRoomBeforeReset(ref,role,'random-result-timeout');}catch(_){}
 returnToHomeFromMultiplayer();
 hideRoomExitNotice();
 }
 
-function exitRandomResultImmediately(){
+async function exitRandomResultImmediately(){
 if(!isRandomHumanRoom()) return false;
 const ref=mpRoomRef;
 const role=mpRole;
 if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResultAutoExitTimer=null;}
-// ÇIKIŞ düğmesi: kendi cihazında ağ beklemeden anında ana sayfa.
+try{await cleanupRandomRoomBeforeReset(ref,role,'random-result-exit');}catch(_){}
 returnToHomeFromMultiplayer();
 hideRoomExitNotice();
-// Diğer tarafı da hemen kapatmak için best-effort ortak sinyal.
-if(ref && role){
-  const signal={id:`${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`,at:serverNow(),by:role,reason:'random-result-exit'};
-  try{ref.child('roomExit').set(signal).catch(()=>{});}catch(_){}
-  if(role==='host') setTimeout(()=>{try{ref.remove().catch(()=>{});}catch(_){}},1800);
-}
 return true;
 }
 
@@ -3825,7 +3836,7 @@ if(randomResultAutoExitTimer){clearTimeout(randomResultAutoExitTimer);randomResu
 // host/guest ayrımı olmadan anında ana sayfaya dönülür. Odayı host tarafı
 // arka planda temizler; guest sinyal gönderirse host aynı sinyali alıp temizler.
 if(randomRoomAtExit && (isAutomaticRandomTimeout||isRandomResultManualExit)){
-  if(shouldDeleteRandom) setTimeout(()=>exitingRef?.remove().catch(()=>{}),120);
+  try{await cleanupRandomRoomBeforeReset(exitingRef,roleAtExit,reason);}catch(_){}
   returnToHomeFromMultiplayer();
   hideRoomExitNotice();
   return;
@@ -3833,7 +3844,8 @@ if(randomRoomAtExit && (isAutomaticRandomTimeout||isRandomResultManualExit)){
 // kısa "OYUN SONLANDIRILDI" bildirimi görünür ve ardından ana sayfaya dönülür.
 if(randomRoomAtExit && isManualPlayerExit && initiatedBySelf){
   showRoomExitNotice('OYUN SONLANDIRILDI');
-  await new Promise(r=>setTimeout(r,700));
+  try{await cleanupRandomRoomBeforeReset(exitingRef,roleAtExit,'player-exit');}catch(_){}
+  await new Promise(r=>setTimeout(r,250));
   returnToHomeFromMultiplayer();
   hideRoomExitNotice();
   return;
@@ -3871,15 +3883,8 @@ reason
 mpLastExitSignalId=signal.id;
 const randomImmediate=isRandomHumanRoom() && ['player-exit','random-result-exit','random-result-timeout'].includes(reason);
 if(randomImmediate){
-  // Rastgele maç tek kullanımlıktır. Manuel çıkış sinyalini önce diğer oyuncuya
-  // ulaştırmaya çalışırız; ardından oda host/guest ayrımı olmadan temizlenir.
-  ref.child('roomExit').set(signal).then(()=>{
-    if(reason==='player-exit') setTimeout(()=>ref.remove().catch(()=>{}),1100);
-    else setTimeout(()=>ref.child('roomExit').transaction(cur=>cur?.id===signal.id?null:cur).catch(()=>{}),2200);
-  }).catch(e=>{
-    console.warn('Random room exit signal error',e);
-    if(reason==='player-exit') setTimeout(()=>ref.remove().catch(()=>{}),1100);
-  });
+  // Tek temizleme yolu: handleSynchronizedRoomExit önce Firebase'i temizler,
+  // sonra yerel state'i sıfırlar. Paralel remove yarışları oluşturulmaz.
   await handleSynchronizedRoomExit(reason,role);
   return;
 }
