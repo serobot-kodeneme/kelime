@@ -1,4 +1,4 @@
-const CACHE_NAME='kapmaca-shell-v444';
+const CACHE_NAME='kapmaca-shell-v448';
 const APP_SHELL=[
   './',
   './index.html',
@@ -57,4 +57,4 @@ self.addEventListener('fetch',event=>{
   );
 });
 
-// v443 clean deployment marker
+// v448 guest fast-path deployment marker
