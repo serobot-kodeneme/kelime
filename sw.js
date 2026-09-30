@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v452-botnames1';
+const CACHE_NAME='kapmaca-shell-v452-dictfeedbacknote1';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=452-botnames1',
+  './app.js?v=452-dictfeedbacknote1',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
