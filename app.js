@@ -2184,6 +2184,28 @@ break;
 case 'btn-open-dictionary':
 ensureWordDataLoaded().then(openDictionary).catch(()=>showToast('Sözlük yüklenemedi. Tekrar deneyin.','rose'));
 break;
+case 'btn-recommend':{
+const label=document.getElementById('btn-recommend-label');
+const shareData={title:'KAPMACA - Sözcük Avı',text:'KAPMACA; seni kapışmaya davet ediyorum!',url:'https://kapmaca.tr/'};
+const done=text=>{if(label){label.textContent=text;setTimeout(()=>{label.textContent='Öner';},1800);}};
+const fallbackCopy=()=>{
+if(navigator.clipboard?.writeText)return navigator.clipboard.writeText(shareData.url).then(()=>done('Kopyalandı ✓'));
+return new Promise((resolve,reject)=>{
+try{
+const ta=document.createElement('textarea');ta.value=shareData.url;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();
+const ok=document.execCommand('copy');ta.remove();if(!ok)throw new Error('copy-failed');done('Kopyalandı ✓');resolve();
+}catch(err){reject(err);}
+});
+};
+if(navigator.share){
+navigator.share(shareData).then(()=>done('Paylaşıldı ✓')).catch(err=>{
+if(err?.name!=='AbortError')fallbackCopy().catch(()=>done('Tekrar dene'));
+});
+}else{
+fallbackCopy().catch(()=>done('Tekrar dene'));
+}
+break;
+}
 case 'btn-support':{
 event.preventDefault();
 document.getElementById('screen-support')?.classList.remove('hidden');
