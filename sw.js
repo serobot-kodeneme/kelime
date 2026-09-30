@@ -1,4 +1,4 @@
-const CACHE_NAME='kapmaca-shell-v450-accountbuttons1';
+const CACHE_NAME='kapmaca-shell-v450-accountbuttons2';
 const APP_SHELL=[
   './',
   './index.html',
