@@ -2407,7 +2407,7 @@ function clearDemoRoute(board){
 const svg=board?.querySelector(':scope > .demo-route-layer');
 if(svg)svg.remove();
 }
-function renderDemoRoute(board,path,count){
+function renderDemoRoute(board,path,count,isP1=true){
 if(!board||!Array.isArray(path)||count<1)return;
 let svg=board.querySelector(':scope > .demo-route-layer');
 const ns='http://www.w3.org/2000/svg';
@@ -2418,10 +2418,11 @@ svg.setAttribute('aria-hidden','true');
 Object.assign(svg.style,{position:'absolute',inset:'0',width:'100%',height:'100%',pointerEvents:'none',overflow:'visible',zIndex:'5'});
 const line=document.createElementNS(ns,'polyline');
 line.classList.add('demo-route-line');
-line.setAttribute('fill','none');line.setAttribute('stroke','#f59e0b');line.setAttribute('stroke-width','2.8');
-line.setAttribute('stroke-linecap','round');line.setAttribute('stroke-linejoin','round');line.setAttribute('opacity','.9');
+const routeColor=isP1?'#c2410c':'#6d28d9';
+line.setAttribute('fill','none');line.setAttribute('stroke',routeColor);line.setAttribute('stroke-width','3');
+line.setAttribute('stroke-linecap','round');line.setAttribute('stroke-linejoin','round');line.setAttribute('opacity','.94');
 const head=document.createElementNS(ns,'polygon');
-head.classList.add('demo-route-head');head.setAttribute('fill','#f59e0b');head.setAttribute('opacity','.95');
+head.classList.add('demo-route-head');head.setAttribute('fill',routeColor);head.setAttribute('opacity','.98');
 svg.append(line,head);board.appendChild(svg);
 }
 const tiles=[...board.querySelectorAll('.demo-tile')];
@@ -2478,7 +2479,7 @@ setPicked(0);
 if(step<item.path.length){
 for(const board of visible)board.querySelectorAll('.demo-tile')[item.path[step]]?.classList.add('demo-active');
 step++;
-for(const board of visible)renderDemoRoute(board,item.path,step);
+for(const board of visible)renderDemoRoute(board,item.path,step,round%2===0);
 setPicked(step);
 howtoDemoTimer=setTimeout(advance,170);
 return;
@@ -3498,7 +3499,7 @@ Object.assign(svg.style,{position:'fixed',inset:'0',width:'100vw',height:'100vh'
 const route=document.createElementNS(ns,'polyline');
 route.setAttribute('points',pts.map(p=>`${p.x},${p.y}`).join(' '));
 route.setAttribute('fill','none');
-route.setAttribute('stroke',isP1?'#f59e0b':'#0ea5e9');
+route.setAttribute('stroke',isP1?'#c2410c':'#6d28d9');
 route.setAttribute('stroke-width','4');
 route.setAttribute('stroke-linecap','round');
 route.setAttribute('stroke-linejoin','round');
@@ -3506,7 +3507,7 @@ route.setAttribute('opacity','.92');
 svg.appendChild(route);
 const dot=document.createElementNS(ns,'circle');
 dot.setAttribute('r','7');
-dot.setAttribute('fill',isP1?'#fbbf24':'#38bdf8');
+dot.setAttribute('fill',isP1?'#dc2626':'#7c3aed');
 dot.setAttribute('cx',String(pts[0].x));
 dot.setAttribute('cy',String(pts[0].y));
 svg.appendChild(dot);
