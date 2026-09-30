@@ -11,6 +11,18 @@ let WORD_LIST=[];
 // Kökler özellikle dar tutulur; "götürmek", "bisiklet", "amaç" gibi masum sözcükler yanlış eşleşmez.
 const ARGO_EXACT = new Set(['AM','GÖT','YARAK','TAŞAK','TAŞAKLI','ÇÜK','SİK','SİKME','SİKMEK']);
 const ARGO_PREFIXES = ['OROSPU','PEZEVENK','KAHPE','İBNE','PUŞT','SÜRTÜK','KALTAK','DALYARAK','PİÇ','SİKTİR','AMCIK','AMINA','YARRAK','GÖTVEREN','SIÇMA','SIÇTIR'];
+const CHILD_SAFE_BLOCK_EXACT = new Set([
+  'ANAL','CİMA','CİNSEL','CİNSELLİK','ÇÜK','DİLDO','EROTİK','EROTİZM','FALUS','FERÇ',
+  'GENİTAL','MASTÜRBE','MASTÜRBASYON','MEME','ORGAZM','PENİS','PORNO','PORNOCU',
+  'SEKS','SEKSİ','SPERM','SPERMA','TESTİS','VAJİNA','VULVA','ZİNA'
+]);
+function isChildUnsuitableWord(word){
+const w=String(word||'').toLocaleUpperCase('tr-TR');
+return CHILD_SAFE_BLOCK_EXACT.has(w)
+  || w.startsWith('PORNOGRAF')
+  || w.startsWith('MASTÜRB')
+  || w.startsWith('VAJİN');
+}
 function isArgoWord(word){
 const w=String(word||'').toLocaleUpperCase('tr-TR');
 if(ARGO_EXACT.has(w)) return true;
@@ -39,6 +51,15 @@ const COMMON_IMPERATIVE_WORDS = Object.freeze([
   'VAR','VER','VUR',
   'YAK','YAKALA','YAP','YAZ','YERLEŞ','YE','YIK','YÜKLE','YÜRÜ','YÜRÜT',
   'ZORLA'
+]);
+
+const FAMILY_SAFE_EXTRA_WORDS = Object.freeze([
+  'AİLELİ','ARILI','BALIKLIK','BARDAKLI','BAYRAKSIZ','BEBEKLİ','BİTKİLİ','ÇORAPLI',
+  'DAĞSIZ','DENİZSEL','DERELİ','DERSLİ','DERSSİZ','EKMEKLİ','ELMALI','FİLLİ',
+  'GÖLLÜ','GÖLSÜZ','GÜLSÜZ','HARİTALI','HAVUÇLU','KEDİLİ','KEDİSİZ','KÖPRÜSÜZ',
+  'KUŞLU','KUŞSUZ','KUTUSUZ','MEVSİMLİ','MUZLU','NEHİRLİ','OKULSUZ','OYUNLU',
+  'OYUNSUZ','ÖRDEKLİ','PARKLI','PASTASIZ','PİLSİZ','PİYANOLU','SAHİLLİ','SORULU',
+  'SORUSUZ','TARLALI','TARLASIZ','TAVŞANLI','TRENLE','VAPURLU'
 ]);
 
 function isForeignWord(word){
@@ -70,8 +91,8 @@ for(const row of WORD_DB_FC.split('\n')){
 WORD_LIST=out;
 GEO_DICTIONARY=data.GEO_DICTIONARY;
 GEO_WORD_LIST=Object.keys(GEO_DICTIONARY);
-GAME_WORD_LIST=Array.from(new Set([...WORD_LIST,...GEO_WORD_LIST,...COMMON_IMPERATIVE_WORDS]))
-  .filter(w=>w.length>=2&&w.length<=9&&!isArgoWord(w)&&!isForeignWord(w)).sort();
+GAME_WORD_LIST=Array.from(new Set([...WORD_LIST,...GEO_WORD_LIST,...COMMON_IMPERATIVE_WORDS,...FAMILY_SAFE_EXTRA_WORDS]))
+  .filter(w=>w.length>=2&&w.length<=9&&!isArgoWord(w)&&!isChildUnsuitableWord(w)&&!isForeignWord(w)).sort();
 GAME_WORD_SET=new Set(GAME_WORD_LIST);
 GAME_WORDS_BY_LENGTH.clear();
 for(const w of GAME_WORD_LIST){
@@ -529,7 +550,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v446';
+const GAME_VERSION='v451';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
