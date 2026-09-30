@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v450-hodri-replayfix2';
+const CACHE_NAME='kapmaca-shell-v450-route-anchor1';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=450-hodri-replayfix2',
+  './app.js?v=450-route-anchor1',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
