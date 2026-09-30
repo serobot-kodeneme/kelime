@@ -2383,8 +2383,8 @@ function renderCoffeeButtonState(){
   btn.disabled=locked||coffeeBusy;
   btn.style.opacity=(locked||coffeeBusy)?'.62':'1';
   btn.style.cursor=(locked||coffeeBusy)?'not-allowed':'pointer';
-  if(coffeeBusy) btn.textContent='TEŞEKKÜR EDERİZ…';
-  else if(locked) btn.textContent='TEKRAR '+formatCoffeeRemaining(left)+' SONRA';
+  if(coffeeBusy) btn.textContent='TEŞEKKÜRLER :)';
+  else if(locked) btn.textContent='TEŞEKKÜRLER :)';
   else btn.textContent='KAHVE ISMARLA';
 }
 function startCoffeeCooldownClock(){
@@ -2428,7 +2428,7 @@ async function handleCoffeeLike(){
     trackCoffeeLike();
     safeStorageSet('local',COFFEE_LOCK_KEY,String(Date.now()+COFFEE_LOCK_MS));
     if(thanks){
-      thanks.textContent='Kahveniz geldi, teşekkürler ☕ 24 saat sonra tekrar ısmarlayabilirsiniz.';
+      thanks.textContent='Teşekkürler :)';
       thanks.classList.remove('hidden');
     }
     startCoffeeCooldownClock();
