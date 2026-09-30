@@ -9,14 +9,15 @@
 <meta name="mobile-web-app-capable" content="yes">
 <title>KAPMACA - Sözcük Avı</title>
 
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-S01R78NGGH"></script>
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-S01R78NGGH');
+try{
+if(!new URL(location.href).searchParams.has('room')){
+const g=document.createElement('script');g.async=true;g.src='https://www.googletagmanager.com/gtag/js?id=G-S01R78NGGH';document.head.appendChild(g);
+window.dataLayer=window.dataLayer||[];window.gtag=function(){dataLayer.push(arguments)};gtag('js',new Date());gtag('config','G-S01R78NGGH');
+}
+}catch(_){}
 </script>
-<meta name="game-version" content="v447">
+<meta name="game-version" content="v448">
 <meta name="description" content="KAPMACA - Sözcük Avı; oynayarak öğrenmeyi destekleyen, Türkçe sözcük üretme, kelime bulma, kelime zekâsı ve hızlı düşünme becerilerini geliştirmeye yönelik eğitsel ve çocuklara uygun ücretsiz bir kelime oyunudur.">
 <meta name="keywords" content="kelime oyunu, sözcük oyunu, Türkçe kelime oyunu, sözcük avı, kelime bulmaca, sözcük üretme, kelime üretme, kelime zeka oyunu, kelime zekâ oyunu, zeka oyunu, eğitsel oyun, eğitici oyun, oynayarak öğrenme, çocuklar için kelime oyunu, Türkçe öğrenme oyunu, kelime dağarcığı, kelime hazinesi, sözcük dağarcığı, hızlı düşünme oyunu, online kelime oyunu, çok oyunculu kelime oyunu">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
@@ -40,7 +41,7 @@ document.write('<script defer id="kapmaca-firebase-app" src="https://www.gstatic
 }
 }catch(_){}
 </script>
-<script defer src="app.js?v=444"></script>
+<script defer src="app.js?v=448"></script>
 <meta property="og:locale" content="tr_TR">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KAPMACA">
@@ -290,7 +291,7 @@ document.write('<script defer id="kapmaca-firebase-app" src="https://www.gstatic
 <div class="sound-step-marks" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
 <label class="sound-mute-row" for="sound-muted"><input id="sound-muted" type="checkbox"> Sessiz</label>
 </div>
-<div class="mt-2 text-center text-[11px] font-black text-slate-400">v447</div>
+<div class="mt-2 text-center text-[11px] font-black text-slate-400">v448</div>
 </div>
 </div>
 </div>
