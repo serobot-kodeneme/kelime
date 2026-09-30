@@ -3517,7 +3517,7 @@ const parts=[];
 const cx=rect.width/2+(secondary?(Math.random()-.5)*rect.width*.10:0);
 const cy=rect.height/2+(secondary?(Math.random()-.5)*rect.height*.08:0);
 const colors=['#facc15','#f97316','#ef4444','#22c55e','#0ea5e9','#2563eb','#8b5cf6','#ec4899','#ffffff'];
-const duration=secondary?820:1020;
+const duration=secondary?1150:1450;
 
 for(let i=0;i<count;i++){
 const part=document.createElement('span');
@@ -3528,8 +3528,8 @@ const dy=Math.sin(angle)*reach+28+Math.random()*34;
 const midX=dx*.52;
 const midY=dy*.28-(50+Math.random()*34);
 const rot=(Math.random()-.5)*1080;
-const w=4+Math.random()*3.5;
-const h=6+Math.random()*5;
+const w=5+Math.random()*4;
+const h=7+Math.random()*6;
 
 Object.assign(part.style,{
 position:'absolute',
