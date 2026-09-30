@@ -2545,12 +2545,10 @@ break;
 case 'btn-support':{
 event.preventDefault();
 document.getElementById('screen-support')?.classList.remove('hidden');
-startCoffeeCooldownClock();
 break;
 }
 case 'btn-close-support':
 document.getElementById('screen-support')?.classList.add('hidden');
-stopCoffeeCooldownClock();
 if(location.hash==='#screen-support')history.replaceState(null,'',location.pathname+location.search);
 break;
 }
@@ -2601,88 +2599,15 @@ navigator.share({title:'KAPMACA - Sözcük Avı',text:RECOMMEND_TEXT,url:RECOMME
 });
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&recommendScreen&&!recommendScreen.classList.contains('hidden'))closeRecommendModal();});
 const supportScreen=document.getElementById('screen-support');
-const COFFEE_LOCK_KEY='kapmaca_coffee_next_allowed_v1';
-const COFFEE_LOCK_MS=24*60*60*1000;
-let coffeeCooldownTimer=null;
-let coffeeBusy=false;
-function readCoffeeNextAllowed(){
-const raw=Number(safeStorageGet('local',COFFEE_LOCK_KEY)||0);
-return Number.isFinite(raw)&&raw>0?raw:0;
-}
-function renderCoffeeButtonState(){
-const btn=document.getElementById('btn-buy-coffee');
-if(!btn)return;
-const left=readCoffeeNextAllowed()-Date.now();
-const locked=left>0;
-btn.disabled=locked||coffeeBusy;
-btn.style.opacity=(locked||coffeeBusy)?'.62':'1';
-btn.style.cursor=(locked||coffeeBusy)?'not-allowed':'pointer';
-if(coffeeBusy)btn.textContent='TEŞEKKÜRLER :)';
-else if(locked)btn.textContent='TEŞEKKÜRLER :)';
-else btn.textContent='KAHVE ISMARLA';
-}
-function startCoffeeCooldownClock(){
-clearInterval(coffeeCooldownTimer);
-renderCoffeeButtonState();
-if(readCoffeeNextAllowed()>Date.now()){
-coffeeCooldownTimer=setInterval(()=>{
-renderCoffeeButtonState();
-if(readCoffeeNextAllowed()<=Date.now()){
-clearInterval(coffeeCooldownTimer);
-coffeeCooldownTimer=null;
-}
-},30000);
-}
-}
-function stopCoffeeCooldownClock(){
-clearInterval(coffeeCooldownTimer);
-coffeeCooldownTimer=null;
-}
-function trackCoffeeLike(){
-try{
-if(typeof window.gtag==='function'){
-window.gtag('event','kahve_begeni',{
-event_category:'engagement',
-event_label:'kahve',
-value:1
-});
-}
-}catch(_){}
-}
-async function handleCoffeeLike(){
-if(coffeeBusy)return;
-if(readCoffeeNextAllowed()>Date.now()){
-startCoffeeCooldownClock();
-return;
-}
-coffeeBusy=true;
-renderCoffeeButtonState();
-const thanks=document.getElementById('coffee-thanks');
-try{
-trackCoffeeLike();
-safeStorageSet('local',COFFEE_LOCK_KEY,String(Date.now()+COFFEE_LOCK_MS));
-if(thanks){
-thanks.textContent='Teşekkürler :)';
-thanks.classList.remove('hidden');
-}
-startCoffeeCooldownClock();
-}finally{
-coffeeBusy=false;
-renderCoffeeButtonState();
-}
-}
-document.getElementById('btn-buy-coffee')?.addEventListener('click',handleCoffeeLike);
 supportScreen?.addEventListener('click',event=>{
 if(event.target===supportScreen){
 supportScreen.classList.add('hidden');
-stopCoffeeCooldownClock();
 if(location.hash==='#screen-support')history.replaceState(null,'',location.pathname+location.search);
 }
 });
 document.addEventListener('keydown',event=>{
 if(event.key==='Escape'&&supportScreen&&!supportScreen.classList.contains('hidden')){
 supportScreen.classList.add('hidden');
-stopCoffeeCooldownClock();
 if(location.hash==='#screen-support')history.replaceState(null,'',location.pathname+location.search);
 }
 });
