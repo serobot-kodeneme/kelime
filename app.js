@@ -2047,8 +2047,6 @@ setAccountMessage(accountErrorMessage(err));
 }
 }
 function closeAccountScreen(){document.getElementById('screen-account')?.classList.add('hidden');}
-document.getElementById('btn-account-home')?.addEventListener('click',openAccountScreen);
-document.getElementById('btn-close-account')?.addEventListener('click',closeAccountScreen);
 document.getElementById('btn-account-login')?.addEventListener('click',()=>setAccountForm('login'));
 document.getElementById('btn-account-signup')?.addEventListener('click',()=>setAccountForm('signup'));
 document.getElementById('btn-account-submit')?.addEventListener('click',async()=>{
@@ -2334,9 +2332,15 @@ new MutationObserver(()=>{if(!document.getElementById('screen-home').classList.c
 for(const id of['modal-room-invite','modal-mp-waiting','modal-rematch-waiting','modal-countdown'])new MutationObserver(()=>startHowtoDemo()).observe(document.getElementById(id),{attributes:true,attributeFilter:['class']});
 startHowtoDemo();
 document.addEventListener('click',(event)=>{
-const target=event.target?.closest?.('#btn-settings,#btn-settings-back,#btn-howto,#btn-howto-back,#btn-about,#btn-about-back,#btn-open-dictionary,#btn-recommend,#btn-close-recommend,#btn-support,#btn-close-support');
+const target=event.target?.closest?.('#btn-account-home,#btn-close-account,#btn-settings,#btn-settings-back,#btn-howto,#btn-howto-back,#btn-about,#btn-about-back,#btn-open-dictionary,#btn-recommend,#btn-close-recommend,#btn-support,#btn-close-support');
 if(!target)return;
 switch(target.id){
+case 'btn-account-home':
+openAccountScreen();
+break;
+case 'btn-close-account':
+closeAccountScreen();
+break;
 case 'btn-settings':
 setMasterSoundVolume(masterSoundVolume);
 document.getElementById('screen-settings')?.classList.remove('hidden');
