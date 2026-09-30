@@ -1,4 +1,4 @@
-const CACHE_NAME='kapmaca-shell-v450-hodri-single1';
+const CACHE_NAME='kapmaca-shell-v450-pill1';
 const APP_SHELL=[
   './',
   './index.html',
