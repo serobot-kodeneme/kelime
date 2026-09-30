@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v452-allconfetti-roomfocus1';
+const CACHE_NAME='kapmaca-shell-v452-membershipnote1';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=452-allconfetti-roomfocus1',
+  './app.js?v=452-membershipnote1',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
