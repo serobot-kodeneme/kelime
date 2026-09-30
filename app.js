@@ -2158,7 +2158,7 @@ new MutationObserver(()=>{if(!document.getElementById('screen-home').classList.c
 for(const id of['modal-room-invite','modal-mp-waiting','modal-rematch-waiting','modal-countdown'])new MutationObserver(()=>startHowtoDemo()).observe(document.getElementById(id),{attributes:true,attributeFilter:['class']});
 startHowtoDemo();
 document.addEventListener('click',(event)=>{
-const target=event.target?.closest?.('#btn-settings,#btn-settings-back,#btn-howto,#btn-howto-back,#btn-about,#btn-about-back,#btn-open-dictionary,#btn-recommend,#btn-support,#btn-close-support');
+const target=event.target?.closest?.('#btn-settings,#btn-settings-back,#btn-howto,#btn-howto-back,#btn-about,#btn-about-back,#btn-open-dictionary,#btn-recommend,#btn-close-recommend,#btn-support,#btn-close-support');
 if(!target)return;
 switch(target.id){
 case 'btn-settings':
@@ -2187,6 +2187,9 @@ break;
 case 'btn-recommend':
 openRecommendModal();
 break;
+case 'btn-close-recommend':
+closeRecommendModal();
+break;
 case 'btn-support':{
 event.preventDefault();
 document.getElementById('screen-support')?.classList.remove('hidden');
@@ -2200,7 +2203,7 @@ if(location.hash==='#screen-support')history.replaceState(null,'',location.pathn
 break;
 }
 });
-const recommendModal=document.getElementById('modal-recommend');
+const recommendScreen=document.getElementById('screen-recommend');
 const recommendStatus=document.getElementById('recommend-share-status');
 const RECOMMEND_URL='https://kapmaca.tr/';
 const RECOMMEND_TEXT='KAPMACA; seni kapışmaya davet ediyorum!';
@@ -2209,8 +2212,8 @@ if(!recommendStatus)return;
 recommendStatus.textContent=text;
 if(text)setTimeout(()=>{if(recommendStatus.textContent===text)recommendStatus.textContent='';},1800);
 }
-function openRecommendModal(){recommendModal?.classList.remove('hidden');}
-function closeRecommendModal(){recommendModal?.classList.add('hidden');setRecommendStatus('');}
+function openRecommendModal(){recommendScreen?.classList.remove('hidden');}
+function closeRecommendModal(){recommendScreen?.classList.add('hidden');setRecommendStatus('');}
 function openShareWindow(url){
 const w=window.open(url,'_blank','noopener,noreferrer,width=720,height=640');
 if(!w)location.href=url;
@@ -2225,7 +2228,7 @@ setRecommendStatus('Bağlantı kopyalandı ✓');
 }catch(_){setRecommendStatus('Kopyalanamadı');}
 }
 document.getElementById('btn-close-recommend')?.addEventListener('click',closeRecommendModal);
-recommendModal?.addEventListener('click',event=>{if(event.target===recommendModal)closeRecommendModal();});
+recommendScreen?.addEventListener('click',event=>{if(event.target===recommendScreen)closeRecommendModal();});
 document.querySelectorAll('.recommend-share-option').forEach(btn=>{
 btn.addEventListener('click',()=>{
 const type=btn.dataset.share;
@@ -2244,7 +2247,7 @@ if(navigator.share){
 navigator.share({title:'KAPMACA - Sözcük Avı',text:RECOMMEND_TEXT,url:RECOMMEND_URL}).catch(()=>{});
 }else copyRecommendLink();
 });
-document.addEventListener('keydown',event=>{if(event.key==='Escape'&&recommendModal&&!recommendModal.classList.contains('hidden'))closeRecommendModal();});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&recommendScreen&&!recommendScreen.classList.contains('hidden'))closeRecommendModal();});
 const supportScreen=document.getElementById('screen-support');
 const COFFEE_LOCK_KEY='kapmaca_coffee_next_allowed_v1';
 const COFFEE_LOCK_MS=24*60*60*1000;
