@@ -3556,30 +3556,37 @@ setTimeout(()=>badge.classList.remove(badgeCls),720);
 }
 function playWordConfetti(length){
 const letters=Math.max(2,Math.min(9,Number(length)||2));
-const count=Math.round((IS_COARSE_POINTER?8:10)+(letters-2)*(IS_COARSE_POINTER?2.5:3));
-confetti({particleCount:count});
+if(letters<5)return;
+const first=IS_COARSE_POINTER?34:42;
+const second=IS_COARSE_POINTER?18:24;
+confetti({particleCount:first,epic:true});
+setTimeout(()=>confetti({particleCount:second,epic:true,secondary:true}),150);
 }
 function confetti(options={}){
 const count=Math.max(0,Math.min(48,Math.round(Number(options.particleCount)||0)));
 if(!count||document.hidden)return;
+const epic=!!options.epic;
+const secondary=!!options.secondary;
 const board=document.getElementById('scrabble-grid');
 if(!board||board.closest('.hidden')||board.clientWidth<1||board.clientHeight<1)return;
-const layer=document.createElement('div');layer.className='word-confetti-layer';
+const layer=document.createElement('div');layer.className='word-confetti-layer'+(epic?' epic':'');
 const frag=document.createDocumentFragment();
-const x=board.clientWidth/2,y=board.clientHeight/2;
-const colors=['#fbbf24','#38bdf8','#fb7185','#a78bfa','#34d399','#ffffff'];
-const duration=1000;
+const x=board.clientWidth/2+(secondary?(Math.random()-.5)*board.clientWidth*.08:0);
+const y=board.clientHeight/2+(secondary?(Math.random()-.5)*board.clientHeight*.06:0);
+const colors=['#fbbf24','#38bdf8','#fb7185','#a78bfa','#34d399','#ffffff','#f97316','#1d4ed8'];
+const duration=epic?(secondary?1050:1250):1000;
 for(let i=0;i<count;i++){
 const part=document.createElement('i');
 const angle=Math.random()*Math.PI*2;
-const reach=Math.min(board.clientWidth,board.clientHeight)*(.12+Math.random()*.25);
+const reach=Math.min(board.clientWidth,board.clientHeight)*(epic?(.20+Math.random()*.30):(.12+Math.random()*.25));
 part.style.setProperty('--x',x+'px');part.style.setProperty('--y',y+'px');
-const dx=Math.round(Math.cos(angle)*reach),dy=Math.round(Math.sin(angle)*reach+12+Math.random()*16);
+const dx=Math.round(Math.cos(angle)*reach),dy=Math.round(Math.sin(angle)*reach+14+Math.random()*24);
 part.style.setProperty('--dx',dx+'px');part.style.setProperty('--dy',dy+'px');
-part.style.setProperty('--mid-x',Math.round(dx*.58)+'px');part.style.setProperty('--mid-y',Math.round(dy*.38-38)+'px');
-const rotation=Math.round((Math.random()-.5)*720);
-part.style.setProperty('--rot',rotation+'deg');part.style.setProperty('--mid-rot',Math.round(rotation*.5)+'deg');
-part.style.setProperty('--w',(4+Math.random()*4)+'px');part.style.setProperty('--h',(7+Math.random()*5)+'px');
+part.style.setProperty('--mid-x',Math.round(dx*.56)+'px');part.style.setProperty('--mid-y',Math.round(dy*.34-(epic?52:38))+'px');
+const rotation=Math.round((Math.random()-.5)*(epic?1080:720));
+part.style.setProperty('--rot',rotation+'deg');part.style.setProperty('--mid-rot',Math.round(rotation*.48)+'deg');
+part.style.setProperty('--w',((epic?5:4)+Math.random()*(epic?5:4))+'px');
+part.style.setProperty('--h',((epic?8:7)+Math.random()*(epic?7:5))+'px');
 part.style.setProperty('--color',colors[i%colors.length]);
 part.style.setProperty('--duration',duration+'ms');frag.appendChild(part);
 }
