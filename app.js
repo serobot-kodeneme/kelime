@@ -514,7 +514,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v447';
+const GAME_VERSION='v448';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -783,8 +783,6 @@ if(!el) continue;
 el.style.opacity=ready?'1':'.55';
 el.style.cursor=ready?'pointer':'wait';
 }
-const c=document.getElementById('mp-room-code');
-if(c)c.textContent=ready&&code?'https://kapmaca.tr/?room='+String(code).toLowerCase():'ODA HAZIRLANIYOR…';
 }
 function setMpPanelRoom(code){
 document.getElementById('mp-create-view')?.classList.add('hidden');
@@ -1279,16 +1277,11 @@ if(mpRandomMatchSession){
   delete document.body.dataset.randomMatchActive;
   document.body.dataset.privateFriendActive='1';
 }
-const [gameSnap,scoreSnap,inviteSnap]=await Promise.all([
-  ref.child('gameState').once('value'),
-  ref.child('scores').once('value'),
-  ref.child('invite').once('value')
-]);
-const game=gameSnap.val()||{};
-const invite=inviteSnap.val()||{};
+const game=d.gameState||{};
+const invite=d.invite||{};
 mpRoomData={
   ...game,
-  scores:scoreSnap.val()||{host:0,guest:0},
+  scores:d.scores||{host:0,guest:0},
   guestId:d.guestId||null,
   inviteGuest:invite.guest||null,
   inviteExpiresAt:Number(invite.expiresAt||0)
@@ -1298,7 +1291,7 @@ mpExitHandling=false;
 mpLastExitSignalId='';
 mpEntered=false;
 mpStarted=false;
-await markPresence();
+markPresence().catch(()=>{});
 setRoomUrl(code);
 setMpState(mpRoomData.status||MP_STATES.WAITING);
 attachRoomListener();
@@ -1309,7 +1302,6 @@ if(role==='host' && /^invite-only-/.test(mode)){
 }
 if(role==='guest' && /^invite-only-/.test(mode) && mpRoomData.status==='waiting'){
   showInviteDecisionModal();
-  setTimeout(()=>ensureWordDataLoaded().catch(()=>{}),0);
 }
 if(/^random-match-/.test(mode)){
   await enterMultiplayerRoom();
@@ -2118,9 +2110,7 @@ if(!ok){
   document.getElementById('screen-home')?.classList.remove('hidden');
   return;
 }
-if(mpRole==='guest' && /^invite-only-/.test(String(mpRoomMode||'')) && mpRoomData?.status==='waiting'){
-  showInviteDecisionModal();
-}else if(mpRole==='guest' && /^random-match-/.test(String(mpRoomMode||''))){
+if(mpRole==='guest' && /^random-match-/.test(String(mpRoomMode||''))){
   await enterMultiplayerRoom();
 }
 });
