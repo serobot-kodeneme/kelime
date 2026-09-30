@@ -531,7 +531,7 @@ if(sec>10||sec<=3)lastHeartbeatSecond=null;
 }
 const FIREBASE_CONFIG={
 apiKey:"AIzaSyAtWg9jvda8M8j8dA6F31BwoRG8IoCZWwo",
-authDomain:"kelimedeneme-82f00.firebaseapp.com",
+authDomain:"kapmaca.tr",
 databaseURL:"https://kelimedeneme-82f00-default-rtdb.europe-west1.firebasedatabase.app",
 projectId:"kelimedeneme-82f00",
 storageBucket:"kelimedeneme-82f00.firebasestorage.app",
