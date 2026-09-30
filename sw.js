@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v448';
+const CACHE_NAME='kapmaca-shell-v446-flow-speed1';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=444',
+  './app.js?v=446-flow-speed1',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
@@ -56,5 +56,3 @@ self.addEventListener('fetch',event=>{
     })
   );
 });
-
-// v448 guest fast-path deployment marker
