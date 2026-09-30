@@ -514,7 +514,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v449';
+const GAME_VERSION='v450';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -977,36 +977,15 @@ randomWaitCancel=cancel;
 
 randomOwnListener=async snap=>{
   if(done || !randomSearchActive || randomSearchTicket!==ticket) return;
-  const now=serverNow();
   const raw=snap.val()||{};
-  const entries=Object.entries(raw)
-    .map(([key,value])=>({ticket:key,...(value||{})}))
-    .filter(e=>Number(e.enteredAt||0)>0 && Number(e.enteredAt||0)+RANDOM_QUEUE_TTL>now)
-    .sort((a,b)=>{
-      const dt=Number(a.enteredAt||0)-Number(b.enteredAt||0);
-      return dt || String(a.ticket).localeCompare(String(b.ticket));
-    });
-
-  const idx=entries.findIndex(e=>e.ticket===ticket);
-  if(idx<0) return;
-
-  const mateIndex=(idx%2===0)?idx+1:idx-1;
-  if(mateIndex<0 || mateIndex>=entries.length){
-    setRandomStatus('Rakip bekleniyor… Sıra: '+(idx+1),true);
-    return;
-  }
-
-  const host=entries[Math.min(idx,mateIndex)];
-  const guest=entries[Math.max(idx,mateIndex)];
-  const role=(ticket===host.ticket)?'host':'guest';
-  const mine=entries[idx];
-  const roleLabel=role==='host'?'1. oyuncu (HOST)':'2. oyuncu (GUEST)';
+  const mine=raw[ticket];
+  if(!mine) return;
 
   if(mine.roomCode){
+    const roleLabel=mine.role==='host'?'1. oyuncu (HOST)':'2. oyuncu (GUEST)';
     setRandomStatus('Rakip bulundu ✓ '+roleLabel+' ✓ Senkronize ediliyor…',true);
     if(randomJoinBusy) return;
     randomJoinBusy=true;
-    try{await wordDataLoad;}catch(_){}
     const ok=await joinRoom(String(mine.roomCode));
     if(ok){
       try{await randomOwnEntryRef?.onDisconnect().cancel();}catch(_){}
@@ -1019,27 +998,39 @@ randomOwnListener=async snap=>{
     return;
   }
 
+  if(mine.state!=='paired' || !mine.peerTicket){
+    setRandomStatus('Rakip bekleniyor…',true);
+    return;
+  }
+
+  const peer=raw[mine.peerTicket];
+  if(!peer || peer.peerTicket!==ticket || peer.pairKey!==mine.pairKey){
+    try{await rebalanceRandomPool();}catch(_){}
+    return;
+  }
+
+  const role=mine.role==='host'?'host':'guest';
+  const roleLabel=role==='host'?'1. oyuncu (HOST)':'2. oyuncu (GUEST)';
   setRandomStatus('Rakip bulundu ✓ '+roleLabel+' ✓ Oda hazırlanıyor…',true);
 
   if(role==='host' && !randomPairRoomBusy){
     randomPairRoomBusy=true;
     try{
       await wordDataLoad;
-      const room=await createRandomMatchedRoom(host.clientId,guest.clientId);
+      const hostId=getClientToken();
+      const guestId=peer.clientId;
+      const room=await createRandomMatchedRoom(hostId,guestId);
       if(!randomSearchActive || randomSearchTicket!==ticket){
         try{await mpDb.ref('rooms/'+room).remove();}catch(_){}
         return finish(false);
       }
-      const updates={};
-      updates[host.ticket+'/roomCode']=room;
-      updates[guest.ticket+'/roomCode']=room;
-      updates[host.ticket+'/role']='host';
-      updates[guest.ticket+'/role']='guest';
-      await randomPoolRef.update(updates);
+      const published=await publishRandomRoom(ticket,mine,room);
+      if(!published) throw new Error('random-room-publish-failed');
     }catch(err){
       console.error('Hodri room create error',err);
       randomPairRoomBusy=false;
       setRandomStatus('Eşleşme yeniden deneniyor…',true);
+      try{await rebalanceRandomPool();}catch(_){}
     }
   }
 };
@@ -1073,12 +1064,16 @@ randomSearchTicket=ticket;
 randomOwnEntryRef=randomPoolRef.child(ticket);
 
 try{
+  const enteredLocal=serverNow();
   await randomOwnEntryRef.set({
     ticket,
     clientId:getClientToken(),
-    enteredAt:firebase.database.ServerValue.TIMESTAMP
+    state:'waiting',
+    enteredAt:firebase.database.ServerValue.TIMESTAMP,
+    expiresAt:enteredLocal+RANDOM_QUEUE_TTL
   });
   await randomOwnEntryRef.onDisconnect().remove();
+  await rebalanceRandomPool();
 }catch(err){
   console.error('Hodri pool entry error',err);
   releaseRandomSearchLocal();
