@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v452-authrefresh1';
+const CACHE_NAME='kapmaca-shell-v452-memberroom1';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=452-authrefresh1',
+  './app.js?v=452-memberroom1',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
