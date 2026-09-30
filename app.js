@@ -1230,6 +1230,7 @@ const codeEl=document.getElementById('invite-room-code');
 const startBtn=document.getElementById('btn-invite-start');
 const cancelBtn=document.getElementById('btn-invite-cancel');
 const countdownEl=document.getElementById('invite-decision-countdown');
+const countdownNumberEl=document.getElementById('invite-decision-number');
 if(codeEl)codeEl.textContent=String(mpRoomCode||'').toUpperCase();
 if(startBtn){startBtn.disabled=false;startBtn.classList.remove('hidden');}
 if(cancelBtn){cancelBtn.disabled=false;cancelBtn.classList.remove('hidden');}
@@ -1242,7 +1243,7 @@ mpRoomRef.child('invite/expiresAt').set(deadline).catch(()=>{});
 }
 const tick=()=>{
 const left=Math.max(0,Math.ceil((deadline-serverNow())/1000));
-if(countdownEl)countdownEl.textContent=`${left} saniye içinde seçim yapın`;
+if(countdownNumberEl)countdownNumberEl.textContent=String(left); else if(countdownEl)countdownEl.textContent=`${left} saniye içinde seçim yapın`;
 if(left<=0){
 stopInviteDecisionTimer();
 if(mpRole==='guest'&&mpRoomRef)requestSynchronizedRoomExit('invite-timeout').catch(()=>{});
