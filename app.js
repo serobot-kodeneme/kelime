@@ -3483,10 +3483,10 @@ setTimeout(()=>badge.classList.remove(badgeCls),720);
 function playWordConfetti(length){
 const letters=Math.max(2,Math.min(9,Number(length)||2));
 if(letters<5)return;
-const first=IS_COARSE_POINTER?34:42;
-const second=IS_COARSE_POINTER?18:24;
+const first=IS_COARSE_POINTER?20:26;
+const second=IS_COARSE_POINTER?8:10;
 confetti({particleCount:first,epic:true});
-setTimeout(()=>confetti({particleCount:second,epic:true,secondary:true}),150);
+setTimeout(()=>confetti({particleCount:second,epic:true,secondary:true}),135);
 }
 function confetti(options={}){
 const count=Math.max(0,Math.min(64,Math.round(Number(options.particleCount)||0)));
@@ -3516,19 +3516,19 @@ const parts=[];
 const cx=rect.width/2+(secondary?(Math.random()-.5)*rect.width*.10:0);
 const cy=rect.height/2+(secondary?(Math.random()-.5)*rect.height*.08:0);
 const colors=['#facc15','#f97316','#ef4444','#22c55e','#0ea5e9','#2563eb','#8b5cf6','#ec4899','#ffffff'];
-const duration=secondary?900:1150;
+const duration=secondary?820:1020;
 
 for(let i=0;i<count;i++){
 const part=document.createElement('span');
 const angle=Math.random()*Math.PI*2;
-const reach=Math.min(rect.width,rect.height)*(.24+Math.random()*.34);
+const reach=Math.min(rect.width,rect.height)*(.30+Math.random()*.36);
 const dx=Math.cos(angle)*reach;
 const dy=Math.sin(angle)*reach+28+Math.random()*34;
 const midX=dx*.52;
 const midY=dy*.28-(50+Math.random()*34);
 const rot=(Math.random()-.5)*1080;
-const w=5+Math.random()*5;
-const h=8+Math.random()*8;
+const w=3+Math.random()*3;
+const h=5+Math.random()*4;
 
 Object.assign(part.style,{
 position:'absolute',
@@ -3552,8 +3552,8 @@ for(const p of parts){
 if(typeof p.part.animate==='function'){
 p.part.animate([
 {transform:'translate3d(-50%,-50%,0) rotate(0deg) scale(.55)',opacity:0},
-{offset:.10,transform:'translate3d(-50%,-50%,0) rotate(0deg) scale(1.15)',opacity:1},
-{offset:.48,transform:`translate3d(calc(-50% + ${p.midX}px),calc(-50% + ${p.midY}px),0) rotate(${p.rot*.45}deg) scale(1)`,opacity:1},
+{offset:.10,transform:'translate3d(-50%,-50%,0) rotate(0deg) scale(1.05)',opacity:.92},
+{offset:.48,transform:`translate3d(calc(-50% + ${p.midX}px),calc(-50% + ${p.midY}px),0) rotate(${p.rot*.45}deg) scale(.96)`,opacity:.88},
 {transform:`translate3d(calc(-50% + ${p.dx}px),calc(-50% + ${p.dy}px),0) rotate(${p.rot}deg) scale(.82)`,opacity:0}
 ],{duration,easing:'cubic-bezier(.15,.72,.28,1)',fill:'forwards'});
 }else{
