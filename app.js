@@ -3468,7 +3468,7 @@ route.setAttribute('stroke-linejoin','round');
 route.setAttribute('opacity','.92');
 svg.appendChild(route);
 const dot=document.createElementNS(ns,'circle');
-dot.setAttribute('r','5');
+dot.setAttribute('r','7');
 dot.setAttribute('fill',isP1?'#fbbf24':'#38bdf8');
 dot.setAttribute('cx',String(pts[0].x));
 dot.setAttribute('cy',String(pts[0].y));
