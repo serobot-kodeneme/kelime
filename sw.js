@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v450-route-anchor1';
+const CACHE_NAME='kapmaca-shell-v450-hodri-single1';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=450-route-anchor1',
+  './app.js?v=450-hodri-single1',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
