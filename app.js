@@ -2289,17 +2289,146 @@ document.addEventListener('click',(event)=>{
     case 'btn-support':{
       event.preventDefault();
       document.getElementById('screen-support')?.classList.remove('hidden');
+      startSharedCoffeeCounter();
       break;
     }
     case 'btn-close-support':
       document.getElementById('screen-support')?.classList.add('hidden');
+      stopSharedCoffeeCounter();
       if(location.hash==='#screen-support') history.replaceState(null,'',location.pathname+location.search);
       break;
   }
 });
 const supportScreen=document.getElementById('screen-support');
-supportScreen?.addEventListener('click',event=>{if(event.target===supportScreen){supportScreen.classList.add('hidden');if(location.hash==='#screen-support')history.replaceState(null,'',location.pathname+location.search);}});
-document.addEventListener('keydown',event=>{if(event.key==='Escape'&&supportScreen&&!supportScreen.classList.contains('hidden')){supportScreen.classList.add('hidden');if(location.hash==='#screen-support')history.replaceState(null,'',location.pathname+location.search);}});
+
+const COFFEE_LOCK_KEY='kapmaca_coffee_next_allowed_v1';
+const COFFEE_LOCK_MS=24*60*60*1000;
+let coffeeCountRef=null;
+let coffeeCountListener=null;
+let coffeeCooldownTimer=null;
+let coffeeBusy=false;
+
+function readCoffeeNextAllowed(){
+  const raw=Number(safeStorageGet('local',COFFEE_LOCK_KEY)||0);
+  return Number.isFinite(raw)&&raw>0?raw:0;
+}
+function formatCoffeeRemaining(ms){
+  const totalMinutes=Math.max(1,Math.ceil(ms/60000));
+  const hours=Math.floor(totalMinutes/60);
+  const minutes=totalMinutes%60;
+  if(hours>0 && minutes>0) return hours+' sa '+minutes+' dk';
+  if(hours>0) return hours+' saat';
+  return minutes+' dk';
+}
+function renderCoffeeButtonState(){
+  const btn=document.getElementById('btn-buy-coffee');
+  if(!btn) return;
+  const left=readCoffeeNextAllowed()-Date.now();
+  const locked=left>0;
+  btn.disabled=locked||coffeeBusy;
+  btn.style.opacity=(locked||coffeeBusy)?'.62':'1';
+  btn.style.cursor=(locked||coffeeBusy)?'not-allowed':'pointer';
+  if(coffeeBusy) btn.textContent='EKLENİYOR…';
+  else if(locked) btn.textContent='TEKRAR '+formatCoffeeRemaining(left)+' SONRA';
+  else btn.textContent='KAHVE ISMARLA';
+}
+function startCoffeeCooldownClock(){
+  clearInterval(coffeeCooldownTimer);
+  renderCoffeeButtonState();
+  if(readCoffeeNextAllowed()>Date.now()){
+    coffeeCooldownTimer=setInterval(()=>{
+      renderCoffeeButtonState();
+      if(readCoffeeNextAllowed()<=Date.now()){
+        clearInterval(coffeeCooldownTimer);
+        coffeeCooldownTimer=null;
+      }
+    },30000);
+  }
+}
+async function startSharedCoffeeCounter(){
+  startCoffeeCooldownClock();
+  const counter=document.getElementById('coffee-counter');
+  if(counter) counter.textContent='Ismarlanan kahve: …';
+  const loaded=await ensureFirebaseSdkLoaded();
+  if(!loaded || !ensureFirebase()){
+    if(counter) counter.textContent='Ismarlanan kahve: bağlantı kurulamadı';
+    return false;
+  }
+  if(coffeeCountRef && coffeeCountListener){
+    try{coffeeCountRef.off('value',coffeeCountListener);}catch(_){}
+  }
+  coffeeCountRef=mpDb.ref('coffee/count');
+  coffeeCountListener=snap=>{
+    const count=Math.max(0,Number(snap.val())||0);
+    if(counter) counter.textContent='Ismarlanan kahve: '+count;
+  };
+  coffeeCountRef.on('value',coffeeCountListener,()=>{
+    if(counter) counter.textContent='Ismarlanan kahve: bağlantı kurulamadı';
+  });
+  return true;
+}
+function stopSharedCoffeeCounter(){
+  if(coffeeCountRef && coffeeCountListener){
+    try{coffeeCountRef.off('value',coffeeCountListener);}catch(_){}
+  }
+  coffeeCountRef=null;
+  coffeeCountListener=null;
+  clearInterval(coffeeCooldownTimer);
+  coffeeCooldownTimer=null;
+  if(!mpRoomRef && !randomSearchActive) disconnectFirebaseNetwork();
+}
+async function buySharedCoffee(){
+  if(coffeeBusy) return;
+  const nextAllowed=readCoffeeNextAllowed();
+  if(nextAllowed>Date.now()){
+    startCoffeeCooldownClock();
+    return;
+  }
+  coffeeBusy=true;
+  renderCoffeeButtonState();
+  const thanks=document.getElementById('coffee-thanks');
+  try{
+    const ready=coffeeCountRef || await startSharedCoffeeCounter();
+    if(!ready || !mpDb) throw new Error('coffee-firebase-unavailable');
+    const ref=coffeeCountRef || mpDb.ref('coffee/count');
+    const result=await ref.transaction(current=>{
+      const n=Math.max(0,Number(current)||0);
+      return n+1;
+    });
+    if(!result?.committed) throw new Error('coffee-transaction-not-committed');
+    safeStorageSet('local',COFFEE_LOCK_KEY,String(Date.now()+COFFEE_LOCK_MS));
+    if(thanks){
+      thanks.textContent='Kahve ısmarladınız, sağ olun ☕ 24 saat sonra tekrar ısmarlayabilirsiniz.';
+      thanks.classList.remove('hidden');
+    }
+    startCoffeeCooldownClock();
+  }catch(err){
+    console.error('Coffee counter error',err);
+    if(thanks){
+      thanks.textContent='Kahve şu anda eklenemedi. Lütfen biraz sonra tekrar deneyin.';
+      thanks.classList.remove('hidden');
+    }
+  }finally{
+    coffeeBusy=false;
+    renderCoffeeButtonState();
+  }
+}
+document.getElementById('btn-buy-coffee')?.addEventListener('click',buySharedCoffee);
+
+supportScreen?.addEventListener('click',event=>{
+  if(event.target===supportScreen){
+    supportScreen.classList.add('hidden');
+    stopSharedCoffeeCounter();
+    if(location.hash==='#screen-support') history.replaceState(null,'',location.pathname+location.search);
+  }
+});
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&supportScreen&&!supportScreen.classList.contains('hidden')){
+    supportScreen.classList.add('hidden');
+    stopSharedCoffeeCounter();
+    if(location.hash==='#screen-support') history.replaceState(null,'',location.pathname+location.search);
+  }
+});
 const soundRange=document.getElementById('sound-volume-range');
 const soundMuted=document.getElementById('sound-muted');
 let soundPreviewAt=0;
