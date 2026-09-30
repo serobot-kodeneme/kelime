@@ -44,13 +44,6 @@
         }
       }
     },
-    "coffee": {
-      "count": {
-        ".read": true,
-        ".write": "(!data.exists() && newData.isNumber() && newData.val() == 1) || (data.isNumber() && newData.isNumber() && newData.val() == data.val() + 1)",
-        ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 1000000000"
-      }
-    },
     "matchmaking": {
       "random": {
         ".read": true,
