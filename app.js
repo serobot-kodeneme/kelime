@@ -514,7 +514,7 @@ messagingSenderId: "968159872150",
 appId: "1:968159872150:web:c80429010ec21363116eb7"
 };
 
-const GAME_VERSION='v448';
+const GAME_VERSION='v449';
 const MP_STATES = Object.freeze({
 IDLE:'idle', WAITING:'waiting', COUNTDOWN:'countdown', PLAYING:'playing', FINISHED:'finished'
 });
@@ -1180,7 +1180,9 @@ let inviteDecisionTimer=null;
 function stopInviteDecisionTimer(){
   if(inviteDecisionTimer){clearInterval(inviteDecisionTimer);inviteDecisionTimer=null;}
 }
+function hideRoomFastShell(){document.getElementById('room-fast-shell')?.classList.remove('on');}
 function showInviteDecisionModal(){
+hideRoomFastShell();
 const modal=document.getElementById('modal-room-invite');
 const codeEl=document.getElementById('invite-room-code');
 const startBtn=document.getElementById('btn-invite-start');
@@ -1209,6 +1211,7 @@ inviteDecisionTimer=setInterval(tick,500);
 }
 
 function showInactiveRoomAndReturn(){
+hideRoomFastShell();
 clearInviteFromUrl();
 document.getElementById('inactive-room-toast')?.classList.add('hidden');
 document.getElementById('modal-room-invite')?.classList.add('hidden');
@@ -1311,6 +1314,7 @@ return true;
 }
 
 async function enterMultiplayerRoom(){
+hideRoomFastShell();
 if(!mpRoomRef) return;
 try{ await ensureWordDataLoaded(); }
 catch(_){ showToast('Oyun sözlüğü yüklenemedi. Tekrar deneyin.','rose'); return; }
@@ -2107,6 +2111,7 @@ document.getElementById('friend-invite-panel')?.classList.add('hidden');
 setDifficultyOpen(false);
 const ok=await joinRoom(code);
 if(!ok){
+  hideRoomFastShell();
   document.getElementById('screen-home')?.classList.remove('hidden');
   return;
 }
