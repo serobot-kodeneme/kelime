@@ -2426,6 +2426,8 @@ head.classList.add('demo-route-head');head.setAttribute('fill',routeColor);head.
 svg.append(line,head);board.appendChild(svg);
 }
 const tiles=[...board.querySelectorAll('.demo-tile')];
+svg.setAttribute('viewBox',`0 0 ${board.clientWidth} ${board.clientHeight}`);
+svg.setAttribute('preserveAspectRatio','none');
 const pts=path.slice(0,count).map(i=>tiles[i]).filter(Boolean).map(el=>({x:el.offsetLeft+el.offsetWidth/2,y:el.offsetTop+el.offsetHeight/2}));
 const line=svg.querySelector('.demo-route-line'),head=svg.querySelector('.demo-route-head');
 if(!pts.length){svg.style.display='none';return;}
@@ -3486,33 +3488,40 @@ el.classList.add(isP1?'tile-claimed-p1':'tile-claimed-p2');
 }
 function animateOpponentRoute(path,isP1){
 if(document.hidden||!Array.isArray(path)||path.length<2)return;
+const board=document.getElementById('scrabble-grid');
+if(!board||board.clientWidth<1||board.clientHeight<1)return;
+if(getComputedStyle(board).position==='static')board.style.position='relative';
 const pts=[];
 for(const pos of path){
 const el=domCells[pos.r*BOARD_SIZE+pos.c]||document.getElementById(`cell-${pos.r}-${pos.c}`);
-const r=el?.getBoundingClientRect?.();
-if(r&&r.width&&r.height)pts.push({x:r.left+r.width/2,y:r.top+r.height/2});
+if(!el||el.offsetParent===null)continue;
+pts.push({x:el.offsetLeft+el.offsetWidth/2,y:el.offsetTop+el.offsetHeight/2});
 }
 if(pts.length<2)return;
 const ns='http://www.w3.org/2000/svg';
 const svg=document.createElementNS(ns,'svg');
-svg.setAttribute('viewBox',`0 0 ${innerWidth} ${innerHeight}`);
-Object.assign(svg.style,{position:'fixed',inset:'0',width:'100vw',height:'100vh',pointerEvents:'none',zIndex:'58',overflow:'visible'});
+svg.setAttribute('viewBox',`0 0 ${board.clientWidth} ${board.clientHeight}`);
+svg.setAttribute('preserveAspectRatio','none');
+svg.setAttribute('aria-hidden','true');
+Object.assign(svg.style,{position:'absolute',inset:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'58',overflow:'visible'});
 const route=document.createElementNS(ns,'polyline');
 route.setAttribute('points',pts.map(p=>`${p.x},${p.y}`).join(' '));
 route.setAttribute('fill','none');
 route.setAttribute('stroke',isP1?'#c2410c':'#6d28d9');
 route.setAttribute('stroke-width','4');
+route.setAttribute('vector-effect','non-scaling-stroke');
 route.setAttribute('stroke-linecap','round');
 route.setAttribute('stroke-linejoin','round');
 route.setAttribute('opacity','.92');
 svg.appendChild(route);
 const dot=document.createElementNS(ns,'circle');
 dot.setAttribute('r','7');
+dot.setAttribute('vector-effect','non-scaling-stroke');
 dot.setAttribute('fill',isP1?'#dc2626':'#7c3aed');
 dot.setAttribute('cx',String(pts[0].x));
 dot.setAttribute('cy',String(pts[0].y));
 svg.appendChild(dot);
-document.body.appendChild(svg);
+board.appendChild(svg);
 let len=0;
 try{len=route.getTotalLength();}catch(_){}
 if(len>0){
@@ -3520,7 +3529,7 @@ route.style.strokeDasharray=String(len);
 route.style.strokeDashoffset=String(len);
 route.animate([{strokeDashoffset:String(len),opacity:.95},{strokeDashoffset:'0',opacity:.95},{strokeDashoffset:'0',opacity:0}],{duration:650,easing:'ease-out',fill:'forwards'});
 }
-const keyframes=pts.map((p,i)=>({offset:pts.length===1?1:i/(pts.length-1),cx:String(p.x),cy:String(p.y)}));
+const keyframes=pts.map((p,i)=>({offset:i/(pts.length-1),cx:String(p.x),cy:String(p.y)}));
 try{dot.animate(keyframes,{duration:520,easing:'linear',fill:'forwards'});}catch(_){}
 setTimeout(()=>svg.remove(),720);
 }
