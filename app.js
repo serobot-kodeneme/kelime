@@ -611,6 +611,24 @@ return false;
 });
 return firebaseSdkPromise;
 }
+let firebaseAuthSdkPromise=null;
+function ensureFirebaseAuthLoaded(){
+if(window.firebase?.auth&&window.firebase?.database)return Promise.resolve(true);
+if(firebaseAuthSdkPromise)return firebaseAuthSdkPromise;
+firebaseAuthSdkPromise=(async()=>{
+await loadExternalScriptOnce('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js','kapmaca-firebase-app');
+await Promise.all([
+loadExternalScriptOnce('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js','kapmaca-firebase-auth'),
+loadExternalScriptOnce('https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js','kapmaca-firebase-db')
+]);
+return !!window.firebase?.auth&&!!window.firebase?.database;
+})().catch(err=>{
+firebaseAuthSdkPromise=null;
+console.error('Firebase Auth yüklenemedi',err);
+return false;
+});
+return firebaseAuthSdkPromise;
+}
 function ensureFirebase(){
 if(!window.firebase?.database){
 showToast('Firebase yüklenemedi. İnternet bağlantını kontrol et.','rose');
@@ -1926,6 +1944,164 @@ function setDifficultyOpen(open){
 difficultyPanel.classList.toggle('hidden',!open);
 soloArrow.style.transform=open?'rotate(90deg)':'';
 }
+let accountAuth=null,accountDb=null,accountAuthUnsub=null,accountFormMode='login',accountProfile=null;
+function accountErrorMessage(err){
+const code=String(err?.code||'');
+if(code.includes('invalid-credential')||code.includes('wrong-password')||code.includes('user-not-found'))return 'E-posta veya şifre hatalı.';
+if(code.includes('email-already-in-use'))return 'Bu e-posta zaten kayıtlı.';
+if(code.includes('weak-password'))return 'Şifre en az 6 karakter olmalı.';
+if(code.includes('invalid-email'))return 'Geçerli bir e-posta yazın.';
+if(code.includes('popup-closed-by-user'))return '';
+if(code.includes('popup-blocked'))return 'Tarayıcı Google giriş penceresini engelledi.';
+if(code.includes('operation-not-allowed'))return 'Bu giriş yöntemi Firebase Authentication içinde henüz etkin değil.';
+if(code.includes('unauthorized-domain'))return 'kapmaca.tr Firebase yetkili alan adlarına eklenmeli.';
+return 'Hesap işlemi tamamlanamadı. Tekrar deneyin.';
+}
+function setAccountMessage(text='',ok=false){
+const el=document.getElementById('account-message');if(!el)return;
+el.textContent=text;el.className='mt-3 min-h-[18px] text-center text-xs font-black '+(ok?'text-emerald-700':'text-rose-600');
+}
+function setAccountUserMessage(text='',ok=true){
+const el=document.getElementById('account-user-message');if(!el)return;
+el.textContent=text;el.className='mt-3 min-h-[18px] text-xs font-black '+(ok?'text-emerald-700':'text-rose-600');
+}
+function setAccountLoading(on){
+document.getElementById('account-loading')?.classList.toggle('hidden',!on);
+}
+function setAccountForm(mode){
+accountFormMode=mode==='signup'?'signup':'login';
+const form=document.getElementById('account-email-form');
+form?.classList.remove('hidden');
+const nick=document.getElementById('account-nickname');
+nick?.classList.toggle('hidden',accountFormMode!=='signup');
+const title=document.getElementById('account-form-title');
+if(title)title.textContent=accountFormMode==='signup'?'Üye Ol':'Giriş Yap';
+const pass=document.getElementById('account-password');
+if(pass)pass.autocomplete=accountFormMode==='signup'?'new-password':'current-password';
+setAccountMessage('');
+}
+async function ensureAccountBackend(){
+if(!await ensureFirebaseAuthLoaded())throw new Error('auth-sdk-load-failed');
+if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+accountAuth=firebase.auth();
+accountDb=firebase.database();
+try{await accountAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);}catch(_){}
+if(!accountAuthUnsub){
+accountAuthUnsub=accountAuth.onAuthStateChanged(user=>renderAccountState(user).catch(()=>{}));
+}
+return true;
+}
+function defaultAccountProfile(user){
+const fallback=(user?.displayName||String(user?.email||'').split('@')[0]||'Oyuncu').slice(0,18);
+return{nickname:fallback,games:0,wins:0,losses:0,bestScore:0,longestWord:'',createdAt:Date.now(),updatedAt:Date.now()};
+}
+async function loadAccountProfile(user){
+if(!user||!accountDb)return null;
+const ref=accountDb.ref('users/'+user.uid);
+let data=null;
+try{
+const snap=await ref.once('value');
+data=snap.val();
+if(!data){
+data=defaultAccountProfile(user);
+await ref.set(data);
+}
+}catch(err){
+console.warn('Profil okunamadı',err);
+data=defaultAccountProfile(user);
+}
+accountProfile=data;
+return data;
+}
+async function renderAccountState(user){
+const guest=document.getElementById('account-guest-view');
+const signed=document.getElementById('account-user-view');
+if(!guest||!signed)return;
+if(!user){
+accountProfile=null;
+guest.classList.remove('hidden');signed.classList.add('hidden');
+const homeLabel=document.getElementById('account-home-label');if(homeLabel)homeLabel.textContent='Hesap';
+return;
+}
+setAccountLoading(true);
+const profile=await loadAccountProfile(user);
+guest.classList.add('hidden');signed.classList.remove('hidden');
+const name=String(profile?.nickname||user.displayName||'Oyuncu').slice(0,18);
+const games=Number(profile?.games||0),wins=Number(profile?.wins||0);
+const nameEl=document.getElementById('account-user-name');if(nameEl)nameEl.textContent=name;
+const stats=document.getElementById('account-user-stats');if(stats)stats.textContent=`${games} oyun • ${wins} galibiyet`;
+const emailEl=document.getElementById('account-user-email');if(emailEl)emailEl.textContent=user.email||'';
+const editor=document.getElementById('account-profile-nickname');if(editor)editor.value=name;
+const homeLabel=document.getElementById('account-home-label');if(homeLabel)homeLabel.textContent=name;
+setAccountLoading(false);
+}
+async function openAccountScreen(){
+document.getElementById('screen-account')?.classList.remove('hidden');
+setAccountLoading(true);setAccountMessage('');
+try{
+await ensureAccountBackend();
+await renderAccountState(accountAuth.currentUser);
+}catch(err){
+setAccountLoading(false);
+setAccountMessage(accountErrorMessage(err));
+}
+}
+function closeAccountScreen(){document.getElementById('screen-account')?.classList.add('hidden');}
+document.getElementById('btn-account-home')?.addEventListener('click',openAccountScreen);
+document.getElementById('btn-close-account')?.addEventListener('click',closeAccountScreen);
+document.getElementById('btn-account-login')?.addEventListener('click',()=>setAccountForm('login'));
+document.getElementById('btn-account-signup')?.addEventListener('click',()=>setAccountForm('signup'));
+document.getElementById('btn-account-submit')?.addEventListener('click',async()=>{
+setAccountMessage('');
+const email=String(document.getElementById('account-email')?.value||'').trim();
+const password=String(document.getElementById('account-password')?.value||'');
+const nickname=String(document.getElementById('account-nickname')?.value||'').trim().slice(0,18);
+if(!email||!password){setAccountMessage('E-posta ve şifre gerekli.');return;}
+if(accountFormMode==='signup'&&!nickname){setAccountMessage('Bir oyuncu adı yazın.');return;}
+try{
+await ensureAccountBackend();
+if(accountFormMode==='signup'){
+const cred=await accountAuth.createUserWithEmailAndPassword(email,password);
+await cred.user.updateProfile({displayName:nickname});
+const data={...defaultAccountProfile(cred.user),nickname,updatedAt:Date.now()};
+await accountDb.ref('users/'+cred.user.uid).set(data);
+await renderAccountState(cred.user);
+}else{
+const cred=await accountAuth.signInWithEmailAndPassword(email,password);
+await renderAccountState(cred.user);
+}
+}catch(err){setAccountMessage(accountErrorMessage(err));}
+});
+document.getElementById('btn-account-google')?.addEventListener('click',async()=>{
+setAccountMessage('');
+try{
+await ensureAccountBackend();
+const provider=new firebase.auth.GoogleAuthProvider();
+provider.setCustomParameters({prompt:'select_account'});
+const cred=await accountAuth.signInWithPopup(provider);
+await renderAccountState(cred.user);
+}catch(err){const msg=accountErrorMessage(err);if(msg)setAccountMessage(msg);}
+});
+document.getElementById('btn-account-logout')?.addEventListener('click',async()=>{
+try{await accountAuth?.signOut();setAccountUserMessage('');}catch(err){setAccountUserMessage(accountErrorMessage(err),false);}
+});
+document.getElementById('btn-account-profile')?.addEventListener('click',()=>{
+document.getElementById('account-profile-editor')?.classList.toggle('hidden');
+});
+document.getElementById('btn-account-save-profile')?.addEventListener('click',async()=>{
+const user=accountAuth?.currentUser;if(!user||!accountDb)return;
+const nickname=String(document.getElementById('account-profile-nickname')?.value||'').trim().slice(0,18);
+if(!nickname){setAccountUserMessage('Oyuncu adı boş bırakılamaz.',false);return;}
+try{
+await user.updateProfile({displayName:nickname});
+await accountDb.ref('users/'+user.uid).update({nickname,updatedAt:Date.now()});
+accountProfile={...(accountProfile||{}),nickname};
+await renderAccountState(user);
+document.getElementById('account-profile-editor')?.classList.add('hidden');
+setAccountUserMessage('Profil güncellendi ✓');
+}catch(err){setAccountUserMessage(accountErrorMessage(err),false);}
+});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!document.getElementById('screen-account')?.classList.contains('hidden'))closeAccountScreen();});
 let deferredShortcutPrompt=null;
 window.addEventListener('beforeinstallprompt',(e)=>{
 e.preventDefault();
