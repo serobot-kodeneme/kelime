@@ -409,6 +409,7 @@ let botDiffLevel='easy';
 let activeGameMode = null; // 'single' | 'multi' — replay akışının tek güvenilir kaynağı
 let selectedHomeGameMode=null; // 'kapisma' | 'patlama'
 let randomMatchGameMode='kapisma';
+const PATLAMA_TRAP_COUNT=7;
 let atismaTool='trap',atismaSetupTimer=null,atismaTurnTimer=null,atismaSetupActive=false,atismaTimeoutBusy=false;
 let atismaLastTurnNoticeKey='',atismaTurnNoticeTimer=null;
 let atismaDragType='',atismaDragGhost=null,atismaDragHoverCell=null;
@@ -2280,7 +2281,7 @@ return{el,index:Number(m[1])*BOARD_SIZE+Number(m[2])};
 }
 function beginAtismaDrag(type,e){
 if(!atismaSetupActive||(!isAtismaRoom()&&!isLocalAtisma()))return;
-type='trap';const remaining=isLocalAtisma()?5-atismaLocalCount('trap'):5-Object.values(atismaOwnPlacements()).filter(v=>v==='trap').length;
+type='trap';const remaining=isLocalAtisma()?PATLAMA_TRAP_COUNT-atismaLocalCount('trap'):PATLAMA_TRAP_COUNT-Object.values(atismaOwnPlacements()).filter(v=>v==='trap').length;
 if(remaining<=0)return;
 e.preventDefault();e.stopPropagation();atismaTool=type;atismaDragType=type;
 isLocalAtisma()?renderLocalAtismaTools():renderAtismaTools();
@@ -2319,10 +2320,10 @@ function renderLocalAtismaTools(){
 if(!isLocalAtisma())return;
 atismaTool='trap';
 const tc=document.getElementById('atisma-trap-count');
-if(tc)tc.textContent=String(Math.max(0,5-atismaLocalCount('trap')));
+if(tc)tc.textContent=String(Math.max(0,PATLAMA_TRAP_COUNT-atismaLocalCount('trap')));
 const tb=document.getElementById('atisma-trap-tool');
 tb?.classList.add('atisma-tool-active');
-if(tb)tb.disabled=atismaLocalCount('trap')>=5;
+if(tb)tb.disabled=atismaLocalCount('trap')>=PATLAMA_TRAP_COUNT;
 document.querySelectorAll('.atisma-piece-own').forEach(el=>el.remove());
 for(const [key,type] of Object.entries(atismaLocalPlayerPlacements)){
 if(type!=='trap')continue;
@@ -2338,7 +2339,7 @@ atismaLocalAiPlacements={};const freq=Array(BOARD_SIZE*BOARD_SIZE).fill(0);
 for(const item of boardFoundWords){for(const p of item.path||[])freq[p.r*BOARD_SIZE+p.c]++;}
 const ranked=Array.from({length:BOARD_SIZE*BOARD_SIZE},(_,i)=>i).sort((a,b)=>freq[b]-freq[a]||Math.random()-.5);const pool=ranked.slice(0,Math.min(30,ranked.length));const picked=new Set();
 const take=()=>{let x=null;for(let tries=0;tries<80;tries++){const c=pool[Math.floor(Math.random()*pool.length)];if(!picked.has(c)){x=c;break;}}if(x===null)x=ranked.find(i=>!picked.has(i));picked.add(x);return x;};
-for(let n=0;n<5;n++)atismaLocalAiPlacements[take()]='trap';
+for(let n=0;n<PATLAMA_TRAP_COUNT;n++)atismaLocalAiPlacements[take()]='trap';
 }
 function playAtismaTrapExplosion(idx){
 vibrateGame('blast');
@@ -2463,12 +2464,12 @@ function updateAtismaPlacementWaitState(){
 if(!isAtismaRoom()||!mpRole||String(mpRoomData?.status||'')!=='setup'){
 setAtismaPlacementWaiting(false);return false;
 }
-const done=atismaPlacementCount(mpRole)>=5;
+const done=atismaPlacementCount(mpRole)>=PATLAMA_TRAP_COUNT;
 setAtismaPlacementWaiting(done);
 return done;
 }
 function bothAtismaPlacementsComplete(){
-return atismaPlacementCount('host')>=5&&atismaPlacementCount('guest')>=5;
+return atismaPlacementCount('host')>=PATLAMA_TRAP_COUNT&&atismaPlacementCount('guest')>=PATLAMA_TRAP_COUNT;
 }
 function renderAtismaPieces(){
 document.querySelectorAll('.atisma-piece-own').forEach(el=>el.remove());
@@ -2491,10 +2492,10 @@ atismaTool='trap';
 const own=atismaOwnPlacements();
 const traps=Object.values(own).filter(v=>v==='trap').length;
 const tc=document.getElementById('atisma-trap-count');
-if(tc)tc.textContent=String(Math.max(0,5-traps));
+if(tc)tc.textContent=String(Math.max(0,PATLAMA_TRAP_COUNT-traps));
 const tb=document.getElementById('atisma-trap-tool');
 tb?.classList.add('atisma-tool-active');
-if(tb)tb.disabled=traps>=5;
+if(tb)tb.disabled=traps>=PATLAMA_TRAP_COUNT;
 renderAtismaPieces();
 }
 async function placeAtismaPiece(index,requestedType='trap'){
@@ -2504,14 +2505,14 @@ if(!atismaSetupActive)return;
 index=Number(index);if(!Number.isInteger(index)||index<0||index>=BOARD_SIZE*BOARD_SIZE)return;
 const key=String(index),current=atismaLocalPlayerPlacements[key];
 if(current==='trap'){delete atismaLocalPlayerPlacements[key];renderLocalAtismaTools();return;}
-if(atismaLocalCount('trap')>=5){showToast('Balon hakkın kalmadı.','slate');return;}
+if(atismaLocalCount('trap')>=PATLAMA_TRAP_COUNT){showToast('Balon hakkın kalmadı.','slate');return;}
 atismaLocalPlayerPlacements[key]='trap';
 renderLocalAtismaTools();
-if(atismaLocalCount('trap')>=5){
+if(atismaLocalCount('trap')>=PATLAMA_TRAP_COUNT){
 stopAtismaSetupTimer();
 atismaSetupActive=false;
 document.getElementById('atisma-setup-notice')?.classList.add('hidden');
-showToast('5 balon yerleştirildi. İlk hamle sende!','emerald',1300);
+showToast(PATLAMA_TRAP_COUNT+' balon yerleştirildi. İlk hamle sende!','emerald',1300);
 startLocalAtismaTurn('player');
 }
 return;
@@ -2521,10 +2522,10 @@ index=Number(index);if(!Number.isInteger(index)||index<0||index>=BOARD_SIZE*BOAR
 const own=atismaOwnPlacements(),current=own?.[String(index)]||null;
 if(current==='trap'){await mpRoomRef.child('atisma/placements/'+mpRole+'/'+index).remove().catch(()=>{});return;}
 const usedCount=Object.values(own).filter(v=>v==='trap').length;
-if(usedCount>=5){showToast('Balon hakkın kalmadı.','slate');return;}
+if(usedCount>=PATLAMA_TRAP_COUNT){showToast('Balon hakkın kalmadı.','slate');return;}
 try{
 await mpRoomRef.child('atisma/placements/'+mpRole+'/'+index).set('trap');
-if(usedCount+1>=5)setAtismaPlacementWaiting(true);
+if(usedCount+1>=PATLAMA_TRAP_COUNT)setAtismaPlacementWaiting(true);
 }catch(_){}
 renderAtismaTools();
 }
@@ -3251,7 +3252,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=544-recovery',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=547-seven-traps',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -3343,7 +3344,7 @@ if(shareNative){
 if(navigator.share){
 navigator.share({
 title:isAtismaRoom()?'KAPMACA - PATLAMA':'KAPMACA - Sözcük Avı',
-text:isAtismaRoom()?'🎈 PATLAMA! 5 balonunu gizle, 10 turda rakibinin puanını kap. Bana karşı oyna!':'🔥 60 saniye. Aynı harfler. Kim daha çok sözcük bulacak? KAPMACA\'da bana karşı oyna!',
+text:isAtismaRoom()?'🎈 PATLAMA! 7 balonunu gizle, 10 turda rakibinin puanını kap. Bana karşı oyna!':'🔥 60 saniye. Aynı harfler. Kim daha çok sözcük bulacak? KAPMACA\'da bana karşı oyna!',
 url
 }).catch(()=>{});
 }else{
