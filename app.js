@@ -2145,7 +2145,20 @@ const take=()=>{let x=null;for(let tries=0;tries<80;tries++){const c=pool[Math.f
 for(let n=0;n<5;n++)atismaLocalAiPlacements[take()]='trap';
 }
 function resolveLocalAtismaNeutral(){atismaLocalNeutral={};}
-function revealLocalAtismaHit(idx,type){const cell=domCells[Number(idx)];if(!cell)return;cell.querySelectorAll('.atisma-piece-hit').forEach(x=>x.remove());const mark=document.createElement('span');mark.className='atisma-piece-hit atisma-piece-used';mark.textContent='🕸️';cell.appendChild(mark);}
+function playAtismaTrapExplosion(idx){
+const cell=domCells[Number(idx)]||document.getElementById('cell-'+Math.floor(Number(idx)/BOARD_SIZE)+'-'+(Number(idx)%BOARD_SIZE));
+if(!cell)return;
+cell.classList.remove('atisma-explode');
+void cell.offsetWidth;
+cell.classList.add('atisma-explode');
+setTimeout(()=>cell.classList.remove('atisma-explode'),720);
+const fx=document.createElement('span');
+fx.className='atisma-bomb-fx';
+fx.textContent='💥';
+cell.appendChild(fx);
+setTimeout(()=>fx.remove(),760);
+}
+function revealLocalAtismaHit(idx,type){const cell=domCells[Number(idx)];if(!cell)return;playAtismaTrapExplosion(idx);cell.querySelectorAll('.atisma-piece-hit').forEach(x=>x.remove());const mark=document.createElement('span');mark.className='atisma-piece-hit atisma-piece-used';mark.textContent='🕸️';cell.appendChild(mark);}
 function applyLocalAtismaEffects(path,placements,usedTarget){
 const trap=[];
 for(const p of path||[]){
@@ -2176,7 +2189,7 @@ function finishLocalAtisma(){stopAtismaTurnTimer();stopAtismaLocalAi();isMatchAc
 function prepareLocalAtisma(){
 stopLocalCountdown();stopAtismaTurnTimer();stopAtismaLocalAi();atismaLocalActive=true;blastModeActive=false;activeGameMode='single';botDiffLevel='medium';setLongestBonusBadges(false,false);atismaLocalTurn='player';atismaLocalPlayerTurns=0;atismaLocalAiTurns=0;atismaLocalPlayerPlacements={};atismaLocalAiPlacements={};atismaLocalNeutral={};atismaLocalUsedPlayer={};atismaLocalUsedAi={};
 document.getElementById('p1-title').textContent='OYUNCU';document.getElementById('p2-title').textContent='BİLGİN';p1Score=0;p2Score=0;resetRewardFx();updateScores();resetMatchWordResults();resetSeriesWordResults();sessionFoundWords.clear();const ticker=document.getElementById('words-ticker');if(ticker)ticker.innerHTML='';document.getElementById('screen-home').classList.add('hidden');document.getElementById('screen-game').classList.remove('hidden');setAtismaPanelVisible(true,false);
-requestAnimationFrame(()=>{try{buildGrid();chooseAtismaAiPlacements();renderLocalAtismaTools();atismaSetupActive=true;isMatchActive=false;showAtismaSetupNotice();const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents='auto';grid.style.opacity='1';grid.style.touchAction='none';}const endAt=Date.now()+30000;const tick=()=>{const left=Math.max(0,Math.ceil((endAt-Date.now())/1000));updateGameTimerUI(left);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='ATIŞMA • YERLEŞTİR: '+left;if(left<=0){stopAtismaSetupTimer();atismaSetupActive=false;document.getElementById('atisma-setup-notice')?.classList.add('hidden');resolveLocalAtismaNeutral();renderLocalAtismaTools();showToast('Yerleştirme bitti. İlk hamle sende!','emerald',1500);startLocalAtismaTurn('player');}};tick();atismaSetupTimer=setInterval(tick,250);}catch(err){console.error('Local Atisma startup failed',err);atismaLocalActive=false;showToast('ATIŞMA hazırlanamadı.','rose');document.getElementById('screen-game')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}});
+requestAnimationFrame(()=>{try{buildGrid();chooseAtismaAiPlacements();renderLocalAtismaTools();atismaSetupActive=true;isMatchActive=false;showAtismaSetupNotice();const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents='auto';grid.style.opacity='1';grid.style.touchAction='none';}const endAt=Date.now()+20000;const tick=()=>{const left=Math.max(0,Math.ceil((endAt-Date.now())/1000));updateGameTimerUI(left);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='ATIŞMA • YERLEŞTİR: '+left;if(left<=0){stopAtismaSetupTimer();atismaSetupActive=false;document.getElementById('atisma-setup-notice')?.classList.add('hidden');resolveLocalAtismaNeutral();renderLocalAtismaTools();showToast('Yerleştirme bitti. İlk hamle sende!','emerald',1500);startLocalAtismaTurn('player');}};tick();atismaSetupTimer=setInterval(tick,250);}catch(err){console.error('Local Atisma startup failed',err);atismaLocalActive=false;showToast('ATIŞMA hazırlanamadı.','rose');document.getElementById('screen-game')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}});
 }
 function isAtismaRoom(){
 return /^invite-only-atisma-/.test(String(mpRoomMode||'')); 
@@ -2252,6 +2265,7 @@ function showAtismaEffects(effects){
 if(!effects)return;
 for(const idx of effects.trap||[]){
 const cell=domCells[Number(idx)];if(!cell)continue;
+playAtismaTrapExplosion(idx);
 cell.querySelectorAll('.atisma-piece-hit').forEach(x=>x.remove());
 const mark=document.createElement('span');mark.className='atisma-piece-hit atisma-piece-used';mark.textContent='🕸️';cell.appendChild(mark);
 }
@@ -2296,7 +2310,7 @@ const grid=document.getElementById('scrabble-grid');
 if(grid){grid.style.pointerEvents='auto';grid.style.opacity='1';grid.style.touchAction='manipulation';}
 renderAtismaTools();
 stopAtismaSetupTimer();
-const endAt=Number(gs?.setupEndAt||serverNow()+30000);
+const endAt=Number(gs?.setupEndAt||serverNow()+20000);
 const tick=()=>{
 const left=Math.max(0,Math.ceil((endAt-serverNow())/1000));
 updateGameTimerUI(left);
@@ -2338,7 +2352,7 @@ await mpRoomRef.update({
 'atisma/used':null,
 'gameState/status':'setup',
 'gameState/startAt':0,
-'gameState/setupEndAt':now+30000,
+'gameState/setupEndAt':now+20000,
 'gameState/turn':'host',
 'gameState/hostTurns':0,
 'gameState/guestTurns':0,
