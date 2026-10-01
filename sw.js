@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v496-patlama-intro';
+const CACHE_NAME='kapmaca-shell-v497-patlama-hodri-fix';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=496-patlama-intro',
+  './app.js?v=497-patlama-hodri-fix',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
