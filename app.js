@@ -1554,11 +1554,38 @@ clearInterval(timerInterval);timerInterval=null;
 resetMultiplayerRoundVisualState();
 if(mpRematchExpiryTimer){clearTimeout(mpRematchExpiryTimer);mpRematchExpiryTimer=null;}
 rememberBoard(pending.board,[]);
+if(isAtismaRoom()){
+await mpRoomRef.update({
+'gameState':{
+status:'setup',
+board:pending.board,
+startAt:0,
+setupEndAt:now+23000,
+round:nextRound,
+turn:'host',
+hostTurns:0,
+guestTurns:0,
+turnStartedAt:0,
+turnDeadline:0
+},
+'scores':{host:0,guest:0},
+'words':null,
+'longestBonus':null,
+'bonusApplied':false,
+'finalWinner':null,
+'endReady':{host:false,guest:false},
+'rematch':{host:false,guest:false,expiresAt:0,round:nextRound},
+'pendingRound':null,
+'atisma/placements':{host:{},guest:{}},
+'atisma/used':null
+});
+}else{
 await mpRoomRef.update({
 'gameState':{status:'countdown',board:pending.board,startAt:now+3200,round:nextRound},
 'scores':{host:0,guest:0},'words':null,'longestBonus':null,'bonusApplied':false,'finalWinner':null,
 'endReady':{host:false,guest:false},'rematch':{host:false,guest:false,expiresAt:0,round:nextRound},'pendingRound':null
 });
+}
 }catch(e){console.error('Rematch start error',e);showToast('Yeni oyun başlatılamadı. Tekrar deneyin.','rose');}
 finally{mpRematchBusy=false;}
 }
@@ -4732,7 +4759,8 @@ clearTimeout(botInterval);botInterval=null;
 clearInterval(mpClock);mpClock=null;
 isMatchActive=false;
 document.getElementById('modal-gameover')?.classList.add('hidden');
-prepareGame();
+if(isLocalAtisma()||selectedHomeGameMode==='patlama')prepareLocalAtisma();
+else prepareGame();
 return;
 }
 const btn=document.getElementById('btn-play-again');
