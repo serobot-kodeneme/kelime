@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v501-remove-submode-line';
+const CACHE_NAME='kapmaca-shell-v502-submode-hierarchy';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=501-remove-submode-line',
+  './app.js?v=502-submode-hierarchy',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
