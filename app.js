@@ -414,6 +414,7 @@ let botDiffLevel='easy';
 let activeGameMode = null; // 'single' | 'multi' — replay akışının tek güvenilir kaynağı
 let blastModeActive=false;
 let blastTrapCells=new Set();
+let atismaTool='trap',atismaSetupTimer=null,atismaSetupActive=false;
 let selectedPath=[];
 let sessionFoundWords=new Set();
 let gridBoard=[];
@@ -1420,7 +1421,8 @@ liveGrid.style.pointerEvents='none';
 hydrateMultiplayerBoardState(d);
 try{if(mpRoomRef&&mpRole)await mpRoomRef.child('ready/'+mpRole).set(true);}catch(_){}
 }
-if(d.status==='countdown'&&d.startAt&&!mpStarted)startSyncedMatch(d);
+if(d.status==='setup')activateAtismaSetup(d);
+else if(d.status==='countdown'&&d.startAt&&!mpStarted)startSyncedMatch(d);
 else if(d.status==='playing'&&d.startAt)activateMultiplayerPlaying(d);
 }
 async function hostStartWaitingRound(){
@@ -1433,6 +1435,7 @@ mpRoomRef.child('ready').once('value')
 ]);
 const ready=readySnap.val()||{};
 if(!guestSnap.val()||!ready.host||!ready.guest)return;
+if(isAtismaRoom()){await hostStartAtismaSetup();return;}
 await mpRoomRef.child('gameState').transaction(gs=>{
 if(!gs||gs.status!=='waiting'||Number(gs.startAt||0)>0)return;
 gs.status='countdown';gs.startAt=serverNow()+3200;
@@ -1505,6 +1508,7 @@ if(!isPrivateFriendRoom())return;
 document.body.dataset.privateFriendActive='1';
 const actions=document.getElementById('gameover-actions');
 const replay=document.getElementById('btn-play-again');
+if(isAtismaRoom()&&replay){replay.classList.add('hidden');replay.style.setProperty('display','none','important');if(actions)actions.style.setProperty('grid-template-columns','1fr','important');}
 const exitBtn=document.getElementById('btn-game-exit');
 const inline=document.getElementById('rematch-inline-status');
 if(actions){actions.classList.remove('hidden');actions.style.setProperty('display','grid','important');}
@@ -1541,6 +1545,7 @@ st.classList.add('hidden');st.textContent='';
 }
 async function hostApplyLongestWordBonus(){
 if(mpRole!=='host'||!mpRoomRef)return;
+if(isAtismaRoom()){await mpRoomRef.child('bonusApplied').set(true).catch(()=>{});return;}
 const[gsSnap,bonusSnap,wordsSnap,scoresSnap]=await Promise.all([
 mpRoomRef.child('gameState').once('value'),mpRoomRef.child('bonusApplied').once('value'),mpRoomRef.child('words').once('value'),mpRoomRef.child('scores').once('value')]);
 const gs=gsSnap.val()||{};if(gs.status!=='playing'||bonusSnap.val())return;
@@ -1695,7 +1700,7 @@ return;
 mpRoomData={...(mpRoomData||{}),...gs};
 if(!['countdown','playing'].includes(String(gs.status||'')))clearOpponentDisconnectGrace();
 const roomBoardSig=Array.isArray(gs.board)?boardSignature(gs.board):'';
-const metaSig=[gs.status,Number(gs.startAt||0),Number(gs.round||1),roomBoardSig,mpRoomData.guestId||'',!!mpRoomData.guestOnline,mpRoomData.inviteGuest||'',!!mpRoomData.rematch?.host,!!mpRoomData.rematch?.guest,Number(mpRoomData.rematch?.expiresAt||0),mpRoomData.finalWinner||''].join('|');
+const metaSig=[gs.status,Number(gs.startAt||0),Number(gs.setupEndAt||0),String(gs.turn||''),Number(gs.round||1),roomBoardSig,mpRoomData.guestId||'',!!mpRoomData.guestOnline,mpRoomData.inviteGuest||'',!!mpRoomData.rematch?.host,!!mpRoomData.rematch?.guest,Number(mpRoomData.rematch?.expiresAt||0),mpRoomData.finalWinner||''].join('|');
 if(metaSig===mpLastRoomMetaSig)return;
 mpLastRoomMetaSig=metaSig;
 if(gs.status==='waiting'){
@@ -1717,6 +1722,11 @@ if(!mpEntered)await enterMultiplayerRoom();
 await hostStartWaitingRound();
 }
 }
+}
+if(gs.status==='setup'){
+setMpState('setup');document.getElementById('modal-mp-waiting')?.classList.add('hidden');
+if(!mpEntered)await enterMultiplayerRoom();
+activateAtismaSetup(gs);
 }
 if(gs.status==='countdown'){
 setMpState(MP_STATES.COUNTDOWN);document.getElementById('modal-mp-waiting')?.classList.add('hidden');
@@ -1761,6 +1771,10 @@ if(mpRoomData.status==='waiting'&&mpListener){
 mpRoomRef.child('gameState').once('value').then(mpListener);
 }
 });
+bindControl('atisma','value',snap=>{
+mpRoomData={...(mpRoomData||{}),atisma:snap.val()||{}};
+if(isAtismaRoom()){renderAtismaTools();if(mpRoomData.status==='playing')syncAtismaTurnUi(mpRoomData);}
+});
 bindControl('rematch','value',snap=>{const r=snap.val()||{};mpRoomData={...(mpRoomData||{}),rematch:r};if(mpRoomData.status==='finished'&&!isRandomHumanRoom()){const d={...mpRoomData,status:'finished'};forcePrivateResultActions();renderRematchState(d);const currentRoundRequest=Number(r.round||0)===Number(mpRoomData.round||1)&&(!!r.host||!!r.guest);if(currentRoundRequest){showImmediateRematchSync();if(mpRole==='host')hostStartRematch();}}});
 bindControl('finalWinner','value',snap=>{mpRoomData={...(mpRoomData||{}),finalWinner:snap.val()||null};if(mpRoomData.status==='finished'&&mpListener)mpRoomRef.child('gameState').once('value').then(mpListener);});
 bindControl('longestBonus','value',snap=>{mpRoomData={...(mpRoomData||{}),longestBonus:snap.val()||null};if(mpRoomData.status==='finished'&&mpListener)mpRoomRef.child('gameState').once('value').then(mpListener);});
@@ -1779,6 +1793,7 @@ mpSeenWordEvents.add(key);const w=String(ev.word||'').toLocaleUpperCase('tr-TR')
 function applyRemoteWordEvent(ev){
 if(!ev||!ev.word)return;
 const path=decodeClaimPath(ev.path);
+if(isAtismaRoom()&&ev.effects)showAtismaEffects(ev.effects);
 if(path.length)applyClaimedPath(path,ev.role==='host');
 const remoteBadge=addTickerBadge(String(ev.word).toLocaleUpperCase('tr-TR'),ev.role==='host');
 flashOpponentWord(path,ev.role==='host',remoteBadge);
@@ -1866,6 +1881,7 @@ grid.style.touchAction='none';
 const game=document.getElementById('screen-game');
 if(game)game.style.pointerEvents='auto';
 if(!timerAlreadyRunning)startMultiplayerTimer(Number(d.startAt));
+if(isAtismaRoom())syncAtismaTurnUi(d);
 }
 function getLocalMpScore(){
 if(!mpRole)return 0;
@@ -1959,6 +1975,7 @@ for(const x of mpControlListeners.splice(0)){try{x.ref.off(x.event,x.handler);}c
 }
 function resetMultiplayerClientState(){
 stopInviteWaitCountdown();
+stopAtismaSetupTimer();atismaSetupActive=false;atismaTool='trap';setAtismaPanelVisible(false,false);
 stopGrandCelebrationFx();
 stopWinnerConfettiWaterfall();
 detachMultiplayerListeners();
@@ -2028,6 +2045,232 @@ try{await oldRef.remove();}catch(_){}
 }
 resetMultiplayerClientState();
 clearInviteFromUrl();
+}
+function isAtismaRoom(){
+return /^invite-only-atisma-/.test(String(mpRoomMode||'')); 
+}
+function stopAtismaSetupTimer(){
+if(atismaSetupTimer){clearInterval(atismaSetupTimer);atismaSetupTimer=null;}
+}
+function setAtismaPanelVisible(visible,playing=false){
+const panel=document.getElementById('atisma-panel');
+panel?.classList.toggle('hidden',!visible);
+panel?.classList.toggle('atisma-playing',!!playing);
+document.getElementById('screen-game')?.classList.toggle('atisma-mode',!!visible);
+}
+function atismaOwnPlacements(){
+return mpRoomData?.atisma?.placements?.[mpRole]||{};
+}
+function atismaNeutralized(){
+return mpRoomData?.atisma?.neutralized||{};
+}
+function atismaUsed(){
+return mpRoomData?.atisma?.used||{};
+}
+function renderAtismaPieces(){
+document.querySelectorAll('.atisma-piece-own').forEach(el=>el.remove());
+if(!isAtismaRoom()||!mpRole)return;
+const own=atismaOwnPlacements(),neutral=atismaNeutralized(),used=atismaUsed()?.[mpRole]||{};
+for(const [key,type] of Object.entries(own)){
+if(neutral?.[key])continue;
+const idx=Number(key),cell=domCells[idx];
+if(!cell)continue;
+const mark=document.createElement('span');
+mark.className='atisma-piece-own'+(used?.[key]?' atisma-piece-used':'');
+mark.textContent=type==='broom'?'🧹':'🕸️';
+cell.appendChild(mark);
+}
+}
+function renderAtismaTools(){
+if(!isAtismaRoom()||!mpRole)return;
+const own=atismaOwnPlacements();
+let traps=0,brooms=0;
+Object.values(own).forEach(v=>{if(v==='trap')traps++;else if(v==='broom')brooms++;});
+const tc=document.getElementById('atisma-trap-count'),bc=document.getElementById('atisma-broom-count');
+if(tc)tc.textContent=String(Math.max(0,5-traps));
+if(bc)bc.textContent=String(Math.max(0,5-brooms));
+const tb=document.getElementById('atisma-trap-tool'),bb=document.getElementById('atisma-broom-tool');
+tb?.classList.toggle('atisma-tool-active',atismaTool==='trap');
+bb?.classList.toggle('atisma-tool-active',atismaTool==='broom');
+if(tb)tb.disabled=traps>=5&&atismaTool!=='trap';
+if(bb)bb.disabled=brooms>=5&&atismaTool!=='broom';
+renderAtismaPieces();
+}
+async function placeAtismaPiece(index){
+if(!atismaSetupActive||!isAtismaRoom()||!mpRoomRef||!mpRole)return;
+index=Number(index);
+if(!Number.isInteger(index)||index<0||index>=BOARD_SIZE*BOARD_SIZE)return;
+const own=atismaOwnPlacements();
+const current=own?.[String(index)]||null;
+if(current){
+await mpRoomRef.child('atisma/placements/'+mpRole+'/'+index).remove().catch(()=>{});
+return;
+}
+const usedCount=Object.values(own).filter(v=>v===atismaTool).length;
+if(usedCount>=5){showToast(atismaTool==='trap'?'Örümcek ağın kalmadı.':'Süpürgen kalmadı.','slate');return;}
+await mpRoomRef.child('atisma/placements/'+mpRole+'/'+index).set(atismaTool).catch(()=>{});
+}
+function showAtismaEffects(effects){
+if(!effects)return;
+const all=[...(effects.trap||[]).map(i=>[i,'🕸️']),...(effects.broom||[]).map(i=>[i,'🧹'])];
+for(const [idx,emoji] of all){
+const cell=domCells[Number(idx)];if(!cell)continue;
+cell.querySelectorAll('.atisma-piece-hit').forEach(x=>x.remove());
+const mark=document.createElement('span');mark.className='atisma-piece-hit atisma-piece-used';mark.textContent=emoji;cell.appendChild(mark);
+}
+}
+function syncAtismaTurnUi(gs=mpRoomData){
+if(!isAtismaRoom()||!mpRole)return;
+const turn=String(gs?.turn||'host');
+const mine=turn===mpRole;
+setAtismaPanelVisible(true,true);
+const status=document.getElementById('atisma-phase-status');
+if(status)status.textContent=mine?'🎯 SIRA SENDE':'⏳ RAKİBİN HAMLESİ';
+const grid=document.getElementById('scrabble-grid');
+if(grid){grid.style.pointerEvents=mine?'auto':'none';grid.style.opacity=mine?'1':'.78';}
+}
+function activateAtismaSetup(gs){
+if(!isAtismaRoom()||!mpRole)return;
+atismaSetupActive=true;isMatchActive=false;
+setAtismaPanelVisible(true,false);
+const grid=document.getElementById('scrabble-grid');
+if(grid){grid.style.pointerEvents='auto';grid.style.opacity='1';grid.style.touchAction='manipulation';}
+renderAtismaTools();
+stopAtismaSetupTimer();
+const endAt=Number(gs?.setupEndAt||serverNow()+10000);
+const tick=()=>{
+const left=Math.max(0,Math.ceil((endAt-serverNow())/1000));
+updateGameTimerUI(left);
+const status=document.getElementById('atisma-phase-status');
+if(status)status.textContent=`ATIŞMA • YERLEŞTİR: ${left}`;
+if(left<=0){
+stopAtismaSetupTimer();atismaSetupActive=false;
+if(grid)grid.style.pointerEvents='none';
+if(mpRole==='host')hostFinishAtismaSetup().catch(()=>{});
+}
+};
+tick();atismaSetupTimer=setInterval(tick,250);
+}
+async function hostFinishAtismaSetup(){
+if(mpRole!=='host'||!mpRoomRef||!isAtismaRoom())return;
+const [gsSnap,atSnap]=await Promise.all([mpRoomRef.child('gameState').once('value'),mpRoomRef.child('atisma').once('value')]);
+const gs=gsSnap.val()||{};if(gs.status!=='setup')return;
+const data=atSnap.val()||{},hp=data.placements?.host||{},gp=data.placements?.guest||{};
+const neutral={};
+for(let i=0;i<BOARD_SIZE*BOARD_SIZE;i++){
+const a=hp[i],b=gp[i];
+if(a&&b&&a!==b)neutral[i]=true;
+}
+await mpRoomRef.update({
+'atisma/neutralized':Object.keys(neutral).length?neutral:null,
+'atisma/used':null,
+'gameState/status':'playing',
+'gameState/startAt':serverNow(),
+'gameState/turn':'host'
+});
+}
+async function hostStartAtismaSetup(){
+if(mpRole!=='host'||!mpRoomRef||!isAtismaRoom())return;
+const now=serverNow();
+await mpRoomRef.update({
+'atisma/placements':{host:{},guest:{}},
+'atisma/neutralized':null,
+'atisma/used':null,
+'gameState/status':'setup',
+'gameState/startAt':0,
+'gameState/setupEndAt':now+10000,
+'gameState/turn':'host'
+});
+}
+async function atismaPassTurn(){
+if(!isAtismaRoom()||!mpRoomRef||!mpRole)return;
+const next=mpRole==='host'?'guest':'host';
+await mpRoomRef.child('gameState/turn').transaction(cur=>cur===mpRole?next:cur).catch(()=>{});
+}
+async function atismaPenaltyAndPass(word,delta=-3){
+if(!isAtismaRoom()||!mpRoomRef||!mpRole)return false;
+const gs=(await mpRoomRef.child('gameState').once('value')).val()||{};
+if(gs.status!=='playing'||gs.turn!==mpRole){showToast('Sıra rakibinde.','slate');return true;}
+await mpRoomRef.child('scores/'+mpRole).transaction(v=>Number(v||0)+Number(delta||0)).catch(()=>{});
+await atismaPassTurn();
+return true;
+}
+async function submitAtismaWord(word,pts,isP1,scoreFxOrigin){
+if(!isAtismaRoom()||!mpRoomRef||!mpRole)return false;
+const gs=(await mpRoomRef.child('gameState').once('value')).val()||{};
+if(gs.status!=='playing'||gs.turn!==mpRole){showToast('Sıra rakibinde.','slate');return true;}
+const normalizedWord=word.toLocaleUpperCase('tr-TR');
+const wordKey=encodeURIComponent(normalizedWord).replace(/\./g,'%2E');
+const [atSnap]=await Promise.all([mpRoomRef.child('atisma').once('value')]);
+const data=atSnap.val()||{},opponent=mpRole==='host'?'guest':'host';
+const opp=data.placements?.[opponent]||{},neutral=data.neutralized||{},used=data.used?.[opponent]||{};
+const pathIds=selectedPath.map(p=>p.r*BOARD_SIZE+p.c);
+const trapHits=[],broomHits=[];
+for(const idx of pathIds){
+const key=String(idx);if(neutral[key]||used[key])continue;
+if(opp[key]==='trap')trapHits.push(idx);
+else if(opp[key]==='broom')broomHits.push(idx);
+}
+const delta=(trapHits.length?-pts:pts)+(broomHits.length*20);
+const claimRef=mpRoomRef.child('words').child(wordKey);
+const tx=await claimRef.transaction(current=>{
+if(current!==null)return;
+return{
+word:normalizedWord,role:mpRole,pts:delta,basePts:pts,
+round:Number(mpRoomData?.round||1),path:encodeClaimPath(selectedPath),
+last:selectedPath.length?{r:selectedPath[selectedPath.length-1].r,c:selectedPath[selectedPath.length-1].c}:null,
+effects:{trap:trapHits,broom:broomHits},at:firebase.database.ServerValue.TIMESTAMP
+};
+},undefined,false);
+if(!tx.committed){
+showToast(`${word}(DAHA ÖNCE BULUNDU)`,'rose',1500);
+await atismaPassTurn();
+return true;
+}
+await mpRoomRef.child('scores/'+mpRole).transaction(v=>Number(v||0)+delta);
+const updates={};
+for(const idx of [...trapHits,...broomHits])updates['atisma/used/'+opponent+'/'+idx]=true;
+updates['gameState/turn']=opponent;
+await mpRoomRef.update(updates);
+showAtismaEffects({trap:trapHits,broom:broomHits});
+selectedPath.forEach(p=>p.el.classList.add(isP1?'tile-claimed-p1':'tile-claimed-p2'));
+addTickerBadge(word,isP1);
+flyScore(delta,isP1,scoreFxOrigin);
+if(trapHits.length){playErrorBuzzer();flashWordFeedback(false);breakCombo(isP1);}else{playCorrectChime();flashWordFeedback(true);rewardWordFx(isP1);playWordConfetti(word.length);}
+let detail=trapHits.length?`🕸️ ${word}(-${pts})`:`${word}(+${pts})`;
+if(broomHits.length)detail+=`  🧹 +${broomHits.length*20}`;
+showToast(detail,delta<0?'rose':(isP1?'amber':'sky'),1900);
+return true;
+}
+async function createAtismaRoom(){
+if(privateRoomCreateBusy)return false;
+privateRoomCreateBusy=true;
+try{
+setPrivateRoomProgress('ATIŞMA HAZIRLANIYOR…');
+if(!await waitFirebaseConnected(8000)){showToast('Sunucuya bağlanılamadı.','rose');return false;}
+await ensureWordDataLoaded();
+const readyBoard=prewarmedBoard||generateOptimizedBoard(3);prewarmedBoard=null;rememberBoard(readyBoard.board,readyBoard.words);
+const created=await createCleanRoomRecord({schema:22,mode:'invite-only-atisma-v1',hostId:getClientToken(),board:readyBoard.board,inviteGuest:'pending'});
+mpRoomCode=created.code;mpRole='host';mpRoomRef=created.ref;mpRoomMode='invite-only-atisma-v1';mpRandomMatchSession=false;
+delete document.body.dataset.randomMatchActive;document.body.dataset.privateFriendActive='1';
+mpRoomData=null;mpEntered=false;mpStarted=false;mpSessionJoinedAt=serverNow();mpExitHandling=false;mpLastExitSignalId='';
+await created.ref.child('atisma').set({placements:{host:{},guest:{}},neutralized:null,used:null});
+setRoomUrl(mpRoomCode);await markPresence();setMpPanelRoom(mpRoomCode);document.getElementById('btn-close-room')?.classList.remove('hidden');setMpState(MP_STATES.WAITING);attachRoomListener();
+return true;
+}catch(err){console.error('Atisma room create error',err);showToast('ATIŞMA odası açılamadı.','rose');return false;}
+finally{privateRoomCreateBusy=false;}
+}
+async function openFreshAtismaRoom(){
+if(randomSearchActive)await cleanupRandomQueue(true);
+await discardCurrentPrivateRoom();
+setDifficultyOpen(false);
+document.getElementById('friend-invite-panel')?.classList.remove('hidden');
+document.getElementById('mp-create-view')?.classList.add('hidden');
+document.getElementById('mp-room-view')?.classList.remove('hidden');
+document.getElementById('btn-close-room')?.classList.remove('hidden');
+setPrivateInviteControlsReady(false);
+const ok=await createAtismaRoom();
+if(ok){setPrivateInviteControlsReady(true,mpRoomCode);showToast('ATIŞMA deneme odası hazır. Bağlantıyı gönder.','emerald',1800);}
 }
 async function openFreshPrivateRoom(){
 if(randomSearchActive)await cleanupRandomQueue(true);
@@ -2440,13 +2683,8 @@ navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});
 },{once:true});
 }
 document.getElementById('btn-blast-test')?.addEventListener('click',async()=>{
-try{
-await ensureWordDataLoaded();
-prepareBlastGame();
-}catch(err){
-console.error('Blast test startup failed',err);
-showToast('PATLAMA hazırlanamadı. Tekrar deneyin.','rose');
-}
+try{await openFreshAtismaRoom();}
+catch(err){console.error('Atisma test startup failed',err);showToast('ATIŞMA hazırlanamadı. Tekrar deneyin.','rose');}
 });
 document.getElementById('btn-solo-mode').onclick=()=>{
 document.getElementById('friend-invite-panel').classList.add('hidden');
@@ -2520,6 +2758,14 @@ document.getElementById('modal-mp-waiting')?.classList.add('hidden');
 returnToHomeFromMultiplayer();
 }
 };
+document.getElementById('atisma-trap-tool')?.addEventListener('click',()=>{atismaTool='trap';renderAtismaTools();});
+document.getElementById('atisma-broom-tool')?.addEventListener('click',()=>{atismaTool='broom';renderAtismaTools();});
+document.getElementById('scrabble-grid')?.addEventListener('click',e=>{
+if(!atismaSetupActive||!isAtismaRoom())return;
+const cell=e.target?.closest?.('.letter-cell');if(!cell)return;
+const id=String(cell.id||'');const m=id.match(/^cell-(\d+)-(\d+)$/);if(!m)return;
+e.preventDefault();e.stopPropagation();placeAtismaPiece(Number(m[1])*BOARD_SIZE+Number(m[2]));
+},true);
 document.getElementById('btn-fullscreen-home')?.addEventListener('click',toggleGameFullscreen);
 document.getElementById('btn-fullscreen-game')?.addEventListener('click',toggleGameFullscreen);
 window.addEventListener('DOMContentLoaded',async()=>{
@@ -2833,7 +3079,7 @@ setMasterSoundVolume(masterSoundVolume);
 updateFullscreenUi();
 function prepareGame(){
 stopLocalCountdown();
-blastModeActive=false;blastTrapCells.clear();document.getElementById('screen-game')?.classList.remove('blast-test-mode');
+blastModeActive=false;blastTrapCells.clear();stopAtismaSetupTimer();atismaSetupActive=false;setAtismaPanelVisible(false,false);document.getElementById('screen-game')?.classList.remove('blast-test-mode');
 activeGameMode='single';setLongestBonusBadges(false,false);
 document.getElementById('p1-title').textContent='OYUNCU';
 document.getElementById('p2-title').textContent=getBotDisplayName();
@@ -3581,6 +3827,7 @@ playErrorBuzzer();
 flashWordFeedback(false);
 breakCombo(isP1);
 showToast(`${word} (-3) ARGO/KÜFÜR`, 'rose');
+if(isAtismaRoom()&&mpRole){await atismaPenaltyAndPass(word,-3);clearPath();return;}
 adjustScore(isP1?-3:0,!isP1?-3:0);
 clearPath();
 return;
@@ -3590,7 +3837,13 @@ playErrorBuzzer();
 flashWordFeedback(false);
 breakCombo(isP1);
 showToast(`${word}(-3)Geçersiz!`,'rose');
+if(isAtismaRoom()&&mpRole){await atismaPenaltyAndPass(word,-3);clearPath();return;}
 adjustScore(isP1?-3:0,!isP1?-3:0);
+clearPath();
+return;
+}
+if(isAtismaRoom()&&mpRole){
+await submitAtismaWord(word,pts,isP1,scoreFxOrigin);
 clearPath();
 return;
 }
