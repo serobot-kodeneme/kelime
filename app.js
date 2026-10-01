@@ -410,6 +410,7 @@ let activeGameMode = null; // 'single' | 'multi' — replay akışının tek gü
 let selectedHomeGameMode=null; // 'kapisma' | 'patlama'
 let randomMatchGameMode='kapisma';
 let atismaTool='trap',atismaSetupTimer=null,atismaTurnTimer=null,atismaSetupActive=false,atismaTimeoutBusy=false;
+let atismaLastTurnNoticeKey='',atismaTurnNoticeTimer=null;
 let atismaDragType='',atismaDragGhost=null,atismaDragHoverCell=null;
 let atismaLocalActive=false,atismaLocalTurn='player',atismaLocalPlayerTurns=0,atismaLocalAiTurns=0,atismaLocalAiTimer=null;
 let atismaLocalPlayerPlacements={},atismaLocalAiPlacements={},atismaLocalUsedPlayer={},atismaLocalUsedAi={};
@@ -2145,7 +2146,7 @@ for(const x of mpControlListeners.splice(0)){try{x.ref.off(x.event,x.handler);}c
 }
 function resetMultiplayerClientState(){
 stopInviteWaitCountdown();
-stopAtismaSetupTimer();stopAtismaTurnTimer();clearAtismaDrag();atismaSetupActive=false;atismaTimeoutBusy=false;atismaTool='trap';setPatlamaActivePlayer(null);document.getElementById('atisma-setup-notice')?.classList.add('hidden');setAtismaPanelVisible(false,false);
+stopAtismaSetupTimer();stopAtismaTurnTimer();clearAtismaDrag();atismaSetupActive=false;atismaTimeoutBusy=false;atismaTool='trap';atismaLastTurnNoticeKey='';if(atismaTurnNoticeTimer){clearTimeout(atismaTurnNoticeTimer);atismaTurnNoticeTimer=null;}document.getElementById('atisma-your-turn-notice')?.remove();setPatlamaActivePlayer(null);document.getElementById('atisma-setup-notice')?.classList.add('hidden');setAtismaPanelVisible(false,false);
 stopGrandCelebrationFx();
 stopWinnerConfettiWaterfall();
 detachMultiplayerListeners();
@@ -2490,11 +2491,45 @@ cell.querySelectorAll('.atisma-piece-hit').forEach(x=>x.remove());
 const mark=document.createElement('span');mark.className='atisma-piece-hit atisma-piece-used';mark.textContent='🎈';cell.appendChild(mark);
 }
 }
+function showAtismaYourTurnNotice(gs){
+if(!isAtismaRoom()||!mpRole||String(gs?.status||'')!=='playing'||String(gs?.turn||'')!==mpRole)return;
+const key=[Number(gs?.round||1),String(gs?.turn||''),Number(gs?.hostTurns||0),Number(gs?.guestTurns||0),Number(gs?.turnStartedAt||0)].join('|');
+if(key===atismaLastTurnNoticeKey)return;
+atismaLastTurnNoticeKey=key;
+let el=document.getElementById('atisma-your-turn-notice');
+if(!el){
+el=document.createElement('div');
+el.id='atisma-your-turn-notice';
+el.textContent='Sıra Sizde...';
+el.setAttribute('aria-hidden','true');
+el.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:118;pointer-events:none!important;touch-action:none!important;color:#dc2626;font-family:Quicksand,sans-serif;font-size:clamp(28px,7vw,48px);line-height:1;font-weight:1000;letter-spacing:.015em;text-shadow:0 2px 0 rgba(255,255,255,.95),0 4px 12px rgba(15,23,42,.18);opacity:0;transition:opacity .12s ease,transform .12s ease;white-space:nowrap;';
+document.getElementById('screen-game')?.appendChild(el);
+}
+clearTimeout(atismaTurnNoticeTimer);
+el.textContent='Sıra Sizde...';
+el.style.display='block';
+el.style.opacity='1';
+el.style.transform='translate(-50%,-50%) scale(1.04)';
+requestAnimationFrame(()=>{el.style.transform='translate(-50%,-50%) scale(1)';});
+atismaTurnNoticeTimer=setTimeout(()=>{
+el.style.opacity='0';
+el.style.transform='translate(-50%,-50%) scale(.98)';
+setTimeout(()=>{if(el.style.opacity==='0')el.style.display='none';},140);
+},1000);
+}
 function syncAtismaTurnUi(gs=mpRoomData){
 if(!isAtismaRoom()||!mpRole)return;
+/* v517: setup erken biterse eski yerleştirme kilidi oyunu bloke etmesin */
+stopAtismaSetupTimer();
+atismaSetupActive=false;
+clearAtismaDrag();
+document.getElementById('atisma-setup-notice')?.classList.add('hidden');
+document.getElementById('screen-game')?.classList.remove('atisma-setup-intro-active','atisma-placement-waiting-active');
 setAtismaPlacementWaiting(false);
 const turn=String(gs?.turn||'host');
 const mine=turn===mpRole;
+isMatchActive=mine;
+showAtismaYourTurnNotice(gs);
 const used=Number(turn==='host'?gs?.hostTurns:gs?.guestTurns)||0;
 const turnNo=Math.min(10,used+1);
 renderPatlamaTurnDots(Number(gs?.hostTurns||0),Number(gs?.guestTurns||0));
