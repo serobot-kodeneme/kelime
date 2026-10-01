@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v502-submode-hierarchy';
+const CACHE_NAME='kapmaca-shell-v503-patlama-instruction';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=502-submode-hierarchy',
+  './app.js?v=503-patlama-instruction',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
