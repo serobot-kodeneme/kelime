@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v503-patlama-instruction';
+const CACHE_NAME='kapmaca-shell-v504-footer-pills';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=503-patlama-instruction',
+  './app.js?v=504-footer-pills',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
