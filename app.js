@@ -414,7 +414,7 @@ let botDiffLevel='easy';
 let activeGameMode = null; // 'single' | 'multi' — replay akışının tek güvenilir kaynağı
 let blastModeActive=false;
 let blastTrapCells=new Set();
-let atismaTool='trap',atismaSetupTimer=null,atismaSetupActive=false;
+let atismaTool='trap',atismaSetupTimer=null,atismaTurnTimer=null,atismaSetupActive=false,atismaTimeoutBusy=false;
 let selectedPath=[];
 let sessionFoundWords=new Set();
 let gridBoard=[];
@@ -1700,7 +1700,7 @@ return;
 mpRoomData={...(mpRoomData||{}),...gs};
 if(!['countdown','playing'].includes(String(gs.status||'')))clearOpponentDisconnectGrace();
 const roomBoardSig=Array.isArray(gs.board)?boardSignature(gs.board):'';
-const metaSig=[gs.status,Number(gs.startAt||0),Number(gs.setupEndAt||0),String(gs.turn||''),Number(gs.round||1),roomBoardSig,mpRoomData.guestId||'',!!mpRoomData.guestOnline,mpRoomData.inviteGuest||'',!!mpRoomData.rematch?.host,!!mpRoomData.rematch?.guest,Number(mpRoomData.rematch?.expiresAt||0),mpRoomData.finalWinner||''].join('|');
+const metaSig=[gs.status,Number(gs.startAt||0),Number(gs.setupEndAt||0),String(gs.turn||''),Number(gs.turnDeadline||0),Number(gs.hostTurns||0),Number(gs.guestTurns||0),Number(gs.round||1),roomBoardSig,mpRoomData.guestId||'',!!mpRoomData.guestOnline,mpRoomData.inviteGuest||'',!!mpRoomData.rematch?.host,!!mpRoomData.rematch?.guest,Number(mpRoomData.rematch?.expiresAt||0),mpRoomData.finalWinner||''].join('|');
 if(metaSig===mpLastRoomMetaSig)return;
 mpLastRoomMetaSig=metaSig;
 if(gs.status==='waiting'){
@@ -1743,6 +1743,12 @@ if(!mpEntered)await enterMultiplayerRoom();
 if(gs.startAt&&!mpStarted)startSyncedMatch(gs);
 }
 if(gs.status==='playing'){if(!mpEntered)await enterMultiplayerRoom();activateMultiplayerPlaying(gs);}
+if(gs.status==='resolving'){
+isMatchActive=false;stopAtismaTurnTimer();
+const grid=document.getElementById('scrabble-grid');if(grid)grid.style.pointerEvents='none';
+const status=document.getElementById('atisma-phase-status');if(status)status.textContent='SONUÇ HESAPLANIYOR…';
+if(mpRole==='host')hostFinalizeAtisma().catch(()=>{});
+}
 if(gs.status==='finished'){
 setMpState(MP_STATES.FINISHED);document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
 const d={...(mpRoomData||{}),...gs};
@@ -1880,8 +1886,10 @@ grid.style.touchAction='none';
 }
 const game=document.getElementById('screen-game');
 if(game)game.style.pointerEvents='auto';
-if(!timerAlreadyRunning)startMultiplayerTimer(Number(d.startAt));
-if(isAtismaRoom())syncAtismaTurnUi(d);
+if(isAtismaRoom()){
+clearInterval(timerInterval);timerInterval=null;
+syncAtismaTurnUi(d);
+}else if(!timerAlreadyRunning)startMultiplayerTimer(Number(d.startAt));
 }
 function getLocalMpScore(){
 if(!mpRole)return 0;
@@ -1975,7 +1983,7 @@ for(const x of mpControlListeners.splice(0)){try{x.ref.off(x.event,x.handler);}c
 }
 function resetMultiplayerClientState(){
 stopInviteWaitCountdown();
-stopAtismaSetupTimer();atismaSetupActive=false;atismaTool='trap';setAtismaPanelVisible(false,false);
+stopAtismaSetupTimer();stopAtismaTurnTimer();atismaSetupActive=false;atismaTimeoutBusy=false;atismaTool='trap';setAtismaPanelVisible(false,false);
 stopGrandCelebrationFx();
 stopWinnerConfettiWaterfall();
 detachMultiplayerListeners();
@@ -2052,6 +2060,9 @@ return /^invite-only-atisma-/.test(String(mpRoomMode||''));
 function stopAtismaSetupTimer(){
 if(atismaSetupTimer){clearInterval(atismaSetupTimer);atismaSetupTimer=null;}
 }
+function stopAtismaTurnTimer(){
+if(atismaTurnTimer){clearInterval(atismaTurnTimer);atismaTurnTimer=null;}
+}
 function setAtismaPanelVisible(visible,playing=false){
 const panel=document.getElementById('atisma-panel');
 panel?.classList.toggle('hidden',!visible);
@@ -2123,11 +2134,31 @@ function syncAtismaTurnUi(gs=mpRoomData){
 if(!isAtismaRoom()||!mpRole)return;
 const turn=String(gs?.turn||'host');
 const mine=turn===mpRole;
+const used=Number(turn==='host'?gs?.hostTurns:gs?.guestTurns)||0;
+const turnNo=Math.min(10,used+1);
 setAtismaPanelVisible(true,true);
 const status=document.getElementById('atisma-phase-status');
-if(status)status.textContent=mine?'🎯 SIRA SENDE':'⏳ RAKİBİN HAMLESİ';
+if(status)status.textContent=mine?`🎯 SIRA SENDE • ${turnNo}/10`:`⏳ RAKİBİN HAMLESİ • ${turnNo}/10`;
 const grid=document.getElementById('scrabble-grid');
 if(grid){grid.style.pointerEvents=mine?'auto':'none';grid.style.opacity=mine?'1':'.78';}
+stopAtismaTurnTimer();
+const deadline=Number(gs?.turnDeadline||0);
+const tick=async()=>{
+if(!isAtismaRoom()||!mpRoomRef||String(mpRoomData?.status||gs?.status)!=='playing'){stopAtismaTurnTimer();return;}
+const left=Math.max(0,Math.ceil((deadline-serverNow())/1000));
+updateGameTimerUI(left);
+if(left<=0&&mpRole==='host'&&!atismaTimeoutBusy){
+atismaTimeoutBusy=true;
+try{
+const currentTurn=String((await mpRoomRef.child('gameState/turn').once('value')).val()||'');
+if(currentTurn===turn){
+showToast('Süre doldu — sıra değişti.','slate',1200);
+await atismaCompleteTurn(turn);
+}
+}finally{atismaTimeoutBusy=false;}
+}
+};
+tick();atismaTurnTimer=setInterval(tick,250);
 }
 function activateAtismaSetup(gs){
 if(!isAtismaRoom()||!mpRole)return;
@@ -2161,12 +2192,17 @@ for(let i=0;i<BOARD_SIZE*BOARD_SIZE;i++){
 const a=hp[i],b=gp[i];
 if(a&&b&&a!==b)neutral[i]=true;
 }
+const playAt=serverNow();
 await mpRoomRef.update({
 'atisma/neutralized':Object.keys(neutral).length?neutral:null,
 'atisma/used':null,
 'gameState/status':'playing',
-'gameState/startAt':serverNow(),
-'gameState/turn':'host'
+'gameState/startAt':playAt,
+'gameState/turn':'host',
+'gameState/hostTurns':0,
+'gameState/guestTurns':0,
+'gameState/turnStartedAt':playAt,
+'gameState/turnDeadline':playAt+10000
 });
 }
 async function hostStartAtismaSetup(){
@@ -2179,13 +2215,48 @@ await mpRoomRef.update({
 'gameState/status':'setup',
 'gameState/startAt':0,
 'gameState/setupEndAt':now+10000,
-'gameState/turn':'host'
+'gameState/turn':'host',
+'gameState/hostTurns':0,
+'gameState/guestTurns':0,
+'gameState/turnStartedAt':0,
+'gameState/turnDeadline':0
 });
 }
+async function atismaCompleteTurn(expectedRole=mpRole){
+if(!isAtismaRoom()||!mpRoomRef||!expectedRole)return false;
+const now=serverNow();
+const tx=await mpRoomRef.child('gameState').transaction(gs=>{
+if(!gs||gs.status!=='playing'||gs.turn!==expectedRole)return;
+let hostTurns=Number(gs.hostTurns||0),guestTurns=Number(gs.guestTurns||0);
+if(expectedRole==='host')hostTurns=Math.min(10,hostTurns+1);
+else guestTurns=Math.min(10,guestTurns+1);
+gs.hostTurns=hostTurns;gs.guestTurns=guestTurns;
+if(hostTurns>=10&&guestTurns>=10){
+gs.status='resolving';gs.startAt=0;gs.turnDeadline=0;gs.turnStartedAt=0;
+return gs;
+}
+const next=expectedRole==='host'?'guest':'host';
+gs.turn=next;gs.turnStartedAt=now;gs.turnDeadline=now+10000;
+return gs;
+},undefined,false).catch(()=>null);
+return !!tx?.committed;
+}
 async function atismaPassTurn(){
-if(!isAtismaRoom()||!mpRoomRef||!mpRole)return;
-const next=mpRole==='host'?'guest':'host';
-await mpRoomRef.child('gameState/turn').transaction(cur=>cur===mpRole?next:cur).catch(()=>{});
+return atismaCompleteTurn(mpRole);
+}
+async function hostFinalizeAtisma(){
+if(mpRole!=='host'||!mpRoomRef||!isAtismaRoom())return;
+const [gsSnap,scoreSnap]=await Promise.all([mpRoomRef.child('gameState').once('value'),mpRoomRef.child('scores').once('value')]);
+const gs=gsSnap.val()||{};if(gs.status!=='resolving')return;
+const sc=scoreSnap.val()||{host:0,guest:0},hs=Number(sc.host||0),guestScore=Number(sc.guest||0);
+await mpRoomRef.update({
+'finalWinner':hs===guestScore?'tie':(hs>guestScore?'host':'guest'),
+'gameState/status':'finished',
+'gameState/startAt':0,
+'gameState/turnDeadline':0,
+'rematch':{host:false,guest:false,expiresAt:0,round:Number(gs.round||1)},
+'pendingRound':null
+});
 }
 async function atismaPenaltyAndPass(word,delta=-3){
 if(!isAtismaRoom()||!mpRoomRef||!mpRole)return false;
@@ -2230,8 +2301,8 @@ return true;
 await mpRoomRef.child('scores/'+mpRole).transaction(v=>Number(v||0)+delta);
 const updates={};
 for(const idx of [...trapHits,...broomHits])updates['atisma/used/'+opponent+'/'+idx]=true;
-updates['gameState/turn']=opponent;
-await mpRoomRef.update(updates);
+if(Object.keys(updates).length)await mpRoomRef.update(updates);
+await atismaCompleteTurn(mpRole);
 showAtismaEffects({trap:trapHits,broom:broomHits});
 selectedPath.forEach(p=>p.el.classList.add(isP1?'tile-claimed-p1':'tile-claimed-p2'));
 addTickerBadge(word,isP1);
@@ -3079,7 +3150,7 @@ setMasterSoundVolume(masterSoundVolume);
 updateFullscreenUi();
 function prepareGame(){
 stopLocalCountdown();
-blastModeActive=false;blastTrapCells.clear();stopAtismaSetupTimer();atismaSetupActive=false;setAtismaPanelVisible(false,false);document.getElementById('screen-game')?.classList.remove('blast-test-mode');
+blastModeActive=false;blastTrapCells.clear();stopAtismaSetupTimer();stopAtismaTurnTimer();atismaSetupActive=false;atismaTimeoutBusy=false;setAtismaPanelVisible(false,false);document.getElementById('screen-game')?.classList.remove('blast-test-mode');
 activeGameMode='single';setLongestBonusBadges(false,false);
 document.getElementById('p1-title').textContent='OYUNCU';
 document.getElementById('p2-title').textContent=getBotDisplayName();
