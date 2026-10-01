@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v512-patlama-audio';
+const CACHE_NAME='kapmaca-shell-v513-solo-patlama-ready';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=512-patlama-audio',
+  './app.js?v=513-solo-patlama-ready',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
