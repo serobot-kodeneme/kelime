@@ -472,19 +472,42 @@ return(table[vibrationLevel]||table.medium)[kind]||0;
 function deviceSupportsVibration(){
 return typeof navigator!=='undefined'&&typeof navigator.vibrate==='function';
 }
+function visualGameHaptic(kind='tap'){
+if(vibrationLevel==='off'||document.hidden)return false;
+const game=document.getElementById('screen-game');
+const settings=document.getElementById('vibration-control');
+const target=game&&!game.classList.contains('hidden')?game:settings;
+if(!target||typeof target.animate!=='function')return false;
+const ampTable={low:.45,medium:.9,high:1.65};
+const amp=ampTable[vibrationLevel]||ampTable.medium;
+const mult={tap:.55,success:1.0,error:1.25,blast:1.55,finish:1.15}[kind]||.7;
+const x=amp*mult;
+const duration={tap:85,success:125,error:165,blast:190,finish:145}[kind]||100;
+try{
+if(target.__kapmacaHapticAnimation)target.__kapmacaHapticAnimation.cancel();
+target.__kapmacaHapticAnimation=target.animate(
+[{transform:'translate3d(0,0,0)'},{transform:`translate3d(${x}px,0,0)`},{transform:`translate3d(-${x}px,0,0)`},{transform:'translate3d(0,0,0)'}],
+{duration,easing:'ease-out'}
+);
+return true;
+}catch(_){return false;}
+}
 function vibrateGame(kind='tap'){
 const pattern=vibrationPattern(kind);
-if(!pattern||!deviceSupportsVibration()||document.hidden)return false;
-try{return navigator.vibrate(pattern)!==false;}catch(_){return false;}
+if(!pattern||document.hidden)return false;
+if(deviceSupportsVibration()){
+try{return navigator.vibrate(pattern)!==false;}catch(_){}
+}
+return visualGameHaptic(kind);
 }
 function renderVibrationControls(){
 document.querySelectorAll('.vibration-choice').forEach(btn=>btn.classList.toggle('selected',btn.dataset.vibration===vibrationLevel));
 const status=document.getElementById('vibration-support-status');
 if(status){
 status.textContent=deviceSupportsVibration()
-?'Oyun içinde harf seçimi, doğru/yanlış sözcük ve patlamada uygulanır.'
-:'Bu cihaz/tarayıcı titreşim özelliğini desteklemiyor.';
-status.className='mt-2 text-center text-[10px] font-bold '+(deviceSupportsVibration()?'text-emerald-700':'text-orange-700');
+?'Oyun içinde harf seçimi, doğru/yanlış sözcük ve patlamada fiziksel titreşim uygulanır.'
+:'Fiziksel titreşim desteklenmiyor; oyun içinde görsel titreme uygulanır.';
+status.className='mt-2 text-center text-[10px] font-bold '+(deviceSupportsVibration()?'text-emerald-700':'text-violet-700');
 }
 }
 function setVibrationLevel(level,{preview=true}={}){
