@@ -2934,6 +2934,10 @@ document.getElementById('friend-invite-panel')?.classList.add('hidden');
 document.getElementById('mp-create-view')?.classList.remove('hidden');
 document.getElementById('mp-room-view')?.classList.add('hidden');
 }
+function parkHomeGameSubmodes(){
+const picker=document.getElementById('home-game-mode-picker');
+if(picker&&homeGameSubmodes&&homeGameSubmodes.parentElement===picker)picker.after(homeGameSubmodes);
+}
 function selectHomeGameMode(mode){
 const normalized=mode==='patlama'?'patlama':'kapisma';
 const sameOpen=selectedHomeGameMode===normalized&&!homeGameSubmodes?.classList.contains('hidden');
@@ -2943,9 +2947,12 @@ homeGameSubmodes?.classList.add('hidden');
 kapismaModeBtn?.classList.remove('selected');
 patlamaModeBtn?.classList.remove('selected');
 closeHomeGameChildren();
+parkHomeGameSubmodes();
 return;
 }
 selectedHomeGameMode=normalized;
+const selectedBtn=normalized==='patlama'?patlamaModeBtn:kapismaModeBtn;
+selectedBtn?.after(homeGameSubmodes);
 homeGameSubmodes?.classList.remove('hidden');
 kapismaModeBtn?.classList.toggle('selected',normalized==='kapisma');
 patlamaModeBtn?.classList.toggle('selected',normalized==='patlama');
