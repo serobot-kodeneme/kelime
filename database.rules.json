@@ -59,6 +59,13 @@
         ".indexOn": [
           "enteredAt"
         ]
+      },
+      "randomPoolPatlama": {
+        ".read": true,
+        ".write": true,
+        ".indexOn": [
+          "enteredAt"
+        ]
       }
     },
     "users": {
