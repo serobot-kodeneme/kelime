@@ -3565,7 +3565,7 @@ if(!patlama)startHowtoDemo(); else stopHowtoDemo();
 document.getElementById('btn-howto-kapisma')?.addEventListener('click',()=>setHowtoMode('kapisma'));
 document.getElementById('btn-howto-patlama')?.addEventListener('click',()=>setHowtoMode('patlama'));
 document.addEventListener('click',(event)=>{
-const target=event.target?.closest?.('#btn-account-home,#btn-close-account,#btn-settings,#btn-settings-back,#btn-howto,#btn-howto-back,#btn-about,#btn-about-back,#btn-open-dictionary,#btn-recommend,#btn-close-recommend,#btn-support,#btn-close-support');
+const target=event.target?.closest?.('#btn-account-home,#btn-close-account,#btn-settings,#btn-settings-back,#btn-guide-kapisma,#btn-guide-patlama,#btn-howto-back,#btn-about,#btn-about-back,#btn-open-dictionary,#btn-recommend,#btn-close-recommend,#btn-support,#btn-close-support');
 if(!target)return;
 switch(target.id){
 case 'btn-account-home':
@@ -3582,9 +3582,13 @@ break;
 case 'btn-settings-back':
 document.getElementById('screen-settings')?.classList.add('hidden');
 break;
-case 'btn-howto':
+case 'btn-guide-kapisma':
 document.getElementById('screen-howto')?.classList.remove('hidden');
 setHowtoMode('kapisma');
+break;
+case 'btn-guide-patlama':
+document.getElementById('screen-howto')?.classList.remove('hidden');
+setHowtoMode('patlama');
 break;
 case 'btn-howto-back':
 document.getElementById('screen-howto')?.classList.add('hidden');
