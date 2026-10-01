@@ -2817,7 +2817,7 @@ const ratio=vowels/Math.max(1,w.length);
 return vowels>0&&ratio>=.22&&ratio<=.72&&maxConsonantRun<=3&&rare<=1;
 }
 let FRIENDLY_WORDS_BY_LENGTH=new Map();
-let BOARD_POOLS={easy2:[],medium3:[],medium4:[],medium34:[],bridge5:[],hidden69:[]};
+let BOARD_POOLS={easy2:[],medium3:[],medium4:[],bridge5:[],hidden69:[]};
 function rebuildBoardWordPools(){
 FRIENDLY_WORDS_BY_LENGTH=new Map();
 for(const[len,list]of GAME_WORDS_BY_LENGTH){
@@ -2830,7 +2830,6 @@ BOARD_POOLS={
 easy2:GAME_WORDS_BY_LENGTH.get(2)||[],
 medium3,
 medium4,
-medium34:[...medium3,...medium4],
 bridge5:FRIENDLY_WORDS_BY_LENGTH.get(5)||[],
 hidden69:[...(FRIENDLY_WORDS_BY_LENGTH.get(6)||[]),...(FRIENDLY_WORDS_BY_LENGTH.get(7)||[]),...(FRIENDLY_WORDS_BY_LENGTH.get(8)||[]),...(FRIENDLY_WORDS_BY_LENGTH.get(9)||[])]
 };
@@ -2874,7 +2873,7 @@ if(!used.has(idx)){used.add(idx);out.push(source[idx]);}
 }
 return out;
 }
-function tryPlaceWord(board,word,requireCross=false){
+function tryPlaceWord(board,word,requireCross=false,maxCrosses=1){
 for(let attempt=0;attempt<55;attempt++){
 const dir=BOARD_DIRS[Math.floor(Math.random()*BOARD_DIRS.length)];
 const r=Math.floor(Math.random()*BOARD_SIZE),c=Math.floor(Math.random()*BOARD_SIZE);
@@ -2887,7 +2886,7 @@ const old=board[rr][cc];
 if(old&&old!==word[i]){ok=false;break;}
 if(old===word[i])crosses++;
 }
-if(!ok||(requireCross&&crosses===0))continue;
+if(!ok||(requireCross&&crosses===0)||crosses>maxCrosses)continue;
 for(let i=0;i<word.length;i++)board[r+i*dir.dr][c+i*dir.dc]=word[i];
 return true;
 }
@@ -2937,8 +2936,27 @@ if(!board[r][c])board[r][c]=fill[Math.floor(Math.random()*fill.length)];
 }
 return board;
 }
-function analyzeBoardWords(words){
-const stats={easy:0,medium:0,bridge:0,core:0,hidden:0,total:words.length,coverage:0,longVariety:0,initialVariety:0};
+function analyzeStraightBoardWords(board){
+const words=new Set();
+let long=0;
+if(!Array.isArray(board)||board.length!==BOARD_SIZE)return{count:0,long:0};
+for(let r=0;r<BOARD_SIZE;r++)for(let c=0;c<BOARD_SIZE;c++){
+for(const {dr,dc} of BOARD_DIRS){
+let s='';
+for(let len=1;len<=9;len++){
+const rr=r+(len-1)*dr,cc=c+(len-1)*dc;
+if(rr<0||rr>=BOARD_SIZE||cc<0||cc>=BOARD_SIZE)break;
+s+=board[rr][cc];
+if(len>=2&&GAME_WORD_SET.has(s))words.add(s);
+}
+}
+}
+for(const w of words)if(w.length>=5)long++;
+return{count:words.size,long};
+}
+function analyzeBoardWords(words,board){
+const straight=analyzeStraightBoardWords(board);
+const stats={easy:0,medium:0,bridge:0,core:0,hidden:0,total:words.length,coverage:0,longVariety:0,initialVariety:0,straight:straight.count,straightLong:straight.long};
 const productiveCells=new Set();
 const longLengths=new Set();
 const initials=new Set();
@@ -2966,7 +2984,8 @@ const closeness=(v,ideal,weight)=>Math.min(v,ideal)*weight-Math.max(0,v-ideal)*w
 let score=closeness(stats.easy,b.easyIdeal,2.2)+closeness(stats.medium,b.mediumIdeal,2.5)+
 closeness(stats.bridge,b.bridgeIdeal,2.1)+closeness(stats.core,b.coreIdeal,2.4)+
 closeness(stats.hidden,b.hiddenIdeal,3.2)+Math.min(stats.total,b.totalIdeal)*0.30+
-closeness(stats.coverage,b.coverageIdeal,2.6)+stats.longVariety*12+stats.initialVariety*2.5;
+closeness(stats.coverage,b.coverageIdeal,2.6)+stats.longVariety*12+stats.initialVariety*2.5+
+Math.min(stats.straight,48)*5.2+Math.min(stats.straightLong,14)*8.5;
 if(stats.easy>b.easyMax)score-=(stats.easy-b.easyMax)*8;
 if(stats.hidden>b.hiddenMax)score-=(stats.hidden-b.hiddenMax)*5;
 const easyRatio = stats.total ? stats.easy / stats.total : 0;
@@ -3018,7 +3037,7 @@ const tries=Math.max(maxCandidates,2);
 for(let i=0;i<tries;i++){
 const candidate=makeCandidateBoard(flavor);
 const solved=solveBoardWords(candidate);
-const evaluation=analyzeBoardWords(solved);
+const evaluation=analyzeBoardWords(solved,candidate);
 let similarity=0;for(const profile of recentProfiles)similarity=Math.max(similarity,boardProfileSimilarity(solved,profile));
 if(similarity>.48)evaluation.score-=500;else if(similarity>.34)evaluation.score-=180;
 if(evaluation.score>bestEval.score){bestBoard=candidate;bestWords=solved;bestEval=evaluation;}
@@ -3027,7 +3046,8 @@ if(evaluation.accepted&&st.easy<=BOARD_BALANCE.easyMax&&
 st.medium>=BOARD_BALANCE.mediumIdeal&&st.core>=BOARD_BALANCE.coreIdeal&&
 st.hidden>=BOARD_BALANCE.hiddenIdeal&&st.hidden<=BOARD_BALANCE.hiddenMax&&
 st.total>=BOARD_BALANCE.totalIdeal&&st.coverage>=BOARD_BALANCE.coverageIdeal&&
-st.longVariety>=4&&st.initialVariety>=BOARD_BALANCE.initialVarietyMin)break;
+st.longVariety>=4&&st.initialVariety>=BOARD_BALANCE.initialVarietyMin&&
+st.straight>=34&&st.straightLong>=6)break;
 }
 const board=bestBoard||makeCandidateBoard(flavor);
 const words=bestWords.length?bestWords:solveBoardWords(board);
