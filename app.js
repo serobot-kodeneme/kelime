@@ -463,25 +463,38 @@ let vibrationLevel=VIBRATION_LEVELS.has(safeStorageGet('local',VIBRATION_KEY))?s
 function vibrationPattern(kind='tap'){
 if(vibrationLevel==='off')return 0;
 const table={
- low:{tap:8,success:16,error:[18,28,18],blast:[22,24,32],finish:[18,34,24]},
- medium:{tap:14,success:28,error:[28,34,28],blast:[34,28,46],finish:[24,38,34]},
- high:{tap:22,success:42,error:[40,42,40],blast:[52,34,70],finish:[34,44,50]}
+ low:{tap:12,success:24,error:[24,28,24],blast:[30,24,38],finish:[22,34,28]},
+ medium:{tap:20,success:38,error:[36,34,36],blast:[48,28,62],finish:[30,40,42]},
+ high:{tap:32,success:58,error:[54,42,54],blast:[72,34,92],finish:[42,48,66]}
 };
 return(table[vibrationLevel]||table.medium)[kind]||0;
 }
+function deviceSupportsVibration(){
+return typeof navigator!=='undefined'&&typeof navigator.vibrate==='function';
+}
 function vibrateGame(kind='tap'){
 const pattern=vibrationPattern(kind);
-if(!pattern||!navigator.vibrate||document.hidden)return;
-try{navigator.vibrate(pattern);}catch(_){}
+if(!pattern||!deviceSupportsVibration()||document.hidden)return false;
+try{return navigator.vibrate(pattern)!==false;}catch(_){return false;}
 }
 function renderVibrationControls(){
 document.querySelectorAll('.vibration-choice').forEach(btn=>btn.classList.toggle('selected',btn.dataset.vibration===vibrationLevel));
+const status=document.getElementById('vibration-support-status');
+if(status){
+status.textContent=deviceSupportsVibration()
+?'Oyun içinde harf seçimi, doğru/yanlış sözcük ve patlamada uygulanır.'
+:'Bu cihaz/tarayıcı titreşim özelliğini desteklemiyor.';
+status.className='mt-2 text-center text-[10px] font-bold '+(deviceSupportsVibration()?'text-emerald-700':'text-orange-700');
+}
 }
 function setVibrationLevel(level,{preview=true}={}){
 vibrationLevel=VIBRATION_LEVELS.has(level)?level:'medium';
 safeStorageSet('local',VIBRATION_KEY,vibrationLevel);
 renderVibrationControls();
-if(preview&&vibrationLevel!=='off')vibrateGame('tap');
+if(preview&&vibrationLevel!=='off'){
+const ok=vibrateGame('tap');
+if(!ok&&!deviceSupportsVibration())showToast('Bu cihaz titreşim özelliğini desteklemiyor.','amber',1600);
+}
 }
 function renderSoundControls(){
 const range=document.getElementById('sound-volume-range');
@@ -526,6 +539,7 @@ osc.start(now);osc.stop(now+duration+0.02);
 function playLetterPickSound(step=1){
 const n=Math.min(10,Math.max(1,step));
 const base=430+(n-1)*28;
+vibrateGame('tap');
 playTone(base,.060,.065,'sine',base+115);
 }
 let lastUiSoundAt=0,lastUiReleaseAt=0;
@@ -590,6 +604,7 @@ osc.connect(gain);gain.connect(ctx.destination);osc.start(now);osc.stop(now+dur+
 thump(0,92,.105,.11);thump(.16,72,.072,.09);
 }
 function playFinalGong(){
+vibrateGame('finish');
 if(masterSoundVolume<=0)return;
 const ctx=ensureGameAudio();if(!ctx)return;
 try{
