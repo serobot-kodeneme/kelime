@@ -415,6 +415,7 @@ let activeGameMode = null; // 'single' | 'multi' — replay akışının tek gü
 let blastModeActive=false;
 let blastTrapCells=new Set();
 let atismaTool='trap',atismaSetupTimer=null,atismaTurnTimer=null,atismaSetupActive=false,atismaTimeoutBusy=false;
+let atismaDragType='',atismaDragGhost=null,atismaDragHoverCell=null;
 let atismaLocalActive=false,atismaLocalTurn='player',atismaLocalPlayerTurns=0,atismaLocalAiTurns=0,atismaLocalAiTimer=null;
 let atismaLocalPlayerPlacements={},atismaLocalAiPlacements={},atismaLocalNeutral={},atismaLocalUsedPlayer={},atismaLocalUsedAi={};
 let selectedPath=[];
@@ -1985,7 +1986,7 @@ for(const x of mpControlListeners.splice(0)){try{x.ref.off(x.event,x.handler);}c
 }
 function resetMultiplayerClientState(){
 stopInviteWaitCountdown();
-stopAtismaSetupTimer();stopAtismaTurnTimer();atismaSetupActive=false;atismaTimeoutBusy=false;atismaTool='trap';setAtismaPanelVisible(false,false);
+stopAtismaSetupTimer();stopAtismaTurnTimer();clearAtismaDrag();atismaSetupActive=false;atismaTimeoutBusy=false;atismaTool='trap';setAtismaPanelVisible(false,false);
 stopGrandCelebrationFx();
 stopWinnerConfettiWaterfall();
 detachMultiplayerListeners();
@@ -2056,6 +2057,51 @@ try{await oldRef.remove();}catch(_){}
 resetMultiplayerClientState();
 clearInviteFromUrl();
 }
+function showAtismaSetupNotice(){
+document.getElementById('atisma-setup-notice')?.remove();
+const game=document.getElementById('screen-game');if(!game)return;
+const wrap=document.createElement('div');wrap.id='atisma-setup-notice';wrap.className='atisma-setup-notice';
+wrap.innerHTML='<div class="atisma-setup-notice-card"><span>🕸️ 🧹</span>20 saniye içinde tuzak ve süpürgelerinizi yerleştirin.</div>';
+game.appendChild(wrap);
+setTimeout(()=>wrap.remove(),2500);
+}
+function clearAtismaDrag(){
+atismaDragType='';
+atismaDragGhost?.remove();atismaDragGhost=null;
+atismaDragHoverCell?.classList.remove('atisma-drop-target');atismaDragHoverCell=null;
+document.querySelectorAll('#atisma-tools button.atisma-dragging').forEach(b=>b.classList.remove('atisma-dragging'));
+}
+function atismaCellFromPoint(x,y){
+const el=document.elementFromPoint(x,y)?.closest?.('.letter-cell');if(!el)return null;
+const id=String(el.id||''),m=id.match(/^cell-(\d+)-(\d+)$/);if(!m)return null;
+return{el,index:Number(m[1])*BOARD_SIZE+Number(m[2])};
+}
+function beginAtismaDrag(type,e){
+if(!atismaSetupActive||(!isAtismaRoom()&&!isLocalAtisma()))return;
+const remaining=isLocalAtisma()?5-atismaLocalCount(type):5-Object.values(atismaOwnPlacements()).filter(v=>v===type).length;
+if(remaining<=0)return;
+e.preventDefault();e.stopPropagation();atismaTool=type;atismaDragType=type;
+isLocalAtisma()?renderLocalAtismaTools():renderAtismaTools();
+const btn=e.currentTarget;btn?.classList.add('atisma-dragging');
+const ghost=document.createElement('div');ghost.className='atisma-drag-ghost';ghost.textContent=type==='broom'?'🧹':'🕸️';document.body.appendChild(ghost);atismaDragGhost=ghost;
+moveAtismaDrag(e.clientX,e.clientY);
+try{btn?.setPointerCapture?.(e.pointerId);}catch(_){}
+}
+function moveAtismaDrag(x,y){
+if(!atismaDragType)return;
+if(atismaDragGhost){atismaDragGhost.style.left=x+'px';atismaDragGhost.style.top=y+'px';}
+const hit=atismaCellFromPoint(x,y),cell=hit?.el||null;
+if(cell!==atismaDragHoverCell){atismaDragHoverCell?.classList.remove('atisma-drop-target');atismaDragHoverCell=cell;atismaDragHoverCell?.classList.add('atisma-drop-target');}
+}
+async function endAtismaDrag(e){
+if(!atismaDragType)return;
+e.preventDefault();e.stopPropagation();
+const hit=atismaCellFromPoint(e.clientX,e.clientY);
+const type=atismaDragType;
+clearAtismaDrag();
+atismaTool=type;
+if(hit)await placeAtismaPiece(hit.index);
+}
 function isLocalAtisma(){return atismaLocalActive===true;}
 function stopAtismaLocalAi(){if(atismaLocalAiTimer){clearTimeout(atismaLocalAiTimer);atismaLocalAiTimer=null;}}
 function atismaLocalCount(type){return Object.values(atismaLocalPlayerPlacements).filter(v=>v===type).length;}
@@ -2068,7 +2114,7 @@ const tb=document.getElementById('atisma-trap-tool'),bb=document.getElementById(
 tb?.classList.toggle('atisma-tool-active',atismaTool==='trap');bb?.classList.toggle('atisma-tool-active',atismaTool==='broom');
 if(tb)tb.disabled=atismaLocalCount('trap')>=5&&atismaTool!=='trap';if(bb)bb.disabled=atismaLocalCount('broom')>=5&&atismaTool!=='broom';
 document.querySelectorAll('.atisma-piece-own').forEach(el=>el.remove());
-for(const [key,type] of Object.entries(atismaLocalPlayerPlacements)){if(atismaLocalNeutral[key])continue;const cell=domCells[Number(key)];if(!cell)continue;const mark=document.createElement('span');mark.className='atisma-piece-own'+(atismaLocalUsedPlayer[key]?' atisma-piece-used':'');mark.textContent=type==='broom'?'🧹':'🕸️';cell.appendChild(mark);}
+for(const [key,type] of Object.entries(atismaLocalPlayerPlacements)){const cell=domCells[Number(key)];if(!cell)continue;const mark=document.createElement('span');mark.className='atisma-piece-own'+(atismaLocalUsedPlayer[key]?' atisma-piece-used':'');mark.textContent=type==='broom'?'🧹':'🕸️';cell.appendChild(mark);}
 }
 function chooseAtismaAiPlacements(){
 atismaLocalAiPlacements={};const freq=Array(BOARD_SIZE*BOARD_SIZE).fill(0);
@@ -2100,7 +2146,7 @@ function finishLocalAtisma(){stopAtismaTurnTimer();stopAtismaLocalAi();isMatchAc
 function prepareLocalAtisma(){
 stopLocalCountdown();stopAtismaTurnTimer();stopAtismaLocalAi();atismaLocalActive=true;blastModeActive=false;activeGameMode='single';botDiffLevel='medium';setLongestBonusBadges(false,false);atismaLocalTurn='player';atismaLocalPlayerTurns=0;atismaLocalAiTurns=0;atismaLocalPlayerPlacements={};atismaLocalAiPlacements={};atismaLocalNeutral={};atismaLocalUsedPlayer={};atismaLocalUsedAi={};
 document.getElementById('p1-title').textContent='OYUNCU';document.getElementById('p2-title').textContent='BİLGİN';p1Score=0;p2Score=0;resetRewardFx();updateScores();resetMatchWordResults();resetSeriesWordResults();sessionFoundWords.clear();const ticker=document.getElementById('words-ticker');if(ticker)ticker.innerHTML='';document.getElementById('screen-home').classList.add('hidden');document.getElementById('screen-game').classList.remove('hidden');setAtismaPanelVisible(true,false);
-requestAnimationFrame(()=>{try{buildGrid();chooseAtismaAiPlacements();renderLocalAtismaTools();atismaSetupActive=true;isMatchActive=false;const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents='auto';grid.style.opacity='1';grid.style.touchAction='manipulation';}const endAt=Date.now()+10000;const tick=()=>{const left=Math.max(0,Math.ceil((endAt-Date.now())/1000));updateGameTimerUI(left);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='ATIŞMA • YERLEŞTİR: '+left;if(left<=0){stopAtismaSetupTimer();atismaSetupActive=false;resolveLocalAtismaNeutral();renderLocalAtismaTools();showToast('Yerleştirme bitti. İlk hamle sende!','emerald',1500);startLocalAtismaTurn('player');}};tick();atismaSetupTimer=setInterval(tick,250);}catch(err){console.error('Local Atisma startup failed',err);atismaLocalActive=false;showToast('ATIŞMA hazırlanamadı.','rose');document.getElementById('screen-game')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}});
+requestAnimationFrame(()=>{try{buildGrid();chooseAtismaAiPlacements();renderLocalAtismaTools();atismaSetupActive=true;isMatchActive=false;showAtismaSetupNotice();const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents='auto';grid.style.opacity='1';grid.style.touchAction='none';}const endAt=Date.now()+20000;const tick=()=>{const left=Math.max(0,Math.ceil((endAt-Date.now())/1000));updateGameTimerUI(left);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='ATIŞMA • YERLEŞTİR: '+left;if(left<=0){stopAtismaSetupTimer();atismaSetupActive=false;resolveLocalAtismaNeutral();renderLocalAtismaTools();showToast('Yerleştirme bitti. İlk hamle sende!','emerald',1500);startLocalAtismaTurn('player');}};tick();atismaSetupTimer=setInterval(tick,250);}catch(err){console.error('Local Atisma startup failed',err);atismaLocalActive=false;showToast('ATIŞMA hazırlanamadı.','rose');document.getElementById('screen-game')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}});
 }
 function isAtismaRoom(){
 return /^invite-only-atisma-/.test(String(mpRoomMode||'')); 
@@ -2132,7 +2178,6 @@ if(isLocalAtisma()){renderLocalAtismaTools();return;}
 if(!isAtismaRoom()||!mpRole)return;
 const own=atismaOwnPlacements(),neutral=atismaNeutralized(),used=atismaUsed()?.[mpRole]||{};
 for(const [key,type] of Object.entries(own)){
-if(neutral?.[key])continue;
 const idx=Number(key),cell=domCells[idx];
 if(!cell)continue;
 const mark=document.createElement('span');
@@ -2215,11 +2260,13 @@ function activateAtismaSetup(gs){
 if(!isAtismaRoom()||!mpRole)return;
 atismaSetupActive=true;isMatchActive=false;
 setAtismaPanelVisible(true,false);
+const noticeKey=String(gs?.setupEndAt||'');const gameEl=document.getElementById('screen-game');
+if(gameEl?.dataset.atismaNoticeKey!==noticeKey){if(gameEl)gameEl.dataset.atismaNoticeKey=noticeKey;showAtismaSetupNotice();}
 const grid=document.getElementById('scrabble-grid');
 if(grid){grid.style.pointerEvents='auto';grid.style.opacity='1';grid.style.touchAction='manipulation';}
 renderAtismaTools();
 stopAtismaSetupTimer();
-const endAt=Number(gs?.setupEndAt||serverNow()+10000);
+const endAt=Number(gs?.setupEndAt||serverNow()+20000);
 const tick=()=>{
 const left=Math.max(0,Math.ceil((endAt-serverNow())/1000));
 updateGameTimerUI(left);
@@ -2265,7 +2312,7 @@ await mpRoomRef.update({
 'atisma/used':null,
 'gameState/status':'setup',
 'gameState/startAt':0,
-'gameState/setupEndAt':now+10000,
+'gameState/setupEndAt':now+20000,
 'gameState/turn':'host',
 'gameState/hostTurns':0,
 'gameState/guestTurns':0,
@@ -2882,6 +2929,14 @@ returnToHomeFromMultiplayer();
 };
 document.getElementById('atisma-trap-tool')?.addEventListener('click',()=>{atismaTool='trap';isLocalAtisma()?renderLocalAtismaTools():renderAtismaTools();});
 document.getElementById('atisma-broom-tool')?.addEventListener('click',()=>{atismaTool='broom';isLocalAtisma()?renderLocalAtismaTools():renderAtismaTools();});
+document.getElementById('atisma-trap-tool')?.addEventListener('pointerdown',e=>beginAtismaDrag('trap',e));
+document.getElementById('atisma-broom-tool')?.addEventListener('pointerdown',e=>beginAtismaDrag('broom',e));
+document.addEventListener('pointermove',e=>{if(atismaDragType)moveAtismaDrag(e.clientX,e.clientY);},{passive:true});
+document.addEventListener('pointerup',e=>{if(atismaDragType)endAtismaDrag(e);},{passive:false});
+document.addEventListener('pointercancel',()=>clearAtismaDrag(),{passive:true});
+document.getElementById('scrabble-grid')?.addEventListener('pointerdown',e=>{
+if(atismaSetupActive&&(!(!isAtismaRoom()&&!isLocalAtisma()))){e.preventDefault();e.stopImmediatePropagation();}
+},true);
 document.getElementById('scrabble-grid')?.addEventListener('click',e=>{
 if(!atismaSetupActive||(!isAtismaRoom()&&!isLocalAtisma()))return;
 const cell=e.target?.closest?.('.letter-cell');if(!cell)return;
