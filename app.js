@@ -4173,8 +4173,8 @@ setTimeout(()=>badge.classList.remove(badgeCls),720);
 function playWordConfetti(length){
 const letters=Math.max(1,Math.min(9,Number(length)||1));
 const scale=Math.max(.55,Math.min(1,(letters+2)/7));
-const first=Math.round((IS_COARSE_POINTER?20:26)*scale);
-const second=Math.round((IS_COARSE_POINTER?8:10)*scale);
+const first=Math.round((IS_COARSE_POINTER?17:22)*scale);
+const second=Math.round((IS_COARSE_POINTER?7:8)*scale);
 confetti({particleCount:first,epic:true});
 setTimeout(()=>confetti({particleCount:second,epic:true,secondary:true}),135);
 }
