@@ -2152,11 +2152,9 @@ roomRef.child('online').onDisconnect().set(false);
 function paintAccountRoom(profile){
 const roomNo=String(profile?.roomNo||'');
 const no=document.getElementById('account-room-number');
-const st=document.getElementById('account-room-status');
-const dot=document.getElementById('account-room-dot');
+const link=document.getElementById('account-room-link');
 if(no)no.textContent=roomNo||'------';
-if(st)st.textContent=roomNo?'Çevrimiçi':'Hazırlanıyor…';
-if(dot)dot.style.background=roomNo?'#22c55e':'#94a3b8';
+if(link)link.textContent=roomNo?'kapmaca.tr/?room='+roomNo:'kapmaca.tr/?room=------';
 }
 async function openPermanentMemberRoom(){
 const user=accountAuth?.currentUser;
