@@ -3634,12 +3634,9 @@ if(patlama){
 document.getElementById('btn-howto-kapisma')?.addEventListener('click',()=>setHowtoMode('kapisma'));
 document.getElementById('btn-howto-patlama')?.addEventListener('click',()=>setHowtoMode('patlama'));
 document.addEventListener('click',(event)=>{
-const target=event.target?.closest?.('#btn-account-home,#btn-close-account,#btn-settings,#btn-settings-back,#btn-guide-kapisma,#btn-guide-patlama,#btn-howto-back,#btn-about,#btn-about-back,#btn-open-dictionary,#btn-recommend,#btn-close-recommend,#btn-support,#btn-close-support');
+const target=event.target?.closest?.('#btn-close-account,#btn-settings,#btn-settings-back,#btn-guide-kapisma,#btn-guide-patlama,#btn-howto-back,#btn-about,#btn-about-back,#btn-open-dictionary,#btn-close-recommend,#btn-support,#btn-close-support');
 if(!target)return;
 switch(target.id){
-case 'btn-account-home':
-openAccountScreen();
-break;
 case 'btn-close-account':
 closeAccountScreen();
 break;
@@ -3672,9 +3669,6 @@ break;
 case 'btn-open-dictionary':
 ensureWordDataLoaded().then(openDictionary).catch(()=>showToast('Sözlük yüklenemedi. Tekrar deneyin.','rose'));
 break;
-case 'btn-recommend':
-openRecommendModal();
-break;
 case 'btn-close-recommend':
 closeRecommendModal();
 break;
@@ -3700,6 +3694,16 @@ if(text)setTimeout(()=>{if(recommendStatus.textContent===text)recommendStatus.te
 }
 function openRecommendModal(){recommendScreen?.classList.remove('hidden');}
 function closeRecommendModal(){recommendScreen?.classList.add('hidden');setRecommendStatus('');}
+document.getElementById('btn-account-home')?.addEventListener('click',(event)=>{
+  event.preventDefault();
+  event.stopPropagation();
+  openAccountScreen();
+});
+document.getElementById('btn-recommend')?.addEventListener('click',(event)=>{
+  event.preventDefault();
+  event.stopPropagation();
+  openRecommendModal();
+});
 function openShareWindow(url){
 const w=window.open(url,'_blank','noopener,noreferrer,width=720,height=640');
 if(!w)location.href=url;
