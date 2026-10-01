@@ -2019,7 +2019,7 @@ const memberNoToClear=activeMemberRoomNo;
 const memberWasOwner=activeMemberRoomOwner;
 activeMemberRoomNo='';activeMemberRoomOwner=false;
 if(memberWasOwner&&memberNoToClear&&accountDb){
-accountDb.ref('memberRooms/'+memberNoToClear).update({activeRoomCode:'',updatedAt:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
+accountDb.ref('memberRooms/'+memberNoToClear).update({activeRoomCode:'',activeMode:'',updatedAt:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
 }
 const randomExitBtn=document.getElementById('btn-random-result-exit');
 if(randomExitBtn){randomExitBtn.disabled=true;randomExitBtn.classList.add('hidden');randomExitBtn.style.removeProperty('display');randomExitBtn.style.removeProperty('visibility');randomExitBtn.style.removeProperty('opacity');}
@@ -2512,6 +2512,7 @@ difficultyPanel.classList.toggle('hidden',!open);
 soloArrow.style.transform=open?'rotate(90deg)':'';
 }
 let accountAuth=null,accountDb=null,accountAuthUnsub=null,accountFormMode='login',accountProfile=null;
+let accountRoomMode='kapisma';
 let accountRoomPresenceRef=null,activeMemberRoomNo='',activeMemberRoomOwner=false;
 function accountErrorMessage(err){
 const code=String(err?.code||err?.message||'');
@@ -2615,8 +2616,26 @@ await accountRoomPresenceRef.set({online:true,at:firebase.database.ServerValue.T
 accountRoomPresenceRef.onDisconnect().set({online:false,at:firebase.database.ServerValue.TIMESTAMP});
 roomRef.child('online').onDisconnect().set(false);
 }
+function normalizeAccountRoomMode(mode){return mode==='patlama'?'patlama':'kapisma';}
+function paintAccountRoomMode(mode){
+accountRoomMode=normalizeAccountRoomMode(mode);
+document.getElementById('btn-account-room-kapisma')?.classList.toggle('selected',accountRoomMode==='kapisma');
+document.getElementById('btn-account-room-patlama')?.classList.toggle('selected',accountRoomMode==='patlama');
+}
+async function setAccountRoomMode(mode){
+accountRoomMode=normalizeAccountRoomMode(mode);
+paintAccountRoomMode(accountRoomMode);
+const user=accountAuth?.currentUser;
+if(user&&accountDb){
+try{
+await accountDb.ref('users/'+user.uid).update({roomMode:accountRoomMode,updatedAt:Date.now()});
+accountProfile={...(accountProfile||{}),roomMode:accountRoomMode};
+}catch(_){}
+}
+}
 function paintAccountRoom(profile){
 const roomNo=String(profile?.roomNo||'');
+paintAccountRoomMode(profile?.roomMode||'kapisma');
 const no=document.getElementById('account-room-number');
 const link=document.getElementById('account-room-link');
 if(no)no.textContent=roomNo||'------';
@@ -2638,9 +2657,10 @@ document.getElementById('mp-room-view')?.classList.remove('hidden');
 document.getElementById('btn-close-room')?.classList.remove('hidden');
 setPrivateInviteControlsReady(false);
 setPrivateRoomProgress('ÖZEL ODA HAZIRLANIYOR…');
-const ok=await createRoom();
+const selectedMode=normalizeAccountRoomMode(accountRoomMode||accountProfile?.roomMode);
+const ok=selectedMode==='patlama'?await createAtismaRoom():await createRoom();
 if(!ok)throw new Error('member-room-create-failed');
-await accountDb.ref('memberRooms/'+roomNo).update({online:true,activeRoomCode:mpRoomCode,updatedAt:firebase.database.ServerValue.TIMESTAMP});
+await accountDb.ref('memberRooms/'+roomNo).update({online:true,activeRoomCode:mpRoomCode,activeMode:selectedMode,updatedAt:firebase.database.ServerValue.TIMESTAMP});
 setRoomUrl(roomNo);
 setPrivateInviteControlsReady(true,roomNo);
 await beginPrivateHostWaiting(true,false);
@@ -2672,7 +2692,7 @@ return joinRoom(liveCode);
 }
 function defaultAccountProfile(user){
 const fallback=(user?.displayName||String(user?.email||'').split('@')[0]||'Oyuncu').slice(0,18);
-return{nickname:fallback,games:0,wins:0,losses:0,bestScore:0,longestWord:'',createdAt:Date.now(),updatedAt:Date.now()};
+return{nickname:fallback,roomMode:'kapisma',games:0,wins:0,losses:0,bestScore:0,longestWord:'',createdAt:Date.now(),updatedAt:Date.now()};
 }
 async function loadAccountProfile(user){
 if(!user||!accountDb)return null;
@@ -2870,6 +2890,8 @@ try{if(accountAuth?.currentUser)await renderAccountState(accountAuth.currentUser
 if(btn){btn.disabled=false;btn.textContent='HESABIMI SİL';}
 }
 });
+document.getElementById('btn-account-room-kapisma')?.addEventListener('click',()=>setAccountRoomMode('kapisma'));
+document.getElementById('btn-account-room-patlama')?.addEventListener('click',()=>setAccountRoomMode('patlama'));
 document.getElementById('btn-account-open-room')?.addEventListener('click',openPermanentMemberRoom);
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!document.getElementById('screen-account')?.classList.contains('hidden'))closeAccountScreen();});
 let deferredShortcutPrompt=null;
