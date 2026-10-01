@@ -412,12 +412,10 @@ let remainingSeconds=60;
 let isMatchActive=false;
 let botDiffLevel='easy';
 let activeGameMode = null; // 'single' | 'multi' — replay akışının tek güvenilir kaynağı
-let blastModeActive=false;
-let blastTrapCells=new Set();
 let atismaTool='trap',atismaSetupTimer=null,atismaTurnTimer=null,atismaSetupActive=false,atismaTimeoutBusy=false;
 let atismaDragType='',atismaDragGhost=null,atismaDragHoverCell=null;
 let atismaLocalActive=false,atismaLocalTurn='player',atismaLocalPlayerTurns=0,atismaLocalAiTurns=0,atismaLocalAiTimer=null;
-let atismaLocalPlayerPlacements={},atismaLocalAiPlacements={},atismaLocalNeutral={},atismaLocalUsedPlayer={},atismaLocalUsedAi={};
+let atismaLocalPlayerPlacements={},atismaLocalAiPlacements={},atismaLocalUsedPlayer={},atismaLocalUsedAi={};
 let selectedPath=[];
 let sessionFoundWords=new Set();
 let gridBoard=[];
@@ -2144,7 +2142,6 @@ const ranked=Array.from({length:BOARD_SIZE*BOARD_SIZE},(_,i)=>i).sort((a,b)=>fre
 const take=()=>{let x=null;for(let tries=0;tries<80;tries++){const c=pool[Math.floor(Math.random()*pool.length)];if(!picked.has(c)){x=c;break;}}if(x===null)x=ranked.find(i=>!picked.has(i));picked.add(x);return x;};
 for(let n=0;n<5;n++)atismaLocalAiPlacements[take()]='trap';
 }
-function resolveLocalAtismaNeutral(){atismaLocalNeutral={};}
 function playAtismaTrapExplosion(idx){
 const cell=domCells[Number(idx)]||document.getElementById('cell-'+Math.floor(Number(idx)/BOARD_SIZE)+'-'+(Number(idx)%BOARD_SIZE));
 if(!cell)return;
@@ -2211,9 +2208,9 @@ if(trapped){playErrorBuzzer();breakCombo(false);showToast('🎈 TUZAK! BİLGİN\
 }
 function finishLocalAtisma(){stopAtismaTurnTimer();stopAtismaLocalAi();renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);setPatlamaActivePlayer(null);isMatchActive=false;updateGameTimerUI(0);setAtismaPanelVisible(true,true);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='PATLAMA BİTTİ • 10 / 10 TUR';showTimeUpPreview(()=>{document.getElementById('modal-gameover')?.classList.remove('hidden');prepareSingleResultScreen();});}
 function prepareLocalAtisma(){
-stopLocalCountdown();stopAtismaTurnTimer();stopAtismaLocalAi();atismaLocalActive=true;blastModeActive=false;activeGameMode='single';botDiffLevel='medium';setLongestBonusBadges(false,false);atismaLocalTurn='player';atismaLocalPlayerTurns=0;atismaLocalAiTurns=0;atismaLocalPlayerPlacements={};atismaLocalAiPlacements={};atismaLocalNeutral={};atismaLocalUsedPlayer={};atismaLocalUsedAi={};
+stopLocalCountdown();stopAtismaTurnTimer();stopAtismaLocalAi();atismaLocalActive=true;activeGameMode='single';botDiffLevel='medium';setLongestBonusBadges(false,false);atismaLocalTurn='player';atismaLocalPlayerTurns=0;atismaLocalAiTurns=0;atismaLocalPlayerPlacements={};atismaLocalAiPlacements={};atismaLocalUsedPlayer={};atismaLocalUsedAi={};
 document.getElementById('p1-title').textContent='OYUNCU';document.getElementById('p2-title').textContent='BİLGİN';renderPatlamaTurnDots(0,0);p1Score=0;p2Score=0;resetRewardFx();updateScores();resetMatchWordResults();resetSeriesWordResults();sessionFoundWords.clear();const ticker=document.getElementById('words-ticker');if(ticker)ticker.innerHTML='';document.getElementById('screen-home').classList.add('hidden');document.getElementById('screen-game').classList.remove('hidden');setAtismaPanelVisible(true,false);
-requestAnimationFrame(()=>{try{buildGrid();chooseAtismaAiPlacements();renderLocalAtismaTools();atismaSetupActive=true;isMatchActive=false;setPatlamaActivePlayer(null);showAtismaSetupNotice();const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents='auto';grid.style.opacity='1';grid.style.touchAction='none';}const endAt=Date.now()+20000;const tick=()=>{const left=Math.max(0,Math.ceil((endAt-Date.now())/1000));updateGameTimerUI(left);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='';if(left<=0){stopAtismaSetupTimer();atismaSetupActive=false;document.getElementById('atisma-setup-notice')?.classList.add('hidden');resolveLocalAtismaNeutral();renderLocalAtismaTools();showToast('Yerleştirme bitti. İlk hamle sende!','emerald',1500);startLocalAtismaTurn('player');}};tick();atismaSetupTimer=setInterval(tick,250);}catch(err){console.error('Local Atisma startup failed',err);atismaLocalActive=false;showToast('PATLAMA hazırlanamadı.','rose');document.getElementById('screen-game')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}});
+requestAnimationFrame(()=>{try{buildGrid();chooseAtismaAiPlacements();renderLocalAtismaTools();atismaSetupActive=true;isMatchActive=false;setPatlamaActivePlayer(null);showAtismaSetupNotice();const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents='auto';grid.style.opacity='1';grid.style.touchAction='none';}const endAt=Date.now()+20000;const tick=()=>{const left=Math.max(0,Math.ceil((endAt-Date.now())/1000));updateGameTimerUI(left);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='';if(left<=0){stopAtismaSetupTimer();atismaSetupActive=false;document.getElementById('atisma-setup-notice')?.classList.add('hidden');renderLocalAtismaTools();showToast('Yerleştirme bitti. İlk hamle sende!','emerald',1500);startLocalAtismaTurn('player');}};tick();atismaSetupTimer=setInterval(tick,250);}catch(err){console.error('Local Atisma startup failed',err);atismaLocalActive=false;showToast('PATLAMA hazırlanamadı.','rose');document.getElementById('screen-game')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}});
 }
 function isAtismaRoom(){
 return /^invite-only-atisma-/.test(String(mpRoomMode||'')); 
@@ -2233,9 +2230,6 @@ document.getElementById('screen-game')?.classList.toggle('atisma-mode',!!visible
 function atismaOwnPlacements(){
 return mpRoomData?.atisma?.placements?.[mpRole]||{};
 }
-function atismaNeutralized(){
-return mpRoomData?.atisma?.neutralized||{};
-}
 function atismaUsed(){
 return mpRoomData?.atisma?.used||{};
 }
@@ -2243,7 +2237,7 @@ function renderAtismaPieces(){
 document.querySelectorAll('.atisma-piece-own').forEach(el=>el.remove());
 if(isLocalAtisma()){renderLocalAtismaTools();return;}
 if(!isAtismaRoom()||!mpRole)return;
-const own=atismaOwnPlacements(),neutral=atismaNeutralized(),used=atismaUsed()?.[mpRole]||{};
+const own=atismaOwnPlacements(),used=atismaUsed()?.[mpRole]||{};
 for(const [key,type] of Object.entries(own)){
 const idx=Number(key),cell=domCells[idx];
 if(!cell)continue;
@@ -2354,11 +2348,8 @@ async function hostFinishAtismaSetup(){
 if(mpRole!=='host'||!mpRoomRef||!isAtismaRoom())return;
 const [gsSnap,atSnap]=await Promise.all([mpRoomRef.child('gameState').once('value'),mpRoomRef.child('atisma').once('value')]);
 const gs=gsSnap.val()||{};if(gs.status!=='setup')return;
-const data=atSnap.val()||{};
-const neutral={};
 const playAt=serverNow();
 await mpRoomRef.update({
-'atisma/neutralized':Object.keys(neutral).length?neutral:null,
 'atisma/used':null,
 'gameState/status':'playing',
 'gameState/startAt':playAt,
@@ -2374,7 +2365,6 @@ if(mpRole!=='host'||!mpRoomRef||!isAtismaRoom())return;
 const now=serverNow();
 await mpRoomRef.update({
 'atisma/placements':{host:{},guest:{}},
-'atisma/neutralized':null,
 'atisma/used':null,
 'gameState/status':'setup',
 'gameState/startAt':0,
@@ -2481,7 +2471,7 @@ const created=await createCleanRoomRecord({schema:22,mode:'invite-only-atisma-v1
 mpRoomCode=created.code;mpRole='host';mpRoomRef=created.ref;mpRoomMode='invite-only-atisma-v1';mpRandomMatchSession=false;
 delete document.body.dataset.randomMatchActive;document.body.dataset.privateFriendActive='1';
 mpRoomData=null;mpEntered=false;mpStarted=false;mpSessionJoinedAt=serverNow();mpExitHandling=false;mpLastExitSignalId='';
-await created.ref.child('atisma').set({placements:{host:{},guest:{}},neutralized:null,used:null});
+await created.ref.child('atisma').set({placements:{host:{},guest:{}},used:null});
 setRoomUrl(mpRoomCode);await markPresence();setMpPanelRoom(mpRoomCode);document.getElementById('btn-close-room')?.classList.remove('hidden');setMpState(MP_STATES.WAITING);attachRoomListener();
 return true;
 }catch(err){console.error('Atisma room create error',err);showToast('PATLAMA odası açılamadı.','rose');return false;}
@@ -3312,7 +3302,7 @@ setMasterSoundVolume(masterSoundVolume);
 updateFullscreenUi();
 function prepareGame(){
 stopLocalCountdown();
-blastModeActive=false;blastTrapCells.clear();atismaLocalActive=false;stopAtismaSetupTimer();stopAtismaTurnTimer();stopAtismaLocalAi();atismaSetupActive=false;atismaTimeoutBusy=false;setAtismaPanelVisible(false,false);document.getElementById('screen-game')?.classList.remove('blast-test-mode');
+atismaLocalActive=false;stopAtismaSetupTimer();stopAtismaTurnTimer();stopAtismaLocalAi();atismaSetupActive=false;atismaTimeoutBusy=false;setAtismaPanelVisible(false,false);
 activeGameMode='single';setLongestBonusBadges(false,false);
 document.getElementById('p1-title').textContent='OYUNCU';
 document.getElementById('p2-title').textContent=getBotDisplayName();
@@ -3331,39 +3321,6 @@ stopLocalCountdown();
 document.getElementById('modal-countdown')?.classList.add('hidden');
 showToast('Tahta hazırlanamadı. Tekrar deneyin.','rose');
 document.getElementById('screen-game')?.classList.add('hidden');
-document.getElementById('screen-home')?.classList.remove('hidden');
-}
-});
-}
-function armBlastTraps(){
-blastTrapCells.clear();
-const all=Array.from({length:BOARD_SIZE*BOARD_SIZE},(_,i)=>i);
-for(let i=all.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[all[i],all[j]]=[all[j],all[i]];}
-all.slice(0,5).forEach(i=>blastTrapCells.add(i));
-}
-function prepareBlastGame(){
-stopLocalCountdown();
-blastModeActive=true;activeGameMode='single';setLongestBonusBadges(false,false);
-document.getElementById('p1-title').textContent='OYUNCU';
-document.getElementById('p2-title').textContent='PATLAMA';
-p1Score=0;p2Score=0;resetRewardFx();updateScores();remainingSeconds=60;
-resetMatchWordResults();resetSeriesWordResults();
-sessionFoundWords.clear();
-const ticker=document.getElementById('words-ticker');if(ticker)ticker.innerHTML='';
-document.getElementById('screen-home').classList.add('hidden');
-document.getElementById('screen-game').classList.remove('hidden');
-document.getElementById('screen-game').classList.add('blast-test-mode');
-triggerCountdownSequence(()=>{isMatchActive=true;startTimer();showToast('PATLAMA: Tahtada 5 gizli balon var.','slate',1800);});
-requestAnimationFrame(()=>{
-try{buildGrid();armBlastTraps();}
-catch(err){
-console.error('Blast mode board startup error',err);
-blastModeActive=false;blastTrapCells.clear();
-stopLocalCountdown();
-document.getElementById('modal-countdown')?.classList.add('hidden');
-showToast('PATLAMA hazırlanamadı. Tekrar deneyin.','rose');
-document.getElementById('screen-game')?.classList.add('hidden');
-document.getElementById('screen-game')?.classList.remove('blast-test-mode');
 document.getElementById('screen-home')?.classList.remove('hidden');
 }
 });
@@ -4128,22 +4085,7 @@ mpFoundWords.host.add(word);
 mpFoundWords.guest.add(word);
 }else sessionFoundWords.add(word);
 
-if(blastModeActive&&!mpRole){
-const hitCells=selectedPath.filter(p=>blastTrapCells.has(p.r*BOARD_SIZE+p.c));
-if(hitCells.length){
-sessionFoundWords.add(word);
-recordMatchWord(word,-pts,isP1);
-playErrorBuzzer();
-flashWordFeedback(false);
-breakCombo(isP1);
-hitCells.forEach(p=>p.el.classList.add('blast-trap-hit'));
-showToast(`💥 PATLAMA! ${word}(-${pts})`,'rose',1800);
-flyScore(-pts,isP1,scoreFxOrigin);
-p1Score-=pts;updateScores();
-clearPath();
-return;
-}
-}
+
 recordMatchWord(word,pts,isP1);
 playCorrectChime();
 flashWordFeedback(true);
