@@ -1925,6 +1925,8 @@ function startSyncedMatch(d){
 if(mpStarted)return;
 mpStarted=true;isMatchActive=false;mpLastBeepSecond=null;clearInterval(mpClock);
 const modal=document.getElementById('modal-countdown'),num=document.getElementById('countdown-number'),status=document.getElementById('countdown-status');
+modal?.classList.remove('single-countdown-active');
+document.getElementById('single-countdown-message')?.classList.add('hidden');
 modal?.querySelector('.mp-demo')?.classList.remove('hidden');
 const inviteMsg=document.getElementById('countdown-invite-message');
 if(inviteMsg){
@@ -3549,6 +3551,8 @@ document.getElementById('screen-home')?.classList.remove('hidden');
 function triggerCountdownSequence(onComplete){
 stopLocalCountdown();
 const modal=document.getElementById('modal-countdown');
+modal?.classList.add('single-countdown-active');
+document.getElementById('single-countdown-message')?.classList.remove('hidden');
 modal?.querySelector('.mp-demo')?.classList.remove('hidden');
 const numEl=document.getElementById('countdown-number');
 const statusEl=document.getElementById('countdown-status');
@@ -3574,6 +3578,8 @@ if(numEl){numEl.style.opacity='0';numEl.style.transform='scale(1.28)';}
 localCountdownTimeout=setTimeout(()=>{
 if(numEl){numEl.style.opacity='1';numEl.style.transform='scale(1)';}
 modal?.classList.add('hidden');
+modal?.classList.remove('single-countdown-active');
+document.getElementById('single-countdown-message')?.classList.add('hidden');
 localCountdownTimeout=null;
 onComplete();
 },120);
@@ -4737,6 +4743,8 @@ return false;
 }
 function showImmediateRematchSync(){
 const modal=document.getElementById('modal-countdown');
+modal?.classList.remove('single-countdown-active');
+document.getElementById('single-countdown-message')?.classList.add('hidden');
 modal?.querySelector('.mp-demo')?.classList.remove('hidden');
 const num=document.getElementById('countdown-number');
 const status=document.getElementById('countdown-status');
