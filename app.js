@@ -2378,6 +2378,7 @@ function localAtismaDelta(base,effects){return effects.trap.length?0:base;}
 function chooseLocalAtismaAiWord(){const level=BOT_LEVELS[botDiffLevel]||BOT_LEVELS.medium;const available=getBotRankedWords().filter(({item})=>!sessionFoundWords.has(item.word));if(!available.length)return null;let ranked=available.filter(({item})=>item.word.length>=level.minLen&&item.word.length<=level.maxLen);if(!ranked.length)ranked=available;if(Math.random()<level.focus){const topCount=Math.min(ranked.length,level.top);return ranked[Math.floor(Math.random()*topCount)].item;}return ranked[Math.floor(Math.random()*ranked.length)].item;}
 function setPatlamaActivePlayer(side=null){
 const p1=document.getElementById('p1-player-card'),p2=document.getElementById('p2-player-card');
+const timer=document.querySelector('#compact-game-header .compact-timer');
 const active=side==='p1'?p1:(side==='p2'?p2:null);
 const wasSame=!!active?.classList.contains('patlama-turn-active');
 [p1,p2].forEach(el=>{
@@ -2385,14 +2386,20 @@ const wasSame=!!active?.classList.contains('patlama-turn-active');
   el.classList.remove('patlama-turn-active','patlama-turn-inactive');
   if(!wasSame)el.classList.remove('patlama-turn-flash');
 });
-if(side==='p1'){p1?.classList.add('patlama-turn-active');p2?.classList.add('patlama-turn-inactive');}
-else if(side==='p2'){p2?.classList.add('patlama-turn-active');p1?.classList.add('patlama-turn-inactive');}
+timer?.classList.remove('patlama-timer-p1','patlama-timer-p2');
+if(side==='p1'){
+  p1?.classList.add('patlama-turn-active');p2?.classList.add('patlama-turn-inactive');
+  timer?.classList.add('patlama-timer-p1');
+}else if(side==='p2'){
+  p2?.classList.add('patlama-turn-active');p1?.classList.add('patlama-turn-inactive');
+  timer?.classList.add('patlama-timer-p2');
+}
 if(active&&!wasSame){
   active.classList.remove('patlama-turn-flash');
   void active.offsetWidth;
   active.classList.add('patlama-turn-flash');
   clearTimeout(active._patlamaTurnFlashTimer);
-  active._patlamaTurnFlashTimer=setTimeout(()=>active.classList.remove('patlama-turn-flash'),1900);
+  active._patlamaTurnFlashTimer=setTimeout(()=>active.classList.remove('patlama-turn-flash'),850);
 }
 }
 function renderPatlamaTurnDots(p1Used=0,p2Used=0){
@@ -2538,43 +2545,10 @@ cell.querySelectorAll('.atisma-piece-hit').forEach(x=>x.remove());
 const mark=document.createElement('span');mark.className='atisma-piece-hit atisma-piece-used';mark.textContent='🎈';cell.appendChild(mark);
 }
 }
-function showAtismaYourTurnNotice(gs=null){
-const localTurn=!!gs?.local;
-if(localTurn){
-  if(!isLocalAtisma())return;
-}else{
-  if(!isAtismaRoom()||!mpRole||String(gs?.status||'')!=='playing')return;
-}
-const turn=localTurn?String(gs?.turn||atismaLocalTurn||'player'):String(gs?.turn||'host');
-const roundNo=localTurn
-  ? Math.min(10,(turn==='ai'?Number(atismaLocalAiTurns||0):Number(atismaLocalPlayerTurns||0))+1)
-  : Math.min(10,(turn==='guest'?Number(gs?.guestTurns||0):Number(gs?.hostTurns||0))+1);
-const key=localTurn
-  ? ['local-round',roundNo,turn,atismaLocalPlayerTurns,atismaLocalAiTurns].join('|')
-  : ['room-round',roundNo,turn,Number(gs?.hostTurns||0),Number(gs?.guestTurns||0),Number(gs?.turnStartedAt||0)].join('|');
-if(key===atismaLastTurnNoticeKey)return;
-atismaLastTurnNoticeKey=key;
-let el=document.getElementById('atisma-your-turn-notice');
-if(!el){
-  el=document.createElement('div');
-  el.id='atisma-your-turn-notice';
-  el.setAttribute('aria-hidden','true');
-  el.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:118;pointer-events:none!important;touch-action:none!important;color:#fff;background:rgba(15,23,42,.82);border:2px solid rgba(255,255,255,.86);border-radius:16px;padding:10px 18px;font-family:Quicksand,sans-serif;font-size:clamp(22px,5.5vw,34px);line-height:1;font-weight:1000;letter-spacing:.06em;text-shadow:0 2px 8px rgba(0,0,0,.28);box-shadow:0 8px 24px rgba(15,23,42,.24);opacity:0;transition:opacity .14s ease,transform .14s ease;white-space:nowrap;';
-  const grid=document.getElementById('scrabble-grid');
-  if(grid){grid.style.position='relative';grid.appendChild(el);}
-  else document.getElementById('screen-game')?.appendChild(el);
-}
-clearTimeout(atismaTurnNoticeTimer);
-el.textContent='ROUND '+roundNo;
-el.style.display='block';
-el.style.opacity='1';
-el.style.transform='translate(-50%,-50%) scale(1.08)';
-requestAnimationFrame(()=>{el.style.transform='translate(-50%,-50%) scale(1)';});
-atismaTurnNoticeTimer=setTimeout(()=>{
-  el.style.opacity='0';
-  el.style.transform='translate(-50%,-50%) scale(.96)';
-  setTimeout(()=>{if(el.style.opacity==='0')el.style.display='none';},170);
-},2000);
+function showAtismaYourTurnNotice(){
+if(atismaTurnNoticeTimer){clearTimeout(atismaTurnNoticeTimer);atismaTurnNoticeTimer=null;}
+document.getElementById('atisma-your-turn-notice')?.remove();
+atismaLastTurnNoticeKey='';
 }
 function syncAtismaTurnUi(gs=mpRoomData){
 if(!isAtismaRoom()||!mpRole)return;
@@ -3252,7 +3226,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=548-performance-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=549-patlama-turn-focus',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
