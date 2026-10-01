@@ -2017,11 +2017,15 @@ soloArrow.style.transform=open?'rotate(90deg)':'';
 let accountAuth=null,accountDb=null,accountAuthUnsub=null,accountFormMode='login',accountProfile=null;
 let accountRoomPresenceRef=null,activeMemberRoomNo='',activeMemberRoomOwner=false;
 function accountErrorMessage(err){
-const code=String(err?.code||'');
+const code=String(err?.code||err?.message||'');
 if(code.includes('invalid-credential')||code.includes('wrong-password')||code.includes('user-not-found'))return 'E-posta veya şifre hatalı.';
-if(code.includes('email-already-in-use'))return 'Bu e-posta zaten kayıtlı.';
+if(code.includes('email-already-in-use'))return 'Bu e-posta ile daha önce hesap açılmış. Giriş Yap bölümünü deneyin.';
 if(code.includes('weak-password'))return 'Şifre en az 6 karakter olmalı.';
 if(code.includes('invalid-email'))return 'Geçerli bir e-posta yazın.';
+if(code.includes('too-many-requests'))return 'Çok fazla deneme yapıldı. Biraz sonra tekrar deneyin.';
+if(code.includes('network-request-failed'))return 'Bağlantı sorunu oluştu. İnternet bağlantınızı kontrol edin.';
+if(code.includes('account-exists-with-different-credential'))return 'Bu e-posta başka bir giriş yöntemiyle kayıtlı olabilir.';
+if(code.includes('credential-already-in-use'))return 'Bu giriş bilgisi başka bir hesapta kullanılıyor.';
 if(code.includes('popup-closed-by-user'))return '';
 if(code.includes('popup-blocked'))return 'Tarayıcı giriş penceresini engelledi.';
 if(code.includes('operation-not-allowed'))return 'Bu giriş yöntemi Firebase Authentication içinde henüz etkin değil.';
@@ -2235,13 +2239,22 @@ setTimeout(()=>{window.location.reload();},180);
 
 document.getElementById('btn-account-login')?.addEventListener('click',()=>setAccountForm('login'));
 document.getElementById('btn-account-signup')?.addEventListener('click',()=>setAccountForm('signup'));
+let accountSubmitBusy=false;
 document.getElementById('btn-account-submit')?.addEventListener('click',async()=>{
+if(accountSubmitBusy)return;
 setAccountMessage('');
 const email=String(document.getElementById('account-email')?.value||'').trim();
 const password=String(document.getElementById('account-password')?.value||'');
 const nickname=String(document.getElementById('account-nickname')?.value||'').trim().slice(0,18);
 if(!email||!password){setAccountMessage('E-posta ve şifre gerekli.');return;}
 if(accountFormMode==='signup'&&!nickname){setAccountMessage('Bir takma ad yazın.');return;}
+const btn=document.getElementById('btn-account-submit');
+accountSubmitBusy=true;
+if(btn){
+btn.disabled=true;
+btn.classList.add('account-busy');
+btn.textContent=accountFormMode==='signup'?'ÜYELİK OLUŞTURULUYOR':'GİRİŞ YAPILIYOR';
+}
 try{
 await ensureAccountBackend();
 if(accountFormMode==='signup'){
@@ -2250,13 +2263,25 @@ await cred.user.updateProfile({displayName:nickname});
 const data={...defaultAccountProfile(cred.user),nickname,updatedAt:Date.now()};
 await accountDb.ref('users/'+cred.user.uid).set(data);
 await renderAccountState(cred.user);
-refreshAfterAccountLogin();
+setAccountMessage('Üyelik oluşturuldu ✓',true);
+setTimeout(()=>{document.getElementById('account-email-form')?.classList.add('hidden');},900);
 }else{
 const cred=await accountAuth.signInWithEmailAndPassword(email,password);
 await renderAccountState(cred.user);
-refreshAfterAccountLogin();
+setAccountMessage('Giriş başarılı ✓',true);
+setTimeout(()=>refreshAfterAccountLogin(),550);
 }
-}catch(err){setAccountMessage(accountErrorMessage(err));}
+}catch(err){
+console.error('Account submit error',err);
+setAccountMessage(accountErrorMessage(err));
+}finally{
+accountSubmitBusy=false;
+if(btn){
+btn.disabled=false;
+btn.classList.remove('account-busy');
+btn.textContent=accountFormMode==='signup'?'ÜYE OL':'GİRİŞ YAP';
+}
+}
 });
 async function signInWithAccountProvider(providerFactory,configure){
 setAccountMessage('');
