@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v547-seven-traps';
+const CACHE_NAME='kapmaca-shell-v548-performance-maintenance';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=547-patlama-seven-traps',
+  './app.js?v=548-performance-maintenance',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
