@@ -2458,7 +2458,16 @@ index=Number(index);if(!Number.isInteger(index)||index<0||index>=BOARD_SIZE*BOAR
 const key=String(index),current=atismaLocalPlayerPlacements[key];
 if(current==='trap'){delete atismaLocalPlayerPlacements[key];renderLocalAtismaTools();return;}
 if(atismaLocalCount('trap')>=5){showToast('Balon hakkın kalmadı.','slate');return;}
-atismaLocalPlayerPlacements[key]='trap';renderLocalAtismaTools();return;
+atismaLocalPlayerPlacements[key]='trap';
+renderLocalAtismaTools();
+if(atismaLocalCount('trap')>=5){
+stopAtismaSetupTimer();
+atismaSetupActive=false;
+document.getElementById('atisma-setup-notice')?.classList.add('hidden');
+showToast('5 balon yerleştirildi. İlk hamle sende!','emerald',1300);
+startLocalAtismaTurn('player');
+}
+return;
 }
 if(!atismaSetupActive||!isAtismaRoom()||!mpRoomRef||!mpRole)return;
 index=Number(index);if(!Number.isInteger(index)||index<0||index>=BOARD_SIZE*BOARD_SIZE)return;
