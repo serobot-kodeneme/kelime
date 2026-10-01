@@ -3,8 +3,6 @@ const TILE_SCORES={
 'İ':2,'J':11,'K':2,'L':2,'M':3,'N':2,'O':3,'Ö':8,'P':6,'R':2,'S':3,
 'Ş':5,'T':2,'U':3,'Ü':4,'V':8,'Y':4,'Z':5
 };
-let WORD_DB_FC='';
-let WORD_LIST=[];
 const ARGO_EXACT=new Set(['AM','GÖT','YARAK','TAŞAK','TAŞAKLI','ÇÜK','SİK','SİKME','SİKMEK']);
 const ARGO_PREFIXES=['OROSPU','PEZEVENK','KAHPE','İBNE','PUŞT','SÜRTÜK','KALTAK','DALYARAK','PİÇ','SİKTİR','AMCIK','AMINA','YARRAK','GÖTVEREN','SIÇMA','SIÇTIR'];
 function isArgoWord(word){
@@ -156,7 +154,6 @@ const w=String(word||'').toLocaleUpperCase('tr-TR');
 return !TURKISH_WORD_CHARS.test(w)||FOREIGN_EXACT.has(w);
 }
 let GEO_DICTIONARY=Object.freeze({});
-let GEO_WORD_LIST=[];
 let GAME_WORD_LIST=[];
 let GAME_WORD_SET=new Set();
 const TILE_SCORE_CACHE=Object.freeze({...TILE_SCORES});
@@ -166,19 +163,16 @@ let wordDataPromise=null;
 function initializeWordData(data){
 if(wordDataReady)return true;
 if(!data||typeof data.WORD_DB_FC!=='string'||!data.GEO_DICTIONARY)throw new Error('word-data-invalid');
-WORD_DB_FC=data.WORD_DB_FC;
-const out=[];
+const decodedWords=[];
 let prev='';
-for(const row of WORD_DB_FC.split('\n')){
+for(const row of data.WORD_DB_FC.split('\n')){
 if(!row)continue;
 const prefixLen=parseInt(row[0],36);
 const word=prev.slice(0,prefixLen)+row.slice(1);
-out.push(word);prev=word;
+decodedWords.push(word);prev=word;
 }
-WORD_LIST=out;
 GEO_DICTIONARY=data.GEO_DICTIONARY;
-GEO_WORD_LIST=Object.keys(GEO_DICTIONARY);
-GAME_WORD_LIST=Array.from(new Set([...WORD_LIST,...GEO_WORD_LIST,...COMMON_IMPERATIVE_WORDS,...CURATED_EXPANSION_WORDS,...CURATED_EXPANSION_WORDS_V2]))
+GAME_WORD_LIST=Array.from(new Set([...decodedWords,...Object.keys(GEO_DICTIONARY),...COMMON_IMPERATIVE_WORDS,...CURATED_EXPANSION_WORDS,...CURATED_EXPANSION_WORDS_V2]))
 .filter(w=>w.length>=2&&w.length<=9&&!isArgoWord(w)&&!isForeignWord(w)).sort();
 GAME_WORD_SET=new Set(GAME_WORD_LIST);
 GAME_WORDS_BY_LENGTH.clear();
@@ -201,7 +195,8 @@ let done=false;
 const finish=(ok,err)=>{
 if(done)return;done=true;clearTimeout(timer);
 script.onload=null;script.onerror=null;
-if(!ok){try{script.remove();}catch(_){}reject(err||new Error('word-data-load-failed'));return;}
+try{script.remove();}catch(_){}
+if(!ok){reject(err||new Error('word-data-load-failed'));return;}
 resolve(true);
 };
 const timer=setTimeout(()=>finish(false,new Error('word-data-load-timeout')),timeoutMs);
