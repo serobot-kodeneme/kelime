@@ -346,8 +346,8 @@ singleLongestBonusApplied=true;
 const a=Array.from(roundWordResults.p1.values()),b=Array.from(roundWordResults.p2.values());
 const max1=a.reduce((m,x)=>Math.max(m,x.word.length),0),max2=b.reduce((m,x)=>Math.max(m,x.word.length),0),maxLen=Math.max(max1,max2);
 if(maxLen>0){
-if(max1===maxLen){p1Score+=10;singleLongestBonus.p1=true;}
-if(max2===maxLen){p2Score+=10;singleLongestBonus.p2=true;}
+if(max1===maxLen){p1Score+=30;singleLongestBonus.p1=true;}
+if(max2===maxLen){p2Score+=30;singleLongestBonus.p2=true;}
 singleLongestBonus.maxLen=maxLen;updateScores();
 }
 return singleLongestBonus;
@@ -1547,8 +1547,8 @@ let maxLen=0;vals.forEach(x=>{maxLen=Math.max(maxLen,String(x.word).length);});
 let hostGets=false,guestGets=false;
 if(maxLen>0)vals.forEach(x=>{if(String(x.word).length===maxLen){if(x.role==='host')hostGets=true;if(x.role==='guest')guestGets=true;}});
 const sc=scoresSnap.val()||{host:0,guest:0};
-if(hostGets)sc.host=Number(sc.host||0)+10;
-if(guestGets)sc.guest=Number(sc.guest||0)+10;
+if(hostGets)sc.host=Number(sc.host||0)+30;
+if(guestGets)sc.guest=Number(sc.guest||0)+30;
 await mpRoomRef.update({scores:sc,longestBonus:{maxLen,host:hostGets,guest:guestGets},bonusApplied:true});
 }
 async function hostResolveMatchEnd(){
