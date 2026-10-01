@@ -3219,6 +3219,16 @@ else startHowtoDemo();
 new MutationObserver(()=>{if(!document.getElementById('screen-home').classList.contains('hidden'))startHowtoDemo();}).observe(document.getElementById('screen-home'),{attributes:true,attributeFilter:['class']});
 for(const id of['modal-room-invite','modal-mp-waiting','modal-rematch-waiting','modal-countdown'])new MutationObserver(()=>startHowtoDemo()).observe(document.getElementById(id),{attributes:true,attributeFilter:['class']});
 startHowtoDemo();
+function setHowtoMode(mode='kapisma'){
+const patlama=mode==='patlama';
+document.getElementById('howto-kapisma-panel')?.classList.toggle('hidden',patlama);
+document.getElementById('howto-patlama-panel')?.classList.toggle('hidden',!patlama);
+document.getElementById('btn-howto-kapisma')?.classList.toggle('active',!patlama);
+document.getElementById('btn-howto-patlama')?.classList.toggle('active',patlama);
+if(!patlama)startHowtoDemo(); else stopHowtoDemo();
+}
+document.getElementById('btn-howto-kapisma')?.addEventListener('click',()=>setHowtoMode('kapisma'));
+document.getElementById('btn-howto-patlama')?.addEventListener('click',()=>setHowtoMode('patlama'));
 document.addEventListener('click',(event)=>{
 const target=event.target?.closest?.('#btn-account-home,#btn-close-account,#btn-settings,#btn-settings-back,#btn-howto,#btn-howto-back,#btn-about,#btn-about-back,#btn-open-dictionary,#btn-recommend,#btn-close-recommend,#btn-support,#btn-close-support');
 if(!target)return;
@@ -3238,7 +3248,7 @@ document.getElementById('screen-settings')?.classList.add('hidden');
 break;
 case 'btn-howto':
 document.getElementById('screen-howto')?.classList.remove('hidden');
-startHowtoDemo();
+setHowtoMode('kapisma');
 break;
 case 'btn-howto-back':
 document.getElementById('screen-howto')?.classList.add('hidden');
