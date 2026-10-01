@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v495-haptics-fallback';
+const CACHE_NAME='kapmaca-shell-v496-patlama-intro';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=495-haptics-fallback',
+  './app.js?v=496-patlama-intro',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
