@@ -612,7 +612,36 @@ let mpStartBusy=false,mpRematchBusy=false,mpPresenceRef=null,mpLastRoomMetaSig='
 let mpSeenWordEvents=new Set(),mpLastBeepSecond=null,mpLastResultRenderSig='';
 let mpOpponentDisconnectTimer=null,firebaseWasConnected=null,reconnectPresenceBusy=false;
 const MP_DISCONNECT_GRACE_MS=5000;
+let mpConnectionStateListener=null;
 const mpFoundWords={host:new Set(),guest:new Set()};
+function setMpConnectionStatus(visible,text='Bağlantı yeniden kuruluyor…'){
+const el=document.getElementById('mp-connection-status');
+if(!el)return;
+el.textContent=text;
+el.classList.toggle('hidden',!visible);
+}
+function ensureMpConnectionWatcher(){
+if(!mpDb||mpConnectionStateListener)return;
+const ref=mpDb.ref('.info/connected');
+mpConnectionStateListener=async snap=>{
+const connected=snap.val()===true;
+const active=!!mpRoomRef||randomSearchActive;
+if(!connected){
+if(firebaseWasConnected===true&&active)setMpConnectionStatus(true);
+firebaseWasConnected=false;
+return;
+}
+const wasDisconnected=firebaseWasConnected===false;
+firebaseWasConnected=true;
+setMpConnectionStatus(false);
+if(wasDisconnected&&mpRoomRef&&mpRole&&!reconnectPresenceBusy){
+reconnectPresenceBusy=true;
+try{await syncServerClock();await markPresence();}catch(_){}
+finally{reconnectPresenceBusy=false;}
+}
+};
+ref.on('value',mpConnectionStateListener);
+}
 function setMpState(next){mpState=next;document.documentElement.dataset.mpState=next;}
 let runtimeClientToken='';
 function getClientToken(){
@@ -695,6 +724,7 @@ return false;
 }
 if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
 if(!mpDb)mpDb=firebase.database();
+ensureMpConnectionWatcher();
 if(!serverOffsetListener){
 serverOffsetListener=snap=>{mpServerOffset=Number(snap.val()||0);};
 mpDb.ref('.info/serverTimeOffset').on('value',serverOffsetListener);
@@ -720,6 +750,7 @@ try{mpDb.goOffline();}catch(_){}
 firebaseNetworkOnline=false;
 firebaseWasConnected=null;
 reconnectPresenceBusy=false;
+setMpConnectionStatus(false);
 }
 async function syncServerClock(){
 if(!await ensureFirebaseSdkLoaded())return false;
@@ -1947,7 +1978,7 @@ mpRoomRef=null;mpRoomCode=null;mpRole=null;mpRoomData=null;mpRoomMode='';mpRando
 const _ga=document.getElementById('gameover-actions');if(_ga){_ga.style.removeProperty('display');_ga.classList.remove('hidden');}
 const _rp=document.getElementById('btn-play-again');if(_rp)_rp.style.removeProperty('display');
 const _ex=document.getElementById('btn-game-exit');if(_ex)_ex.style.removeProperty('display');
-mpSessionJoinedAt=0;mpExitHandling=false;mpLastExitSignalId='';reconnectPresenceBusy=false;
+mpSessionJoinedAt=0;mpExitHandling=false;mpLastExitSignalId='';reconnectPresenceBusy=false;setMpConnectionStatus(false);
 mpSeenWordEvents.clear();mpFoundWords.host.clear();mpFoundWords.guest.clear();mpLastResultRenderSig='';
 setMpState(MP_STATES.IDLE);
 }
@@ -2053,6 +2084,7 @@ const title=document.getElementById('account-form-title');
 if(title)title.textContent=accountFormMode==='signup'?'Üye Ol':'Giriş Yap';
 const submit=document.getElementById('btn-account-submit');
 if(submit)submit.textContent=accountFormMode==='signup'?'ÜYE OL':'GİRİŞ YAP';
+document.getElementById('btn-account-forgot')?.classList.toggle('hidden',accountFormMode!=='login');
 const pass=document.getElementById('account-password');
 if(pass)pass.autocomplete=accountFormMode==='signup'?'new-password':'current-password';
 setAccountMessage('');
@@ -2283,6 +2315,19 @@ btn.textContent=accountFormMode==='signup'?'ÜYE OL':'GİRİŞ YAP';
 }
 }
 });
+document.getElementById('btn-account-forgot')?.addEventListener('click',async()=>{
+const email=String(document.getElementById('account-email')?.value||'').trim();
+if(!email){setAccountMessage('Şifre sıfırlama bağlantısı için e-posta adresinizi yazın.');return;}
+try{
+await ensureAccountBackend();
+await accountAuth.sendPasswordResetEmail(email);
+setAccountMessage('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi ✓',true);
+}catch(err){
+console.error('Password reset error',err);
+const msg=accountErrorMessage(err);
+setAccountMessage(msg||'Şifre sıfırlama bağlantısı gönderilemedi.');
+}
+});
 async function signInWithAccountProvider(providerFactory,configure){
 setAccountMessage('');
 try{
@@ -2324,6 +2369,42 @@ await renderAccountState(user);
 document.getElementById('account-profile-editor')?.classList.add('hidden');
 setAccountUserMessage('Profil güncellendi ✓');
 }catch(err){setAccountUserMessage(accountErrorMessage(err),false);}
+});
+document.getElementById('btn-account-delete')?.addEventListener('click',async()=>{
+const user=accountAuth?.currentUser;
+if(!user||!accountDb)return;
+const lastSignIn=Date.parse(user.metadata?.lastSignInTime||'');
+if(Number.isFinite(lastSignIn)&&Date.now()-lastSignIn>10*60*1000){
+setAccountUserMessage('Güvenlik için önce çıkış yapıp yeniden giriş yapın, sonra hesabı silin.',false);
+return;
+}
+if(!window.confirm('Hesabınız, takma adınız ve özel oda bilgileriniz silinecek. Emin misiniz?'))return;
+const btn=document.getElementById('btn-account-delete');
+if(btn){btn.disabled=true;btn.textContent='HESAP SİLİNİYOR…';}
+const uid=user.uid;
+const roomNo=String(accountProfile?.roomNo||'');
+try{
+await stopMemberRoomPresence();
+const removals=[accountDb.ref('users/'+uid).remove()];
+if(/^\d{6,7}$/.test(roomNo))removals.push(accountDb.ref('memberRooms/'+roomNo).remove());
+await Promise.all(removals);
+await user.delete();
+accountProfile=null;activeMemberRoomNo='';activeMemberRoomOwner=false;
+setAccountUserMessage('');
+showToast('Hesap silindi.','slate',1400);
+closeAccountScreen();
+setTimeout(()=>window.location.reload(),350);
+}catch(err){
+console.error('Account delete error',err);
+if(String(err?.code||'').includes('requires-recent-login')){
+setAccountUserMessage('Güvenlik için çıkış yapıp yeniden giriş yaptıktan sonra tekrar deneyin.',false);
+}else{
+setAccountUserMessage(accountErrorMessage(err),false);
+}
+try{if(accountAuth?.currentUser)await renderAccountState(accountAuth.currentUser);}catch(_){}
+}finally{
+if(btn){btn.disabled=false;btn.textContent='HESABIMI SİL';}
+}
 });
 document.getElementById('btn-account-open-room')?.addEventListener('click',openPermanentMemberRoom);
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!document.getElementById('screen-account')?.classList.contains('hidden'))closeAccountScreen();});
