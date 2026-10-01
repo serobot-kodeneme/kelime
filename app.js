@@ -3494,7 +3494,7 @@ head.setAttribute('points',`${b.x},${b.y} ${backX+px},${backY+py} ${backX-px},${
 }
 function startHowtoDemo(){
 if(howtoDemoTimer||document.hidden||isFullscreenActive())return;
-const boards=[...document.querySelectorAll('.demo-board')];
+const boards=[...document.querySelectorAll('.demo-board:not(.patlama-howto-demo-board)')];
 const visibleBoards=()=>boards.filter(board=>!board.closest('.hidden'));
 const demoScreens=['screen-howto','screen-home','modal-room-invite','modal-mp-waiting','modal-rematch-waiting'];
 const demoVisible=()=>demoScreens.some(id=>!document.getElementById(id).classList.contains('hidden'))||(!document.getElementById('modal-countdown').classList.contains('hidden')&&!document.querySelector('#modal-countdown .mp-demo').classList.contains('hidden'));
@@ -3555,13 +3555,81 @@ else startHowtoDemo();
 new MutationObserver(()=>{if(!document.getElementById('screen-home').classList.contains('hidden'))startHowtoDemo();}).observe(document.getElementById('screen-home'),{attributes:true,attributeFilter:['class']});
 for(const id of['modal-room-invite','modal-mp-waiting','modal-rematch-waiting','modal-countdown'])new MutationObserver(()=>startHowtoDemo()).observe(document.getElementById(id),{attributes:true,attributeFilter:['class']});
 startHowtoDemo();
+let patlamaHowtoDemoTimer=null;
+function stopPatlamaHowtoDemo(){
+  if(patlamaHowtoDemoTimer){clearTimeout(patlamaHowtoDemoTimer);patlamaHowtoDemoTimer=null;}
+  const board=document.getElementById('howto-patlama-demo-board');
+  const picked=document.querySelector('#howto-patlama-panel .patlama-demo-picked');
+  board?.querySelectorAll('.demo-active-p1,.demo-active-p2,.demo-balloon-pop').forEach(t=>t.classList.remove('demo-active-p1','demo-active-p2','demo-balloon-pop'));
+  if(board)clearDemoRoute(board);
+  picked?.replaceChildren();
+}
+function startPatlamaHowtoDemo(){
+  if(patlamaHowtoDemoTimer||document.hidden||isFullscreenActive())return;
+  const panel=document.getElementById('howto-patlama-panel');
+  const board=document.getElementById('howto-patlama-demo-board');
+  const picked=panel?.querySelector('.patlama-demo-picked');
+  if(!panel||panel.classList.contains('hidden')||!board||!picked)return;
+  const rounds=[
+    {word:'KAP',path:[7,8,9]},
+    {word:'CAM',path:[12,11,10]},
+    {word:'TAŞ',path:[18,11,4]},
+    {word:'SAL',path:[6,13,20]}
+  ];
+  const tiles=[...board.querySelectorAll('.demo-tile')];
+  let round=0,step=0,popping=false;
+  const setPicked=(item,count,isP1)=>{
+    picked.replaceChildren(...Array.from(item.word).slice(0,count).map(ch=>{
+      const t=document.createElement('span');
+      t.className='demo-picked-tile '+(isP1?'demo-picked-p1':'demo-picked-p2');
+      t.textContent=ch;
+      return t;
+    }));
+  };
+  function advance(){
+    if(document.hidden||panel.classList.contains('hidden')||document.getElementById('screen-howto')?.classList.contains('hidden')||isFullscreenActive()){
+      stopPatlamaHowtoDemo();return;
+    }
+    const item=rounds[round],isP1=round%2===0;
+    if(step===0&&!popping){
+      tiles.forEach(t=>t.classList.remove('demo-active-p1','demo-active-p2','demo-balloon-pop'));
+      clearDemoRoute(board);
+      setPicked(item,0,isP1);
+    }
+    if(step<item.path.length){
+      tiles[item.path[step]]?.classList.add(isP1?'demo-active-p1':'demo-active-p2');
+      step++;
+      renderDemoRoute(board,item.path,step,isP1);
+      setPicked(item,step,isP1);
+      patlamaHowtoDemoTimer=setTimeout(()=>{patlamaHowtoDemoTimer=null;advance();},180);
+      return;
+    }
+    if(!popping){
+      popping=true;
+      item.path.map(i=>tiles[i]).filter(t=>t?.classList.contains('demo-balloon')).forEach((t,n)=>{
+        setTimeout(()=>t.classList.add('demo-balloon-pop'),n*70);
+      });
+      patlamaHowtoDemoTimer=setTimeout(()=>{patlamaHowtoDemoTimer=null;advance();},620);
+      return;
+    }
+    round=(round+1)%rounds.length;step=0;popping=false;
+    patlamaHowtoDemoTimer=setTimeout(()=>{patlamaHowtoDemoTimer=null;advance();},350);
+  }
+  advance();
+}
 function setHowtoMode(mode='kapisma'){
 const patlama=mode==='patlama';
 document.getElementById('howto-kapisma-panel')?.classList.toggle('hidden',patlama);
 document.getElementById('howto-patlama-panel')?.classList.toggle('hidden',!patlama);
 document.getElementById('btn-howto-kapisma')?.classList.toggle('active',!patlama);
 document.getElementById('btn-howto-patlama')?.classList.toggle('active',patlama);
-if(!patlama)startHowtoDemo(); else stopHowtoDemo();
+if(patlama){
+  stopHowtoDemo();
+  startPatlamaHowtoDemo();
+}else{
+  stopPatlamaHowtoDemo();
+  startHowtoDemo();
+}
 }
 document.getElementById('btn-howto-kapisma')?.addEventListener('click',()=>setHowtoMode('kapisma'));
 document.getElementById('btn-howto-patlama')?.addEventListener('click',()=>setHowtoMode('patlama'));
@@ -3593,6 +3661,7 @@ setHowtoMode('patlama');
 break;
 case 'btn-howto-back':
 document.getElementById('screen-howto')?.classList.add('hidden');
+stopPatlamaHowtoDemo();
 break;
 case 'btn-about':
 document.getElementById('screen-about')?.classList.remove('hidden');
