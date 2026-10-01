@@ -414,7 +414,7 @@ let atismaLastTurnNoticeKey='',atismaTurnNoticeTimer=null;
 let atismaDragType='',atismaDragGhost=null,atismaDragHoverCell=null;
 let atismaLocalActive=false,atismaLocalTurn='player',atismaLocalPlayerTurns=0,atismaLocalAiTurns=0,atismaLocalAiTimer=null;
 let atismaLocalPlayerPlacements={},atismaLocalAiPlacements={},atismaLocalUsedPlayer={},atismaLocalUsedAi={};
-let atismaLocalBlastedWords=new Set(),atismaPlacementHintTimer=null,atismaLastBalloonDropAt=0;
+let atismaLocalBlastedWords=new Set(),atismaPlacementHintTimer=null,atismaLastBalloonDropAt=0,atismaLastSecondTick=null;
 let selectedPath=[];
 let sessionFoundWords=new Set();
 let gridBoard=[];
@@ -673,6 +673,15 @@ noise.start(now);noise.stop(now+.18);
 
 setTimeout(()=>{try{master.disconnect();compressor.disconnect();}catch(_){}},420);
 }catch(_){}
+}
+function playPatlamaSecondTick(sec){
+sec=Math.max(0,Math.ceil(Number(sec)||0));
+if(sec<=0||sec===atismaLastSecondTick||document.hidden)return;
+atismaLastSecondTick=sec;
+const urgency=Math.max(0,10-sec);
+const freq=360+urgency*18;
+const vol=sec<=3?.055:.038;
+playTone(freq,.045,vol,'square',freq+24);
 }
 function playHeartbeat(){
 if(masterSoundVolume<=0)return;
@@ -2148,7 +2157,7 @@ for(const x of mpControlListeners.splice(0)){try{x.ref.off(x.event,x.handler);}c
 }
 function resetMultiplayerClientState(){
 stopInviteWaitCountdown();
-stopAtismaSetupTimer();stopAtismaTurnTimer();clearAtismaDrag();atismaSetupActive=false;atismaTimeoutBusy=false;atismaTool='trap';atismaLastTurnNoticeKey='';if(atismaTurnNoticeTimer){clearTimeout(atismaTurnNoticeTimer);atismaTurnNoticeTimer=null;}if(atismaPlacementHintTimer){clearTimeout(atismaPlacementHintTimer);atismaPlacementHintTimer=null;}atismaLastBalloonDropAt=0;document.getElementById('atisma-your-turn-notice')?.remove();document.getElementById('atisma-placement-hint')?.remove();setPatlamaActivePlayer(null);document.getElementById('atisma-setup-notice')?.classList.add('hidden');setAtismaPanelVisible(false,false);
+stopAtismaSetupTimer();stopAtismaTurnTimer();clearAtismaDrag();atismaSetupActive=false;atismaTimeoutBusy=false;atismaTool='trap';atismaLastTurnNoticeKey='';if(atismaTurnNoticeTimer){clearTimeout(atismaTurnNoticeTimer);atismaTurnNoticeTimer=null;}if(atismaPlacementHintTimer){clearTimeout(atismaPlacementHintTimer);atismaPlacementHintTimer=null;}atismaLastBalloonDropAt=0;atismaLastSecondTick=null;document.getElementById('atisma-your-turn-notice')?.remove();document.getElementById('atisma-placement-hint')?.remove();setPatlamaActivePlayer(null);document.getElementById('atisma-setup-notice')?.classList.add('hidden');setAtismaPanelVisible(false,false);
 stopGrandCelebrationFx();
 stopWinnerConfettiWaterfall();
 detachMultiplayerListeners();
@@ -2386,9 +2395,9 @@ paint('p2-turn-dots',p2Used);
 function startLocalAtismaTurn(turn='player'){
 stopAtismaTurnTimer();stopAtismaLocalAi();atismaLocalTurn=turn;renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);
 if(atismaLocalPlayerTurns>=10&&atismaLocalAiTurns>=10){finishLocalAtisma();return;}if(turn==='player'&&atismaLocalPlayerTurns>=10){startLocalAtismaTurn('ai');return;}if(turn==='ai'&&atismaLocalAiTurns>=10){startLocalAtismaTurn('player');return;}
-isMatchActive=turn==='player';setAtismaPanelVisible(true,true);setPatlamaActivePlayer(turn==='player'?'p1':'p2');const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents=turn==='player'?'auto':'none';grid.style.opacity=turn==='player'?'1':'.78';grid.style.touchAction='none';}
+isMatchActive=turn==='player';setAtismaPanelVisible(true,true);setPatlamaActivePlayer(turn==='player'?'p1':'p2');atismaLastSecondTick=null;const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents=turn==='player'?'auto':'none';grid.style.opacity=turn==='player'?'1':'.70';grid.style.filter=turn==='player'?'':'saturate(.82) brightness(.92)';grid.style.touchAction='none';}
 const status=document.getElementById('atisma-phase-status');const n=(turn==='player'?atismaLocalPlayerTurns:atismaLocalAiTurns)+1;if(status)status.textContent='';
-const deadline=Date.now()+10000;const tick=()=>{if(!isLocalAtisma())return;const left=Math.max(0,Math.ceil((deadline-Date.now())/1000));updateGameTimerUI(left);if(left<=0){stopAtismaTurnTimer();if(turn==='player'){atismaLocalPlayerTurns++;renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);showToast('Süre doldu — sıra BİLGİN’de.','slate',1200);startLocalAtismaTurn('ai');}else runLocalAtismaAiTurn();}};tick();atismaTurnTimer=setInterval(tick,250);
+const deadline=Date.now()+10000;const tick=()=>{if(!isLocalAtisma())return;const left=Math.max(0,Math.ceil((deadline-Date.now())/1000));updateGameTimerUI(left);playPatlamaSecondTick(left);if(left<=0){stopAtismaTurnTimer();if(turn==='player'){atismaLocalPlayerTurns++;renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);showToast('Süre doldu — sıra BİLGİN’de.','slate',1200);startLocalAtismaTurn('ai');}else runLocalAtismaAiTurn();}};tick();atismaTurnTimer=setInterval(tick,250);
 if(turn==='ai')atismaLocalAiTimer=setTimeout(()=>runLocalAtismaAiTurn(),1200+Math.floor(Math.random()*1500));
 }
 function runLocalAtismaAiTurn(){
@@ -2397,11 +2406,11 @@ const word=match.word,pts=word.split('').reduce((s,c)=>s+(TILE_SCORE_CACHE[c]||1
 match.path.forEach(pt=>document.getElementById('cell-'+pt.r+'-'+pt.c)?.classList.add('tile-claimed-p2'));const badge=addTickerBadge(word,false);flashOpponentWord(match.path,false,badge);let origin=null;const lp=match.path?.[match.path.length-1],el=lp?document.getElementById('cell-'+lp.r+'-'+lp.c):null,rr=el?.getBoundingClientRect?.();if(rr?.width)origin={x:rr.left+rr.width/2,y:rr.top+rr.height/2};flyScore(pts,trapped?true:false,origin);
 if(trapped){playErrorBuzzer();breakCombo(false);showToast('🎈 TUZAK! BİLGİN\'İN '+word+' PUANI SANA GEÇTİ: +'+pts,'amber',1900);}else{playCorrectChime();rewardWordFx(false);showToast('BİLGİN: '+word+'(+'+pts+')','sky',1800);}setTimeout(()=>startLocalAtismaTurn('player'),500);
 }
-function finishLocalAtisma(){stopAtismaTurnTimer();stopAtismaLocalAi();renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);setPatlamaActivePlayer(null);isMatchActive=false;updateGameTimerUI(0);setAtismaPanelVisible(true,true);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='PATLAMA BİTTİ • 10 / 10 TUR';showTimeUpPreview(()=>{document.getElementById('modal-gameover')?.classList.remove('hidden');prepareSingleResultScreen();});}
+function finishLocalAtisma(){stopAtismaTurnTimer();stopAtismaLocalAi();renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);setPatlamaActivePlayer(null);const endGrid=document.getElementById('scrabble-grid');if(endGrid){endGrid.style.opacity='1';endGrid.style.filter='';}isMatchActive=false;updateGameTimerUI(0);setAtismaPanelVisible(true,true);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='PATLAMA BİTTİ • 10 / 10 TUR';showTimeUpPreview(()=>{document.getElementById('modal-gameover')?.classList.remove('hidden');prepareSingleResultScreen();});}
 function prepareLocalAtisma(){
 stopLocalCountdown();stopAtismaTurnTimer();stopAtismaLocalAi();atismaLocalActive=true;activeGameMode='single';setLongestBonusBadges(false,false);atismaLocalTurn='player';atismaLocalPlayerTurns=0;atismaLocalAiTurns=0;atismaLocalPlayerPlacements={};atismaLocalAiPlacements={};atismaLocalUsedPlayer={};atismaLocalUsedAi={};atismaLocalBlastedWords=new Set();
 document.getElementById('p1-title').textContent='OYUNCU';document.getElementById('p2-title').textContent='BİLGİN';renderPatlamaTurnDots(0,0);p1Score=0;p2Score=0;resetRewardFx();updateScores();resetMatchWordResults();resetSeriesWordResults();sessionFoundWords.clear();const ticker=document.getElementById('words-ticker');if(ticker)ticker.innerHTML='';document.getElementById('screen-home').classList.add('hidden');document.getElementById('screen-game').classList.remove('hidden');setAtismaPanelVisible(true,false);
-requestAnimationFrame(()=>{try{buildGrid();chooseAtismaAiPlacements();renderLocalAtismaTools();atismaSetupActive=true;isMatchActive=false;setPatlamaActivePlayer(null);showAtismaSetupNotice();const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents='none';grid.style.opacity='1';grid.style.touchAction='none';}setTimeout(()=>{if(atismaSetupActive&&grid)grid.style.pointerEvents='auto';},3000);const endAt=Date.now()+23000;const tick=()=>{const left=Math.max(0,Math.ceil((endAt-Date.now())/1000));updateGameTimerUI(Math.min(20,left));const status=document.getElementById('atisma-phase-status');if(status)status.textContent='';if(left<=0){stopAtismaSetupTimer();atismaSetupActive=false;document.getElementById('atisma-setup-notice')?.classList.add('hidden');renderLocalAtismaTools();showToast('Yerleştirme bitti. İlk hamle sende!','emerald',1500);startLocalAtismaTurn('player');}};tick();atismaSetupTimer=setInterval(tick,250);}catch(err){console.error('Local Atisma startup failed',err);atismaLocalActive=false;showToast('PATLAMA hazırlanamadı.','rose');document.getElementById('screen-game')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}});
+requestAnimationFrame(()=>{try{buildGrid();chooseAtismaAiPlacements();renderLocalAtismaTools();atismaSetupActive=true;isMatchActive=false;setPatlamaActivePlayer(null);showAtismaSetupNotice();const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents='none';grid.style.opacity='1';grid.style.touchAction='none';}setTimeout(()=>{if(atismaSetupActive&&grid)grid.style.pointerEvents='auto';},3000);const endAt=Date.now()+23000;atismaLastSecondTick=null;const tick=()=>{const left=Math.max(0,Math.ceil((endAt-Date.now())/1000));const shown=Math.min(20,left);updateGameTimerUI(shown);playPatlamaSecondTick(shown);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='';if(left<=0){stopAtismaSetupTimer();atismaSetupActive=false;document.getElementById('atisma-setup-notice')?.classList.add('hidden');renderLocalAtismaTools();showToast('Yerleştirme bitti. İlk hamle sende!','emerald',1500);startLocalAtismaTurn('player');}};tick();atismaSetupTimer=setInterval(tick,250);}catch(err){console.error('Local Atisma startup failed',err);atismaLocalActive=false;showToast('PATLAMA hazırlanamadı.','rose');document.getElementById('screen-game')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}});
 }
 function isAtismaRoom(){
 return /^(?:invite-only|random-match)-(?:atisma|patlama)-/.test(String(mpRoomMode||'')); 
@@ -2524,13 +2533,14 @@ let el=document.getElementById('atisma-your-turn-notice');
 if(!el){
 el=document.createElement('div');
 el.id='atisma-your-turn-notice';
-el.textContent='Sıra Sizde...';
+el.textContent='Sıra Sizde!';
 el.setAttribute('aria-hidden','true');
-el.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:118;pointer-events:none!important;touch-action:none!important;color:#dc2626;font-family:Quicksand,sans-serif;font-size:clamp(28px,7vw,48px);line-height:1;font-weight:1000;letter-spacing:.015em;text-shadow:0 2px 0 rgba(255,255,255,.95),0 4px 12px rgba(15,23,42,.18);opacity:0;transition:opacity .12s ease,transform .12s ease;white-space:nowrap;';
-document.getElementById('screen-game')?.appendChild(el);
+el.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:118;pointer-events:none!important;touch-action:none!important;color:#dc2626;font-family:Quicksand,sans-serif;font-size:clamp(22px,5.8vw,36px);line-height:1;font-weight:1000;letter-spacing:.015em;text-shadow:0 2px 0 rgba(255,255,255,.95),0 4px 12px rgba(15,23,42,.18);opacity:0;transition:opacity .12s ease,transform .12s ease;white-space:nowrap;';
+const previewBar=document.getElementById('selected-preview-bar');
+if(previewBar){previewBar.style.position='relative';previewBar.appendChild(el);}else document.getElementById('screen-game')?.appendChild(el);
 }
 clearTimeout(atismaTurnNoticeTimer);
-el.textContent='Sıra Sizde...';
+el.textContent='Sıra Sizde!';
 el.style.display='block';
 el.style.opacity='1';
 el.style.transform='translate(-50%,-50%) scale(1.04)';
@@ -2561,13 +2571,14 @@ setAtismaPanelVisible(true,true);setPatlamaActivePlayer(turn==='host'?'p1':'p2')
 const status=document.getElementById('atisma-phase-status');
 if(status)status.textContent='';
 const grid=document.getElementById('scrabble-grid');
-if(grid){grid.style.pointerEvents=mine?'auto':'none';grid.style.opacity=mine?'1':'.78';}
+if(grid){grid.style.pointerEvents=mine?'auto':'none';grid.style.opacity=mine?'1':'.70';grid.style.filter=mine?'':'saturate(.82) brightness(.92)';}
 stopAtismaTurnTimer();
+atismaLastSecondTick=null;
 const deadline=Number(gs?.turnDeadline||0);
 const tick=async()=>{
 if(!isAtismaRoom()||!mpRoomRef||String(mpRoomData?.status||gs?.status)!=='playing'){stopAtismaTurnTimer();return;}
 const left=Math.max(0,Math.ceil((deadline-serverNow())/1000));
-updateGameTimerUI(left);
+updateGameTimerUI(left);playPatlamaSecondTick(left);
 if(left<=0&&mpRole==='host'&&!atismaTimeoutBusy){
 atismaTimeoutBusy=true;
 try{
@@ -2584,7 +2595,7 @@ tick();atismaTurnTimer=setInterval(tick,250);
 function activateAtismaSetup(gs){
 if(!isAtismaRoom()||!mpRole)return;
 atismaSetupActive=true;isMatchActive=false;
-setAtismaPlacementWaiting(false);
+setAtismaPlacementWaiting(false);const setupGridReset=document.getElementById('scrabble-grid');if(setupGridReset){setupGridReset.style.opacity='1';setupGridReset.style.filter='';}
 renderPatlamaTurnDots(Number(gs?.hostTurns||0),Number(gs?.guestTurns||0));setPatlamaActivePlayer(null);
 setAtismaPanelVisible(true,false);
 const noticeKey=String(gs?.setupEndAt||'');const gameEl=document.getElementById('screen-game');
@@ -2599,10 +2610,11 @@ if(grid){
 }
 renderAtismaTools();
 stopAtismaSetupTimer();
+atismaLastSecondTick=null;
 const endAt=Number(gs?.setupEndAt||serverNow()+23000);
 const tick=()=>{
 const left=Math.max(0,Math.ceil((endAt-serverNow())/1000));
-updateGameTimerUI(Math.min(20,left));
+const shown=Math.min(20,left);updateGameTimerUI(shown);playPatlamaSecondTick(shown);
 const status=document.getElementById('atisma-phase-status');
 if(status)status.textContent='';
 if(left<=0){
