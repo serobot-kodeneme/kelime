@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v509-patlama-ready';
+const CACHE_NAME='kapmaca-shell-v510-replay-mode';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=509-patlama-ready',
+  './app.js?v=510-replay-mode',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
