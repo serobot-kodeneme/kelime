@@ -1498,7 +1498,7 @@ else if(d.status==='countdown'&&d.startAt&&!mpStarted)startSyncedMatch(d);
 else if(d.status==='playing'&&d.startAt)activateMultiplayerPlaying(d);
 }
 async function hostStartWaitingRound(){
-if(!mpRole||mpStartBusy||!mpRoomRef)return;
+if(mpRole!=='host'||mpStartBusy||!mpRoomRef)return;
 mpStartBusy=true;
 try{
 const[guestSnap,readySnap]=await Promise.all([
@@ -2446,17 +2446,22 @@ await mpRoomRef.update({
 async function hostStartAtismaSetup(){
 if(mpRole!=='host'||!mpRoomRef||!isAtismaRoom())return;
 const now=serverNow();
+const tx=await mpRoomRef.child('gameState').transaction(gs=>{
+if(!gs||gs.status!=='waiting')return;
+gs.status='setup';
+gs.startAt=0;
+gs.setupEndAt=now+23000;
+gs.turn='host';
+gs.hostTurns=0;
+gs.guestTurns=0;
+gs.turnStartedAt=0;
+gs.turnDeadline=0;
+return gs;
+},undefined,false).catch(()=>null);
+if(!tx?.committed)return;
 await mpRoomRef.update({
 'atisma/placements':{host:{},guest:{}},
-'atisma/used':null,
-'gameState/status':'setup',
-'gameState/startAt':0,
-'gameState/setupEndAt':now+23000,
-'gameState/turn':'host',
-'gameState/hostTurns':0,
-'gameState/guestTurns':0,
-'gameState/turnStartedAt':0,
-'gameState/turnDeadline':0
+'atisma/used':null
 });
 }
 async function atismaCompleteTurn(expectedRole=mpRole){
