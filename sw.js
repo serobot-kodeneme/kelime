@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v505-footer-real-pills';
+const CACHE_NAME='kapmaca-shell-v506-ui-cleanup';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=505-footer-real-pills',
+  './app.js?v=506-ui-cleanup',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
