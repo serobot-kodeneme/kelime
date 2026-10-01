@@ -1262,6 +1262,8 @@ const cancelBtn=document.getElementById('btn-invite-cancel');
 const countdownEl=document.getElementById('invite-decision-countdown');
 const countdownNumberEl=document.getElementById('invite-decision-number');
 if(codeEl)codeEl.textContent=String(mpRoomCode||'').toUpperCase();
+const inviteTitle=modal?.querySelector('.invite-title');
+if(inviteTitle)inviteTitle.textContent=isAtismaRoom()?'PATLAMA oyununa davet edildiniz':'KAPMACA oyununa davet edildiniz';
 if(startBtn){startBtn.disabled=false;startBtn.classList.remove('hidden');}
 if(cancelBtn){cancelBtn.disabled=false;cancelBtn.classList.remove('hidden');}
 modal?.classList.remove('hidden');
@@ -2208,7 +2210,7 @@ document.getElementById('p1-title').textContent='OYUNCU';document.getElementById
 requestAnimationFrame(()=>{try{buildGrid();chooseAtismaAiPlacements();renderLocalAtismaTools();atismaSetupActive=true;isMatchActive=false;setPatlamaActivePlayer(null);showAtismaSetupNotice();const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents='auto';grid.style.opacity='1';grid.style.touchAction='none';}const endAt=Date.now()+20000;const tick=()=>{const left=Math.max(0,Math.ceil((endAt-Date.now())/1000));updateGameTimerUI(left);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='';if(left<=0){stopAtismaSetupTimer();atismaSetupActive=false;document.getElementById('atisma-setup-notice')?.classList.add('hidden');renderLocalAtismaTools();showToast('Yerleştirme bitti. İlk hamle sende!','emerald',1500);startLocalAtismaTurn('player');}};tick();atismaSetupTimer=setInterval(tick,250);}catch(err){console.error('Local Atisma startup failed',err);atismaLocalActive=false;showToast('PATLAMA hazırlanamadı.','rose');document.getElementById('screen-game')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}});
 }
 function isAtismaRoom(){
-return /^invite-only-atisma-/.test(String(mpRoomMode||'')); 
+return /^invite-only-(?:atisma|patlama)-/.test(String(mpRoomMode||'')); 
 }
 function stopAtismaSetupTimer(){
 if(atismaSetupTimer){clearInterval(atismaSetupTimer);atismaSetupTimer=null;}
@@ -2462,8 +2464,8 @@ setPrivateRoomProgress('PATLAMA HAZIRLANIYOR…');
 if(!await waitFirebaseConnected(8000)){showToast('Sunucuya bağlanılamadı.','rose');return false;}
 await ensureWordDataLoaded();
 const readyBoard=prewarmedBoard||generateOptimizedBoard(3);prewarmedBoard=null;rememberBoard(readyBoard.board,readyBoard.words);
-const created=await createCleanRoomRecord({schema:22,mode:'invite-only-atisma-v1',hostId:getClientToken(),board:readyBoard.board,inviteGuest:'pending'});
-mpRoomCode=created.code;mpRole='host';mpRoomRef=created.ref;mpRoomMode='invite-only-atisma-v1';mpRandomMatchSession=false;
+const created=await createCleanRoomRecord({schema:22,mode:'invite-only-patlama-v1',hostId:getClientToken(),board:readyBoard.board,inviteGuest:'pending'});
+mpRoomCode=created.code;mpRole='host';mpRoomRef=created.ref;mpRoomMode='invite-only-patlama-v1';mpRandomMatchSession=false;
 delete document.body.dataset.randomMatchActive;document.body.dataset.privateFriendActive='1';
 mpRoomData=null;mpEntered=false;mpStarted=false;mpSessionJoinedAt=serverNow();mpExitHandling=false;mpLastExitSignalId='';
 await created.ref.child('atisma').set({placements:{host:{},guest:{}},used:null});
@@ -2894,9 +2896,20 @@ window.addEventListener('load',()=>{
 navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});
 },{once:true});
 }
-document.getElementById('btn-blast-test')?.addEventListener('click',async()=>{
+const patlamaTestMenu=document.getElementById('patlama-test-menu');
+function setPatlamaTestMenu(open){patlamaTestMenu?.classList.toggle('hidden',!open);}
+document.getElementById('btn-blast-test')?.addEventListener('click',()=>setPatlamaTestMenu(true));
+document.getElementById('btn-patlama-menu-close')?.addEventListener('click',()=>setPatlamaTestMenu(false));
+patlamaTestMenu?.addEventListener('click',e=>{if(e.target===patlamaTestMenu)setPatlamaTestMenu(false);});
+document.getElementById('btn-patlama-single')?.addEventListener('click',async()=>{
+setPatlamaTestMenu(false);
 try{await ensureWordDataLoaded();prepareLocalAtisma();}
-catch(err){console.error('Local Atisma test startup failed',err);showToast('PATLAMA hazırlanamadı. Tekrar deneyin.','rose');}
+catch(err){console.error('PATLAMA single startup failed',err);showToast('PATLAMA hazırlanamadı. Tekrar deneyin.','rose');}
+});
+document.getElementById('btn-patlama-multi')?.addEventListener('click',async()=>{
+setPatlamaTestMenu(false);
+try{await openFreshAtismaRoom();}
+catch(err){console.error('PATLAMA multiplayer startup failed',err);showToast('PATLAMA çoklu oyuncu hazırlanamadı.','rose');}
 });
 document.getElementById('btn-solo-mode').onclick=()=>{
 document.getElementById('friend-invite-panel').classList.add('hidden');
@@ -2947,7 +2960,11 @@ document.getElementById('modal-mp-waiting')?.classList.remove('hidden');
 startInviteWaitCountdown(deadline);
 if(shareNative){
 if(navigator.share){
-navigator.share({title:'KAPMACA - Sözcük Avı',text:'🔥 60 saniye. Aynı harfler. Kim daha çok sözcük bulacak? KAPMACA\'da bana karşı oyna!',url}).catch(()=>{});
+navigator.share({
+title:isAtismaRoom()?'KAPMACA - PATLAMA':'KAPMACA - Sözcük Avı',
+text:isAtismaRoom()?'🎈 PATLAMA! 5 balonunu gizle, 10 turda rakibinin puanını kap. Bana karşı oyna!':'🔥 60 saniye. Aynı harfler. Kim daha çok sözcük bulacak? KAPMACA\'da bana karşı oyna!',
+url
+}).catch(()=>{});
 }else{
 await navigator.clipboard.writeText(url).catch(()=>{});
 showToast('Davet bağlantısı kopyalandı.','emerald');
