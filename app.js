@@ -412,6 +412,8 @@ let remainingSeconds=60;
 let isMatchActive=false;
 let botDiffLevel='easy';
 let activeGameMode = null; // 'single' | 'multi' — replay akışının tek güvenilir kaynağı
+let blastModeActive=false;
+let blastTrapCells=new Set();
 let selectedPath=[];
 let sessionFoundWords=new Set();
 let gridBoard=[];
@@ -2437,6 +2439,15 @@ window.addEventListener('load',()=>{
 navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});
 },{once:true});
 }
+document.getElementById('btn-blast-test')?.addEventListener('click',async()=>{
+try{
+await ensureWordDataLoaded();
+prepareBlastGame();
+}catch(err){
+console.error('Blast test startup failed',err);
+showToast('PATLAMA hazırlanamadı. Tekrar deneyin.','rose');
+}
+});
 document.getElementById('btn-solo-mode').onclick=()=>{
 document.getElementById('friend-invite-panel').classList.add('hidden');
 const opening=difficultyPanel.classList.contains('hidden');
@@ -2822,6 +2833,7 @@ setMasterSoundVolume(masterSoundVolume);
 updateFullscreenUi();
 function prepareGame(){
 stopLocalCountdown();
+blastModeActive=false;blastTrapCells.clear();document.getElementById('screen-game')?.classList.remove('blast-test-mode');
 activeGameMode='single';setLongestBonusBadges(false,false);
 document.getElementById('p1-title').textContent='OYUNCU';
 document.getElementById('p2-title').textContent=getBotDisplayName();
@@ -2840,6 +2852,39 @@ stopLocalCountdown();
 document.getElementById('modal-countdown')?.classList.add('hidden');
 showToast('Tahta hazırlanamadı. Tekrar deneyin.','rose');
 document.getElementById('screen-game')?.classList.add('hidden');
+document.getElementById('screen-home')?.classList.remove('hidden');
+}
+});
+}
+function armBlastTraps(){
+blastTrapCells.clear();
+const all=Array.from({length:BOARD_SIZE*BOARD_SIZE},(_,i)=>i);
+for(let i=all.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[all[i],all[j]]=[all[j],all[i]];}
+all.slice(0,5).forEach(i=>blastTrapCells.add(i));
+}
+function prepareBlastGame(){
+stopLocalCountdown();
+blastModeActive=true;activeGameMode='single';setLongestBonusBadges(false,false);
+document.getElementById('p1-title').textContent='OYUNCU';
+document.getElementById('p2-title').textContent='PATLAMA';
+p1Score=0;p2Score=0;resetRewardFx();updateScores();remainingSeconds=60;
+resetMatchWordResults();resetSeriesWordResults();
+sessionFoundWords.clear();
+const ticker=document.getElementById('words-ticker');if(ticker)ticker.innerHTML='';
+document.getElementById('screen-home').classList.add('hidden');
+document.getElementById('screen-game').classList.remove('hidden');
+document.getElementById('screen-game').classList.add('blast-test-mode');
+triggerCountdownSequence(()=>{isMatchActive=true;startTimer();showToast('PATLAMA: Tahtada 5 gizli tuzak var.','slate',1800);});
+requestAnimationFrame(()=>{
+try{buildGrid();armBlastTraps();}
+catch(err){
+console.error('Blast mode board startup error',err);
+blastModeActive=false;blastTrapCells.clear();
+stopLocalCountdown();
+document.getElementById('modal-countdown')?.classList.add('hidden');
+showToast('PATLAMA hazırlanamadı. Tekrar deneyin.','rose');
+document.getElementById('screen-game')?.classList.add('hidden');
+document.getElementById('screen-game')?.classList.remove('blast-test-mode');
 document.getElementById('screen-home')?.classList.remove('hidden');
 }
 });
@@ -3588,6 +3633,23 @@ if(mpRole){
 mpFoundWords.host.add(word);
 mpFoundWords.guest.add(word);
 }else sessionFoundWords.add(word);
+
+if(blastModeActive&&!mpRole){
+const hitCells=selectedPath.filter(p=>blastTrapCells.has(p.r*BOARD_SIZE+p.c));
+if(hitCells.length){
+sessionFoundWords.add(word);
+recordMatchWord(word,-pts,isP1);
+playErrorBuzzer();
+flashWordFeedback(false);
+breakCombo(isP1);
+hitCells.forEach(p=>p.el.classList.add('blast-trap-hit'));
+showToast(`💥 PATLAMA! ${word}(-${pts})`,'rose',1800);
+flyScore(-pts,isP1,scoreFxOrigin);
+p1Score-=pts;updateScores();
+clearPath();
+return;
+}
+}
 recordMatchWord(word,pts,isP1);
 playCorrectChime();
 flashWordFeedback(true);
