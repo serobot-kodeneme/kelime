@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v507-patlama-copy';
+const CACHE_NAME='kapmaca-shell-v508-stable';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=507-patlama-copy',
+  './app.js?v=508-stable',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
