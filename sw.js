@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v548-performance-maintenance';
+const CACHE_NAME='kapmaca-shell-v549-patlama-turn-focus';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=548-performance-maintenance',
+  './app.js?v=549-patlama-turn-focus',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
