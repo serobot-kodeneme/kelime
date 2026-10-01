@@ -2047,6 +2047,8 @@ const nick=document.getElementById('account-nickname');
 nick?.classList.toggle('hidden',accountFormMode!=='signup');
 const title=document.getElementById('account-form-title');
 if(title)title.textContent=accountFormMode==='signup'?'Üye Ol':'Giriş Yap';
+const submit=document.getElementById('btn-account-submit');
+if(submit)submit.textContent=accountFormMode==='signup'?'ÜYE OL':'GİRİŞ YAP';
 const pass=document.getElementById('account-password');
 if(pass)pass.autocomplete=accountFormMode==='signup'?'new-password':'current-password';
 setAccountMessage('');
@@ -2239,7 +2241,7 @@ const email=String(document.getElementById('account-email')?.value||'').trim();
 const password=String(document.getElementById('account-password')?.value||'');
 const nickname=String(document.getElementById('account-nickname')?.value||'').trim().slice(0,18);
 if(!email||!password){setAccountMessage('E-posta ve şifre gerekli.');return;}
-if(accountFormMode==='signup'&&!nickname){setAccountMessage('Bir oyuncu adı yazın.');return;}
+if(accountFormMode==='signup'&&!nickname){setAccountMessage('Bir takma ad yazın.');return;}
 try{
 await ensureAccountBackend();
 if(accountFormMode==='signup'){
@@ -2288,7 +2290,7 @@ document.getElementById('account-profile-editor')?.classList.toggle('hidden');
 document.getElementById('btn-account-save-profile')?.addEventListener('click',async()=>{
 const user=accountAuth?.currentUser;if(!user||!accountDb)return;
 const nickname=String(document.getElementById('account-profile-nickname')?.value||'').trim().slice(0,18);
-if(!nickname){setAccountUserMessage('Oyuncu adı boş bırakılamaz.',false);return;}
+if(!nickname){setAccountUserMessage('Takma ad boş bırakılamaz.',false);return;}
 try{
 await user.updateProfile({displayName:nickname});
 await accountDb.ref('users/'+user.uid).update({nickname,updatedAt:Date.now()});
