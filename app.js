@@ -1986,7 +1986,7 @@ for(const x of mpControlListeners.splice(0)){try{x.ref.off(x.event,x.handler);}c
 }
 function resetMultiplayerClientState(){
 stopInviteWaitCountdown();
-stopAtismaSetupTimer();stopAtismaTurnTimer();clearAtismaDrag();atismaSetupActive=false;atismaTimeoutBusy=false;atismaTool='trap';document.getElementById('atisma-setup-notice')?.classList.add('hidden');setAtismaPanelVisible(false,false);
+stopAtismaSetupTimer();stopAtismaTurnTimer();clearAtismaDrag();atismaSetupActive=false;atismaTimeoutBusy=false;atismaTool='trap';setPatlamaActivePlayer(null);document.getElementById('atisma-setup-notice')?.classList.add('hidden');setAtismaPanelVisible(false,false);
 stopGrandCelebrationFx();
 stopWinnerConfettiWaterfall();
 detachMultiplayerListeners();
@@ -2178,6 +2178,12 @@ return{trap};
 }
 function localAtismaDelta(base,effects){return effects.trap.length?0:base;}
 function chooseLocalAtismaAiWord(){const level=BOT_LEVELS.medium;const available=getBotRankedWords().filter(({item})=>!sessionFoundWords.has(item.word));if(!available.length)return null;let ranked=available.filter(({item})=>item.word.length>=level.minLen&&item.word.length<=level.maxLen);if(!ranked.length)ranked=available;if(Math.random()<level.focus){const topCount=Math.min(ranked.length,level.top);return ranked[Math.floor(Math.random()*topCount)].item;}return ranked[Math.floor(Math.random()*ranked.length)].item;}
+function setPatlamaActivePlayer(side=null){
+const p1=document.getElementById('p1-player-card'),p2=document.getElementById('p2-player-card');
+[p1,p2].forEach(el=>el?.classList.remove('patlama-turn-active','patlama-turn-inactive'));
+if(side==='p1'){p1?.classList.add('patlama-turn-active');p2?.classList.add('patlama-turn-inactive');}
+else if(side==='p2'){p2?.classList.add('patlama-turn-active');p1?.classList.add('patlama-turn-inactive');}
+}
 function renderPatlamaTurnDots(p1Used=0,p2Used=0){
 const paint=(id,used)=>{
 const el=document.getElementById(id);if(!el)return;
@@ -2192,8 +2198,8 @@ paint('p2-turn-dots',p2Used);
 function startLocalAtismaTurn(turn='player'){
 stopAtismaTurnTimer();stopAtismaLocalAi();atismaLocalTurn=turn;renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);
 if(atismaLocalPlayerTurns>=10&&atismaLocalAiTurns>=10){finishLocalAtisma();return;}if(turn==='player'&&atismaLocalPlayerTurns>=10){startLocalAtismaTurn('ai');return;}if(turn==='ai'&&atismaLocalAiTurns>=10){startLocalAtismaTurn('player');return;}
-isMatchActive=turn==='player';setAtismaPanelVisible(true,true);const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents=turn==='player'?'auto':'none';grid.style.opacity=turn==='player'?'1':'.78';grid.style.touchAction='none';}
-const status=document.getElementById('atisma-phase-status');const n=(turn==='player'?atismaLocalPlayerTurns:atismaLocalAiTurns)+1;if(status)status.textContent=turn==='player'?'🎯 SIRA SENDE • '+n+'/10':'🤖 BİLGİN DÜŞÜNÜYOR • '+n+'/10';
+isMatchActive=turn==='player';setAtismaPanelVisible(true,true);setPatlamaActivePlayer(turn==='player'?'p1':'p2');const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents=turn==='player'?'auto':'none';grid.style.opacity=turn==='player'?'1':'.78';grid.style.touchAction='none';}
+const status=document.getElementById('atisma-phase-status');const n=(turn==='player'?atismaLocalPlayerTurns:atismaLocalAiTurns)+1;if(status)status.textContent='';
 const deadline=Date.now()+10000;const tick=()=>{if(!isLocalAtisma())return;const left=Math.max(0,Math.ceil((deadline-Date.now())/1000));updateGameTimerUI(left);if(left<=0){stopAtismaTurnTimer();if(turn==='player'){atismaLocalPlayerTurns++;renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);showToast('Süre doldu — sıra BİLGİN’de.','slate',1200);startLocalAtismaTurn('ai');}else runLocalAtismaAiTurn();}};tick();atismaTurnTimer=setInterval(tick,250);
 if(turn==='ai')atismaLocalAiTimer=setTimeout(()=>runLocalAtismaAiTurn(),1200+Math.floor(Math.random()*1500));
 }
@@ -2203,11 +2209,11 @@ const word=match.word,pts=word.split('').reduce((s,c)=>s+(TILE_SCORE_CACHE[c]||1
 match.path.forEach(pt=>document.getElementById('cell-'+pt.r+'-'+pt.c)?.classList.add('tile-claimed-p2'));const badge=addTickerBadge(word,false);flashOpponentWord(match.path,false,badge);let origin=null;const lp=match.path?.[match.path.length-1],el=lp?document.getElementById('cell-'+lp.r+'-'+lp.c):null,rr=el?.getBoundingClientRect?.();if(rr?.width)origin={x:rr.left+rr.width/2,y:rr.top+rr.height/2};flyScore(pts,trapped?true:false,origin);
 if(trapped){playErrorBuzzer();breakCombo(false);showToast('🎈 TUZAK! BİLGİN\'İN '+word+' PUANI SANA GEÇTİ: +'+pts,'amber',1900);}else{playCorrectChime();rewardWordFx(false);showToast('BİLGİN: '+word+'(+'+pts+')','sky',1800);}setTimeout(()=>startLocalAtismaTurn('player'),500);
 }
-function finishLocalAtisma(){stopAtismaTurnTimer();stopAtismaLocalAi();renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);isMatchActive=false;updateGameTimerUI(0);setAtismaPanelVisible(true,true);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='PATLAMA BİTTİ • 10 / 10 TUR';showTimeUpPreview(()=>{document.getElementById('modal-gameover')?.classList.remove('hidden');prepareSingleResultScreen();});}
+function finishLocalAtisma(){stopAtismaTurnTimer();stopAtismaLocalAi();renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);setPatlamaActivePlayer(null);isMatchActive=false;updateGameTimerUI(0);setAtismaPanelVisible(true,true);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='PATLAMA BİTTİ • 10 / 10 TUR';showTimeUpPreview(()=>{document.getElementById('modal-gameover')?.classList.remove('hidden');prepareSingleResultScreen();});}
 function prepareLocalAtisma(){
 stopLocalCountdown();stopAtismaTurnTimer();stopAtismaLocalAi();atismaLocalActive=true;blastModeActive=false;activeGameMode='single';botDiffLevel='medium';setLongestBonusBadges(false,false);atismaLocalTurn='player';atismaLocalPlayerTurns=0;atismaLocalAiTurns=0;atismaLocalPlayerPlacements={};atismaLocalAiPlacements={};atismaLocalNeutral={};atismaLocalUsedPlayer={};atismaLocalUsedAi={};
 document.getElementById('p1-title').textContent='OYUNCU';document.getElementById('p2-title').textContent='BİLGİN';renderPatlamaTurnDots(0,0);p1Score=0;p2Score=0;resetRewardFx();updateScores();resetMatchWordResults();resetSeriesWordResults();sessionFoundWords.clear();const ticker=document.getElementById('words-ticker');if(ticker)ticker.innerHTML='';document.getElementById('screen-home').classList.add('hidden');document.getElementById('screen-game').classList.remove('hidden');setAtismaPanelVisible(true,false);
-requestAnimationFrame(()=>{try{buildGrid();chooseAtismaAiPlacements();renderLocalAtismaTools();atismaSetupActive=true;isMatchActive=false;showAtismaSetupNotice();const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents='auto';grid.style.opacity='1';grid.style.touchAction='none';}const endAt=Date.now()+20000;const tick=()=>{const left=Math.max(0,Math.ceil((endAt-Date.now())/1000));updateGameTimerUI(left);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='PATLAMA • YERLEŞTİR: '+left;if(left<=0){stopAtismaSetupTimer();atismaSetupActive=false;document.getElementById('atisma-setup-notice')?.classList.add('hidden');resolveLocalAtismaNeutral();renderLocalAtismaTools();showToast('Yerleştirme bitti. İlk hamle sende!','emerald',1500);startLocalAtismaTurn('player');}};tick();atismaSetupTimer=setInterval(tick,250);}catch(err){console.error('Local Atisma startup failed',err);atismaLocalActive=false;showToast('PATLAMA hazırlanamadı.','rose');document.getElementById('screen-game')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}});
+requestAnimationFrame(()=>{try{buildGrid();chooseAtismaAiPlacements();renderLocalAtismaTools();atismaSetupActive=true;isMatchActive=false;setPatlamaActivePlayer(null);showAtismaSetupNotice();const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents='auto';grid.style.opacity='1';grid.style.touchAction='none';}const endAt=Date.now()+20000;const tick=()=>{const left=Math.max(0,Math.ceil((endAt-Date.now())/1000));updateGameTimerUI(left);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='';if(left<=0){stopAtismaSetupTimer();atismaSetupActive=false;document.getElementById('atisma-setup-notice')?.classList.add('hidden');resolveLocalAtismaNeutral();renderLocalAtismaTools();showToast('Yerleştirme bitti. İlk hamle sende!','emerald',1500);startLocalAtismaTurn('player');}};tick();atismaSetupTimer=setInterval(tick,250);}catch(err){console.error('Local Atisma startup failed',err);atismaLocalActive=false;showToast('PATLAMA hazırlanamadı.','rose');document.getElementById('screen-game')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}});
 }
 function isAtismaRoom(){
 return /^invite-only-atisma-/.test(String(mpRoomMode||'')); 
@@ -2295,9 +2301,9 @@ const mine=turn===mpRole;
 const used=Number(turn==='host'?gs?.hostTurns:gs?.guestTurns)||0;
 const turnNo=Math.min(10,used+1);
 renderPatlamaTurnDots(Number(gs?.hostTurns||0),Number(gs?.guestTurns||0));
-setAtismaPanelVisible(true,true);
+setAtismaPanelVisible(true,true);setPatlamaActivePlayer(turn==='host'?'p1':'p2');
 const status=document.getElementById('atisma-phase-status');
-if(status)status.textContent=mine?`🎯 SIRA SENDE • ${turnNo}/10`:`⏳ RAKİBİN HAMLESİ • ${turnNo}/10`;
+if(status)status.textContent='';
 const grid=document.getElementById('scrabble-grid');
 if(grid){grid.style.pointerEvents=mine?'auto':'none';grid.style.opacity=mine?'1':'.78';}
 stopAtismaTurnTimer();
@@ -2322,7 +2328,7 @@ tick();atismaTurnTimer=setInterval(tick,250);
 function activateAtismaSetup(gs){
 if(!isAtismaRoom()||!mpRole)return;
 atismaSetupActive=true;isMatchActive=false;
-renderPatlamaTurnDots(Number(gs?.hostTurns||0),Number(gs?.guestTurns||0));
+renderPatlamaTurnDots(Number(gs?.hostTurns||0),Number(gs?.guestTurns||0));setPatlamaActivePlayer(null);
 setAtismaPanelVisible(true,false);
 const noticeKey=String(gs?.setupEndAt||'');const gameEl=document.getElementById('screen-game');
 if(gameEl?.dataset.atismaNoticeKey!==noticeKey){if(gameEl)gameEl.dataset.atismaNoticeKey=noticeKey;showAtismaSetupNotice();}
@@ -2335,7 +2341,7 @@ const tick=()=>{
 const left=Math.max(0,Math.ceil((endAt-serverNow())/1000));
 updateGameTimerUI(left);
 const status=document.getElementById('atisma-phase-status');
-if(status)status.textContent=`PATLAMA • YERLEŞTİR: ${left}`;
+if(status)status.textContent='';
 if(left<=0){
 stopAtismaSetupTimer();atismaSetupActive=false;document.getElementById('atisma-setup-notice')?.classList.add('hidden');
 if(grid)grid.style.pointerEvents='none';
