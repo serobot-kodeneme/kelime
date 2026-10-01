@@ -957,7 +957,7 @@ const u=new URL(location.href);u.searchParams.set('room',publicCode);u.searchPar
 function clearInviteFromUrl(){
 const u=new URL(location.href);['room','join','as'].forEach(k=>u.searchParams.delete(k));history.replaceState(null,'',u.toString());
 }
-function setPrivateInviteControlsReady(ready,code=''){
+function setPrivateInviteControlsReady(ready){
 const copy=document.getElementById('btn-copy-link');
 const share=document.getElementById('btn-share-link');
 if(copy)copy.disabled=!ready;
@@ -967,8 +967,6 @@ if(!el)continue;
 el.style.opacity=ready?'1':'.55';
 el.style.cursor=ready?'pointer':'wait';
 }
-const c=document.getElementById('mp-room-code');
-if(c)c.textContent=ready&&code?'https://kapmaca.tr/?room='+String(code).toLowerCase():'ODA HAZIRLANIYOR…';
 }
 function setMpPanelRoom(code){
 document.getElementById('mp-create-view')?.classList.add('hidden');
@@ -1261,10 +1259,7 @@ disconnectFirebaseNetwork(true);
 }
 }
 let privateRoomCreateBusy=false;
-function setPrivateRoomProgress(text){
-const c=document.getElementById('mp-room-code');
-if(c)c.textContent=String(text||'ODA HAZIRLANIYOR…');
-}
+function setPrivateRoomProgress(){}
 async function createRoom(){
 if(privateRoomCreateBusy)return false;
 privateRoomCreateBusy=true;
@@ -1330,12 +1325,10 @@ if(inviteDecisionTimer){clearInterval(inviteDecisionTimer);inviteDecisionTimer=n
 }
 function showInviteDecisionModal(){
 const modal=document.getElementById('modal-room-invite');
-const codeEl=document.getElementById('invite-room-code');
 const startBtn=document.getElementById('btn-invite-start');
 const cancelBtn=document.getElementById('btn-invite-cancel');
 const countdownEl=document.getElementById('invite-decision-countdown');
 const countdownNumberEl=document.getElementById('invite-decision-number');
-if(codeEl)codeEl.textContent=String(mpRoomCode||'').toUpperCase();
 const inviteTitle=modal?.querySelector('.invite-title');
 if(inviteTitle)inviteTitle.textContent=isAtismaRoom()?'PATLAMA oyununa davet edildiniz':'KAPMACA oyununa davet edildiniz';
 if(startBtn){startBtn.disabled=false;startBtn.classList.remove('hidden');}
@@ -2088,8 +2081,6 @@ activeMemberRoomNo='';activeMemberRoomOwner=false;
 if(memberWasOwner&&memberNoToClear&&accountDb){
 accountDb.ref('memberRooms/'+memberNoToClear).update({activeRoomCode:'',activeMode:'',updatedAt:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
 }
-const randomExitBtn=document.getElementById('btn-random-result-exit');
-if(randomExitBtn){randomExitBtn.disabled=true;randomExitBtn.classList.add('hidden');randomExitBtn.style.removeProperty('display');randomExitBtn.style.removeProperty('visibility');randomExitBtn.style.removeProperty('opacity');}
 stopInviteDecisionTimer();
 const queueCleanup=randomSearchActive?cleanupRandomQueue().catch(()=>{}):null;
 if(!randomSearchActive)releaseRandomSearchLocal();
