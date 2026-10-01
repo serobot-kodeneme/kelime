@@ -3262,7 +3262,7 @@ document.getElementById('mp-room-view')?.classList.add('hidden');
 }
 function parkHomeGameSubmodes(){
 const picker=document.getElementById('home-game-mode-picker');
-if(picker&&homeGameSubmodes&&homeGameSubmodes.parentElement===picker)picker.after(homeGameSubmodes);
+if(picker&&homeGameSubmodes&&picker.contains(homeGameSubmodes))picker.after(homeGameSubmodes);
 }
 function selectHomeGameMode(mode){
 const normalized=mode==='patlama'?'patlama':'kapisma';
@@ -3278,7 +3278,8 @@ return;
 }
 selectedHomeGameMode=normalized;
 const selectedBtn=normalized==='patlama'?patlamaModeBtn:kapismaModeBtn;
-selectedBtn?.after(homeGameSubmodes);
+const selectedRow=selectedBtn?.closest('.home-mode-guide-row');
+(selectedRow||selectedBtn)?.after(homeGameSubmodes);
 homeGameSubmodes?.classList.remove('hidden');
 kapismaModeBtn?.classList.toggle('selected',normalized==='kapisma');
 patlamaModeBtn?.classList.toggle('selected',normalized==='patlama');
