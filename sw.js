@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v513-solo-patlama-ready';
+const CACHE_NAME='kapmaca-shell-v544-recovery';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=513-solo-patlama-ready',
+  './app.js?v=544-recovery',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
@@ -29,31 +29,36 @@ self.addEventListener('fetch',event=>{
   if(url.origin!==self.location.origin) return;
   if(url.pathname.startsWith('/__/')) return;
 
-  if(event.request.mode==='navigate'){
-    event.respondWith(
-      fetch(event.request)
-        .then(response=>{
-          const copy=response.clone();
-          caches.open(CACHE_NAME).then(cache=>cache.put('./index.html',copy));
-          return response;
-        })
-        .catch(()=>caches.match('./index.html'))
-    );
-    return;
-  }
+  const isCritical =
+    event.request.mode==='navigate' ||
+    url.pathname.endsWith('/index.html') ||
+    url.pathname.endsWith('/app.js') ||
+    url.pathname==='/';
 
-  event.respondWith(
-    caches.match(event.request).then(cached=>{
-      const network=fetch(event.request)
+  if(isCritical){
+    event.respondWith(
+      fetch(event.request,{cache:'no-store'})
         .then(response=>{
-          if(response && response.ok){
+          if(response&&response.ok){
             const copy=response.clone();
             caches.open(CACHE_NAME).then(cache=>cache.put(event.request,copy));
           }
           return response;
         })
-        .catch(()=>cached);
-      return cached || network;
-    })
+        .catch(()=>caches.match(event.request).then(r=>r||caches.match('./index.html')))
+    );
+    return;
+  }
+
+  event.respondWith(
+    fetch(event.request)
+      .then(response=>{
+        if(response&&response.ok){
+          const copy=response.clone();
+          caches.open(CACHE_NAME).then(cache=>cache.put(event.request,copy));
+        }
+        return response;
+      })
+      .catch(()=>caches.match(event.request))
   );
 });
