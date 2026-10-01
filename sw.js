@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v459-invite4';
+const CACHE_NAME='kapmaca-shell-v495-haptics-fallback';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=459-invite4',
+  './app.js?v=495-haptics-fallback',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
