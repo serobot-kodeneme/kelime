@@ -609,6 +609,69 @@ vibrateGame('success');
 playTone(760,.13,.095,'sine',980);
 playTone(1120,.19,.075,'sine',1420,.075);
 }
+let atismaExplosionNoiseBuffer=null;
+let lastAtismaExplosionSoundAt=0;
+function playAtismaExplosionSound(){
+if(masterSoundVolume<=0||document.hidden)return;
+const ctx=ensureGameAudio();if(!ctx||ctx.state==='closed')return;
+try{
+const perfNow=performance.now();
+const stackScale=perfNow-lastAtismaExplosionSoundAt<85?.68:1;
+lastAtismaExplosionSoundAt=perfNow;
+const now=ctx.currentTime;
+const master=ctx.createGain();
+const compressor=ctx.createDynamicsCompressor();
+compressor.threshold.setValueAtTime(-16,now);
+compressor.knee.setValueAtTime(16,now);
+compressor.ratio.setValueAtTime(5,now);
+compressor.attack.setValueAtTime(.002,now);
+compressor.release.setValueAtTime(.12,now);
+master.gain.setValueAtTime(Math.min(.95,masterSoundVolume*1.08*stackScale),now);
+master.connect(compressor);compressor.connect(ctx.destination);
+
+const boom=ctx.createOscillator(),boomGain=ctx.createGain();
+boom.type='sine';
+boom.frequency.setValueAtTime(155,now);
+boom.frequency.exponentialRampToValueAtTime(43,now+.24);
+boomGain.gain.setValueAtTime(.0001,now);
+boomGain.gain.exponentialRampToValueAtTime(.34,now+.004);
+boomGain.gain.exponentialRampToValueAtTime(.0001,now+.25);
+boom.connect(boomGain);boomGain.connect(master);
+boom.start(now);boom.stop(now+.27);
+
+const body=ctx.createOscillator(),bodyGain=ctx.createGain();
+body.type='triangle';
+body.frequency.setValueAtTime(390,now);
+body.frequency.exponentialRampToValueAtTime(92,now+.13);
+bodyGain.gain.setValueAtTime(.0001,now);
+bodyGain.gain.exponentialRampToValueAtTime(.22,now+.003);
+bodyGain.gain.exponentialRampToValueAtTime(.0001,now+.14);
+body.connect(bodyGain);bodyGain.connect(master);
+body.start(now);body.stop(now+.16);
+
+if(!atismaExplosionNoiseBuffer||atismaExplosionNoiseBuffer.sampleRate!==ctx.sampleRate){
+const len=Math.max(1,Math.floor(ctx.sampleRate*.18));
+atismaExplosionNoiseBuffer=ctx.createBuffer(1,len,ctx.sampleRate);
+const data=atismaExplosionNoiseBuffer.getChannelData(0);
+for(let i=0;i<len;i++){
+const decay=Math.pow(1-i/len,2.6);
+data[i]=(Math.random()*2-1)*decay;
+}
+}
+const noise=ctx.createBufferSource(),noiseFilter=ctx.createBiquadFilter(),noiseGain=ctx.createGain();
+noise.buffer=atismaExplosionNoiseBuffer;
+noiseFilter.type='bandpass';
+noiseFilter.frequency.setValueAtTime(920,now);
+noiseFilter.Q.setValueAtTime(.75,now);
+noiseGain.gain.setValueAtTime(.0001,now);
+noiseGain.gain.exponentialRampToValueAtTime(.24,now+.002);
+noiseGain.gain.exponentialRampToValueAtTime(.0001,now+.16);
+noise.connect(noiseFilter);noiseFilter.connect(noiseGain);noiseGain.connect(master);
+noise.start(now);noise.stop(now+.18);
+
+setTimeout(()=>{try{master.disconnect();compressor.disconnect();}catch(_){}},420);
+}catch(_){}
+}
 function playHeartbeat(){
 if(masterSoundVolume<=0)return;
 const ctx=ensureGameAudio();if(!ctx)return;
@@ -2245,6 +2308,7 @@ for(let n=0;n<5;n++)atismaLocalAiPlacements[take()]='trap';
 }
 function playAtismaTrapExplosion(idx){
 vibrateGame('blast');
+playAtismaExplosionSound();
 const cell=domCells[Number(idx)]||document.getElementById('cell-'+Math.floor(Number(idx)/BOARD_SIZE)+'-'+(Number(idx)%BOARD_SIZE));
 if(!cell)return;
 cell.classList.remove('atisma-explode');
