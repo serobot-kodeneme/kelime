@@ -676,12 +676,12 @@ setTimeout(()=>{try{master.disconnect();compressor.disconnect();}catch(_){}},420
 }
 function playPatlamaSecondTick(sec){
 sec=Math.max(0,Math.ceil(Number(sec)||0));
-if(sec<=0||sec===atismaLastSecondTick||document.hidden)return;
+if(sec<=0||sec>5||sec===atismaLastSecondTick||document.hidden)return;
 atismaLastSecondTick=sec;
-const urgency=Math.max(0,10-sec);
-const freq=360+urgency*18;
-const vol=sec<=3?.055:.038;
-playTone(freq,.045,vol,'square',freq+24);
+const urgency=Math.max(0,5-sec);
+const freq=410+urgency*22;
+const vol=sec<=2?.058:.042;
+playTone(freq,.05,vol,'square',freq+28);
 }
 function playHeartbeat(){
 if(masterSoundVolume<=0)return;
