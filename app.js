@@ -2244,7 +2244,7 @@ if(!el){
 el=document.createElement('div');
 el.id='atisma-placement-hint';
 el.setAttribute('aria-live','polite');
-el.style.cssText='position:absolute;left:50%;top:112px;transform:translateX(-50%);z-index:132;pointer-events:none!important;max-width:92%;padding:8px 13px;border-radius:13px;background:rgba(255,255,255,.96);border:2px solid #fb923c;color:#c2410c;font-family:Quicksand,sans-serif;font-size:clamp(13px,3.6vw,17px);line-height:1.15;font-weight:1000;text-align:center;box-shadow:0 6px 16px rgba(15,23,42,.18);opacity:0;transition:opacity .12s ease,transform .12s ease;white-space:nowrap;';
+el.style.cssText='position:absolute;left:50%;top:112px;transform:translateX(-50%);z-index:132;pointer-events:none!important;max-width:84%;padding:8px 10px;border-radius:13px;background:rgba(255,255,255,.96);border:2px solid #fb923c;color:#c2410c;font-family:Quicksand,sans-serif;font-size:clamp(12px,3.4vw,16px);line-height:1.15;font-weight:1000;text-align:center;box-shadow:0 6px 16px rgba(15,23,42,.18);opacity:0;transition:opacity .12s ease,transform .12s ease;white-space:normal;';
 document.getElementById('screen-game')?.appendChild(el);
 }
 clearTimeout(atismaPlacementHintTimer);
