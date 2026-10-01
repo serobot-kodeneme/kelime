@@ -457,11 +457,38 @@ try{(kind==='session'?window.sessionStorage:window.localStorage).setItem(key,val
 }
 let masterSoundVolume=Math.max(0,Math.min(1,Number(safeStorageGet('local',SOUND_VOLUME_KEY)??0.80)));
 let lastNonMutedSoundVolume=masterSoundVolume>0?masterSoundVolume:.8;
+const VIBRATION_KEY='kd_vibration_level_v1';
+const VIBRATION_LEVELS=new Set(['off','low','medium','high']);
+let vibrationLevel=VIBRATION_LEVELS.has(safeStorageGet('local',VIBRATION_KEY))?safeStorageGet('local',VIBRATION_KEY):'medium';
+function vibrationPattern(kind='tap'){
+if(vibrationLevel==='off')return 0;
+const table={
+ low:{tap:8,success:16,error:[18,28,18],blast:[22,24,32],finish:[18,34,24]},
+ medium:{tap:14,success:28,error:[28,34,28],blast:[34,28,46],finish:[24,38,34]},
+ high:{tap:22,success:42,error:[40,42,40],blast:[52,34,70],finish:[34,44,50]}
+};
+return(table[vibrationLevel]||table.medium)[kind]||0;
+}
+function vibrateGame(kind='tap'){
+const pattern=vibrationPattern(kind);
+if(!pattern||!navigator.vibrate||document.hidden)return;
+try{navigator.vibrate(pattern);}catch(_){}
+}
+function renderVibrationControls(){
+document.querySelectorAll('.vibration-choice').forEach(btn=>btn.classList.toggle('selected',btn.dataset.vibration===vibrationLevel));
+}
+function setVibrationLevel(level,{preview=true}={}){
+vibrationLevel=VIBRATION_LEVELS.has(level)?level:'medium';
+safeStorageSet('local',VIBRATION_KEY,vibrationLevel);
+renderVibrationControls();
+if(preview&&vibrationLevel!=='off')vibrateGame('tap');
+}
 function renderSoundControls(){
 const range=document.getElementById('sound-volume-range');
 const mute=document.getElementById('sound-muted');
 if(range)range.value=String(Math.max(1,Math.min(6,Math.round((masterSoundVolume>0?masterSoundVolume:lastNonMutedSoundVolume)*6))));
 if(mute)mute.checked=masterSoundVolume<=0;
+renderVibrationControls();
 }
 function setMasterSoundVolume(v){
 masterSoundVolume=Math.max(0,Math.min(1,Number(v)||0));
@@ -536,10 +563,12 @@ if(!el)return;
 if(performance.now()-lastUiReleaseAt>500)playUiClickSound();
 },{passive:true});
 function playErrorBuzzer(){
+vibrateGame('error');
 playTone(185,.14,.12,'square',95);
 playTone(145,.12,.08,'sawtooth',82,.055);
 }
 function playCorrectChime(){
+vibrateGame('success');
 playTone(760,.13,.095,'sine',980);
 playTone(1120,.19,.075,'sine',1420,.075);
 }
@@ -2147,6 +2176,7 @@ const take=()=>{let x=null;for(let tries=0;tries<80;tries++){const c=pool[Math.f
 for(let n=0;n<5;n++)atismaLocalAiPlacements[take()]='trap';
 }
 function playAtismaTrapExplosion(idx){
+vibrateGame('blast');
 const cell=domCells[Number(idx)]||document.getElementById('cell-'+Math.floor(Number(idx)/BOARD_SIZE)+'-'+(Number(idx)%BOARD_SIZE));
 if(!cell)return;
 cell.classList.remove('atisma-explode');
@@ -3248,6 +3278,7 @@ closeAccountScreen();
 break;
 case 'btn-settings':
 setMasterSoundVolume(masterSoundVolume);
+renderVibrationControls();
 document.getElementById('screen-settings')?.classList.remove('hidden');
 break;
 case 'btn-settings-back':
@@ -3346,6 +3377,7 @@ if(location.hash==='#screen-support')history.replaceState(null,'',location.pathn
 });
 const soundRange=document.getElementById('sound-volume-range');
 const soundMuted=document.getElementById('sound-muted');
+document.querySelectorAll('.vibration-choice').forEach(btn=>btn.addEventListener('click',()=>setVibrationLevel(btn.dataset.vibration)));
 let soundPreviewAt=0;
 function previewSoundLevel(){
 if(masterSoundVolume<=0)return;
