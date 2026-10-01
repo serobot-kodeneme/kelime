@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v511-home-countdown';
+const CACHE_NAME='kapmaca-shell-v512-patlama-audio';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=511-home-countdown',
+  './app.js?v=512-patlama-audio',
   './manifest.webmanifest',
   './kapmaca-icon.svg'
 ];
