@@ -3252,7 +3252,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=547-seven-traps',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=548-performance-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -3558,7 +3558,9 @@ else startHowtoDemo();
 });
 new MutationObserver(()=>{if(!document.getElementById('screen-home').classList.contains('hidden'))startHowtoDemo();}).observe(document.getElementById('screen-home'),{attributes:true,attributeFilter:['class']});
 for(const id of['modal-room-invite','modal-mp-waiting','modal-rematch-waiting','modal-countdown'])new MutationObserver(()=>startHowtoDemo()).observe(document.getElementById(id),{attributes:true,attributeFilter:['class']});
-startHowtoDemo();
+const startInitialHomeDemo=()=>startHowtoDemo();
+if('requestIdleCallback' in window)requestIdleCallback(startInitialHomeDemo,{timeout:650});
+else setTimeout(startInitialHomeDemo,180);
 let patlamaHowtoDemoTimer=null;
 function stopPatlamaHowtoDemo(){
   if(patlamaHowtoDemoTimer){clearTimeout(patlamaHowtoDemoTimer);patlamaHowtoDemoTimer=null;}
