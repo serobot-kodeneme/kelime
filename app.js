@@ -2268,11 +2268,11 @@ if(!el){
 el=document.createElement('div');
 el.id='atisma-placement-hint';
 el.setAttribute('aria-live','polite');
-el.style.cssText='position:absolute;left:50%;top:112px;transform:translateX(-50%);z-index:132;pointer-events:none!important;width:min(78vw,278px);max-width:78vw;padding:7px 8px;border-radius:12px;background:rgba(255,255,255,.96);border:2px solid #fb923c;color:#c2410c;font-family:Quicksand,sans-serif;font-size:clamp(11px,3vw,14px);line-height:1.18;font-weight:1000;text-align:center;box-shadow:0 6px 16px rgba(15,23,42,.18);opacity:0;transition:opacity .12s ease,transform .12s ease;white-space:normal;overflow-wrap:anywhere;word-break:normal;box-sizing:border-box;';
+el.style.cssText='position:absolute;left:50%;top:96px;transform:translateX(-50%);z-index:132;pointer-events:none!important;width:min(72vw,248px);max-width:72vw;padding:9px 14px;border-radius:14px;background:#dc2626;border:2px solid #f87171;color:#fff;font-family:Quicksand,sans-serif;font-size:clamp(11px,3vw,14px);line-height:1.2;font-weight:1000;text-align:center;box-shadow:0 7px 18px rgba(127,29,29,.28);opacity:0;transition:opacity .12s ease,transform .12s ease;white-space:normal;overflow-wrap:normal;word-break:normal;box-sizing:border-box;';
 document.getElementById('screen-game')?.appendChild(el);
 }
 clearTimeout(atismaPlacementHintTimer);
-el.textContent='Balonu tutup harfin üzerine bırakın!';
+el.innerHTML='Balonu tutup harfin<br>üzerine bırakın!';
 el.style.display='block';
 el.style.opacity='1';
 el.style.transform='translateX(-50%) translateY(0)';
