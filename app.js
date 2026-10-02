@@ -32,7 +32,7 @@ const COMMON_IMPERATIVE_WORDS=Object.freeze([
 'ZORLA'
 ]);
 
-/* v609 — Açıkça doğrulanmış emir kipleri ve yerel anlam güvencesi.
+/* v610 — Açıkça doğrulanmış emir kipleri ve yerel anlam güvencesi.
 Kökten/ekten otomatik sözcük türetilmez; yalnızca bu tam yazımlar kabul edilir. */
 const IMPERATIVE_MEANING_DICTIONARY=Object.freeze({
 'İLET':['Bir şeyi bir yerden başka bir yere ulaştırmak.','Bir bilgiyi veya haberi başkasına aktarmak.'],
@@ -238,7 +238,7 @@ const CURATED_EXPANSION_WORDS_V3=Object.freeze([
 'MUZ','ÜZGÜ','HEKİM','İTFAİYECİ'
 ]);
 
-/* v609 — Tahta sözcük sıklığı katmanı.
+/* v610 — Tahta sözcük sıklığı katmanı.
 Doğrudan tahta tohumlarında hedef yaklaşık %70 günlük, %20 genel, %10 az bilinen/eğitici Türkçedir.
 Sözlükten hiçbir sözcük silinmez; sınıflandırılmamış teknik/terminolojik sözcükler yalnızca yedek havuzda kalır. */
 const DAILY_BOARD_PRIORITY_WORDS=new Set([
@@ -539,7 +539,7 @@ document.addEventListener('webkitfullscreenchange',handleFullscreenLayoutChange)
 let remainingSeconds=60;
 let isMatchActive=false;
 
-// v609 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
+// v610 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
 const LETTER_IDLE_WAVE_MS=4000;
 let letterIdleLastActivityAt=0;
 let letterIdleWaveShown=false;
@@ -3601,7 +3601,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=609-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=610-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -5994,7 +5994,7 @@ document.getElementById('btn-close-rematch-waiting')?.addEventListener('click',(
 document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePlayAgain);
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
-/* v609 — ZİNCİRLEME: sıra tabanlı 9x9 tahta sözcük zinciri */
+/* v610 — ZİNCİRLEME: sıra tabanlı 9x9 tahta sözcük zinciri */
 (()=>{
 const screen=document.getElementById('screen-zincirleme');
 const homeBtn=document.getElementById('btn-zincirleme-home');
@@ -6311,4 +6311,293 @@ document.getElementById('btn-zlm-rule-close')?.addEventListener('click',()=>{doc
 document.getElementById('btn-zlm-rule-new')?.addEventListener('click',()=>{document.getElementById('zlm-rules')?.classList.add('hidden');zlmReset();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&!screen.classList.contains('hidden')&&state.running&&!state.paused)zlmPause(true);});
 zlmSetMode('ai');
+})();
+
+
+/* v610 — AVCI: hareketli harflerden görev sözcüğü yakalama */
+(()=>{
+const screen=document.getElementById('screen-avci');
+const homeBtn=document.getElementById('btn-avci-home');
+const arena=document.getElementById('avc-arena');
+const slots=document.getElementById('avc-word-slots');
+if(!screen||!homeBtn||!arena||!slots)return;
+
+const AVCI_MISSIONS=Object.freeze([
+  {clue:'4 harfli bir hayvan bul',len:4,answers:['KEDİ','KURT','FARE'],meanings:{
+    KEDİ:'Evcil olarak da yaşayan küçük, çevik memeli hayvan.',
+    KURT:'Köpekgillerden, sürü hâlinde de yaşayabilen yaban hayvanı.',
+    FARE:'Küçük yapılı, kemirgen bir memeli hayvan.'
+  }},
+  {clue:'5 harfli bir mutfak eşyası bul',len:5,answers:['KAŞIK','TABAK','BIÇAK'],meanings:{
+    KAŞIK:'Yemek yemeye, almaya veya karıştırmaya yarayan araç.',
+    TABAK:'Yiyecek koymaya yarayan yayvan kap.',
+    BIÇAK:'Kesme işinde kullanılan keskin ağızlı araç.'
+  }},
+  {clue:'5 harfli bir eylem sözcüğü bul',len:5,answers:['GETİR','GÖTÜR','YÜRÜT'],meanings:{
+    GETİR:'Bir şeyi bulunduğu yerden alıp istenen yere ulaştırmak.',
+    GÖTÜR:'Bir şeyi bir yerden başka bir yere taşımak veya iletmek.',
+    YÜRÜT:'Yürümesini sağlamak; bir işi sürdürmek veya yönetmek.'
+  }},
+  {clue:'5 harfli doğayla ilgili bir sözcük bul',len:5,answers:['DENİZ','BULUT','NEHİR'],meanings:{
+    DENİZ:'Yeryüzünün büyük bölümünü kaplayan tuzlu su kütlesi.',
+    BULUT:'Atmosferde yoğunlaşmış su damlacıkları veya buz kristalleri topluluğu.',
+    NEHİR:'Büyük ve sürekli akan doğal su yolu.'
+  }},
+  {clue:'4 harfli bir ev eşyası bul',len:4,answers:['MASA','HALI','KAPI'],meanings:{
+    MASA:'Üzerinde çalışmak, yemek yemek veya eşya koymak için kullanılan mobilya.',
+    HALI:'Yere serilen, dokunmuş kalın örtü.',
+    KAPI:'Bir yere girip çıkmayı sağlayan açılır kapanır bölüm.'
+  }},
+  {clue:'5 harfli bir yiyecek bul',len:5,answers:['EKMEK','PİLAV','HELVA'],meanings:{
+    EKMEK:'Un, su ve mayayla hazırlanıp pişirilen temel yiyecek.',
+    PİLAV:'Pirinç veya bulgurun pişirilmesiyle hazırlanan yemek.',
+    HELVA:'Un, irmik veya tahin gibi malzemelerle yapılan tatlı.'
+  }},
+  {clue:'5 harfli bir meslek bul',len:5,answers:['HEKİM','TERZİ'],meanings:{
+    HEKİM:'Hastalıkları tanıyan ve tedavi eden doktor.',
+    TERZİ:'Giysi diken veya onaran kişi.'
+  }},
+  {clue:'5 harfli bir ulaşım aracı bul',len:5,answers:['VAPUR','TAKSİ'],meanings:{
+    VAPUR:'Yolcu veya yük taşımaya yarayan gemi.',
+    TAKSİ:'Ücret karşılığı yolcu taşıyan otomobil.'
+  }},
+  {clue:'5 harfli bir renk adı bul',len:5,answers:['SİYAH','BEYAZ','YEŞİL','PEMBE'],meanings:{
+    SİYAH:'Işığı yansıtmayan en koyu renk.',
+    BEYAZ:'Işığın bütün görünür renklerini yansıtan açık renk.',
+    YEŞİL:'Sarı ile mavinin karışımından oluşan renk.',
+    PEMBE:'Açık kırmızı tonlarındaki renk.'
+  }},
+  {clue:'5 harfli bir vücut bölümü bul',len:5,answers:['BURUN','KULAK','BOĞAZ'],meanings:{
+    BURUN:'Yüzde bulunan koku alma ve solunuma yardımcı organ.',
+    KULAK:'İşitme ve dengeyle ilgili organ.',
+    BOĞAZ:'Ağız ve burun boşluklarının arkasındaki geçit bölgesi.'
+  }},
+  {clue:'5 harfli bir şehir adı bul',len:5,answers:['İZMİR','TOKAT','SİVAS'],meanings:{
+    İZMİR:'Türkiye’nin Ege Bölgesi’nde bulunan büyükşehir.',
+    TOKAT:'Türkiye’nin Karadeniz Bölgesi’nde bulunan il.',
+    SİVAS:'Türkiye’nin İç Anadolu Bölgesi’nde bulunan il.'
+  }},
+  {clue:'5 harfli okulda kullanılan bir şey bul',len:5,answers:['KALEM','KİTAP','SİLGİ'],meanings:{
+    KALEM:'Yazı yazmaya veya çizim yapmaya yarayan araç.',
+    KİTAP:'Basılı veya dijital yapraklardan oluşan eser.',
+    SİLGİ:'Yazı veya çizgiyi silmeye yarayan araç.'
+  }},
+  {clue:'5 harfli bir duygu sözcüğü bul',len:5,answers:['SEVGİ','ÖZLEM','KORKU'],meanings:{
+    SEVGİ:'Birine veya bir şeye karşı duyulan güçlü yakınlık.',
+    ÖZLEM:'Ayrı kalınan birini veya bir şeyi görme isteği.',
+    KORKU:'Tehlike karşısında duyulan kaygı ve ürperti.'
+  }}
+]);
+
+const AVCI_DECOYS='AAAAAAAABCCÇDDEEEEEEEEGĞHIIIIİİİİKKKLLLLMMMNNNNOOÖPRRRRSSSSŞTTTTUUÜVYYZ';
+const state={
+  running:false,paused:false,raf:0,last:0,deadline:0,remainingMs:60000,
+  score:0,caught:0,mission:null,missionIndex:-1,particles:[],selected:[],
+  popTimer:null,transitioning:false
+};
+
+function avcShuffle(list){
+  const a=list.slice();
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+function avcSetFeedback(text='',kind=''){
+  const el=document.getElementById('avc-feedback');if(!el)return;
+  el.textContent=text;el.classList.remove('good','bad');if(kind)el.classList.add(kind);
+}
+function avcUpdateHud(){
+  document.getElementById('avc-score').textContent=String(state.score);
+  document.getElementById('avc-time').textContent=String(Math.max(0,Math.ceil(state.remainingMs/1000)));
+  document.getElementById('avc-caught-count').textContent=String(state.caught);
+}
+function avcRenderSlots(){
+  slots.textContent='';
+  const len=state.mission?.len||4;
+  for(let i=0;i<len;i++){
+    const slot=document.createElement('span');slot.className='avc-slot';
+    const selected=state.selected[i];
+    if(selected){
+      slot.classList.add('filled');slot.textContent=selected.letter;
+      const sm=document.createElement('small');sm.textContent=String(TILE_SCORE_CACHE[selected.letter]||1);slot.appendChild(sm);
+    }
+    slots.appendChild(slot);
+  }
+}
+function avcMissionPoolLetters(mission){
+  const pool=[];
+  for(const answer of mission.answers)for(const ch of Array.from(answer))pool.push(ch);
+  while(pool.length<36)pool.push(AVCI_DECOYS[Math.floor(Math.random()*AVCI_DECOYS.length)]);
+  return avcShuffle(pool.slice(0,36));
+}
+function avcRemoveParticles(){
+  for(const p of state.particles)p.el?.remove();
+  state.particles.length=0;
+}
+function avcArenaSize(){
+  const r=arena.getBoundingClientRect();
+  return{w:r.width,h:r.height};
+}
+function avcSpawnParticles(){
+  avcRemoveParticles();
+  const letters=avcMissionPoolLetters(state.mission);
+  const {w,h}=avcArenaSize();
+  const size=w<=390?38:42;
+  const cols=Math.max(4,Math.floor(Math.max(1,w-12)/(size+10)));
+  letters.forEach((letter,i)=>{
+    const el=document.createElement('button');el.type='button';el.className='avc-letter';el.setAttribute('aria-label',letter+' harfini yakala');
+    el.textContent=letter;
+    const sm=document.createElement('small');sm.textContent=String(TILE_SCORE_CACHE[letter]||1);el.appendChild(sm);
+    const col=i%cols,row=Math.floor(i/cols);
+    const cellW=Math.max(size+4,(w-size-8)/Math.max(1,cols));
+    let x=6+col*cellW+(Math.random()-.5)*10;
+    let y=8+row*(size+9)+(Math.random()-.5)*8;
+    x=Math.max(2,Math.min(Math.max(2,w-size-2),x));
+    y=Math.max(2,Math.min(Math.max(2,h-size-2),y));
+    const speed=14+Math.random()*24,angle=Math.random()*Math.PI*2;
+    const p={el,letter,x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,size,active:true};
+    const idx=state.particles.length;
+    el.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();avcCatch(idx);},{passive:false});
+    state.particles.push(p);arena.appendChild(el);
+    el.style.transform=`translate3d(${x}px,${y}px,0)`;
+  });
+}
+function avcReleaseSelected(item){
+  const p=state.particles[item.index];if(!p)return;
+  p.active=true;p.el.classList.remove('caught');
+  const {w,h}=avcArenaSize();
+  p.x=Math.max(2,Math.min(w-p.size-2,p.x+(Math.random()-.5)*30));
+  p.y=Math.max(2,Math.min(h-p.size-2,p.y+(Math.random()-.5)*30));
+}
+function avcClearSelection(){
+  for(const item of state.selected)avcReleaseSelected(item);
+  state.selected.length=0;avcRenderSlots();
+}
+function avcUndo(){
+  if(!state.running||state.paused||state.transitioning||!state.selected.length)return;
+  const item=state.selected.pop();avcReleaseSelected(item);avcRenderSlots();avcSetFeedback('Son harf geri bırakıldı.');
+}
+function avcWord(){
+  return state.selected.map(x=>x.letter).join('');
+}
+function avcShowSuccess(word,meaning,points){
+  const pop=document.getElementById('avc-pop'),w=document.getElementById('avc-pop-word'),m=document.getElementById('avc-pop-meaning');
+  if(!pop||!w||!m)return;
+  clearTimeout(state.popTimer);w.textContent=word+'  +'+points;m.textContent=meaning||'Doğru sözcük!';
+  pop.classList.add('show');
+  state.popTimer=setTimeout(()=>pop.classList.remove('show'),1250);
+}
+function avcValidateCompleted(){
+  const mission=state.mission,word=avcWord();if(!mission||word.length!==mission.len)return;
+  if(mission.answers.includes(word)){
+    const tilePoints=Array.from(word).reduce((sum,ch)=>sum+(TILE_SCORE_CACHE[ch]||1),0);
+    const speedBonus=Math.max(0,Math.ceil(state.remainingMs/10000));
+    const points=tilePoints+mission.len*4+speedBonus;
+    state.score+=points;state.caught++;state.transitioning=true;avcUpdateHud();
+    avcSetFeedback('DOĞRU! '+word,'good');avcShowSuccess(word,mission.meanings?.[word],points);
+    for(const item of state.selected){
+      const p=state.particles[item.index];if(p)p.el.classList.add('answer-glow');
+    }
+    setTimeout(()=>{if(state.running){state.transitioning=false;avcNextMission();}},1250);
+  }else{
+    state.score=Math.max(0,state.score-3);avcUpdateHud();state.transitioning=true;
+    avcSetFeedback(word+' bu göreve uymuyor. -3','bad');
+    setTimeout(()=>{if(state.running){state.transitioning=false;avcClearSelection();avcSetFeedback('Tekrar dene.');}},650);
+  }
+}
+function avcCatch(index){
+  if(!state.running||state.paused||state.transitioning)return;
+  const p=state.particles[index];if(!p||!p.active)return;
+  if(state.selected.length>=(state.mission?.len||9))return;
+  p.active=false;p.el.classList.add('caught');
+  state.selected.push({index,letter:p.letter});avcRenderSlots();
+  const word=avcWord();
+  const possible=state.mission.answers.some(a=>a.startsWith(word));
+  avcSetFeedback(possible?'Devam et…':'Bu başlangıç görev cevaplarına uymuyor.',possible?'':'bad');
+  if(state.selected.length===state.mission.len)avcValidateCompleted();
+}
+function avcChooseMission(){
+  let idx=Math.floor(Math.random()*AVCI_MISSIONS.length);
+  if(AVCI_MISSIONS.length>1&&idx===state.missionIndex)idx=(idx+1+Math.floor(Math.random()*(AVCI_MISSIONS.length-1)))%AVCI_MISSIONS.length;
+  state.missionIndex=idx;return AVCI_MISSIONS[idx];
+}
+function avcNextMission(){
+  state.mission=avcChooseMission();state.selected.length=0;
+  document.getElementById('avc-clue').textContent=state.mission.clue;
+  document.getElementById('avc-length').textContent=state.mission.len+' HARF';
+  avcRenderSlots();avcSpawnParticles();avcSetFeedback('Doğru harfleri sırayla yakala.');
+}
+function avcStep(ts){
+  if(!state.running)return;
+  const dt=Math.min(.04,Math.max(0,(ts-state.last)/1000||0));state.last=ts;
+  if(!state.paused){
+    state.remainingMs=Math.max(0,state.deadline-performance.now());
+    avcUpdateHud();
+    if(state.remainingMs<=0){avcEndGame();return;}
+    const {w,h}=avcArenaSize();
+    for(const p of state.particles){
+      if(!p.active)continue;
+      p.x+=p.vx*dt;p.y+=p.vy*dt;
+      if(p.x<=1){p.x=1;p.vx=Math.abs(p.vx);}
+      if(p.x+p.size>=w-1){p.x=Math.max(1,w-p.size-1);p.vx=-Math.abs(p.vx);}
+      if(p.y<=1){p.y=1;p.vy=Math.abs(p.vy);}
+      if(p.y+p.size>=h-1){p.y=Math.max(1,h-p.size-1);p.vy=-Math.abs(p.vy);}
+      p.el.style.transform=`translate3d(${p.x}px,${p.y}px,0)`;
+    }
+  }
+  state.raf=requestAnimationFrame(avcStep);
+}
+function avcPause(silent=false){
+  if(!state.running||state.paused)return;
+  state.remainingMs=Math.max(0,state.deadline-performance.now());state.paused=true;
+  const b=document.getElementById('btn-avc-pause');if(b)b.textContent='▶';
+  if(!silent)avcSetFeedback('DURAKLATILDI');
+}
+function avcResume(){
+  if(!state.running||!state.paused)return;
+  state.paused=false;state.deadline=performance.now()+state.remainingMs;state.last=performance.now();
+  const b=document.getElementById('btn-avc-pause');if(b)b.textContent='Ⅱ';avcSetFeedback('Av devam ediyor.');
+}
+function avcEndGame(){
+  if(!state.running)return;
+  state.running=false;state.paused=false;cancelAnimationFrame(state.raf);state.raf=0;clearTimeout(state.popTimer);
+  document.getElementById('avc-final-score').textContent=String(state.score);
+  document.getElementById('avc-final-caught').textContent=String(state.caught);
+  document.getElementById('avc-gameover')?.classList.remove('hidden');
+}
+function avcReset(){
+  cancelAnimationFrame(state.raf);clearTimeout(state.popTimer);
+  state.running=true;state.paused=false;state.score=0;state.caught=0;state.remainingMs=60000;state.deadline=performance.now()+60000;
+  state.transitioning=false;state.last=performance.now();state.selected.length=0;
+  document.getElementById('avc-gameover')?.classList.add('hidden');document.getElementById('avc-rules')?.classList.add('hidden');
+  const b=document.getElementById('btn-avc-pause');if(b)b.textContent='Ⅱ';
+  avcUpdateHud();avcNextMission();state.raf=requestAnimationFrame(avcStep);
+}
+function avcExit(){
+  state.running=false;state.paused=false;cancelAnimationFrame(state.raf);state.raf=0;clearTimeout(state.popTimer);avcRemoveParticles();
+  screen.classList.add('hidden');document.getElementById('avc-gameover')?.classList.add('hidden');document.getElementById('avc-rules')?.classList.add('hidden');
+  document.getElementById('screen-home')?.classList.remove('hidden');
+}
+async function avcOpen(){
+  document.getElementById('screen-home')?.classList.add('hidden');screen.classList.remove('hidden');
+  avcSetFeedback('AVCI hazırlanıyor…');
+  try{await ensureWordDataLoaded();avcReset();}
+  catch(err){console.error('Avcı startup failed',err);showToast('AVCI hazırlanamadı.','rose');avcExit();}
+}
+
+homeBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();avcOpen();});
+document.getElementById('btn-avc-exit')?.addEventListener('click',avcExit);
+document.getElementById('btn-avc-exit-home')?.addEventListener('click',avcExit);
+document.getElementById('btn-avc-again')?.addEventListener('click',avcReset);
+document.getElementById('btn-avc-new')?.addEventListener('click',()=>{document.getElementById('avc-rules')?.classList.add('hidden');avcReset();});
+document.getElementById('btn-avc-undo')?.addEventListener('click',avcUndo);
+document.getElementById('btn-avc-clear')?.addEventListener('click',()=>{if(state.running&&!state.paused&&!state.transitioning){avcClearSelection();avcSetFeedback('Seçim temizlendi.');}});
+document.getElementById('btn-avc-pause')?.addEventListener('click',()=>state.paused?avcResume():avcPause());
+document.getElementById('btn-avc-rules')?.addEventListener('click',()=>{if(state.running&&!state.paused)avcPause(true);document.getElementById('avc-rules')?.classList.remove('hidden');});
+document.getElementById('btn-avc-rule-close')?.addEventListener('click',()=>{document.getElementById('avc-rules')?.classList.add('hidden');if(state.running&&state.paused)avcResume();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&!screen.classList.contains('hidden')&&state.running&&!state.paused)avcPause(true);});
+window.addEventListener('resize',()=>{
+  if(screen.classList.contains('hidden'))return;
+  const {w,h}=avcArenaSize();
+  for(const p of state.particles){p.x=Math.max(1,Math.min(Math.max(1,w-p.size-1),p.x));p.y=Math.max(1,Math.min(Math.max(1,h-p.size-1),p.y));}
+},{passive:true});
 })();
