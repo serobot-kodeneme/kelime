@@ -6894,7 +6894,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v618 — KESİŞİM: ahşap tahta, otomatik yön ve sade kontroller */
+/* v619 — KESİŞİM: masa görünümü ve pill kontroller */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -6976,7 +6976,7 @@ function dropAt(x,y){
   if(base===state.drag.letter){setFeedback('Aynı harfi üst üste koymaya gerek yok.','bad');return;}
   const item={r,c,char:state.drag.letter,rackIndex:state.drag.index,tower:!!base,under:base||''};
   state.temp.set(key(r,c),item);state.tempOrder.push(key(r,c));renderCell(r,c,false);renderRack();
-  setFeedback(item.tower?'Kule taşı yerleşti. GÖNDER ile kontrol et.':'Taş yerleşti. Sözcüğü tamamla.','');
+  setFeedback(item.tower?'Kule taşı yerleşti. YERLEŞTİR ile kontrol et.':'Taş yerleşti. Sözcüğü tamamla.','');
 }
 function undo(){
   const k=state.tempOrder.pop();if(!k)return;const t=state.temp.get(k);state.temp.delete(k);if(t)renderCell(t.r,t.c,false);renderRack();
