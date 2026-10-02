@@ -32,7 +32,7 @@ const COMMON_IMPERATIVE_WORDS=Object.freeze([
 'ZORLA'
 ]);
 
-/* v607 — Açıkça doğrulanmış emir kipleri ve yerel anlam güvencesi.
+/* v608 — Açıkça doğrulanmış emir kipleri ve yerel anlam güvencesi.
 Kökten/ekten otomatik sözcük türetilmez; yalnızca bu tam yazımlar kabul edilir. */
 const IMPERATIVE_MEANING_DICTIONARY=Object.freeze({
 'İLET':['Bir şeyi bir yerden başka bir yere ulaştırmak.','Bir bilgiyi veya haberi başkasına aktarmak.'],
@@ -238,7 +238,7 @@ const CURATED_EXPANSION_WORDS_V3=Object.freeze([
 'MUZ','ÜZGÜ','HEKİM','İTFAİYECİ'
 ]);
 
-/* v607 — Tahta sözcük sıklığı katmanı.
+/* v608 — Tahta sözcük sıklığı katmanı.
 Doğrudan tahta tohumlarında hedef yaklaşık %70 günlük, %20 genel, %10 az bilinen/eğitici Türkçedir.
 Sözlükten hiçbir sözcük silinmez; sınıflandırılmamış teknik/terminolojik sözcükler yalnızca yedek havuzda kalır. */
 const DAILY_BOARD_PRIORITY_WORDS=new Set([
@@ -539,7 +539,7 @@ document.addEventListener('webkitfullscreenchange',handleFullscreenLayoutChange)
 let remainingSeconds=60;
 let isMatchActive=false;
 
-// v607 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
+// v608 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
 const LETTER_IDLE_WAVE_MS=4000;
 let letterIdleLastActivityAt=0;
 let letterIdleWaveShown=false;
@@ -3601,7 +3601,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=607-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=608-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -5994,212 +5994,303 @@ document.getElementById('btn-close-rematch-waiting')?.addEventListener('click',(
 document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePlayAgain);
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
-/* v607 — ZİNCİR: tek kişilik son harften sözcük zinciri */
+/* v608 — ZİNCİRLEME: sıra tabanlı 9x9 tahta sözcük zinciri */
 (()=>{
-const screen=document.getElementById('screen-zincir');
-const homeBtn=document.getElementById('btn-zincir-home');
-const form=document.getElementById('znc-form');
-const input=document.getElementById('znc-input');
-if(!screen||!homeBtn||!form||!input)return;
+const screen=document.getElementById('screen-zincirleme');
+const homeBtn=document.getElementById('btn-zincirleme-home');
+const boardEl=document.getElementById('zlm-board');
+if(!screen||!homeBtn||!boardEl)return;
 
-const START_WORDS=['KALEM','MASA','ELMA','KAPI','OKUL','DOST','YEMEK','SABAH','AKŞAM','ÇOCUK','DENİZ','ORMAN','KİTAP','ARABA','PERDE','BULUT'];
 const state={
-  running:false,paused:false,raf:0,deadline:0,remaining:15,limit:15,
-  score:0,used:new Set(),history:[],current:'',longest:'',best:0
+  mode:'ai',running:false,paused:false,turn:0,required:'N',
+  board:[],solutions:[],used:new Set(),scores:[0,0],path:[],selected:new Uint8Array(81),
+  pointerId:null,lastCell:null,aiTimer:null,turnTimer:null,timeLeft:18,turnLimit:18,
+  chainCount:0,messageTimer:null
 };
-const BEST_KEY='kapmaca_zincir_best_v1';
+const cells=[];
+const DIRS=[[1,0],[-1,0],[0,1],[0,-1]];
+const key=(r,c)=>r*9+c;
 
-function zincirNormalize(value){
-  return String(value||'').trim().toLocaleUpperCase('tr-TR').replace(/[^ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ]/g,'');
+function zlmScore(word){
+  return Array.from(word).reduce((sum,ch)=>sum+(TILE_SCORE_CACHE[ch]||1),0)+Math.max(0,word.length-2)*2;
 }
-function zincirLastLetter(word){return Array.from(String(word||'')).slice(-1)[0]||'';}
-function zincirWordScore(word){
-  const base=Array.from(word).reduce((sum,ch)=>sum+(TILE_SCORE_CACHE[ch]||1),0);
-  const lengthBonus=Math.max(0,word.length-2)*2;
-  const speedBonus=Math.max(0,Math.floor(state.remaining));
-  return base+lengthBonus+speedBonus;
+function zlmClearTimers(){
+  clearTimeout(state.aiTimer);state.aiTimer=null;
+  clearInterval(state.turnTimer);state.turnTimer=null;
+  clearTimeout(state.messageTimer);state.messageTimer=null;
 }
-function loadZincirBest(){
-  try{state.best=Math.max(0,Number(localStorage.getItem(BEST_KEY)||0)||0);}catch(_){state.best=0;}
+function zlmShowMessage(text,duration=900){
+  const el=document.getElementById('zlm-message');if(!el)return;
+  clearTimeout(state.messageTimer);el.textContent=text;el.classList.add('show');
+  state.messageTimer=setTimeout(()=>el.classList.remove('show'),duration);
 }
-function saveZincirBest(){
-  const chain=state.history.length;
-  if(chain<=state.best)return;
-  state.best=chain;
-  try{localStorage.setItem(BEST_KEY,String(chain));}catch(_){}
+function zlmSetMode(mode){
+  state.mode=mode==='local'?'local':'ai';
+  document.getElementById('btn-zlm-ai')?.classList.toggle('selected',state.mode==='ai');
+  document.getElementById('btn-zlm-local')?.classList.toggle('selected',state.mode==='local');
+  const p1=document.getElementById('zlm-p1-name'),p2=document.getElementById('zlm-p2-name');
+  if(p1)p1.textContent=state.mode==='local'?'1. OYUNCU':'OYUNCU';
+  if(p2)p2.textContent=state.mode==='local'?'2. OYUNCU':'BİLGİN';
 }
-function setZincirFeedback(text='',kind=''){
-  const el=document.getElementById('znc-feedback');if(!el)return;
-  el.textContent=text;
-  el.classList.remove('good','bad');
-  if(kind)el.classList.add(kind);
+function zlmRenderHud(){
+  document.getElementById('zlm-p1-score').textContent=String(state.scores[0]);
+  document.getElementById('zlm-p2-score').textContent=String(state.scores[1]);
+  document.getElementById('zlm-required-letter').textContent=state.required||'?';
+  document.getElementById('zlm-p1-card')?.classList.toggle('active',state.turn===0);
+  document.getElementById('zlm-p2-card')?.classList.toggle('active',state.turn===1);
+  zlmUpdateStatus();
 }
-function renderZincirWord(word){
-  const host=document.getElementById('znc-current-word');if(!host)return;
+function zlmUpdateStatus(extra=''){
+  const el=document.getElementById('zlm-turn-status');if(!el)return;
+  let who;
+  if(state.turn===0)who=state.mode==='local'?'1. oyuncu':'Sıra sende';
+  else who=state.mode==='local'?'2. oyuncu':'BİLGİN düşünüyor';
+  const time=state.running&&!state.paused?' • '+Math.max(0,state.timeLeft)+' sn':'';
+  el.textContent=extra||(`${who}: ${state.required} ile başlayan sözcük bul${time}`);
+}
+function zlmRenderPreview(){
+  const host=document.getElementById('zlm-preview-word'),status=document.getElementById('zlm-preview-status');
+  if(!host||!status)return;
   host.textContent='';
-  for(const ch of Array.from(word)){
-    const tile=document.createElement('span');tile.className='znc-word-tile';tile.textContent=ch;
-    const score=document.createElement('small');score.textContent=String(TILE_SCORE_CACHE[ch]||1);tile.appendChild(score);
-    host.appendChild(tile);
+  const word=state.path.map(p=>p.char).join('');
+  for(const p of state.path){
+    const tile=document.createElement('span');tile.className='zlm-preview-tile';tile.textContent=p.char;
+    const sm=document.createElement('small');sm.textContent=String(TILE_SCORE_CACHE[p.char]||1);tile.appendChild(sm);host.appendChild(tile);
   }
+  status.className='';
+  if(!word){status.textContent='';return;}
+  if(word[0]!==state.required){status.textContent=state.required+' İLE BAŞLAMALI';status.className='bad';return;}
+  if(state.used.has(word)){status.textContent='DAHA ÖNCE KULLANILDI';status.className='bad';return;}
+  const valid=word.length>=2&&GAME_WORD_SET.has(word)&&!isArgoWord(word)&&!isForeignWord(word);
+  status.textContent=valid?'SÖZLÜKTE VAR':'SÖZLÜKTE YOK';status.className=valid?'good':'bad';
 }
-function renderZincirHistory(){
-  const host=document.getElementById('znc-history');if(!host)return;
-  host.textContent='';
-  state.history.forEach((word,index)=>{
-    if(index){
-      const arrow=document.createElement('span');arrow.className='znc-arrow';arrow.textContent='→';host.appendChild(arrow);
+function zlmClearPath(){
+  for(const p of state.path)p.el?.classList.remove('sel-p1','sel-p2');
+  state.path.length=0;state.selected.fill(0);state.lastCell=null;zlmRenderPreview();
+}
+function zlmPaintBoard(){
+  boardEl.textContent='';cells.length=0;zlmClearPath();
+  const frag=document.createDocumentFragment();
+  for(let r=0;r<9;r++)for(let c=0;c<9;c++){
+    const ch=state.board[r][c];
+    const cell=document.createElement('div');cell.className='zlm-cell';cell.dataset.r=String(r);cell.dataset.c=String(c);
+    const letter=document.createElement('span');letter.textContent=ch;
+    const score=document.createElement('small');score.textContent=String(TILE_SCORE_CACHE[ch]||1);
+    cell.append(letter,score);frag.appendChild(cell);cells.push(cell);
+  }
+  boardEl.appendChild(frag);
+}
+function zlmGenerateBoard(preferLetter='N'){
+  let best=null;
+  for(let i=0;i<6;i++){
+    const ready=generateOptimizedBoard(i<2?2:3);
+    const candidates=ready.words.filter(x=>x.word.length>=2&&x.word[0]===preferLetter);
+    if(!best||candidates.length>(best.candidates?.length||0))best={...ready,candidates};
+    if(candidates.length>=3)break;
+  }
+  state.board=best.board;state.solutions=best.words;
+  zlmPaintBoard();
+}
+function zlmCandidates(letter=state.required){
+  return state.solutions.filter(x=>x.word.length>=2&&x.word[0]===letter&&!state.used.has(x.word)&&!isArgoWord(x.word)&&!isForeignWord(x.word));
+}
+function zlmEnsurePlayable(){
+  if(zlmCandidates().length)return true;
+  zlmGenerateBoard(state.required);
+  const ok=zlmCandidates().length>0;
+  if(ok)zlmShowMessage('TAHTA YENİLENDİ',850);
+  return ok;
+}
+function zlmChooseInitial(){
+  const preferred=['N','E','K','A','S','M','B','D','Y'];
+  for(const letter of preferred)if(state.solutions.filter(x=>x.word[0]===letter&&x.word.length>=2).length>=2)return letter;
+  const counts=new Map();
+  for(const x of state.solutions)if(x.word.length>=2)counts.set(x.word[0],(counts.get(x.word[0])||0)+1);
+  return [...counts.entries()].sort((a,b)=>b[1]-a[1])[0]?.[0]||'N';
+}
+function zlmMeasureCell(clientX,clientY){
+  const rect=boardEl.getBoundingClientRect();
+  if(clientX<rect.left||clientX>rect.right||clientY<rect.top||clientY>rect.bottom)return null;
+  const gap=2,pad=3;
+  const innerW=rect.width-pad*2,innerH=rect.height-pad*2;
+  const cellW=(innerW-gap*8)/9,cellH=(innerH-gap*8)/9;
+  const x=clientX-rect.left-pad,y=clientY-rect.top-pad;
+  const c=Math.floor(x/(cellW+gap)),r=Math.floor(y/(cellH+gap));
+  if(r<0||r>8||c<0||c>8)return null;
+  return{r,c};
+}
+function zlmIsNeighbor(r,c){
+  if(!state.path.length)return true;
+  const last=state.path[state.path.length-1];
+  return Math.abs(last.r-r)+Math.abs(last.c-c)===1&&!state.selected[key(r,c)];
+}
+function zlmAddCell(r,c){
+  if(state.path.length>=9)return;
+  if(state.path.length>=2){
+    const prev=state.path[state.path.length-2];
+    if(prev.r===r&&prev.c===c){
+      const removed=state.path.pop();state.selected[key(removed.r,removed.c)]=0;
+      removed.el.classList.remove('sel-p1','sel-p2');zlmRenderPreview();return;
     }
-    const chip=document.createElement('span');
-    chip.className='znc-history-word'+(index===state.history.length-1?' latest':'');
-    chip.textContent=word;host.appendChild(chip);
-  });
-  const scroller=host.closest('.znc-chain');
-  if(scroller)requestAnimationFrame(()=>{scroller.scrollTop=scroller.scrollHeight;});
-}
-function updateZincirHud(){
-  document.getElementById('znc-score').textContent=String(state.score);
-  document.getElementById('znc-chain-count').textContent=String(state.history.length);
-  document.getElementById('znc-best').textContent=String(Math.max(state.best,state.history.length));
-  document.getElementById('znc-required-letter').textContent=zincirLastLetter(state.current)||'?';
-  renderZincirWord(state.current);
-  renderZincirHistory();
-}
-function updateZincirTimer(){
-  const time=document.getElementById('znc-time');
-  const fill=document.getElementById('znc-timer-fill');
-  if(time)time.textContent=Math.max(0,state.remaining).toFixed(1);
-  if(fill){
-    const ratio=Math.max(0,Math.min(1,state.remaining/Math.max(.1,state.limit)));
-    fill.style.transform='scaleX('+ratio+')';
-    fill.style.filter=ratio<.28?'saturate(1.35) brightness(1.1)':'';
   }
+  if(!zlmIsNeighbor(r,c))return;
+  const el=cells[key(r,c)];if(!el)return;
+  state.selected[key(r,c)]=1;
+  state.path.push({r,c,char:state.board[r][c],el});
+  el.classList.add(state.turn===0?'sel-p1':'sel-p2');
+  if(typeof playLetterPickSound==='function')try{playLetterPickSound(state.path.length);}catch(_){}
+  zlmRenderPreview();
 }
-function chooseZincirStart(){
-  const available=START_WORDS.filter(w=>GAME_WORD_SET.has(w));
-  const pool=available.length?available:GAME_WORD_LIST.filter(w=>w.length>=3&&w.length<=6).slice(0,200);
-  return pool[Math.floor(Math.random()*pool.length)]||'KALEM';
+function zlmProcessPoint(x,y){
+  const pos=zlmMeasureCell(x,y);if(!pos)return;
+  if(state.lastCell&&state.lastCell.r===pos.r&&state.lastCell.c===pos.c)return;
+  state.lastCell=pos;zlmAddCell(pos.r,pos.c);
 }
-function setZincirRoundTime(){
-  const played=Math.max(0,state.history.length-1);
-  state.limit=Math.max(5.0,15-played*.55);
-  state.remaining=state.limit;
-  state.deadline=performance.now()+state.remaining*1000;
-  updateZincirTimer();
+function zlmStartTurn(){
+  zlmClearPath();
+  if(!zlmEnsurePlayable()){zlmEndGame('Bu harfle tahtada sözcük kalmadı.');return;}
+  state.turnLimit=Math.max(7,18-Math.floor(state.chainCount/3));
+  state.timeLeft=state.turnLimit;
+  clearInterval(state.turnTimer);
+  state.turnTimer=setInterval(()=>{
+    if(!state.running||state.paused)return;
+    state.timeLeft--;zlmUpdateStatus();
+    if(state.timeLeft<=0){
+      clearInterval(state.turnTimer);state.turnTimer=null;
+      zlmEndGame(state.turn===0?'Süren doldu.':'Rakibin süresi doldu.');
+    }
+  },1000);
+  zlmRenderHud();
+  if(state.mode==='ai'&&state.turn===1)zlmScheduleAi();
 }
-function pauseZincir(silent=false){
+function zlmCommitWord(word,path,actor=state.turn){
+  const pts=zlmScore(word);
+  state.used.add(word);state.scores[actor]+=pts;state.chainCount++;
+  state.required=Array.from(word).slice(-1)[0]||state.required;
+  zlmRenderHud();
+  for(const p of path){
+    const el=cells[key(p.r,p.c)];if(el){el.classList.add('ai-pulse');setTimeout(()=>el.classList.remove('ai-pulse'),520);}
+  }
+  zlmShowMessage(word+'  +'+pts,1000);
+  clearInterval(state.turnTimer);state.turnTimer=null;
+  state.turn=actor===0?1:0;
+  setTimeout(()=>{if(state.running)zlmStartTurn();},780);
+}
+function zlmSubmitPlayer(){
+  if(!state.running||state.paused||!state.path.length)return;
+  const word=state.path.map(p=>p.char).join('');
+  if(word.length<2){zlmShowMessage('EN AZ 2 HARF',700);zlmClearPath();return;}
+  if(word[0]!==state.required){zlmShowMessage(state.required+' İLE BAŞLAMALI',850);zlmClearPath();return;}
+  if(state.used.has(word)){zlmShowMessage('BU SÖZCÜK KULLANILDI',850);zlmClearPath();return;}
+  if(!GAME_WORD_SET.has(word)||isArgoWord(word)||isForeignWord(word)){zlmShowMessage('SÖZLÜKTE YOK',750);zlmClearPath();return;}
+  const path=state.path.map(p=>({r:p.r,c:p.c}));zlmClearPath();zlmCommitWord(word,path,state.turn);
+}
+function zlmScheduleAi(){
+  const delay=900+Math.floor(Math.random()*700);
+  state.aiTimer=setTimeout(()=>{if(state.running&&!state.paused&&state.turn===1)zlmPlayAi();},delay);
+}
+function zlmPlayAi(){
+  let choices=zlmCandidates();
+  if(!choices.length){
+    zlmGenerateBoard(state.required);choices=zlmCandidates();
+    if(!choices.length){zlmEndGame('BİLGİN devam edecek sözcük bulamadı.');return;}
+  }
+  const ranked=choices.map(item=>{
+    const tier=typeof boardWordUsageTier==='function'?boardWordUsageTier(item.word):'other';
+    const tierBonus=tier==='daily'?30:tier==='general'?14:tier==='rare'?7:0;
+    const score=zlmScore(item.word)+tierBonus-Math.max(0,item.word.length-6)*2;
+    return{item,score};
+  }).sort((a,b)=>b.score-a.score);
+  const top=ranked.slice(0,Math.min(8,ranked.length));
+  const choice=top[Math.floor(Math.random()*top.length)]?.item||choices[0];
+  if(!choice){zlmEndGame('BİLGİN sözcük bulamadı.');return;}
+  const path=choice.path||[];
+  let i=0;
+  const pulse=()=>{
+    if(!state.running||state.turn!==1)return;
+    if(i>=path.length){setTimeout(()=>{if(state.running&&state.turn===1)zlmCommitWord(choice.word,path,1);},180);return;}
+    const p=path[i++],el=cells[key(p.r,p.c)];
+    if(el){el.classList.add('sel-p2');setTimeout(()=>el.classList.remove('sel-p2'),360);}
+    setTimeout(pulse,125);
+  };
+  pulse();
+}
+function zlmEndGame(reason='Oyun sona erdi.'){
+  if(!state.running)return;
+  state.running=false;zlmClearTimers();zlmClearPath();
+  const a=state.scores[0],b=state.scores[1];
+  let title='ZİNCİR KOPTU!';
+  if(a>b)title=state.mode==='ai'?'KAZANDIN!':'1. OYUNCU KAZANDI!';
+  else if(b>a)title=state.mode==='ai'?'BİLGİN KAZANDI':'2. OYUNCU KAZANDI!';
+  else title='BERABERE!';
+  document.getElementById('zlm-over-title').textContent=title;
+  document.getElementById('zlm-over-text').textContent=reason+' Zincir: '+state.chainCount;
+  document.getElementById('zlm-over-score').textContent=a+' - '+b;
+  document.getElementById('zlm-gameover')?.classList.remove('hidden');
+}
+function zlmPause(silent=false){
   if(!state.running||state.paused)return;
-  state.remaining=Math.max(0,(state.deadline-performance.now())/1000);
-  state.paused=true;
-  const b=document.getElementById('btn-zincir-pause');if(b)b.textContent='▶';
-  input.disabled=true;
-  if(!silent)setZincirFeedback('DURAKLATILDI','');
+  state.paused=true;clearInterval(state.turnTimer);state.turnTimer=null;clearTimeout(state.aiTimer);state.aiTimer=null;
+  const b=document.getElementById('btn-zlm-pause');if(b)b.textContent='▶';
+  boardEl.style.pointerEvents='none';if(!silent)zlmUpdateStatus('DURAKLATILDI');
 }
-function resumeZincir(){
+function zlmResume(){
   if(!state.running||!state.paused)return;
-  state.paused=false;
-  state.deadline=performance.now()+state.remaining*1000;
-  const b=document.getElementById('btn-zincir-pause');if(b)b.textContent='Ⅱ';
-  input.disabled=false;input.focus({preventScroll:true});
-  setZincirFeedback('Devam! '+zincirLastLetter(state.current)+' ile başlayan bir sözcük yaz.','');
+  state.paused=false;const b=document.getElementById('btn-zlm-pause');if(b)b.textContent='Ⅱ';boardEl.style.pointerEvents='';
+  const remaining=Math.max(1,state.timeLeft);
+  clearInterval(state.turnTimer);
+  state.turnTimer=setInterval(()=>{
+    if(!state.running||state.paused)return;
+    state.timeLeft--;zlmUpdateStatus();
+    if(state.timeLeft<=0){clearInterval(state.turnTimer);state.turnTimer=null;zlmEndGame(state.turn===0?'Süren doldu.':'Rakibin süresi doldu.');}
+  },1000);
+  state.timeLeft=remaining;zlmRenderHud();if(state.mode==='ai'&&state.turn===1)zlmScheduleAi();
 }
-function endZincir(reason='Süre doldu'){
-  if(!state.running)return;
-  state.running=false;state.paused=false;
-  cancelAnimationFrame(state.raf);state.raf=0;
-  saveZincirBest();updateZincirHud();
-  input.disabled=true;
-  document.getElementById('znc-final-score').textContent=String(state.score);
-  document.getElementById('znc-final-chain').textContent=state.history.length+' sözcük';
-  document.getElementById('znc-longest').textContent=state.longest||'—';
-  const title=document.querySelector('#znc-gameover h2');if(title)title.textContent=reason==='Süre doldu'?'ZİNCİR KOPTU!':'OYUN BİTTİ';
-  document.getElementById('znc-gameover')?.classList.remove('hidden');
+function zlmReset(){
+  zlmClearTimers();state.running=true;state.paused=false;state.turn=0;state.used.clear();state.scores=[0,0];state.chainCount=0;
+  document.getElementById('zlm-gameover')?.classList.add('hidden');document.getElementById('zlm-rules')?.classList.add('hidden');
+  const pause=document.getElementById('btn-zlm-pause');if(pause)pause.textContent='Ⅱ';boardEl.style.pointerEvents='';
+  zlmGenerateBoard('N');state.required=zlmChooseInitial();zlmRenderHud();zlmStartTurn();
 }
-function zincirLoop(){
-  if(!state.running)return;
-  if(!state.paused){
-    state.remaining=Math.max(0,(state.deadline-performance.now())/1000);
-    updateZincirTimer();
-    if(state.remaining<=0){endZincir('Süre doldu');return;}
-  }
-  state.raf=requestAnimationFrame(zincirLoop);
-}
-function resetZincir(){
-  cancelAnimationFrame(state.raf);state.raf=0;
-  state.running=true;state.paused=false;state.score=0;state.used.clear();state.history.length=0;
-  state.longest='';loadZincirBest();
-  state.current=chooseZincirStart();
-  state.used.add(state.current);state.history.push(state.current);state.longest=state.current;
-  input.value='';input.disabled=false;
-  document.getElementById('znc-gameover')?.classList.add('hidden');
-  document.getElementById('znc-rule-box')?.classList.add('hidden');
-  const pause=document.getElementById('btn-zincir-pause');if(pause)pause.textContent='Ⅱ';
-  updateZincirHud();setZincirRoundTime();
-  setZincirFeedback('Başlangıç sözcüğü hazır. '+zincirLastLetter(state.current)+' ile devam et!','good');
-  requestAnimationFrame(()=>input.focus({preventScroll:true}));
-  state.raf=requestAnimationFrame(zincirLoop);
-}
-function submitZincirWord(){
-  if(!state.running||state.paused)return;
-  const word=zincirNormalize(input.value);
-  input.value=word;
-  if(word.length<2||word.length>9){
-    setZincirFeedback('Sözcük 2–9 harf olmalı.','bad');return;
-  }
-  const required=zincirLastLetter(state.current);
-  if(word[0]!==required){
-    setZincirFeedback(required+' ile başlamalı.','bad');return;
-  }
-  if(state.used.has(word)){
-    setZincirFeedback('Bu sözcüğü daha önce kullandın.','bad');return;
-  }
-  if(!GAME_WORD_SET.has(word)||isArgoWord(word)||isForeignWord(word)){
-    setZincirFeedback('Sözlükte geçerli bir sözcük değil.','bad');return;
-  }
-  const gained=zincirWordScore(word);
-  state.score+=gained;
-  state.current=word;state.used.add(word);state.history.push(word);
-  if(word.length>state.longest.length)state.longest=word;
-  saveZincirBest();updateZincirHud();setZincirRoundTime();
-  input.value='';
-  setZincirFeedback(word+'  +'+gained+' • Şimdi '+zincirLastLetter(word)+' ile devam et!','good');
-  input.focus({preventScroll:true});
-}
-function exitZincir(){
-  state.running=false;state.paused=false;cancelAnimationFrame(state.raf);state.raf=0;
-  input.disabled=false;screen.classList.add('hidden');
-  document.getElementById('znc-gameover')?.classList.add('hidden');
-  document.getElementById('znc-rule-box')?.classList.add('hidden');
+function zlmExit(){
+  state.running=false;state.paused=false;zlmClearTimers();zlmClearPath();
+  screen.classList.add('hidden');document.getElementById('zlm-rules')?.classList.add('hidden');document.getElementById('zlm-gameover')?.classList.add('hidden');
   document.getElementById('screen-home')?.classList.remove('hidden');
 }
-async function openZincir(){
-  document.getElementById('screen-home')?.classList.add('hidden');
-  screen.classList.remove('hidden');
-  input.disabled=true;setZincirFeedback('Sözlük hazırlanıyor…','');
-  try{await ensureWordDataLoaded();resetZincir();}
-  catch(err){console.error('Zincir startup failed',err);showToast('ZİNCİR hazırlanamadı.','rose');exitZincir();}
+async function zlmOpen(){
+  document.getElementById('screen-home')?.classList.add('hidden');screen.classList.remove('hidden');
+  zlmUpdateStatus('Sözlük ve tahta hazırlanıyor…');
+  try{await ensureWordDataLoaded();zlmReset();}
+  catch(err){console.error('Zincirleme startup failed',err);showToast('ZİNCİRLEME hazırlanamadı.','rose');zlmExit();}
 }
 
-homeBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openZincir();});
-form.addEventListener('submit',e=>{e.preventDefault();submitZincirWord();});
-input.addEventListener('input',()=>{
-  const normalized=zincirNormalize(input.value);
-  if(input.value!==normalized)input.value=normalized;
-});
-document.getElementById('btn-zincir-exit')?.addEventListener('click',exitZincir);
-document.getElementById('btn-zincir-home-exit')?.addEventListener('click',exitZincir);
-document.getElementById('btn-zincir-again')?.addEventListener('click',resetZincir);
-document.getElementById('btn-zincir-restart')?.addEventListener('click',resetZincir);
-document.getElementById('btn-zincir-pause')?.addEventListener('click',()=>state.paused?resumeZincir():pauseZincir());
-document.getElementById('btn-zincir-rule')?.addEventListener('click',()=>{
-  if(state.running&&!state.paused)pauseZincir(true);
-  document.getElementById('znc-rule-box')?.classList.remove('hidden');
-});
-document.getElementById('btn-zincir-rule-close')?.addEventListener('click',()=>{
-  document.getElementById('znc-rule-box')?.classList.add('hidden');
-  if(state.running&&state.paused)resumeZincir();
-});
-document.addEventListener('visibilitychange',()=>{
-  if(document.hidden&&!screen.classList.contains('hidden')&&state.running&&!state.paused)pauseZincir(true);
-});
+boardEl.addEventListener('pointerdown',e=>{
+  if(!state.running||state.paused||(state.mode==='ai'&&state.turn===1))return;
+  e.preventDefault();state.pointerId=e.pointerId;boardEl.setPointerCapture?.(e.pointerId);boardEl.classList.add('grabbing');state.lastCell=null;
+  zlmProcessPoint(e.clientX,e.clientY);
+},{passive:false});
+boardEl.addEventListener('pointermove',e=>{
+  if(state.pointerId!==e.pointerId)return;e.preventDefault();zlmProcessPoint(e.clientX,e.clientY);
+},{passive:false});
+const finish=e=>{
+  if(state.pointerId!==e.pointerId)return;
+  e.preventDefault();try{boardEl.releasePointerCapture(e.pointerId);}catch(_){}
+  state.pointerId=null;boardEl.classList.remove('grabbing');zlmProcessPoint(e.clientX,e.clientY);state.lastCell=null;zlmSubmitPlayer();
+};
+boardEl.addEventListener('pointerup',finish,{passive:false});
+boardEl.addEventListener('pointercancel',e=>{if(state.pointerId===e.pointerId){state.pointerId=null;boardEl.classList.remove('grabbing');zlmClearPath();}},{passive:false});
+
+homeBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();zlmOpen();});
+document.getElementById('btn-zlm-exit')?.addEventListener('click',zlmExit);
+document.getElementById('btn-zlm-home-exit')?.addEventListener('click',zlmExit);
+document.getElementById('btn-zlm-new')?.addEventListener('click',zlmReset);
+document.getElementById('btn-zlm-again')?.addEventListener('click',zlmReset);
+document.getElementById('btn-zlm-pause')?.addEventListener('click',()=>state.paused?zlmResume():zlmPause());
+document.getElementById('btn-zlm-ai')?.addEventListener('click',()=>{zlmSetMode('ai');if(!screen.classList.contains('hidden'))zlmReset();});
+document.getElementById('btn-zlm-local')?.addEventListener('click',()=>{zlmSetMode('local');if(!screen.classList.contains('hidden'))zlmReset();});
+document.getElementById('btn-zlm-rules')?.addEventListener('click',()=>{if(state.running&&!state.paused)zlmPause(true);document.getElementById('zlm-rules')?.classList.remove('hidden');});
+document.getElementById('btn-zlm-rule-close')?.addEventListener('click',()=>{document.getElementById('zlm-rules')?.classList.add('hidden');if(state.running&&state.paused)zlmResume();});
+document.getElementById('btn-zlm-rule-new')?.addEventListener('click',()=>{document.getElementById('zlm-rules')?.classList.add('hidden');zlmReset();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&!screen.classList.contains('hidden')&&state.running&&!state.paused)zlmPause(true);});
+zlmSetMode('ai');
 })();
