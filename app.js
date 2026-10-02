@@ -6585,7 +6585,6 @@ async function avcOpen(){
 }
 
 window.openKapmacaAvci=avcOpen;
-homeBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();avcOpen();});
 document.getElementById('btn-avc-exit')?.addEventListener('click',avcExit);
 document.getElementById('btn-avc-exit-home')?.addEventListener('click',avcExit);
 document.getElementById('btn-avc-again')?.addEventListener('click',avcReset);
