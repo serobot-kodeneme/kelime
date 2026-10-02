@@ -482,7 +482,7 @@ document.addEventListener('webkitfullscreenchange',handleFullscreenLayoutChange)
 let remainingSeconds=60;
 let isMatchActive=false;
 
-// v600 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
+// v601 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
 const LETTER_IDLE_WAVE_MS=4000;
 let letterIdleLastActivityAt=0;
 let letterIdleWaveShown=false;
@@ -498,36 +498,37 @@ const r=grid.getBoundingClientRect();
 if(!r.width||!r.height)return;
 const fx=document.createElement('div');
 fx.className='letter-idle-wave-fx';
-fx.textContent='👋';
+fx.textContent='✋';
 Object.assign(fx.style,{
   position:'fixed',
   left:(r.left+r.width/2)+'px',
   top:(r.top+r.height/2)+'px',
-  transform:'translate(-50%,-50%) scale(.25)',
+  transform:'translate(-50%,-50%) scale(.16)',
   transformOrigin:'50% 50%',
-  fontSize:'clamp(62px,16vw,116px)',
+  fontSize:'clamp(90px,23vw,170px)',
   lineHeight:'1',
   opacity:'0',
   pointerEvents:'none',
   userSelect:'none',
   zIndex:'220',
-  filter:'drop-shadow(0 6px 10px rgba(0,0,0,.28))'
+  filter:'drop-shadow(0 10px 16px rgba(0,0,0,.34))'
 });
 document.body.appendChild(fx);
 if(typeof fx.animate==='function'){
   const anim=fx.animate([
-    {transform:'translate(-50%,-50%) scale(.25) rotate(-8deg)',opacity:0},
-    {transform:'translate(-50%,-50%) scale(1.18) rotate(10deg)',opacity:1,offset:.42},
-    {transform:'translate(-50%,-50%) scale(1.42) rotate(-8deg)',opacity:1,offset:.66},
-    {transform:'translate(-50%,-50%) scale(.92) rotate(6deg)',opacity:0}
-  ],{duration:1050,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'});
+    {transform:'translate(-50%,-50%) scale(.16)',opacity:0},
+    {transform:'translate(-50%,-50%) scale(1.08)',opacity:1,offset:.34},
+    {transform:'translate(-50%,-50%) scale(1.72)',opacity:1,offset:.58},
+    {transform:'translate(-50%,-50%) scale(1.9)',opacity:.98,offset:.68},
+    {transform:'translate(-50%,-50%) scale(.96)',opacity:0}
+  ],{duration:980,easing:'cubic-bezier(.16,.84,.22,1)',fill:'forwards'});
   anim.onfinish=()=>fx.remove();
   anim.oncancel=()=>fx.remove();
 }else{
-  fx.style.transition='transform 900ms ease-out,opacity 900ms ease-out';
-  requestAnimationFrame(()=>{fx.style.transform='translate(-50%,-50%) scale(1.35) rotate(8deg)';fx.style.opacity='1';});
-  setTimeout(()=>{fx.style.opacity='0';fx.style.transform='translate(-50%,-50%) scale(.95) rotate(-6deg)';},650);
-  setTimeout(()=>fx.remove(),1100);
+  fx.style.transition='transform 780ms cubic-bezier(.16,.84,.22,1),opacity 780ms ease-out';
+  requestAnimationFrame(()=>{fx.style.transform='translate(-50%,-50%) scale(1.82)';fx.style.opacity='1';});
+  setTimeout(()=>{fx.style.opacity='0';fx.style.transform='translate(-50%,-50%) scale(.96)';},610);
+  setTimeout(()=>fx.remove(),980);
 }
 }
 function isLetterIdleWaveEligible(){
@@ -3517,7 +3518,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=600-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=601-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
