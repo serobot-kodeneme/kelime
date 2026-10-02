@@ -2399,6 +2399,18 @@ return{trap};
 }
 function localAtismaDelta(base,effects){return effects.trap.length?0:base;}
 function chooseLocalAtismaAiWord(){const level=BOT_LEVELS[botDiffLevel]||BOT_LEVELS.medium;const available=getBotRankedWords().filter(({item})=>!sessionFoundWords.has(item.word));if(!available.length)return null;let ranked=available.filter(({item})=>item.word.length>=level.minLen&&item.word.length<=level.maxLen);if(!ranked.length)ranked=available;if(Math.random()<level.focus){const topCount=Math.min(ranked.length,level.top);return ranked[Math.floor(Math.random()*topCount)].item;}return ranked[Math.floor(Math.random()*ranked.length)].item;}
+function showPatlamaTurnFly(side){
+if(side!=='p1'&&side!=='p2')return;
+const game=document.getElementById('screen-game');
+if(!game||game.classList.contains('hidden'))return;
+game.querySelectorAll('.patlama-turn-fly').forEach(el=>el.remove());
+const fly=document.createElement('div');
+fly.className='patlama-turn-fly '+side;
+fly.textContent='SIRA SENDE!';
+fly.setAttribute('aria-hidden','true');
+game.appendChild(fly);
+setTimeout(()=>fly.remove(),1150);
+}
 function setPatlamaActivePlayer(side=null){
 const p1=document.getElementById('p1-player-card'),p2=document.getElementById('p2-player-card');
 const timer=document.querySelector('#compact-game-header .compact-timer');
@@ -2423,6 +2435,7 @@ if(active&&!wasSame){
   active.classList.add('patlama-turn-flash');
   clearTimeout(active._patlamaTurnFlashTimer);
   active._patlamaTurnFlashTimer=setTimeout(()=>active.classList.remove('patlama-turn-flash'),850);
+  showPatlamaTurnFly(side);
 }
 }
 function renderPatlamaTurnDots(p1Used=0,p2Used=0){
