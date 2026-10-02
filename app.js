@@ -11,11 +11,12 @@ if(ARGO_EXACT.has(w))return true;
 for(const root of ARGO_PREFIXES)if(w.startsWith(root))return true;
 return w.startsWith('BOK')&&!w.startsWith('BOKS')&&!w.startsWith('BOKSİT');
 }
-// Element symbols are not playable words, in any game mode.
+// Symbol-only entries are excluded; genuine Turkish words with the same spelling remain playable.
 // Source: IUPAC periodic table; both standard and Turkish uppercase forms.
 const ELEMENT_SYMBOLS=Object.freeze('H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni Cu Zn Ga Ge As Se Br Kr Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe Cs Ba La Ce Pr Nd Pm Sm Eu Gd Tb Dy Ho Er Tm Yb Lu Hf Ta W Re Os Ir Pt Au Hg Tl Pb Bi Po At Rn Fr Ra Ac Th Pa U Np Pu Am Cm Bk Cf Es Fm Md No Lr Rf Db Sg Bh Hs Mt Ds Rg Cn Nh Fl Mc Lv Ts Og'.split(' '));
 const ELEMENT_SYMBOL_WORDS=new Set(ELEMENT_SYMBOLS.flatMap(symbol=>[symbol.toUpperCase(),symbol.toLocaleUpperCase('tr-TR')]));
-function isElementSymbol(word){return ELEMENT_SYMBOL_WORDS.has(String(word||'').trim().toLocaleUpperCase('tr-TR'));}
+const ELEMENT_SYMBOL_TURKISH_WORDS=new Set(['AL','AR','AS','AT','BE','ER','ES','HE','İN','LA','NE','RE','Sİ','TA','TE','Tİ']);
+function isElementSymbol(word){const w=String(word||'').trim().toLocaleUpperCase('tr-TR');return ELEMENT_SYMBOL_WORDS.has(w)&&!ELEMENT_SYMBOL_TURKISH_WORDS.has(w);}
 const FOREIGN_EXACT=new Set(['ASK','CHANGE','CHAT','RUN','TALK']);
 const TURKISH_WORD_CHARS = /^[ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ]+$/;
 const COMMON_IMPERATIVE_WORDS=Object.freeze([
@@ -3606,7 +3607,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=640-gokdelen-preview',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=641-gokdelen-soft',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -6899,7 +6900,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v640 — GÖKDELEN: gönder öncesi canlı hamle doğrulaması */
+/* v641 — GÖKDELEN: gerçek Türkçe sözcükler korunur, yumuşak yerleşme ve 40 kat */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -6908,7 +6909,7 @@ const rackP1El=document.getElementById('ksm-rack-p1');
 const ghost=document.getElementById('ksm-drag-ghost');
 if(!screen||!boardEl||!wrap||!rackP1El||!ghost)return;
 
-const ROWS=24,COLS=9,H=1,V=2,TOTAL_TILES=300;
+const ROWS=40,COLS=9,H=1,V=2,TOTAL_TILES=300;
 const LETTER_POOL='AAAAAAAABCCÇDDEEEEEEEEGĞHIIIIİİİİKKKLLLLMMMNNNNOOÖPRRRRSSSSŞTTTTUUÜVYYZ';
 const SEEDS=['KALEM','YEMEK','KİTAP','DENİZ','BULUT','ORMAN','PERDE','ÇANTA','SABAH','AKŞAM','KOLA'];
 const state={
@@ -7001,12 +7002,12 @@ function animateTile(r,c,from=null){
   const el=cells[r*COLS+c]?.querySelector('.ksm-letter');
   if(!el||typeof el.animate!=='function'||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   const rect=el.getBoundingClientRect();
-  const dx=from?from.x-(rect.left+rect.width/2):0,dy=from?from.y-(rect.top+rect.height/2):-32;
+  const dx=from?from.x-(rect.left+rect.width/2):0,dy=from?from.y-(rect.top+rect.height/2):-18;
   el.animate([
-    {transform:`translate(${dx}px,${dy}px) scale(.8)`,opacity:.25},
-    {offset:.78,transform:'translate(0,2px) scale(1.06)',opacity:1},
+    {transform:`translate(${dx}px,${dy}px) scale(.94)`,opacity:.65},
+    {offset:.82,transform:'translate(0,0) scale(1)',opacity:1},
     {transform:'translate(0,0) scale(1)',opacity:1}
-  ],{duration:420,easing:'cubic-bezier(.22,.7,.25,1)'});
+  ],{duration:560,easing:'cubic-bezier(.16,1,.3,1)'});
 }
 function showCellMeaning(r,c){
   if(state.drag||Date.now()<state.meaningBlockedUntil||tempAt(r,c)||!state.grid[r][c])return;
@@ -7334,7 +7335,7 @@ function aiTakeTurn(){
     const t=move.placed[index++],k=key(t.r,t.c);
     state.temp.set(k,{...t,tower:!!t.tower,under:t.under||''});state.tempOrder.push(k);
     renderCell(t.r,t.c);animateTile(t.r,t.c);
-    state.aiTimer=setTimeout(index<move.placed.length?placeNext:()=>{if(state.turn===1&&!state.gameOver)commit();},index<move.placed.length?110:480);
+    state.aiTimer=setTimeout(index<move.placed.length?placeNext:()=>{if(state.turn===1&&!state.gameOver)commit();},index<move.placed.length?140:600);
   };
   const top=Math.min(...move.placed.map(t=>t.r));
   wrap.scrollTo({top:Math.max(0,top*boardEl.clientHeight/ROWS-wrap.clientHeight*.35),behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
@@ -7420,7 +7421,7 @@ function commit(){
   requestAnimationFrame(()=>{
     let top=ROWS-1;
     for(let rr=0;rr<ROWS;rr++){if(state.grid[rr].some(Boolean)){top=rr;break;}}
-    wrap.scrollTop=Math.max(0,top*boardEl.clientHeight/ROWS-wrap.clientHeight*.35);
+    wrap.scrollTo({top:Math.max(0,top*boardEl.clientHeight/ROWS-wrap.clientHeight*.35),behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
   });
   checkEnd();
 }
