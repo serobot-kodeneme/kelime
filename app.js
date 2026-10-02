@@ -3265,7 +3265,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=575-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=576-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -3807,6 +3807,15 @@ setMasterSoundVolume(masterSoundVolume);
 updateFullscreenUi();
 function prepareGame(){
 stopLocalCountdown();
+isMatchActive=false;
+clearInterval(timerInterval);timerInterval=null;
+clearTimeout(botInterval);botInterval=null;
+if(pointerFrame){cancelAnimationFrame(pointerFrame);pointerFrame=0;}
+isPointerDown=false;pointerHoldStartedAt=0;clearTimeout(pointerHoldTimer);pointerHoldTimer=null;activePointerId=null;pendingPointer=null;activeGridRect=null;activeGridMetrics=null;lastPointerX=null;lastPointerY=null;
+try{clearPath();}catch(_){selectedPath=[];}
+const standardGrid=document.getElementById('scrabble-grid');
+if(standardGrid){standardGrid.style.pointerEvents='auto';standardGrid.style.opacity='';standardGrid.style.filter='';standardGrid.style.touchAction='none';}
+const standardGame=document.getElementById('screen-game');if(standardGame)standardGame.style.pointerEvents='auto';
 atismaLocalActive=false;stopAtismaSetupTimer();stopAtismaTurnTimer();stopAtismaLocalAi();atismaSetupActive=false;atismaTimeoutBusy=false;setAtismaPanelVisible(false,false);
 activeGameMode='single';setLongestBonusBadges(false,false);
 document.getElementById('p1-title').textContent='OYUNCU';
@@ -4337,7 +4346,8 @@ lastHoverCell=idx;
 const cell=domCells[idx];
 if(hoverLiftCell&&hoverLiftCell!==cell)hoverLiftCell.classList.remove('tile-hover-p1','tile-hover-p2');
 hoverLiftCell=cell;
-const hoveringAsP1=mpRole==='guest'?false:(mpRole==='host'?true:(chosenAvatarId==='av_1'));
+const multiplayerPointer=activeGameMode==='multi'&&!!mpRole&&!!mpRoomRef;
+const hoveringAsP1=multiplayerPointer?(mpRole==='host'):(chosenAvatarId==='av_1');
 cell.classList.remove('tile-hover-p1','tile-hover-p2');
 cell.classList.add(hoveringAsP1?'tile-hover-p1':'tile-hover-p2');
 },{passive:true});
@@ -4346,7 +4356,7 @@ lastHoverCell=-1;hoverGridRect=null;hoverGridMetrics=null;
 if(hoverLiftCell)hoverLiftCell.classList.remove('tile-hover-p1','tile-hover-p2');hoverLiftCell=null;
 },{passive:true});
 gridEl.addEventListener('pointerdown',(e)=>{
-if(!isMatchActive&&mpRole&&mpState===MP_STATES.PLAYING)isMatchActive=true;
+if(!isMatchActive&&activeGameMode==='multi'&&mpRole&&mpRoomRef&&mpState===MP_STATES.PLAYING)isMatchActive=true;
 if(!isMatchActive)return;
 e.preventDefault();
 ensureGameAudio();
@@ -4446,7 +4456,8 @@ function addCellToPath(r,c,cell){
 selectedPath.push({r,c,char:gridBoard[r][c],el:cell});
 selectedFlags[r*BOARD_SIZE+c]=1;
 playLetterPickSound(selectedPath.length);
-const selectingAsP1=mpRole==='guest'?false:(mpRole==='host'?true:(chosenAvatarId==='av_1'));
+const multiplayerPointer=activeGameMode==='multi'&&!!mpRole&&!!mpRoomRef;
+const selectingAsP1=multiplayerPointer?(mpRole==='host'):(chosenAvatarId==='av_1');
 cell.classList.remove('tile-dragging-p1','tile-dragging-p2');
 cell.classList.add('tile-dragging',selectingAsP1?'tile-dragging-p1':'tile-dragging-p2');
 syncWordDisplay();
@@ -4517,7 +4528,8 @@ async function submitWord(submitOrigin=null){
 if(!isMatchActive||selectedPath.length===0)return;
 const word=selectedPath.map(p=>p.char).join('');
 const pts=word.split('').reduce((sum,ch)=>sum+(TILE_SCORE_CACHE[ch]||1),0);
-const isP1=mpRole?(mpRole==='host'):(chosenAvatarId==='av_1');
+const isHumanMultiplayer=activeGameMode==='multi'&&!!mpRole&&!!mpRoomRef;
+const isP1=isHumanMultiplayer?(mpRole==='host'):(chosenAvatarId==='av_1');
 let scoreFxOrigin=(submitOrigin&&Number.isFinite(submitOrigin.x)&&Number.isFinite(submitOrigin.y))?submitOrigin:null;
 if(!scoreFxOrigin){
 const scoreFxLastEl=selectedPath[selectedPath.length-1]?.el||null;
@@ -4536,7 +4548,7 @@ flashWordFeedback(false);
 breakCombo(isP1);
 showToast(`${word} (-3) ARGO/KÜFÜR`, 'rose');
 if(isLocalAtisma()){p1Score-=3;updateScores();atismaLocalPlayerTurns++;renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);clearPath();startLocalAtismaTurn('ai');return;}
-if(isAtismaRoom()&&mpRole){await atismaPenaltyAndPass(word,-3);clearPath();return;}
+if(isHumanMultiplayer&&isAtismaRoom()){await atismaPenaltyAndPass(word,-3);clearPath();return;}
 adjustScore(isP1?-3:0,!isP1?-3:0);
 clearPath();
 return;
@@ -4547,7 +4559,7 @@ flashWordFeedback(false);
 breakCombo(isP1);
 showToast(`${word}(-3)Geçersiz!`,'rose');
 if(isLocalAtisma()){p1Score-=3;updateScores();atismaLocalPlayerTurns++;renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);clearPath();startLocalAtismaTurn('ai');return;}
-if(isAtismaRoom()&&mpRole){await atismaPenaltyAndPass(word,-3);clearPath();return;}
+if(isHumanMultiplayer&&isAtismaRoom()){await atismaPenaltyAndPass(word,-3);clearPath();return;}
 adjustScore(isP1?-3:0,!isP1?-3:0);
 clearPath();
 return;
@@ -4561,12 +4573,12 @@ selectedPath.forEach(p=>p.el.classList.add('tile-claimed-p1'));addTickerBadge(wo
 if(trapped){playErrorBuzzer();flashWordFeedback(false);breakCombo(true);showToast('🎈 TUZAK! '+word+' PUANI '+getBotDisplayName()+' TARAFINA GEÇTİ: +'+pts,'rose',1900);}else{playCorrectChime();flashWordFeedback(true);rewardWordFx(true);playWordConfetti(word.length);showToast(word+'(+'+pts+')','amber',1800);}
 atismaLocalPlayerTurns++;clearPath();startLocalAtismaTurn('ai');return;
 }
-if(isAtismaRoom()&&mpRole){
+if(isHumanMultiplayer&&isAtismaRoom()){
 await submitAtismaWord(word,pts,isP1,scoreFxOrigin);
 clearPath();
 return;
 }
-if(mpRole){
+if(isHumanMultiplayer){
 const normalizedWord=word.toLocaleUpperCase('tr-TR');
 const wordKey = encodeURIComponent(normalizedWord).replace(/\./g, '%2E');
 const claimRef=mpRoomRef.child('words').child(wordKey);
@@ -4601,7 +4613,7 @@ showToast(`${word}(DAHA ÖNCE BULUNDU)`,'rose',1500);
 clearPath();
 return;
 }
-if(mpRole){
+if(isHumanMultiplayer){
 mpFoundWords.host.add(word);
 mpFoundWords.guest.add(word);
 }else sessionFoundWords.add(word);
@@ -5321,6 +5333,9 @@ clearTimeout(botInterval);botInterval=null;
 if(pointerFrame){cancelAnimationFrame(pointerFrame);pointerFrame=0;}
 isPointerDown=false;pointerHoldStartedAt=0;clearTimeout(pointerHoldTimer);pointerHoldTimer=null;activePointerId=null;pendingPointer=null;activeGridRect=null;activeGridMetrics=null;
 try{clearPath();}catch(_){selectedPath=[];}
+const exitGrid=document.getElementById('scrabble-grid');
+if(exitGrid){exitGrid.style.pointerEvents='auto';exitGrid.style.opacity='';exitGrid.style.filter='';exitGrid.style.touchAction='none';}
+const exitGame=document.getElementById('screen-game');if(exitGame)exitGame.style.pointerEvents='auto';
 document.getElementById('modal-countdown')?.classList.add('hidden');
 document.getElementById('modal-gameover')?.classList.add('hidden');
 document.getElementById('modal-rematch-waiting')?.classList.add('hidden');
