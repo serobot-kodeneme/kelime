@@ -15,7 +15,7 @@ return w.startsWith('BOK')&&!w.startsWith('BOKS')&&!w.startsWith('BOKSİT');
 // Source: IUPAC periodic table; both standard and Turkish uppercase forms.
 const ELEMENT_SYMBOLS=Object.freeze('H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni Cu Zn Ga Ge As Se Br Kr Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe Cs Ba La Ce Pr Nd Pm Sm Eu Gd Tb Dy Ho Er Tm Yb Lu Hf Ta W Re Os Ir Pt Au Hg Tl Pb Bi Po At Rn Fr Ra Ac Th Pa U Np Pu Am Cm Bk Cf Es Fm Md No Lr Rf Db Sg Bh Hs Mt Ds Rg Cn Nh Fl Mc Lv Ts Og'.split(' '));
 const ELEMENT_SYMBOL_WORDS=new Set(ELEMENT_SYMBOLS.flatMap(symbol=>[symbol.toUpperCase(),symbol.toLocaleUpperCase('tr-TR')]));
-const ELEMENT_SYMBOL_TURKISH_WORDS=new Set(['AL','AR','AS','AT','BE','ER','ES','HE','İN','LA','NE','RE','Sİ','TA','TE','Tİ']);
+const ELEMENT_SYMBOL_TURKISH_WORDS=new Set(['AL','AR','AS','AT','BE','ER','ES','HE','İN','LA','NE','RA','RE','Sİ','TA','TE','Tİ']);
 function isElementSymbol(word){const w=String(word||'').trim().toLocaleUpperCase('tr-TR');return ELEMENT_SYMBOL_WORDS.has(w)&&!ELEMENT_SYMBOL_TURKISH_WORDS.has(w);}
 const FOREIGN_EXACT=new Set(['ASK','CHANGE','CHAT','RUN','TALK']);
 const TURKISH_WORD_CHARS = /^[ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ]+$/;
@@ -310,7 +310,7 @@ const word=prev.slice(0,prefixLen)+row.slice(1);
 decodedWords.push(word);prev=word;
 }
 GEO_DICTIONARY=data.GEO_DICTIONARY;
-GAME_WORD_LIST=Array.from(new Set([...decodedWords,...Object.keys(GEO_DICTIONARY),...Object.keys(NATIONALITY_DICTIONARY),...Object.keys(IMPERATIVE_MEANING_DICTIONARY),...COMMON_IMPERATIVE_WORDS,...CURATED_EXPANSION_WORDS,...CURATED_EXPANSION_WORDS_V2,...CURATED_EXPANSION_WORDS_V3]))
+GAME_WORD_LIST=Array.from(new Set(decodedWords))
 .filter(w=>w.length>=2&&w.length<=9&&!isArgoWord(w)&&!isForeignWord(w)&&!isElementSymbol(w)).sort();
 GAME_WORD_SET=new Set(GAME_WORD_LIST);
 GAME_WORDS_BY_LENGTH.clear();
@@ -346,7 +346,7 @@ document.head.appendChild(script);
 wordDataPromise=(async()=>{
 if(!window.KAPMACA_WORD_DATA){
 let ok=false;
-for(const src of['word-data.js?v=436','word-data.js?v=436&retry=1']){
+for(const src of['word-data.js?v=643','word-data.js?v=643&retry=1']){
 try{await loadAttempt(src);ok=true;break;}catch(_){}
 }
 if(!ok&&!window.KAPMACA_WORD_DATA)throw new Error('word-data-unavailable');
@@ -5859,6 +5859,22 @@ showDictionaryMeaning(word,host,true);
 document.getElementById('btn-close-found-meaning')?.addEventListener('click',closeFoundWordMeaning);
 document.getElementById('modal-found-meaning')?.addEventListener('click',e=>{if(e.target===e.currentTarget)closeFoundWordMeaning();});
 const dictMeaningCache=new Map();
+const meaningShardCache=new Map();
+const meaningShardLoads=new Map();
+async function loadVerifiedMeaning(key){
+const shard=key.codePointAt(0).toString(16).padStart(4,'0');
+if(!meaningShardCache.has(shard)){
+if(!meaningShardLoads.has(shard))meaningShardLoads.set(shard,(async()=>{
+const response=await fetch(`meanings/${shard}.json?v=643`);
+if(!response.ok)throw new Error('meaning-load-failed');
+const data=await response.json();meaningShardCache.set(shard,data);return data;
+})().finally(()=>meaningShardLoads.delete(shard)));
+await meaningShardLoads.get(shard);
+}
+const meanings=meaningShardCache.get(shard)[key];
+if(!Array.isArray(meanings)||!meanings.length)throw new Error('verified-meaning-missing');
+return meanings;
+}
 let dictMeaningAbortController=null;
 let dictMeaningOpenKey='';
 let dictMeaningOpenHost=null;
@@ -5886,7 +5902,7 @@ const txt=document.createElement('span');txt.textContent=meaning;
 row.append(num,txt);host.appendChild(row);
 });
 }
-const note=document.createElement('div');note.className='dict-meaning-note';note.textContent=source==='geo'?'KAPMACA Coğrafi Sözlük':(source==='local'?'KAPMACA Türkçe Sözlük • yerel anlam güvencesi':'TDK Güncel Türkçe Sözlük • anlamlar çevrim içi sorgulanır.');host.appendChild(note);
+const note=document.createElement('div');note.className='dict-meaning-note';note.textContent=source==='geo'?'KAPMACA Coğrafi Sözlük':(source==='local'?'KAPMACA Türkçe Sözlük':'TDK Güncel Türkçe Sözlük • anlamlar çevrim içi sorgulanır.');host.appendChild(note);
 host.classList.remove('hidden');
 }
 async function showDictionaryMeaning(word,host,auto=false){
@@ -5896,6 +5912,17 @@ if(!auto&&dictMeaningOpenKey===key&&dictMeaningOpenHost===host&&!host.classList.
 closeDictionaryMeaning();dictMeaningOpenKey=key;dictMeaningOpenHost=host;
 if(dictMeaningCache.has(key)){
 const cached=dictMeaningCache.get(key);fillInlineMeaning(host,word,cached.meanings,cached.sourceWord,cached.source||'');return;
+}
+if(GAME_WORD_SET.has(key)){
+host.textContent='Anlam getiriliyor…';host.classList.remove('hidden');
+try{
+const local={meanings:await loadVerifiedMeaning(key),sourceWord:key,source:'local'};
+dictMeaningCache.set(key,local);
+if(dictMeaningOpenKey===key&&dictMeaningOpenHost===host)fillInlineMeaning(host,word,local.meanings,key,'local');
+}catch(_){
+if(dictMeaningOpenKey===key&&dictMeaningOpenHost===host){host.textContent='Anlam yüklenemedi. Bağlantıyı kontrol edip sözcüğe tekrar dokun.';host.classList.remove('hidden');}
+}
+return;
 }
 if(NATIONALITY_DICTIONARY[key]){
 const local={meanings:[NATIONALITY_DICTIONARY[key]],sourceWord:String(word),source:'local'};
@@ -6900,7 +6927,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v642 — GÖKDELEN: animasyonlu geri al, çift dokunma ve geniş konfeti */
+/* v643 — GÖKDELEN: dengeli ıstakalar, yumuşak yerleşme ve tanımlı sözlük */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -6920,11 +6947,40 @@ const state={
 };
 const cells=[];
 const key=(r,c)=>r+','+c;
-function randLetter(){return LETTER_POOL[Math.floor(Math.random()*LETTER_POOL.length)];}
+const RACK_VOWELS=new Set(Array.from('AEIİOÖUÜ'));
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
-function makeBag(){const a=[];for(let i=0;i<TOTAL_TILES;i++)a.push(randLetter());return shuffle(a);}
-function drawOne(){return state.bag.length?state.bag.pop():null;}
-function drawRackToNine(p){while(state.racks[p].length<9){const ch=drawOne();if(!ch)break;state.racks[p].push(ch);}}
+function makeBag(){
+  // Fixed proportions prevent a match starting with an accidentally vowel-heavy bag.
+  const pool=Array.from(LETTER_POOL),a=[];
+  for(let i=0;i<TOTAL_TILES;i++)a.push(pool[i%pool.length]);
+  return shuffle(a);
+}
+function rackPoints(rack){return rack.reduce((n,ch)=>n+(TILE_SCORE_CACHE[ch]||1),0);}
+function drawRackToNine(p){
+  const rack=state.racks[p],needed=Math.min(9-rack.length,state.bag.length);
+  if(needed<=0)return;
+  const finalSize=rack.length+needed,other=state.racks[1-p];
+  const bagAverage=rackPoints(state.bag)/state.bag.length;
+  const reference=other.length===9?rackPoints(other)/9:bagAverage;
+  const target=Math.max(bagAverage-.5,Math.min(bagAverage+.5,reference))*finalSize;
+  let best=null,bestCost=Infinity;
+  // Sample only replacements. Letters the player kept are never exchanged.
+  for(let attempt=0;attempt<192;attempt++){
+    const indices=new Set();
+    while(indices.size<needed)indices.add(Math.floor(Math.random()*state.bag.length));
+    const candidate=[...rack,...Array.from(indices,i=>state.bag[i])];
+    const counts=new Map();let vowels=0,high=0;
+    for(const ch of candidate){counts.set(ch,(counts.get(ch)||0)+1);if(RACK_VOWELS.has(ch))vowels++;if((TILE_SCORE_CACHE[ch]||1)>=5)high++;}
+    const repeats=[...counts.values()].reduce((n,c)=>n+Math.max(0,c-2)**2,0);
+    const minVowels=Math.min(3,Math.floor(finalSize/3)),maxVowels=Math.ceil(finalSize/2);
+    const vowelPenalty=Math.max(0,minVowels-vowels)+Math.max(0,vowels-maxVowels);
+    const cost=repeats*1000+vowelPenalty*200+Math.abs(rackPoints(candidate)-target)*8+Math.max(0,high-2)*60;
+    if(cost<bestCost){bestCost=cost;best=[...indices];}
+  }
+  const letters=best.map(i=>state.bag[i]);
+  best.sort((a,b)=>b-a).forEach(i=>state.bag.splice(i,1));
+  rack.push(...letters);
+}
 function consumeSeedFromBag(word){for(const ch of word){const i=state.bag.indexOf(ch);if(i>=0)state.bag.splice(i,1);else if(state.bag.length)state.bag.pop();}}
 function setFeedback(text='',kind=''){const el=document.getElementById('ksm-feedback');if(el){el.textContent=text;el.classList.remove('good','bad');if(kind)el.classList.add(kind);}const top=document.getElementById('ksm-turn-status-top');if(top&&text)top.textContent=text;}
 function showPop(title,sub='',duration=950){const pop=document.getElementById('ksm-pop'),a=document.getElementById('ksm-pop-title'),b=document.getElementById('ksm-pop-sub');if(!pop||!a||!b)return;clearTimeout(state.popTimer);pop.classList.remove('ksm-bonus-pop','ksm-flower-pop');a.textContent=title;b.textContent=sub;pop.classList.add('show');state.popTimer=setTimeout(()=>pop.classList.remove('show'),duration);}
@@ -6932,34 +6988,6 @@ function showBonusPop(title,sub='',flower=false,duration=1100){
   const pop=document.getElementById('ksm-pop'),a=document.getElementById('ksm-pop-title'),b=document.getElementById('ksm-pop-sub');if(!pop||!a||!b)return;
   clearTimeout(state.popTimer);a.textContent=title;b.textContent=sub;pop.classList.add('show','ksm-bonus-pop');pop.classList.toggle('ksm-flower-pop',!!flower);
   state.popTimer=setTimeout(()=>{pop.classList.remove('show','ksm-bonus-pop','ksm-flower-pop');},duration);
-}
-function ksmConfettiBurst(){
-  if(document.hidden||screen.classList.contains('hidden'))return;
-  document.getElementById('ksm-confetti-layer')?.remove();
-  const layer=document.createElement('div');layer.id='ksm-confetti-layer';layer.setAttribute('aria-hidden','true');screen.appendChild(layer);
-  playAtismaExplosionSound();
-  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const sr=screen.getBoundingClientRect(),wr=wrap.getBoundingClientRect();
-  const cx=wr.left-sr.left+wr.width/2,cy=wr.top-sr.top+wr.height*.45;
-  const colors=['#facc15','#fb7185','#22c55e','#38bdf8','#818cf8','#f97316','#ffffff'];
-  const count=reduced?12:56,spread=Math.max(120,Math.min(screen.clientWidth*.45,480));
-  const flash=document.createElement('span');flash.className='ksm-confetti-flash';flash.style.left=cx+'px';flash.style.top=cy+'px';layer.appendChild(flash);
-  if(!reduced&&typeof flash.animate==='function')flash.animate([{transform:'translate(-50%,-50%) scale(.4)',opacity:.8},{transform:'translate(-50%,-50%) scale(3.5)',opacity:0}],{duration:480,easing:'ease-out',fill:'forwards'});
-  else flash.remove();
-  for(let i=0;i<count;i++){
-    const piece=document.createElement('span');piece.className='ksm-confetti-piece';piece.style.background=colors[i%colors.length];piece.style.left=cx+'px';piece.style.top=cy+'px';layer.appendChild(piece);
-    const angle=Math.random()*Math.PI*2,reach=spread*(.55+Math.random()*.45),dx=Math.cos(angle)*reach,dy=Math.sin(angle)*reach*.7,fall=Math.min(screen.clientHeight*.45,330),rot=(Math.random()-.5)*900;
-    if(typeof piece.animate==='function')piece.animate(reduced?[
-      {transform:`translate(${dx*.25}px,${dy*.25}px)`,opacity:.8},{transform:`translate(${dx*.25}px,${dy*.25}px)`,opacity:0}
-    ]:[
-      {transform:'translate(-50%,-50%) scale(.5)',opacity:0},
-      {offset:.07,transform:`translate(calc(-50% + ${dx*.4}px),calc(-50% + ${dy*.5}px)) scale(1) rotate(${rot*.15}deg)`,opacity:1},
-      {offset:.28,transform:`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) scale(1) rotate(${rot*.4}deg)`,opacity:1},
-      {offset:.78,transform:`translate(calc(-50% + ${dx*1.05}px),calc(-50% + ${dy+fall*.6}px)) scale(.9) rotate(${rot*.8}deg)`,opacity:.8},
-      {transform:`translate(calc(-50% + ${dx*1.1}px),calc(-50% + ${dy+fall}px)) scale(.8) rotate(${rot}deg)`,opacity:0}
-    ],{duration:3500+(i%4)*60,easing:'linear',fill:'forwards'});
-  }
-  setTimeout(()=>layer.remove(),3800);
 }
 function wordScore(word){return Array.from(word).reduce((n,ch)=>n+(TILE_SCORE_CACHE[ch]||1),0)+Math.max(0,word.length-2)*2;}
 function tempAt(r,c){return state.temp.get(key(r,c))||null;}
@@ -7012,10 +7040,10 @@ function animateTile(r,c,from=null){
   const rect=el.getBoundingClientRect();
   const dx=from?from.x-(rect.left+rect.width/2):0,dy=from?from.y-(rect.top+rect.height/2):-18;
   el.animate([
-    {transform:`translate(${dx}px,${dy}px) scale(.94)`,opacity:.65},
-    {offset:.82,transform:'translate(0,0) scale(1)',opacity:1},
+    {transform:`translate(${dx}px,${dy}px) scale(.96)`,opacity:.55},
+    {offset:.70,transform:'translate(0,-1px) scale(.995)',opacity:.95},
     {transform:'translate(0,0) scale(1)',opacity:1}
-  ],{duration:560,easing:'cubic-bezier(.16,1,.3,1)'});
+  ],{duration:850,easing:'cubic-bezier(.25,.65,.28,1)'});
 }
 function showCellMeaning(r,c){
   if(state.drag||Date.now()<state.meaningBlockedUntil||tempAt(r,c)||!state.grid[r][c])return;
@@ -7062,7 +7090,7 @@ function buildBoard(){
   const door=document.createElement('div');door.id='ksm-building-door';door.setAttribute('aria-label','Gökdelen giriş kapısı');
   const crown=document.createElement('div');crown.className='ksm-door-crown';crown.setAttribute('aria-hidden','true');
   const panels=document.createElement('div');panels.className='ksm-door-panels';panels.setAttribute('aria-hidden','true');
-  for(let i=0;i<3;i++)panels.appendChild(document.createElement('span'));
+  for(let i=0;i<4;i++)panels.appendChild(document.createElement('span'));
   const sill=document.createElement('div');sill.className='ksm-door-sill';sill.setAttribute('aria-hidden','true');
   door.append(crown,panels,sill);boardEl.appendChild(door);
 }
@@ -7375,7 +7403,7 @@ function aiTakeTurn(){
     const t=move.placed[index++],k=key(t.r,t.c);
     state.temp.set(k,{...t,tower:!!t.tower,under:t.under||''});state.tempOrder.push(k);
     renderCell(t.r,t.c);animateTile(t.r,t.c);
-    state.aiTimer=setTimeout(index<move.placed.length?placeNext:()=>{if(state.turn===1&&!state.gameOver)commit();},index<move.placed.length?140:600);
+    state.aiTimer=setTimeout(index<move.placed.length?placeNext:()=>{if(state.turn===1&&!state.gameOver)commit();},index<move.placed.length?380:900);
   };
   const top=Math.min(...move.placed.map(t=>t.r));
   wrap.scrollTo({top:Math.max(0,top*boardEl.clientHeight/ROWS-wrap.clientHeight*.35),behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
@@ -7450,7 +7478,6 @@ function commit(){
   state.temp.clear();state.tempOrder.length=0;
   renderAll();for(const t of placed)renderCell(t.r,t.c,true);
   wrap.classList.remove('ksm-send-burst');void wrap.offsetWidth;wrap.classList.add('ksm-send-burst');setTimeout(()=>wrap.classList.remove('ksm-send-burst'),460);
-  ksmConfettiBurst();
   if(v.flowerBonus)showBonusPop('ÇİÇEK BONUSU!','PUAN ×3',true,1200);
   else if(v.rackBonus)showBonusPop('5+ HARF BONUSU!','SÖZCÜK PUANI ×2',false,1200);
   else showPop(v.words.map(w=>w.word).join(' • ')+'  +'+v.totalScore,placed.some(t=>t.tower)?'KULE HAMLESİ':'GEÇERLİ SÖZCÜK',1100);

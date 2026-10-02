@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v642-gokdelen-undo';
+const CACHE_NAME='kapmaca-shell-v643-balanced-racks';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=642-gokdelen-undo',
+  './app.js?v=643-balanced-racks',
   './manifest.webmanifest?v=593',
   './favicon-32.png?v=593',
   './apple-touch-icon.png?v=593',
@@ -71,6 +71,7 @@ self.addEventListener('fetch',event=>{
     (
       url.pathname.endsWith('/app.js') ||
       url.pathname.endsWith('/word-data.js') ||
+      /\/meanings\/[0-9a-f]+\.json$/.test(url.pathname) ||
       url.pathname.endsWith('/manifest.webmanifest') ||
       /\.(?:png|jpg|jpeg|svg|webp)$/.test(url.pathname)
     );
