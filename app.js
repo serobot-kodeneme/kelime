@@ -6894,7 +6894,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v632 — GÖKDELEN: temiz mobil cam ızgarası ve okunaklı süre HUD */
+/* v633 — GÖKDELEN: kuş yuvası, 5+ harf ve çoklu sözcük konfeti bonusları */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -6921,7 +6921,33 @@ function drawOne(){return state.bag.length?state.bag.pop():null;}
 function drawRackToNine(p){while(state.racks[p].length<9){const ch=drawOne();if(!ch)break;state.racks[p].push(ch);}}
 function consumeSeedFromBag(word){for(const ch of word){const i=state.bag.indexOf(ch);if(i>=0)state.bag.splice(i,1);}}
 function setFeedback(text='',kind=''){const el=document.getElementById('ksm-feedback');if(el){el.textContent=text;el.classList.remove('good','bad');if(kind)el.classList.add(kind);}const top=document.getElementById('ksm-turn-status-top');if(top&&text)top.textContent=text;}
-function showPop(title,sub='',duration=950){const pop=document.getElementById('ksm-pop'),a=document.getElementById('ksm-pop-title'),b=document.getElementById('ksm-pop-sub');if(!pop||!a||!b)return;clearTimeout(state.popTimer);a.textContent=title;b.textContent=sub;pop.classList.add('show');state.popTimer=setTimeout(()=>pop.classList.remove('show'),duration);}
+function showPop(title,sub='',duration=950){const pop=document.getElementById('ksm-pop'),a=document.getElementById('ksm-pop-title'),b=document.getElementById('ksm-pop-sub');if(!pop||!a||!b)return;clearTimeout(state.popTimer);pop.classList.remove('ksm-bonus-pop','ksm-nest-pop');a.textContent=title;b.textContent=sub;pop.classList.add('show');state.popTimer=setTimeout(()=>pop.classList.remove('show'),duration);}
+function showBonusPop(title,sub='',nest=false,duration=1100){
+  const pop=document.getElementById('ksm-pop'),a=document.getElementById('ksm-pop-title'),b=document.getElementById('ksm-pop-sub');if(!pop||!a||!b)return;
+  clearTimeout(state.popTimer);a.textContent=title;b.textContent=sub;pop.classList.add('show','ksm-bonus-pop');pop.classList.toggle('ksm-nest-pop',!!nest);
+  state.popTimer=setTimeout(()=>{pop.classList.remove('show','ksm-bonus-pop','ksm-nest-pop');},duration);
+}
+function ksmConfettiBurst(delay=0){
+  setTimeout(()=>{
+    if(document.hidden||!boardEl||screen.classList.contains('hidden'))return;
+    let layer=document.getElementById('ksm-confetti-layer');
+    if(!layer){layer=document.createElement('div');layer.id='ksm-confetti-layer';boardEl.appendChild(layer);}
+    const colors=['#facc15','#fb7185','#22c55e','#38bdf8','#818cf8','#f97316','#ffffff'];
+    const count=38,cx=boardEl.clientWidth*(.32+Math.random()*.36),cy=boardEl.clientHeight*(.38+Math.random()*.24);
+    for(let i=0;i<count;i++){
+      const p=document.createElement('span');p.className='ksm-confetti-piece';p.style.background=colors[i%colors.length];p.style.left=cx+'px';p.style.top=cy+'px';
+      layer.appendChild(p);
+      const angle=Math.random()*Math.PI*2,reach=70+Math.random()*120,dx=Math.cos(angle)*reach,dy=Math.sin(angle)*reach+40+Math.random()*45,rot=(Math.random()-.5)*900;
+      if(typeof p.animate==='function')p.animate([
+        {transform:'translate(-50%,-50%) scale(.55) rotate(0deg)',opacity:0},
+        {offset:.10,transform:'translate(-50%,-50%) scale(1.08) rotate(20deg)',opacity:1},
+        {transform:`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) scale(.8) rotate(${rot}deg)`,opacity:0}
+      ],{duration:1200,easing:'cubic-bezier(.17,.75,.27,1)',fill:'forwards'});
+      setTimeout(()=>p.remove(),1300);
+    }
+    setTimeout(()=>{if(layer&&!layer.childElementCount)layer.remove();},1500);
+  },Math.max(0,delay));
+}
 function wordScore(word){return Array.from(word).reduce((n,ch)=>n+(TILE_SCORE_CACHE[ch]||1),0)+Math.max(0,word.length-2)*2;}
 function tempAt(r,c){return state.temp.get(key(r,c))||null;}
 function charAt(r,c){const t=tempAt(r,c);return t?t.char:(state.grid[r]?.[c]||'');}
@@ -7053,15 +7079,20 @@ function candidateForDir(dr,dc,name,bit){
   const connected=line.some(x=>state.grid[x.r][x.c])||temps.some(t=>t.tower);
   if(!connected)return null;
   const nestBonus=line.some(x=>state.nests.has(key(x.r,x.c)));
-  return{word,line,name,bit,score:wordScore(word)*(nestBonus?3:1),nestBonus};
+  const baseScore=wordScore(word);
+  return{word,line,name,bit,baseScore,score:baseScore*(nestBonus?3:1),nestBonus};
 }
 function validate(){
   if(!state.temp.size)return{error:'Istakadan en az bir taş yerleştir.'};
   const dirs=[[0,1,'h',H],[1,0,'v',V]];
-  const candidates=dirs.map(d=>candidateForDir(...d)).filter(Boolean);
+  const raw=dirs.map(d=>candidateForDir(...d)).filter(Boolean);
+  const seen=new Set(),candidates=raw.filter(x=>{const k=x.word+'|'+x.name;if(seen.has(k))return false;seen.add(k);return true;});
   if(!candidates.length)return{error:'Bu taşlarla geçerli yatay/dikey sözcük oluşmadı.'};
+  const placedCount=new Set([...state.temp.values()].map(t=>t.rackIndex)).size;
+  const rackBonus=placedCount>=5;
+  for(const cand of candidates)if(rackBonus)cand.score*=2;
   candidates.sort((a,b)=>b.score-a.score||b.line.length-a.line.length);
-  return candidates[0];
+  return{...candidates[0],words:candidates,totalScore:candidates.reduce((n,x)=>n+x.score,0),rackBonus,placedCount,nestBonus:candidates.some(x=>x.nestBonus)};
 }
 function clearAiTimer(){if(state.aiTimer){clearTimeout(state.aiTimer);state.aiTimer=null;}}
 function aiBoardPositions(){
@@ -7183,15 +7214,20 @@ function commit(){
   const v=validate();if(v.error){setFeedback(v.error,'bad');return;}
   const placed=[...state.temp.values()];
   for(const t of placed)state.grid[t.r][t.c]=t.char;
-  for(const x of v.line)state.dirs[x.r][x.c]|=v.bit;
-  state.used.add(v.word);state.words.push(v.word);state.scores[state.turn]+=v.score;
+  for(const w of v.words)for(const x of w.line)state.dirs[x.r][x.c]|=w.bit;
+  for(const w of v.words){state.used.add(w.word);state.words.push(w.word);}
+  state.scores[state.turn]+=v.totalScore;
   const rack=state.racks[state.turn];
   const used=[...new Set(placed.map(t=>t.rackIndex))].sort((a,b)=>b-a);
   for(const idx of used)rack.splice(idx,1);
   drawRackToNine(state.turn);
   state.temp.clear();state.tempOrder.length=0;
   renderAll();for(const t of placed)renderCell(t.r,t.c,true);
-  showPop(v.word+'  +'+v.score,v.nestBonus?'🪺 KUŞ YUVASI ×3':(placed.some(t=>t.tower)?'KULE HAMLESİ':'GEÇERLİ SÖZCÜK'),1100);
+  v.words.forEach((w,i)=>ksmConfettiBurst(i*1000));
+  if(v.nestBonus)showBonusPop('YUMURTAYI KAPTIN!','PUAN ×3',true,1200);
+  else if(v.rackBonus)showBonusPop('5+ HARF BONUSU!','SÖZCÜK PUANI ×2',false,1200);
+  else showPop(v.words.map(w=>w.word).join(' • ')+'  +'+v.totalScore,placed.some(t=>t.tower)?'KULE HAMLESİ':'GEÇERLİ SÖZCÜK',1100);
+  if(v.nestBonus&&v.rackBonus)setTimeout(()=>showBonusPop('5+ HARF BONUSU!','SÖZCÜK PUANI ×2',false,1100),1250);
   state.turn=state.turn?0:1;renderRack();updateHud();
   setFeedback(state.turn===1?'BİLGİN düşünüyor…':'1. oyuncunun sırası.','good');
   startTurnTimer();
