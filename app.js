@@ -32,7 +32,7 @@ const COMMON_IMPERATIVE_WORDS=Object.freeze([
 'ZORLA'
 ]);
 
-/* v611 — Açıkça doğrulanmış emir kipleri ve yerel anlam güvencesi.
+/* v612 — Açıkça doğrulanmış emir kipleri ve yerel anlam güvencesi.
 Kökten/ekten otomatik sözcük türetilmez; yalnızca bu tam yazımlar kabul edilir. */
 const IMPERATIVE_MEANING_DICTIONARY=Object.freeze({
 'İLET':['Bir şeyi bir yerden başka bir yere ulaştırmak.','Bir bilgiyi veya haberi başkasına aktarmak.'],
@@ -238,7 +238,7 @@ const CURATED_EXPANSION_WORDS_V3=Object.freeze([
 'MUZ','ÜZGÜ','HEKİM','İTFAİYECİ'
 ]);
 
-/* v611 — Tahta sözcük sıklığı katmanı.
+/* v612 — Tahta sözcük sıklığı katmanı.
 Doğrudan tahta tohumlarında hedef yaklaşık %70 günlük, %20 genel, %10 az bilinen/eğitici Türkçedir.
 Sözlükten hiçbir sözcük silinmez; sınıflandırılmamış teknik/terminolojik sözcükler yalnızca yedek havuzda kalır. */
 const DAILY_BOARD_PRIORITY_WORDS=new Set([
@@ -539,7 +539,7 @@ document.addEventListener('webkitfullscreenchange',handleFullscreenLayoutChange)
 let remainingSeconds=60;
 let isMatchActive=false;
 
-// v611 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
+// v612 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
 const LETTER_IDLE_WAVE_MS=4000;
 let letterIdleLastActivityAt=0;
 let letterIdleWaveShown=false;
@@ -3601,7 +3601,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=611-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=612-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -5994,7 +5994,7 @@ document.getElementById('btn-close-rematch-waiting')?.addEventListener('click',(
 document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePlayAgain);
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
-/* v611 — ZİNCİRLEME: sıra tabanlı 9x9 tahta sözcük zinciri */
+/* v612 — ZİNCİRLEME: sıra tabanlı 9x9 tahta sözcük zinciri */
 (()=>{
 const screen=document.getElementById('screen-zincirleme');
 const homeBtn=document.getElementById('btn-zincirleme-home');
@@ -6314,7 +6314,7 @@ zlmSetMode('ai');
 })();
 
 
-/* v611 — AVCI: hareketli harflerden görev sözcüğü yakalama */
+/* v612 — AVCI: hareketli harflerden görev sözcüğü yakalama */
 (()=>{
 const screen=document.getElementById('screen-avci');
 const homeBtn=document.getElementById('btn-avci-home');
@@ -6599,5 +6599,297 @@ window.addEventListener('resize',()=>{
   if(screen.classList.contains('hidden'))return;
   const {w,h}=avcArenaSize();
   for(const p of state.particles){p.x=Math.max(1,Math.min(Math.max(1,w-p.size-1),p.x));p.y=Math.max(1,Math.min(Math.max(1,h-p.size-1),p.y));}
+},{passive:true});
+})();
+
+
+/* v612 — VURMACA: uçuşan hedef harfleri küçük topla vurma */
+(()=>{
+const screen=document.getElementById('screen-vurmaca2');
+const homeBtn=document.getElementById('btn-vurmaca-home');
+const wrap=document.getElementById('vur2-arena-wrap');
+const arena=document.getElementById('vur2-arena');
+const projectileEl=document.getElementById('vur2-projectile');
+const aimEl=document.getElementById('vur2-aim-line');
+const barrel=document.getElementById('vur2-barrel');
+if(!screen||!homeBtn||!wrap||!arena||!projectileEl||!aimEl||!barrel)return;
+
+const FALLBACK_TARGETS=['KALEM','YEMEK','SABAH','AKŞAM','KİTAP','DENİZ','BULUT','ORMAN','ÇANTA','PERDE','DURAK','MARKET','KOMŞU','ÇOCUK','YORGUN','SEVGİ','ÖZLEM','MASAL','YAYLA','BOZKIR','ERİK','NİĞDE'];
+const FILL='AAAAAAAABCCÇDDEEEEEEEEGĞHIIIIİİİİKKKLLLLMMMNNNNOOÖPRRRRSSSSŞTTTTUUÜVYYZ';
+const state={
+  running:false,paused:false,raf:0,last:0,deadline:0,remainingMs:60000,
+  score:0,targetsDone:0,target:'',targetIndex:0,targetStartedAt:0,targetSerial:0,
+  flyers:[],shot:null,aimX:0,aimY:0,pointerId:null,bombReady:true,bombTimer:null,popTimer:null
+};
+
+function vur2SetFeedback(text='',kind=''){
+  const el=document.getElementById('vur2-feedback');if(!el)return;
+  el.textContent=text;el.classList.remove('good','bad');if(kind)el.classList.add(kind);
+}
+function vur2UpdateHud(){
+  document.getElementById('vur2-score').textContent=String(state.score);
+  document.getElementById('vur2-time').textContent=String(Math.max(0,Math.ceil(state.remainingMs/1000)));
+  document.getElementById('vur2-target-count').textContent=String(state.targetsDone);
+}
+function vur2WordScore(word){
+  return Array.from(word).reduce((sum,ch)=>sum+(TILE_SCORE_CACHE[ch]||1),0);
+}
+function vur2TargetPool(){
+  let pool=[];
+  try{
+    if(typeof DAILY_BOARD_PRIORITY_WORDS!=='undefined'){
+      pool=[...DAILY_BOARD_PRIORITY_WORDS].filter(w=>w.length>=3&&w.length<=7&&GAME_WORD_SET.has(w)&&!isArgoWord(w)&&!isForeignWord(w));
+    }
+  }catch(_){}
+  if(pool.length<12)pool=FALLBACK_TARGETS.filter(w=>GAME_WORD_SET.has(w)||FALLBACK_TARGETS.includes(w));
+  return pool.length?pool:FALLBACK_TARGETS;
+}
+function vur2ChooseTarget(){
+  const pool=vur2TargetPool().filter(w=>w!==state.target);
+  state.target=pool[Math.floor(Math.random()*pool.length)]||'KALEM';
+  state.targetIndex=0;state.targetStartedAt=performance.now();state.targetSerial++;
+  vur2RenderTarget();vur2EnsureNeededLetter();vur2SetFeedback('Sıradaki harfi vur: '+state.target[0]);
+}
+function vur2RenderTarget(){
+  const host=document.getElementById('vur2-target-word');if(!host)return;
+  host.textContent='';
+  Array.from(state.target).forEach((ch,i)=>{
+    const t=document.createElement('span');t.className='vur2-target-tile'+(i<state.targetIndex?' done':i===state.targetIndex?' next':'');t.textContent=ch;
+    const sm=document.createElement('small');sm.textContent=String(TILE_SCORE_CACHE[ch]||1);t.appendChild(sm);host.appendChild(t);
+  });
+}
+function vur2ShowPop(title,sub,duration=950){
+  const pop=document.getElementById('vur2-pop'),a=document.getElementById('vur2-pop-title'),b=document.getElementById('vur2-pop-sub');
+  if(!pop||!a||!b)return;
+  clearTimeout(state.popTimer);a.textContent=title;b.textContent=sub||'';pop.classList.add('show');
+  state.popTimer=setTimeout(()=>pop.classList.remove('show'),duration);
+}
+function vur2ArenaSize(){
+  const r=wrap.getBoundingClientRect();return{w:r.width,h:r.height};
+}
+function vur2RandomLetter(){
+  return FILL[Math.floor(Math.random()*FILL.length)];
+}
+function vur2CreateFlyer(letter,x=null,y=null){
+  const {w,h}=vur2ArenaSize(),size=w<=390?36:40;
+  const el=document.createElement('div');el.className='vur2-fly';el.textContent=letter;
+  const sm=document.createElement('small');sm.textContent=String(TILE_SCORE_CACHE[letter]||1);el.appendChild(sm);
+  const speed=26+Math.random()*54,angle=Math.random()*Math.PI*2;
+  const p={
+    el,letter,size,
+    x:x==null?5+Math.random()*Math.max(5,w-size-10):x,
+    y:y==null?8+Math.random()*Math.max(8,h-size-28):y,
+    vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed
+  };
+  arena.appendChild(el);state.flyers.push(p);return p;
+}
+function vur2RemoveFlyers(){
+  for(const p of state.flyers)p.el?.remove();
+  state.flyers.length=0;
+}
+function vur2Populate(){
+  vur2RemoveFlyers();
+  const letters=[];
+  for(const ch of Array.from(state.target))letters.push(ch);
+  while(letters.length<30)letters.push(vur2RandomLetter());
+  for(let i=letters.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[letters[i],letters[j]]=[letters[j],letters[i]];}
+  letters.forEach(ch=>vur2CreateFlyer(ch));
+}
+function vur2HasLetter(letter){
+  return state.flyers.some(p=>p.letter===letter);
+}
+function vur2EnsureNeededLetter(){
+  const needed=state.target[state.targetIndex];if(!needed||vur2HasLetter(needed))return;
+  const candidates=state.flyers.filter(p=>p.letter!==needed);
+  const p=candidates[Math.floor(Math.random()*candidates.length)];
+  if(p){
+    p.letter=needed;p.el.firstChild.nodeValue=needed;
+    const sm=p.el.querySelector('small');if(sm)sm.textContent=String(TILE_SCORE_CACHE[needed]||1);
+  }else vur2CreateFlyer(needed);
+}
+function vur2RespawnFlyer(p){
+  if(!p)return;
+  p.letter=vur2RandomLetter();p.el.firstChild.nodeValue=p.letter;
+  const sm=p.el.querySelector('small');if(sm)sm.textContent=String(TILE_SCORE_CACHE[p.letter]||1);
+  const {w,h}=vur2ArenaSize();
+  p.x=5+Math.random()*Math.max(5,w-p.size-10);p.y=8+Math.random()*Math.max(8,h-p.size-28);
+  const speed=26+Math.random()*54,angle=Math.random()*Math.PI*2;p.vx=Math.cos(angle)*speed;p.vy=Math.sin(angle)*speed;
+  p.el.classList.remove('hit');p.el.style.opacity='1';
+}
+function vur2ApplyMiss(reason='ISKA! -5'){
+  state.score-=5;vur2UpdateHud();vur2SetFeedback(reason,'bad');vur2ShowPop('-5','ISKA',650);
+}
+function vur2CompleteTarget(){
+  const elapsed=performance.now()-state.targetStartedAt;
+  const fast=elapsed<=10000;
+  const base=vur2WordScore(state.target),points=fast?base*2:base;
+  state.score+=points;state.targetsDone++;vur2UpdateHud();
+  vur2ShowPop(state.target+'  +'+points,fast?'10 SANİYE BONUSU • 2×':'HEDEF TAMAMLANDI',1150);
+  vur2SetFeedback(fast?'Hız bonusu! Sözcük puanı 2×.':'Hedef tamamlandı!','good');
+  const serial=state.targetSerial;
+  setTimeout(()=>{
+    if(!state.running||state.targetSerial!==serial)return;
+    vur2ChooseTarget();vur2Populate();
+  },950);
+}
+function vur2HitFlyer(p){
+  if(!p)return;
+  const hitLetter=p.letter,needed=state.target[state.targetIndex];
+  p.el.classList.add('hit');
+  setTimeout(()=>{if(state.running)vur2RespawnFlyer(p);},210);
+  if(hitLetter===needed){
+    state.targetIndex++;vur2RenderTarget();
+    if(state.targetIndex>=state.target.length){vur2CompleteTarget();return;}
+    vur2SetFeedback('DOĞRU! Şimdi '+state.target[state.targetIndex]+' harfini vur.','good');
+    setTimeout(()=>{if(state.running)vur2EnsureNeededLetter();},240);
+  }else{
+    vur2ApplyMiss('Yanlış harf: '+hitLetter+' • -5');
+    setTimeout(()=>{if(state.running)vur2EnsureNeededLetter();},240);
+  }
+}
+function vur2LauncherPoint(){
+  const {w,h}=vur2ArenaSize();return{x:w/2,y:h-4};
+}
+function vur2AimAt(clientX,clientY){
+  const r=wrap.getBoundingClientRect(),start=vur2LauncherPoint();
+  let x=Math.max(0,Math.min(r.width,clientX-r.left)),y=Math.max(0,Math.min(r.height-20,clientY-r.top));
+  const dx=x-start.x,dy=y-start.y;
+  const angle=Math.atan2(dy,dx);
+  const deg=angle*180/Math.PI+90;
+  barrel.style.transform='translateX(-50%) rotate('+Math.max(-72,Math.min(72,deg))+'deg)';
+  const len=Math.hypot(dx,dy);
+  aimEl.style.left=start.x+'px';aimEl.style.top=start.y+'px';aimEl.style.width=Math.min(len,180)+'px';
+  aimEl.style.transform='rotate('+angle+'rad)';
+  state.aimX=x;state.aimY=y;
+}
+function vur2Fire(){
+  if(!state.running||state.paused||state.shot)return;
+  const start=vur2LauncherPoint();
+  let dx=state.aimX-start.x,dy=state.aimY-start.y;
+  if(dy>-18)dy=-18;
+  const len=Math.hypot(dx,dy)||1,speed=570;
+  state.shot={x:start.x-6.5,y:start.y-6.5,vx:dx/len*speed,vy:dy/len*speed,size:13};
+  projectileEl.style.display='block';
+}
+function vur2EndShot(hit=null){
+  if(!state.shot)return;
+  state.shot=null;projectileEl.style.display='none';
+  if(hit)vur2HitFlyer(hit);else vur2ApplyMiss();
+}
+function vur2UpdateShot(dt){
+  const sh=state.shot;if(!sh)return;
+  sh.x+=sh.vx*dt;sh.y+=sh.vy*dt;
+  projectileEl.style.transform='translate3d('+sh.x+'px,'+sh.y+'px,0)';
+  for(const p of state.flyers){
+    const cx=p.x+p.size/2,cy=p.y+p.size/2,sx=sh.x+sh.size/2,sy=sh.y+sh.size/2;
+    if(Math.hypot(cx-sx,cy-sy)<=p.size*.46+sh.size*.46){vur2EndShot(p);return;}
+  }
+  const {w,h}=vur2ArenaSize();
+  if(sh.x+sh.size<0||sh.x>w||sh.y+sh.size<0||sh.y>h){vur2EndShot(null);}
+}
+function vur2Bomb(){
+  if(!state.running||state.paused||!state.bombReady)return;
+  state.bombReady=false;const buttons=[document.getElementById('btn-vur2-bomb-left'),document.getElementById('btn-vur2-bomb-right')];
+  buttons.forEach(b=>{if(b)b.disabled=true;});
+  if(state.shot){state.shot=null;projectileEl.style.display='none';}
+  for(const p of state.flyers)p.el.classList.add('hit');
+  vur2ShowPop('💥','HARFLER YENİLENİYOR',650);
+  setTimeout(()=>{if(state.running){vur2Populate();vur2EnsureNeededLetter();}},250);
+  clearTimeout(state.bombTimer);
+  state.bombTimer=setTimeout(()=>{state.bombReady=true;buttons.forEach(b=>{if(b)b.disabled=false;});},2200);
+}
+function vur2UpdateFastBonus(){
+  const el=document.getElementById('vur2-fast-bonus');if(!el)return;
+  const left=Math.max(0,10-(performance.now()-state.targetStartedAt)/1000);
+  if(left>0){el.textContent=Math.ceil(left)+' SN • 2×';el.classList.remove('off');}
+  else{el.textContent='NORMAL PUAN';el.classList.add('off');}
+}
+function vur2Frame(ts){
+  if(!state.running)return;
+  const dt=Math.min(.04,Math.max(0,(ts-state.last)/1000||0));state.last=ts;
+  if(!state.paused){
+    state.remainingMs=Math.max(0,state.deadline-performance.now());vur2UpdateHud();vur2UpdateFastBonus();
+    if(state.remainingMs<=0){vur2EndGame();return;}
+    const {w,h}=vur2ArenaSize();
+    for(const p of state.flyers){
+      p.x+=p.vx*dt;p.y+=p.vy*dt;
+      if(p.x<=1){p.x=1;p.vx=Math.abs(p.vx);}
+      if(p.x+p.size>=w-1){p.x=Math.max(1,w-p.size-1);p.vx=-Math.abs(p.vx);}
+      if(p.y<=1){p.y=1;p.vy=Math.abs(p.vy);}
+      if(p.y+p.size>=h-18){p.y=Math.max(1,h-p.size-18);p.vy=-Math.abs(p.vy);}
+      p.el.style.transform='translate3d('+p.x+'px,'+p.y+'px,0)';
+    }
+    vur2UpdateShot(dt);
+  }
+  state.raf=requestAnimationFrame(vur2Frame);
+}
+function vur2Pause(silent=false){
+  if(!state.running||state.paused)return;
+  state.remainingMs=Math.max(0,state.deadline-performance.now());state.paused=true;
+  const b=document.getElementById('btn-vur2-pause');if(b)b.textContent='▶';if(!silent)vur2SetFeedback('DURAKLATILDI');
+}
+function vur2Resume(){
+  if(!state.running||!state.paused)return;
+  state.paused=false;state.deadline=performance.now()+state.remainingMs;state.last=performance.now();
+  const b=document.getElementById('btn-vur2-pause');if(b)b.textContent='Ⅱ';vur2SetFeedback('Vurmaca devam ediyor.');
+}
+function vur2EndGame(){
+  if(!state.running)return;
+  state.running=false;state.paused=false;cancelAnimationFrame(state.raf);state.raf=0;clearTimeout(state.popTimer);clearTimeout(state.bombTimer);
+  state.shot=null;projectileEl.style.display='none';
+  document.getElementById('vur2-final-score').textContent=String(state.score);
+  document.getElementById('vur2-final-targets').textContent=String(state.targetsDone);
+  document.getElementById('vur2-gameover')?.classList.remove('hidden');
+}
+function vur2Reset(){
+  cancelAnimationFrame(state.raf);clearTimeout(state.popTimer);clearTimeout(state.bombTimer);
+  state.running=true;state.paused=false;state.score=0;state.targetsDone=0;state.remainingMs=60000;state.deadline=performance.now()+60000;
+  state.last=performance.now();state.shot=null;state.bombReady=true;
+  document.getElementById('vur2-gameover')?.classList.add('hidden');document.getElementById('vur2-rules')?.classList.add('hidden');
+  document.getElementById('btn-vur2-bomb-left').disabled=false;document.getElementById('btn-vur2-bomb-right').disabled=false;
+  const b=document.getElementById('btn-vur2-pause');if(b)b.textContent='Ⅱ';
+  vur2UpdateHud();vur2ChooseTarget();vur2Populate();
+  const {w,h}=vur2ArenaSize();state.aimX=w/2;state.aimY=Math.max(25,h*.28);
+  const rect=wrap.getBoundingClientRect();vur2AimAt(rect.left+state.aimX,rect.top+state.aimY);
+  state.raf=requestAnimationFrame(vur2Frame);
+}
+function vur2Exit(){
+  state.running=false;state.paused=false;cancelAnimationFrame(state.raf);state.raf=0;clearTimeout(state.popTimer);clearTimeout(state.bombTimer);
+  state.shot=null;projectileEl.style.display='none';vur2RemoveFlyers();screen.classList.add('hidden');
+  document.getElementById('vur2-gameover')?.classList.add('hidden');document.getElementById('vur2-rules')?.classList.add('hidden');
+  document.getElementById('screen-home')?.classList.remove('hidden');
+}
+async function vur2Open(){
+  document.getElementById('screen-home')?.classList.add('hidden');screen.classList.remove('hidden');vur2SetFeedback('VURMACA hazırlanıyor…');
+  try{await ensureWordDataLoaded();vur2Reset();}
+  catch(err){console.error('Vurmaca startup failed',err);showToast('VURMACA hazırlanamadı.','rose');vur2Exit();}
+}
+
+wrap.addEventListener('pointermove',e=>{if(state.running&&!state.paused&&!state.shot)vur2AimAt(e.clientX,e.clientY);},{passive:true});
+wrap.addEventListener('pointerdown',e=>{
+  if(!state.running||state.paused||state.shot)return;e.preventDefault();state.pointerId=e.pointerId;wrap.setPointerCapture?.(e.pointerId);vur2AimAt(e.clientX,e.clientY);
+},{passive:false});
+wrap.addEventListener('pointerup',e=>{
+  if(state.pointerId!==e.pointerId)return;e.preventDefault();try{wrap.releasePointerCapture(e.pointerId);}catch(_){}
+  state.pointerId=null;vur2AimAt(e.clientX,e.clientY);vur2Fire();
+},{passive:false});
+wrap.addEventListener('pointercancel',e=>{if(state.pointerId===e.pointerId)state.pointerId=null;},{passive:true});
+
+window.openKapmacaVurmaca=vur2Open;
+document.getElementById('btn-vur2-exit')?.addEventListener('click',vur2Exit);
+document.getElementById('btn-vur2-home-exit')?.addEventListener('click',vur2Exit);
+document.getElementById('btn-vur2-again')?.addEventListener('click',vur2Reset);
+document.getElementById('btn-vur2-new')?.addEventListener('click',vur2Reset);
+document.getElementById('btn-vur2-bomb-left')?.addEventListener('click',vur2Bomb);
+document.getElementById('btn-vur2-bomb-right')?.addEventListener('click',vur2Bomb);
+document.getElementById('btn-vur2-pause')?.addEventListener('click',()=>state.paused?vur2Resume():vur2Pause());
+document.getElementById('btn-vur2-rules')?.addEventListener('click',()=>{if(state.running&&!state.paused)vur2Pause(true);document.getElementById('vur2-rules')?.classList.remove('hidden');});
+document.getElementById('btn-vur2-rule-close')?.addEventListener('click',()=>{document.getElementById('vur2-rules')?.classList.add('hidden');if(state.running&&state.paused)vur2Resume();});
+document.getElementById('btn-vur2-rule-new')?.addEventListener('click',()=>{document.getElementById('vur2-rules')?.classList.add('hidden');vur2Reset();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&!screen.classList.contains('hidden')&&state.running&&!state.paused)vur2Pause(true);});
+window.addEventListener('resize',()=>{
+  if(screen.classList.contains('hidden'))return;
+  const {w,h}=vur2ArenaSize();
+  for(const p of state.flyers){p.x=Math.max(1,Math.min(Math.max(1,w-p.size-1),p.x));p.y=Math.max(1,Math.min(Math.max(1,h-p.size-18),p.y));}
 },{passive:true});
 })();
