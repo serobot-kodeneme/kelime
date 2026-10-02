@@ -438,6 +438,8 @@ let localCountdownInterval=null,localCountdownTimeout=null;
 function stopLocalCountdown(){
 if(localCountdownInterval){clearInterval(localCountdownInterval);localCountdownInterval=null;}
 if(localCountdownTimeout){clearTimeout(localCountdownTimeout);localCountdownTimeout=null;}
+const ack=document.getElementById('single-countdown-understood');
+if(ack){ack.onclick=null;ack.disabled=false;ack.classList.add('hidden');}
 }
 let isPointerDown=false;
 let pointerHoldStartedAt=0;
@@ -2002,6 +2004,7 @@ mpStarted=true;isMatchActive=false;mpLastBeepSecond=null;clearInterval(mpClock);
 const modal=document.getElementById('modal-countdown'),num=document.getElementById('countdown-number'),status=document.getElementById('countdown-status');
 modal?.classList.remove('single-countdown-active');
 document.getElementById('single-countdown-message')?.classList.add('hidden');
+document.getElementById('single-countdown-understood')?.classList.add('hidden');
 modal?.querySelector('.mp-demo')?.classList.remove('hidden');
 const inviteMsg=document.getElementById('countdown-invite-message');
 if(inviteMsg){
@@ -2226,12 +2229,33 @@ try{await oldRef.remove();}catch(_){}
 resetMultiplayerClientState();
 clearInviteFromUrl();
 }
-function showAtismaSetupNotice(){
+function showAtismaSetupNotice(onUnderstood=null){
 const wrap=document.getElementById('atisma-setup-notice');if(!wrap)return;
 const game=document.getElementById('screen-game');
+const btn=document.getElementById('atisma-setup-understood');
 wrap.classList.remove('hidden');
 game?.classList.add('atisma-setup-intro-active');
 clearTimeout(wrap._hideTimer);
+if(typeof onUnderstood==='function'){
+  wrap.classList.add('atisma-single-understand');
+  if(btn){
+    btn.classList.remove('hidden');
+    btn.disabled=false;
+    btn.onclick=()=>{
+      if(btn.disabled)return;
+      btn.disabled=true;
+      btn.onclick=null;
+      btn.classList.add('hidden');
+      wrap.classList.add('hidden');
+      wrap.classList.remove('atisma-single-understand');
+      game?.classList.remove('atisma-setup-intro-active');
+      onUnderstood();
+    };
+  }
+  return;
+}
+wrap.classList.remove('atisma-single-understand');
+if(btn){btn.classList.add('hidden');btn.onclick=null;btn.disabled=false;}
 wrap._hideTimer=setTimeout(()=>{
   wrap.classList.add('hidden');
   game?.classList.remove('atisma-setup-intro-active');
@@ -2430,7 +2454,7 @@ function finishLocalAtisma(){stopAtismaTurnTimer();stopAtismaLocalAi();renderPat
 function prepareLocalAtisma(){
 stopLocalCountdown();stopAtismaTurnTimer();stopAtismaLocalAi();atismaLocalActive=true;activeGameMode='single';setLongestBonusBadges(false,false);atismaLocalTurn='player';atismaLocalPlayerTurns=0;atismaLocalAiTurns=0;atismaLocalPlayerPlacements={};atismaLocalAiPlacements={};atismaLocalUsedPlayer={};atismaLocalUsedAi={};atismaLocalBlastedWords=new Set();
 document.getElementById('p1-title').textContent='OYUNCU';document.getElementById('p2-title').textContent=getBotDisplayName();renderPatlamaTurnDots(0,0);p1Score=0;p2Score=0;resetRewardFx();updateScores();resetMatchWordResults();resetSeriesWordResults();sessionFoundWords.clear();const ticker=document.getElementById('words-ticker');if(ticker)ticker.innerHTML='';document.getElementById('screen-home').classList.add('hidden');document.getElementById('screen-game').classList.remove('hidden');setAtismaPanelVisible(true,false);
-requestAnimationFrame(()=>{try{buildGrid();chooseAtismaAiPlacements();renderLocalAtismaTools();atismaSetupActive=true;isMatchActive=false;setPatlamaActivePlayer(null);showAtismaSetupNotice();const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents='none';grid.style.opacity='1';grid.style.touchAction='none';}setTimeout(()=>{if(atismaSetupActive&&grid)grid.style.pointerEvents='auto';},3000);const endAt=Date.now()+23000;atismaLastSecondTick=null;const tick=()=>{const left=Math.max(0,Math.ceil((endAt-Date.now())/1000));const shown=Math.min(20,left);updateGameTimerUI(shown);playPatlamaSecondTick(shown);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='';if(left<=0){stopAtismaSetupTimer();atismaSetupActive=false;document.getElementById('atisma-setup-notice')?.classList.add('hidden');renderLocalAtismaTools();showToast('Yerleştirme bitti. İlk hamle sende!','emerald',1500);startLocalAtismaTurn('player');}};tick();atismaSetupTimer=setInterval(tick,250);}catch(err){console.error('Local Atisma startup failed',err);atismaLocalActive=false;showToast('PATLAMA hazırlanamadı.','rose');document.getElementById('screen-game')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}});
+requestAnimationFrame(()=>{try{buildGrid();chooseAtismaAiPlacements();renderLocalAtismaTools();atismaSetupActive=true;isMatchActive=false;setPatlamaActivePlayer(null);const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents='none';grid.style.opacity='1';grid.style.touchAction='none';}updateGameTimerUI(20);showAtismaSetupNotice(()=>{if(!atismaSetupActive)return;if(grid)grid.style.pointerEvents='auto';const endAt=Date.now()+20000;atismaLastSecondTick=null;const tick=()=>{const left=Math.max(0,Math.ceil((endAt-Date.now())/1000));const shown=Math.min(20,left);updateGameTimerUI(shown);playPatlamaSecondTick(shown);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='';if(left<=0){stopAtismaSetupTimer();atismaSetupActive=false;document.getElementById('atisma-setup-notice')?.classList.add('hidden');renderLocalAtismaTools();showToast('Yerleştirme bitti. İlk hamle sende!','emerald',1500);startLocalAtismaTurn('player');}};tick();atismaSetupTimer=setInterval(tick,250);});}catch(err){console.error('Local Atisma startup failed',err);atismaLocalActive=false;showToast('PATLAMA hazırlanamadı.','rose');document.getElementById('screen-game')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}});
 }
 function isAtismaRoom(){
 return /^(?:invite-only|random-match)-(?:atisma|patlama)-/.test(String(mpRoomMode||'')); 
@@ -3790,10 +3814,15 @@ document.getElementById('single-countdown-message')?.classList.remove('hidden');
 modal?.querySelector('.mp-demo')?.classList.remove('hidden');
 const numEl=document.getElementById('countdown-number');
 const statusEl=document.getElementById('countdown-status');
+const ackBtn=document.getElementById('single-countdown-understood');
 const inviteMsg=document.getElementById('countdown-invite-message');
 if(inviteMsg)inviteMsg.classList.add('hidden');
-if(statusEl){statusEl.textContent='SÖZCÜKLERİ YAKALA!';statusEl.className='text-slate-800 font-black text-xs tracking-widest uppercase mt-3 bg-white px-4 py-1.5 rounded-full border border-slate-200 shadow-sm';statusEl.classList.remove('hidden');}
+if(statusEl)statusEl.classList.add('hidden');
+if(numEl){numEl.textContent='3';numEl.style.opacity='1';numEl.style.transform='scale(1)';}
+if(ackBtn){ackBtn.textContent='Anladım👍';ackBtn.disabled=false;ackBtn.classList.remove('hidden');}
 modal?.classList.remove('hidden');
+const beginCountdown=()=>{
+if(ackBtn){ackBtn.disabled=true;ackBtn.onclick=null;ackBtn.classList.add('hidden');}
 let n=3;
 const paint=()=>{
 if(!numEl)return;
@@ -3814,10 +3843,14 @@ if(numEl){numEl.style.opacity='1';numEl.style.transform='scale(1)';}
 modal?.classList.add('hidden');
 modal?.classList.remove('single-countdown-active');
 document.getElementById('single-countdown-message')?.classList.add('hidden');
+if(ackBtn){ackBtn.classList.add('hidden');ackBtn.disabled=false;}
 localCountdownTimeout=null;
 onComplete();
 },120);
 },1000);
+};
+if(ackBtn)ackBtn.onclick=beginCountdown;
+else beginCountdown();
 }
 const BOARD_SIZE=9;
 const BOARD_DIRS=[
@@ -4982,6 +5015,7 @@ function showImmediateRematchSync(){
 const modal=document.getElementById('modal-countdown');
 modal?.classList.remove('single-countdown-active');
 document.getElementById('single-countdown-message')?.classList.add('hidden');
+document.getElementById('single-countdown-understood')?.classList.add('hidden');
 modal?.querySelector('.mp-demo')?.classList.remove('hidden');
 const num=document.getElementById('countdown-number');
 const status=document.getElementById('countdown-status');
