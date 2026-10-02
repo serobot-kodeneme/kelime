@@ -2268,7 +2268,7 @@ if(!el){
 el=document.createElement('div');
 el.id='atisma-placement-hint';
 el.setAttribute('aria-live','polite');
-el.style.cssText='position:absolute;left:50%;top:20%;transform:translateX(-50%);z-index:132;pointer-events:none!important;width:min(70%,300px);max-width:300px;padding:12px 18px;border-radius:16px;background:#dc2626;border:2px solid #f87171;color:#fff;font-family:Quicksand,sans-serif;font-size:clamp(16px,4.3vw,19px);line-height:1.22;font-weight:1000;text-align:center;box-shadow:0 8px 20px rgba(127,29,29,.30);opacity:0;transition:opacity .12s ease,transform .12s ease;white-space:normal;overflow-wrap:normal;word-break:normal;box-sizing:border-box;';
+el.style.cssText='position:absolute;left:50%;top:18%;transform:translateX(-50%);z-index:132;pointer-events:none!important;width:230px;max-width:62vw;padding:10px 14px;border-radius:15px;background:#dc2626;border:2px solid #f87171;color:#fff;font-family:Quicksand,sans-serif;font-size:clamp(15px,4vw,18px);line-height:1.2;font-weight:1000;text-align:center;box-shadow:0 8px 20px rgba(127,29,29,.30);opacity:0;transition:opacity .12s ease,transform .12s ease;white-space:normal;overflow-wrap:normal;word-break:normal;box-sizing:border-box;';
 document.getElementById('screen-game')?.appendChild(el);
 }
 clearTimeout(atismaPlacementHintTimer);
