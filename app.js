@@ -7082,12 +7082,28 @@ function candidateForDir(dr,dc,name,bit){
   const baseScore=wordScore(word);
   return{word,line,name,bit,baseScore,score:baseScore*(nestBonus?3:1),nestBonus};
 }
+function candidateAt(r,c,dr,dc,name,bit){
+  const line=lineThrough(r,c,dr,dc);
+  if(line.length<2||line.length>9)return null;
+  const word=line.map(x=>x.char).join('');
+  if(state.used.has(word)||!GAME_WORD_SET.has(word)||isArgoWord(word)||isForeignWord(word))return null;
+  const nestBonus=line.some(x=>state.nests.has(key(x.r,x.c)));
+  const baseScore=wordScore(word);
+  return{word,line,name,bit,baseScore,score:baseScore*(nestBonus?3:1),nestBonus};
+}
 function validate(){
   if(!state.temp.size)return{error:'Istakadan en az bir taş yerleştir.'};
   const dirs=[[0,1,'h',H],[1,0,'v',V]];
-  const raw=dirs.map(d=>candidateForDir(...d)).filter(Boolean);
-  const seen=new Set(),candidates=raw.filter(x=>{const k=x.word+'|'+x.name;if(seen.has(k))return false;seen.add(k);return true;});
-  if(!candidates.length)return{error:'Bu taşlarla geçerli yatay/dikey sözcük oluşmadı.'};
+  const primaries=dirs.map(d=>candidateForDir(...d)).filter(Boolean);
+  if(!primaries.length)return{error:'Bu taşlarla geçerli yatay/dikey sözcük oluşmadı.'};
+  const raw=[...primaries];
+  for(const t of state.temp.values()){
+    for(const d of dirs){const x=candidateAt(t.r,t.c,...d);if(x)raw.push(x);}
+  }
+  const seen=new Set(),candidates=raw.filter(x=>{
+    const first=x.line[0],last=x.line[x.line.length-1],k=x.word+'|'+x.name+'|'+first.r+','+first.c+'|'+last.r+','+last.c;
+    if(seen.has(k))return false;seen.add(k);return true;
+  });
   const placedCount=new Set([...state.temp.values()].map(t=>t.rackIndex)).size;
   const rackBonus=placedCount>=5;
   for(const cand of candidates)if(rackBonus)cand.score*=2;
