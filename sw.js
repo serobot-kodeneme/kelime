@@ -1,4 +1,4 @@
-const CACHE_NAME='kapmaca-shell-v595-maintenance';
+const CACHE_NAME='kapmaca-shell-v596-maintenance';
 const APP_SHELL=[
   './',
   './index.html',
