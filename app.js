@@ -468,9 +468,9 @@ let vibrationLevel=VIBRATION_LEVELS.has(safeStorageGet('local',VIBRATION_KEY))?s
 function vibrationPattern(kind='tap'){
 if(vibrationLevel==='off')return 0;
 const table={
- low:{tap:12,success:24,error:[24,28,24],blast:[30,24,38],finish:[22,34,28]},
- medium:{tap:20,success:38,error:[36,34,36],blast:[48,28,62],finish:[30,40,42]},
- high:{tap:32,success:58,error:[54,42,54],blast:[72,34,92],finish:[42,48,66]}
+ low:{tap:12,success:24,longword:[34,22,42],error:[24,28,24],blast:[30,24,38],finish:[22,34,28]},
+ medium:{tap:20,success:38,longword:[48,24,62],error:[36,34,36],blast:[48,28,62],finish:[30,40,42]},
+ high:{tap:32,success:58,longword:[68,28,86],error:[54,42,54],blast:[72,34,92],finish:[42,48,66]}
 };
 return(table[vibrationLevel]||table.medium)[kind]||0;
 }
@@ -504,6 +504,35 @@ if(deviceSupportsVibration()){
 try{return navigator.vibrate(pattern)!==false;}catch(_){}
 }
 return visualGameHaptic(kind);
+}
+function triggerKapismaLongWordImpact(){
+if(document.hidden)return;
+if(vibrationLevel!=='off'){
+const pattern=vibrationPattern('longword');
+let physical=false;
+if(pattern&&deviceSupportsVibration()){
+try{physical=navigator.vibrate(pattern)!==false;}catch(_){}
+}
+if(!physical){
+const bar=document.getElementById('selected-preview-bar');
+if(bar&&typeof bar.animate==='function'){
+try{
+if(bar.__kapmacaLongWordHaptic)bar.__kapmacaLongWordHaptic.cancel();
+bar.__kapmacaLongWordHaptic=bar.animate(
+[{transform:'translate3d(0,0,0)'},{transform:'translate3d(-2px,0,0)'},{transform:'translate3d(2px,0,0)'},{transform:'translate3d(-1px,0,0)'},{transform:'translate3d(0,0,0)'}],
+{duration:190,easing:'ease-out'}
+);
+}catch(_){}
+}
+}
+}
+const game=document.getElementById('screen-game');
+if(game){
+game.classList.remove('kapisma-long-word-shake');
+void game.offsetWidth;
+game.classList.add('kapisma-long-word-shake');
+setTimeout(()=>game.classList.remove('kapisma-long-word-shake'),430);
+}
 }
 function renderVibrationControls(){
 document.querySelectorAll('.vibration-choice').forEach(btn=>btn.classList.toggle('selected',btn.dataset.vibration===vibrationLevel));
@@ -3279,7 +3308,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=581-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=582-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -4635,7 +4664,7 @@ mpFoundWords.guest.add(word);
 
 recordMatchWord(word,pts,isP1);
 playCorrectChime(false);
-if(word.length>=5)vibrateGame('success');
+if(word.length>=5)triggerKapismaLongWordImpact();
 flashWordFeedback(true);
 showToast(`${word}(+${pts})`,isP1?'amber':'sky');
 playWordConfetti(word.length);
