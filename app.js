@@ -6894,7 +6894,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v634 — GÖKDELEN: serbest geçici taş taşıma, seyrek yuva ve kuş efekti */
+/* v635 — GÖKDELEN: kesişen harf her sözcükte ayrı puanlanır */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -7134,7 +7134,11 @@ function validate(){
   });
   const placedCount=new Set([...state.temp.values()].map(t=>t.rackIndex)).size;
   const rackBonus=placedCount>=5;
-  for(const cand of candidates)if(rackBonus)cand.score*=2;
+  // Her geçerli sözcük bağımsız puanlanır. Kesişen ortak harf,
+  // yer aldığı her sözcüğün wordScore hesabında yeniden sayılır.
+  for(const cand of candidates){
+    cand.score=cand.baseScore*(cand.nestBonus?3:1)*(rackBonus?2:1);
+  }
   candidates.sort((a,b)=>b.score-a.score||b.line.length-a.line.length);
   return{...candidates[0],words:candidates,totalScore:candidates.reduce((n,x)=>n+x.score,0),rackBonus,placedCount,nestBonus:candidates.some(x=>x.nestBonus)};
 }
