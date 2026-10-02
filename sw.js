@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v588-maintenance';
+const CACHE_NAME='kapmaca-shell-v589-maintenance';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=588-maintenance',
+  './app.js?v=589-maintenance',
   './manifest.webmanifest?v=586',
   './favicon-32.png?v=586',
   './apple-touch-icon.png?v=586',
