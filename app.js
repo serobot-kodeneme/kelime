@@ -179,7 +179,7 @@ const NATIONALITY_DICTIONARY=Object.freeze({
 'FİNLİ':'Finlandiya halkından olan kimse.',
 'BELÇİKALI':'Belçika halkından olan kimse.',
 'İSVİÇRELİ':'İsviçre halkından olan kimse.',
-'İRlandalı'.toLocaleUpperCase('tr-TR'):'İrlanda halkından olan kimse.',
+'İRLANDALI':'İrlanda halkından olan kimse.',
 'İSKOÇ':'İskoçya halkından olan kimse.',
 'AMERİKALI':'Amerika Birleşik Devletleri halkından olan kimse.',
 'KANADALI':'Kanada halkından olan kimse.',
