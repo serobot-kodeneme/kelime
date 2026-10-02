@@ -6894,7 +6894,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v625 — GÖKDELEN: giriş kapısı, üst sıra bilgisi ve kuşlu cephe */
+/* v626 — GÖKDELEN: gerçekçi cam cephe, 3x4 ahşap giriş ve oyun taşı başlangıcı */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -6909,7 +6909,7 @@ const SEEDS=['KALEM','YEMEK','KİTAP','DENİZ','BULUT','ORMAN','PERDE','ÇANTA',
 const state={
   grid:Array.from({length:ROWS},()=>Array(COLS).fill('')),
   dirs:Array.from({length:ROWS},()=>Array(COLS).fill(0)),
-  used:new Set(),words:[],scores:[0,0],turn:0,bag:[],racks:[[],[]],broomUsed:[false,false],
+  used:new Set(),seedKeys:new Set(),words:[],scores:[0,0],turn:0,bag:[],racks:[[],[]],broomUsed:[false,false],
   temp:new Map(),tempOrder:[],drag:null,popTimer:null,gameOver:false,turnLeft:20,turnTimer:null,aiTimer:null
 };
 const cells=[];
@@ -6953,7 +6953,7 @@ function updateHud(){
 function renderCell(r,c,isNew=false){
   const el=cells[r*COLS+c];if(!el)return;
   const base=state.grid[r][c],t=tempAt(r,c),ch=t?t.char:base;
-  el.className='ksm-cell'+(ch?' filled':'')+(base?' stackable':'')+(t?' ksm-temp':'')+(t?.tower?' ksm-temp-tower':'')+(isNew?' new-cell':'');
+  el.className='ksm-cell'+(ch?' filled':'')+(base?' stackable':'')+(state.seedKeys.has(key(r,c))?' seed-cell':'')+(t?' ksm-temp':'')+(t?.tower?' ksm-temp-tower':'')+(isNew?' new-cell':'');
   el.textContent='';
   if(ch){const sp=document.createElement('span');sp.textContent=ch;const sm=document.createElement('small');sm.textContent=String(TILE_SCORE_CACHE[ch]||1);el.append(sp,sm);}
 }
@@ -6975,7 +6975,7 @@ function buildBoard(){
   boardEl.appendChild(frag);
 }
 function chooseSeed(){const v=SEEDS.filter(w=>GAME_WORD_SET.has(w)&&w.length<=9);return v[Math.floor(Math.random()*v.length)]||'KOLA';}
-function placeSeed(word){const r=ROWS-5,c=Math.floor((COLS-word.length)/2);for(let i=0;i<word.length;i++){state.grid[r][c+i]=word[i];state.dirs[r][c+i]|=H;}state.used.add(word);state.words.push(word);}
+function placeSeed(word){const r=ROWS-5,c=Math.floor((COLS-word.length)/2);for(let i=0;i<word.length;i++){state.grid[r][c+i]=word[i];state.dirs[r][c+i]|=H;state.seedKeys.add(key(r,c+i));}state.used.add(word);state.words.push(word);}
 function centerBoard(){requestAnimationFrame(()=>{wrap.scrollLeft=Math.max(0,(boardEl.scrollWidth-wrap.clientWidth)/2);wrap.scrollTop=wrap.scrollHeight;});}
 
 function startDrag(e,index){
@@ -7183,9 +7183,8 @@ function checkEnd(){
 }
 function reset(){
   clearTimeout(state.popTimer);state.grid=Array.from({length:ROWS},()=>Array(COLS).fill(''));state.dirs=Array.from({length:ROWS},()=>Array(COLS).fill(0));
-  state.used.clear();state.words=[];state.scores=[0,0];state.turn=0;state.broomUsed=[false,false];state.temp.clear();state.tempOrder=[];state.drag=null;state.gameOver=false;clearAiTimer();
+  state.used.clear();state.seedKeys.clear();state.words=[];state.scores=[0,0];state.turn=0;state.broomUsed=[false,false];state.temp.clear();state.tempOrder=[];state.drag=null;state.gameOver=false;clearAiTimer();
   state.bag=makeBag();const seed=chooseSeed();consumeSeedFromBag(seed);placeSeed(seed);state.racks=[[],[]];drawRackToNine(0);drawRackToNine(1);
-  const doorWord=document.getElementById('ksm-door-word');if(doorWord)doorWord.textContent=seed;
   document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');
   renderAll();renderRack();updateHud();setFeedback('Başlangıç sözcüğü: '+seed+'. 1. oyuncu başlıyor.','good');centerBoard();startTurnTimer();
 }
