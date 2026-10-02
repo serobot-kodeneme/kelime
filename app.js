@@ -15,22 +15,36 @@ const FOREIGN_EXACT=new Set(['ASK','CHANGE','CHAT','RUN','TALK']);
 const TURKISH_WORD_CHARS = /^[ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ]+$/;
 const COMMON_IMPERATIVE_WORDS=Object.freeze([
 'AÇ','AÇIL','AÇMA','AK','AL','AN','ANLA','ARA','ART','AS','AT','ATLA','AYIR',
-'BAK','BAS','BAŞLA','BEKLE','BELİRLE','BIRAK','BİL','BİLDİR','BİN','BİTİR','BOZ','BÖL','BUL',
+'BAK','BAS','BAŞLA','BEKLE','BELİRLE','BIRAK','BİL','BİLDİR','BİN','BİTİR','BOYAT','BOZ','BÖL','BUL',
 'ÇAĞIR','ÇAL','ÇALIŞ','ÇEK','ÇEVİR','ÇIK','ÇIKAR','ÇİZ','ÇÖZ',
 'DAĞIT','DAYAN','DE','DEĞİŞ','DENE','DİNLE','DÖK','DÖN','DÖNDÜR','DUR','DÜŞ','DÜŞÜN',
 'EKLE','GEÇ','GEL','GENİŞLET','GETİR','GİR','GİT','GÖNDER','GÖR','GÖSTER','GÖTÜR',
-'HATIRLA','HAZIRLA','İÇ','İLERLE','İN','İNDİR','İNCELE','İZLE',
-'KAL','KALDIR','KAPAT','KARŞILA','KAT','KAYDET','KAZAN','KES','KIR','KIRP','KONUŞ','KORU','KOŞ','KULLAN',
+'HATIRLA','HAZIRLA','ISIT','İÇ','İLET','İLERLE','İN','İNDİR','İNCELE','İZLE',
+'KAL','KALDIR','KAPAT','KARŞILA','KAT','KAYDET','KAZAN','KES','KIR','KIRP','KISALT','KONUŞ','KORU','KOŞ','KULLAN','KURUT',
 'OKU','OL','OYNA','ÖĞREN','ÖLÇ','ÖP',
 'PAYLAŞ','PİŞİR',
-'SAKLA','SAR','SAY','SEÇ','SEV','SİL','SOR','SÖYLE','SÜR',
+'SAKLA','SAR','SAY','SEÇ','SEV','SİL','SOR','SOĞUT','SÖYLE','SULAT','SÜR',
 'TAK','TAŞI','TOPLA','TUT',
-'UÇ','UY','UYAN','UYGULA',
+'UÇ','UY','UYAN','UYGULA','UZAT',
 'ÜRET',
 'VAR','VER','VUR',
 'YAK','YAKALA','YAP','YAZ','YERLEŞ','YE','YIK','YÜKLE','YÜRÜ','YÜRÜT',
 'ZORLA'
 ]);
+
+/* v603 — Açıkça doğrulanmış emir kipleri ve yerel anlam güvencesi.
+Kökten/ekten otomatik sözcük türetilmez; yalnızca bu tam yazımlar kabul edilir. */
+const IMPERATIVE_MEANING_DICTIONARY=Object.freeze({
+'İLET':['Bir şeyi bir yerden başka bir yere ulaştırmak.','Bir bilgiyi veya haberi başkasına aktarmak.'],
+'SULAT':['Sulama işini yaptırmak; su verilmesini sağlamak.'],
+'BOYAT':['Boyama işini yaptırmak; bir şeyin boyanmasını sağlamak.'],
+'KURUT':['Islaklığını veya nemini gidererek kuru duruma getirmek.'],
+'ISIT':['Sıcaklığını artırmak; sıcak duruma getirmek.'],
+'SOĞUT':['Sıcaklığını azaltmak; soğuk veya daha serin duruma getirmek.'],
+'UZAT':['Uzunluğunu veya süresini artırmak.','Bir şeyi birine doğru vermek veya erişecek biçimde ileri götürmek.'],
+'KISALT':['Uzunluğunu veya süresini azaltmak; daha kısa duruma getirmek.'],
+'YÜRÜT':['Yürümesini sağlamak veya bir işi sürdürmek, yönetmek.']
+});
 /* v446 — Kontrollü sözlük genişletme katmanı.
 Amaç:ana sözlüğü bozmadan günlük kullanımda oyuncunun beklediği doğal biçimleri artırmak.
 Katmanlar: yaygın çekimli fiiller, çoğullar/günlük sözcükler, meslek-eşya-hayvan-bitki
@@ -247,7 +261,7 @@ const word=prev.slice(0,prefixLen)+row.slice(1);
 decodedWords.push(word);prev=word;
 }
 GEO_DICTIONARY=data.GEO_DICTIONARY;
-GAME_WORD_LIST=Array.from(new Set([...decodedWords,...Object.keys(GEO_DICTIONARY),...Object.keys(NATIONALITY_DICTIONARY),...COMMON_IMPERATIVE_WORDS,...CURATED_EXPANSION_WORDS,...CURATED_EXPANSION_WORDS_V2,...CURATED_EXPANSION_WORDS_V3]))
+GAME_WORD_LIST=Array.from(new Set([...decodedWords,...Object.keys(GEO_DICTIONARY),...Object.keys(NATIONALITY_DICTIONARY),...Object.keys(IMPERATIVE_MEANING_DICTIONARY),...COMMON_IMPERATIVE_WORDS,...CURATED_EXPANSION_WORDS,...CURATED_EXPANSION_WORDS_V2,...CURATED_EXPANSION_WORDS_V3]))
 .filter(w=>w.length>=2&&w.length<=9&&!isArgoWord(w)&&!isForeignWord(w)).sort();
 GAME_WORD_SET=new Set(GAME_WORD_LIST);
 GAME_WORDS_BY_LENGTH.clear();
@@ -482,7 +496,7 @@ document.addEventListener('webkitfullscreenchange',handleFullscreenLayoutChange)
 let remainingSeconds=60;
 let isMatchActive=false;
 
-// v602 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
+// v603 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
 const LETTER_IDLE_WAVE_MS=4000;
 let letterIdleLastActivityAt=0;
 let letterIdleWaveShown=false;
@@ -3544,7 +3558,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=602-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=603-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -5772,7 +5786,7 @@ if(dictMeaningAbortController){try{dictMeaningAbortController.abort();}catch(_){
 if(dictMeaningOpenHost)dictMeaningOpenHost.classList.add('hidden');
 dictMeaningOpenKey='';dictMeaningOpenHost=null;
 }
-function fillInlineMeaning(host,word,meanings,sourceWord=''){
+function fillInlineMeaning(host,word,meanings,sourceWord='',source=''){
 if(!host)return;
 host.textContent='';
 const title=document.createElement('div');title.className='dict-meaning-title';
@@ -5788,7 +5802,7 @@ const txt=document.createElement('span');txt.textContent=meaning;
 row.append(num,txt);host.appendChild(row);
 });
 }
-const note=document.createElement('div');note.className='dict-meaning-note';note.textContent=GEO_DICTIONARY[normalizeMeaningLookupWord(word)]?'KAPMACA Coğrafi Sözlük':'TDK Güncel Türkçe Sözlük • anlamlar çevrim içi sorgulanır.';host.appendChild(note);
+const note=document.createElement('div');note.className='dict-meaning-note';note.textContent=source==='geo'?'KAPMACA Coğrafi Sözlük':(source==='local'?'KAPMACA Türkçe Sözlük • yerel anlam güvencesi':'TDK Güncel Türkçe Sözlük • anlamlar çevrim içi sorgulanır.');host.appendChild(note);
 host.classList.remove('hidden');
 }
 async function showDictionaryMeaning(word,host,auto=false){
@@ -5797,15 +5811,19 @@ const key=normalizeMeaningLookupWord(word);
 if(!auto&&dictMeaningOpenKey===key&&dictMeaningOpenHost===host&&!host.classList.contains('hidden')){closeDictionaryMeaning();return;}
 closeDictionaryMeaning();dictMeaningOpenKey=key;dictMeaningOpenHost=host;
 if(dictMeaningCache.has(key)){
-const cached=dictMeaningCache.get(key);fillInlineMeaning(host,word,cached.meanings,cached.sourceWord);return;
+const cached=dictMeaningCache.get(key);fillInlineMeaning(host,word,cached.meanings,cached.sourceWord,cached.source||'');return;
 }
 if(NATIONALITY_DICTIONARY[key]){
-const local={meanings:[NATIONALITY_DICTIONARY[key]],sourceWord:String(word)};
-dictMeaningCache.set(key,local);fillInlineMeaning(host,word,local.meanings,local.sourceWord);return;
+const local={meanings:[NATIONALITY_DICTIONARY[key]],sourceWord:String(word),source:'local'};
+dictMeaningCache.set(key,local);fillInlineMeaning(host,word,local.meanings,local.sourceWord,local.source);return;
+}
+if(IMPERATIVE_MEANING_DICTIONARY[key]){
+const local={meanings:IMPERATIVE_MEANING_DICTIONARY[key],sourceWord:String(word),source:'local'};
+dictMeaningCache.set(key,local);fillInlineMeaning(host,word,local.meanings,local.sourceWord,local.source);return;
 }
 if(GEO_DICTIONARY[key]){
-const local={meanings:[GEO_DICTIONARY[key]],sourceWord:String(word)};
-dictMeaningCache.set(key,local);fillInlineMeaning(host,word,local.meanings,local.sourceWord);return;
+const local={meanings:[GEO_DICTIONARY[key]],sourceWord:String(word),source:'geo'};
+dictMeaningCache.set(key,local);fillInlineMeaning(host,word,local.meanings,local.sourceWord,local.source);return;
 }
 const controller=new AbortController();dictMeaningAbortController=controller;
 host.textContent='';const loading=document.createElement('div');loading.className='dict-meaning-loading';loading.textContent='Anlam getiriliyor…';host.appendChild(loading);host.classList.remove('hidden');
@@ -5829,8 +5847,8 @@ if(meanings.length>=6)break;
 if(meanings.length>=6)break;
 }
 const sourceWord=chosen[0]?.madde||'';
-if(meanings.length)dictMeaningCache.set(key,{meanings,sourceWord});
-if(dictMeaningOpenKey===key&&dictMeaningOpenHost===host)fillInlineMeaning(host,word,meanings,sourceWord);
+if(meanings.length)dictMeaningCache.set(key,{meanings,sourceWord,source:'tdk'});
+if(dictMeaningOpenKey===key&&dictMeaningOpenHost===host)fillInlineMeaning(host,word,meanings,sourceWord,'tdk');
 }catch(err){
 if(controller.signal.aborted&&!timedOut)return;
 if(dictMeaningOpenKey===key&&dictMeaningOpenHost===host){host.textContent='';const msg=document.createElement('div');msg.className='dict-meaning-loading';msg.textContent='Anlam şu anda alınamadı. Bağlantıyı kontrol edip tekrar ara veya sözcüğe dokun.';host.appendChild(msg);host.classList.remove('hidden');}
