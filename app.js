@@ -6894,7 +6894,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v626 — GÖKDELEN: gerçekçi cam cephe, 3x4 ahşap giriş ve oyun taşı başlangıcı */
+/* v627 — GÖKDELEN: kapı gerçek tahta tabanına sabitlendi */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -6973,8 +6973,14 @@ function buildBoard(){
   boardEl.textContent='';cells.length=0;const frag=document.createDocumentFragment();
   for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const el=document.createElement('div');el.className='ksm-cell';el.dataset.r=r;el.dataset.c=c;frag.appendChild(el);cells.push(el);}
   boardEl.appendChild(frag);
+  const door=document.createElement('div');door.id='ksm-building-door';door.setAttribute('aria-label','Gökdelen giriş kapısı');
+  const crown=document.createElement('div');crown.className='ksm-door-crown';crown.setAttribute('aria-hidden','true');
+  const panels=document.createElement('div');panels.className='ksm-door-panels';panels.setAttribute('aria-hidden','true');
+  for(let i=0;i<3;i++)panels.appendChild(document.createElement('span'));
+  const sill=document.createElement('div');sill.className='ksm-door-sill';sill.setAttribute('aria-hidden','true');
+  door.append(crown,panels,sill);boardEl.appendChild(door);
 }
-function chooseSeed(){const v=SEEDS.filter(w=>GAME_WORD_SET.has(w)&&w.length<=9);return v[Math.floor(Math.random()*v.length)]||'KOLA';}
+function chooseSeed(){const v=SEEDS.filter(w=>GAME_WORD_SET.has(w)&&w.length<=9);if(v.includes('KİTAP'))return 'KİTAP';return v[Math.floor(Math.random()*v.length)]||'KOLA';}
 function placeSeed(word){const r=ROWS-5,c=Math.floor((COLS-word.length)/2);for(let i=0;i<word.length;i++){state.grid[r][c+i]=word[i];state.dirs[r][c+i]|=H;state.seedKeys.add(key(r,c+i));}state.used.add(word);state.words.push(word);}
 function centerBoard(){requestAnimationFrame(()=>{wrap.scrollLeft=Math.max(0,(boardEl.scrollWidth-wrap.clientWidth)/2);wrap.scrollTop=wrap.scrollHeight;});}
 
