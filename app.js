@@ -2387,7 +2387,7 @@ if(!cell)return;
 cell.classList.remove('atisma-explode');
 void cell.offsetWidth;
 cell.classList.add('atisma-explode');
-setTimeout(()=>cell.classList.remove('atisma-explode'),860);
+setTimeout(()=>cell.classList.remove('atisma-explode'),1650);
 const fx=document.createElement('span');
 fx.className='atisma-bomb-fx';
 fx.textContent='💥';
@@ -2484,7 +2484,9 @@ function setAtismaPanelVisible(visible,playing=false){
 const panel=document.getElementById('atisma-panel');
 panel?.classList.toggle('hidden',!visible);
 panel?.classList.toggle('atisma-playing',!!playing);
-document.getElementById('screen-game')?.classList.toggle('atisma-mode',!!visible);
+const game=document.getElementById('screen-game');
+game?.classList.toggle('atisma-mode',!!visible);
+game?.classList.toggle('atisma-playing',!!visible&&!!playing);
 }
 function atismaOwnPlacements(){
 return mpRoomData?.atisma?.placements?.[mpRole]||{};
