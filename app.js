@@ -149,6 +149,68 @@ const CURATED_EXPANSION_WORDS_V2=Object.freeze([
 'DOSYA','KLASÖR','BELGE','RESİM','VİDEO','MESAJ','HESAP','PAROLA','KULLANICI'
 ]);
 
+/* v590 — Yaygın ülke/ulus adları.
+2–9 harf oyun sınırına uyan biçimler yerel anlamıyla birlikte kabul edilir. */
+const NATIONALITY_DICTIONARY=Object.freeze({
+'TÜRK':'Türkiye halkından veya bu halkın soyundan olan kimse.',
+'ALMAN':'Almanya halkından olan kimse.',
+'FRANSIZ':'Fransa halkından olan kimse.',
+'İNGİLİZ':'İngiltere halkından olan kimse.',
+'İTALYAN':'İtalya halkından olan kimse.',
+'İSPANYOL':'İspanya halkından olan kimse.',
+'RUS':'Rusya halkından olan kimse.',
+'UKRAYNALI':'Ukrayna halkından olan kimse.',
+'POLONYALI':'Polonya halkından olan kimse.',
+'JAPON':'Japonya halkından olan kimse.',
+'ÇİNLİ':'Çin halkından olan kimse.',
+'KORELİ':'Kore halklarından olan kimse.',
+'YUNAN':'Yunanistan halkından olan kimse.',
+'BULGAR':'Bulgaristan halkından olan kimse.',
+'SIRP':'Sırbistan halkından olan kimse.',
+'HIRVAT':'Hırvatistan halkından olan kimse.',
+'BOŞNAK':'Bosna kökenli Güney Slav halkından olan kimse.',
+'ARNAVUT':'Arnavutluk halkından olan kimse.',
+'RUMEN':'Romanya halkından olan kimse.',
+'MACAR':'Macaristan halkından olan kimse.',
+'ÇEK':'Çekya halkından olan kimse.',
+'SLOVAK':'Slovakya halkından olan kimse.',
+'İSVEÇLİ':'İsveç halkından olan kimse.',
+'NORVEÇLİ':'Norveç halkından olan kimse.',
+'FİNLİ':'Finlandiya halkından olan kimse.',
+'BELÇİKALI':'Belçika halkından olan kimse.',
+'İSVİÇRELİ':'İsviçre halkından olan kimse.',
+'İRlandalı'.toLocaleUpperCase('tr-TR'):'İrlanda halkından olan kimse.',
+'İSKOÇ':'İskoçya halkından olan kimse.',
+'AMERİKALI':'Amerika Birleşik Devletleri halkından olan kimse.',
+'KANADALI':'Kanada halkından olan kimse.',
+'MEKSİKALI':'Meksika halkından olan kimse.',
+'ŞİLİLİ':'Şili halkından olan kimse.',
+'KÜBALI':'Küba halkından olan kimse.',
+'MISIRLI':'Mısır halkından olan kimse.',
+'FASLI':'Fas halkından olan kimse.',
+'CEZAYİRLİ':'Cezayir halkından olan kimse.',
+'TUNUSLU':'Tunus halkından olan kimse.',
+'LİBYALI':'Libya halkından olan kimse.',
+'ARAP':'Arap halklarından olan kimse.',
+'İRANLI':'İran halkından olan kimse.',
+'IRAKLI':'Irak halkından olan kimse.',
+'SURİYELİ':'Suriye halkından olan kimse.',
+'İSRAİLLİ':'İsrail halkından olan kimse.',
+'HİNTLİ':'Hindistan halkından olan kimse.',
+'AFGAN':'Afganistan halkından olan kimse.',
+'KAZAK':'Kazakistan halkından olan kimse.',
+'KIRGIZ':'Kırgızistan halkından olan kimse.',
+'ÖZBEK':'Özbekistan halkından olan kimse.',
+'TÜRKMEN':'Türkmenistan halkından olan kimse.',
+'GÜRCÜ':'Gürcistan halkından olan kimse.',
+'ERMENİ':'Ermenistan halkından olan kimse.',
+'AZERİ':'Azerbaycan halkından olan kimse.',
+'MOĞOL':'Moğolistan halkından olan kimse.',
+'TAYLANDLI':'Tayland halkından olan kimse.',
+'VİETNAMLI':'Vietnam halkından olan kimse.',
+'MALEZYALI':'Malezya halkından olan kimse.'
+});
+
 function isForeignWord(word){
 const w=String(word||'').toLocaleUpperCase('tr-TR');
 return !TURKISH_WORD_CHARS.test(w)||FOREIGN_EXACT.has(w);
@@ -172,7 +234,7 @@ const word=prev.slice(0,prefixLen)+row.slice(1);
 decodedWords.push(word);prev=word;
 }
 GEO_DICTIONARY=data.GEO_DICTIONARY;
-GAME_WORD_LIST=Array.from(new Set([...decodedWords,...Object.keys(GEO_DICTIONARY),...COMMON_IMPERATIVE_WORDS,...CURATED_EXPANSION_WORDS,...CURATED_EXPANSION_WORDS_V2]))
+GAME_WORD_LIST=Array.from(new Set([...decodedWords,...Object.keys(GEO_DICTIONARY),...Object.keys(NATIONALITY_DICTIONARY),...COMMON_IMPERATIVE_WORDS,...CURATED_EXPANSION_WORDS,...CURATED_EXPANSION_WORDS_V2]))
 .filter(w=>w.length>=2&&w.length<=9&&!isArgoWord(w)&&!isForeignWord(w)).sort();
 GAME_WORD_SET=new Set(GAME_WORD_LIST);
 GAME_WORDS_BY_LENGTH.clear();
@@ -3333,7 +3395,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=589-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=590-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -5585,6 +5647,10 @@ if(!auto&&dictMeaningOpenKey===key&&dictMeaningOpenHost===host&&!host.classList.
 closeDictionaryMeaning();dictMeaningOpenKey=key;dictMeaningOpenHost=host;
 if(dictMeaningCache.has(key)){
 const cached=dictMeaningCache.get(key);fillInlineMeaning(host,word,cached.meanings,cached.sourceWord);return;
+}
+if(NATIONALITY_DICTIONARY[key]){
+const local={meanings:[NATIONALITY_DICTIONARY[key]],sourceWord:String(word)};
+dictMeaningCache.set(key,local);fillInlineMeaning(host,word,local.meanings,local.sourceWord);return;
 }
 if(GEO_DICTIONARY[key]){
 const local={meanings:[GEO_DICTIONARY[key]],sourceWord:String(word)};
