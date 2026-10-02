@@ -6894,7 +6894,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v624 — GÖKDELEN: orta seviye AI ve cam cephe */
+/* v625 — GÖKDELEN: giriş kapısı, üst sıra bilgisi ve kuşlu cephe */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -6920,7 +6920,7 @@ function makeBag(){const a=[];for(let i=0;i<TOTAL_TILES;i++)a.push(randLetter())
 function drawOne(){return state.bag.length?state.bag.pop():null;}
 function drawRackToNine(p){while(state.racks[p].length<9){const ch=drawOne();if(!ch)break;state.racks[p].push(ch);}}
 function consumeSeedFromBag(word){for(const ch of word){const i=state.bag.indexOf(ch);if(i>=0)state.bag.splice(i,1);}}
-function setFeedback(text='',kind=''){const el=document.getElementById('ksm-feedback');if(!el)return;el.textContent=text;el.classList.remove('good','bad');if(kind)el.classList.add(kind);}
+function setFeedback(text='',kind=''){const el=document.getElementById('ksm-feedback');if(el){el.textContent=text;el.classList.remove('good','bad');if(kind)el.classList.add(kind);}const top=document.getElementById('ksm-turn-status-top');if(top&&text)top.textContent=text;}
 function showPop(title,sub='',duration=950){const pop=document.getElementById('ksm-pop'),a=document.getElementById('ksm-pop-title'),b=document.getElementById('ksm-pop-sub');if(!pop||!a||!b)return;clearTimeout(state.popTimer);a.textContent=title;b.textContent=sub;pop.classList.add('show');state.popTimer=setTimeout(()=>pop.classList.remove('show'),duration);}
 function wordScore(word){return Array.from(word).reduce((n,ch)=>n+(TILE_SCORE_CACHE[ch]||1),0)+Math.max(0,word.length-2)*2;}
 function tempAt(r,c){return state.temp.get(key(r,c))||null;}
@@ -6941,6 +6941,8 @@ function updateHud(){
   const shuffleBtn=document.getElementById('btn-ksm-shuffle');if(shuffleBtn)shuffleBtn.disabled=aiTurn||state.temp.size>0||state.gameOver;
   const undoBtn=document.getElementById('btn-ksm-undo');if(undoBtn)undoBtn.disabled=aiTurn||!state.temp.size||state.gameOver;
   const placeBtn=document.getElementById('btn-ksm-place');if(placeBtn)placeBtn.disabled=aiTurn||!state.temp.size||state.gameOver;
+  const turnTop=document.getElementById('ksm-turn-status-top');
+  if(turnTop)turnTop.textContent=state.turn===1?'BİLGİN düşünüyor…':'1. oyuncunun sırası.';
   const t1=document.getElementById('ksm-timer-p1'),t2=document.getElementById('ksm-timer-p2');
   const a1=t1?.querySelector('strong'),a2=t2?.querySelector('strong');
   if(a1)a1.textContent=String(state.turn===0?state.turnLeft:20);
@@ -6973,7 +6975,7 @@ function buildBoard(){
   boardEl.appendChild(frag);
 }
 function chooseSeed(){const v=SEEDS.filter(w=>GAME_WORD_SET.has(w)&&w.length<=9);return v[Math.floor(Math.random()*v.length)]||'KOLA';}
-function placeSeed(word){const r=ROWS-1,c=Math.floor((COLS-word.length)/2);for(let i=0;i<word.length;i++){state.grid[r][c+i]=word[i];state.dirs[r][c+i]|=H;}state.used.add(word);state.words.push(word);}
+function placeSeed(word){const r=ROWS-5,c=Math.floor((COLS-word.length)/2);for(let i=0;i<word.length;i++){state.grid[r][c+i]=word[i];state.dirs[r][c+i]|=H;}state.used.add(word);state.words.push(word);}
 function centerBoard(){requestAnimationFrame(()=>{wrap.scrollLeft=Math.max(0,(boardEl.scrollWidth-wrap.clientWidth)/2);wrap.scrollTop=wrap.scrollHeight;});}
 
 function startDrag(e,index){
@@ -6984,6 +6986,8 @@ function moveGhost(x,y){ghost.style.left=x+'px';ghost.style.top=y+'px';}
 function dropAt(x,y){
   const el=document.elementFromPoint(x,y)?.closest?.('.ksm-cell');if(!el||!boardEl.contains(el)){setFeedback('Taşı tahta üzerine bırak.','bad');return;}
   const r=Number(el.dataset.r),c=Number(el.dataset.c),base=state.grid[r][c];
+  const doorRowsStart=ROWS-4,doorColStart=Math.floor((COLS-3)/2);
+  if(r>=doorRowsStart&&c>=doorColStart&&c<doorColStart+3){setFeedback('Giriş kapısına harf yerleştirilemez.','bad');return;}
   const occupiedRows=[];for(let rr=0;rr<ROWS;rr++)if(state.grid[rr].some(Boolean))occupiedRows.push(rr);
   const lowestOccupied=occupiedRows.length?Math.max(...occupiedRows):ROWS-1;
   if(r>lowestOccupied){setFeedback('GÖKDELEN yalnızca yukarı doğru büyür.','bad');return;}
@@ -7057,6 +7061,8 @@ function aiPlacement(word,sr,sc,dr,dc){
   const need=[],cellsToPlace=[];let connected=false;
   for(let i=0;i<word.length;i++){
     const r=sr+dr*i,c=sc+dc*i,ch=word[i],base=state.grid[r][c];
+    const doorRowsStart=ROWS-4,doorColStart=Math.floor((COLS-3)/2);
+    if(r>=doorRowsStart&&c>=doorColStart&&c<doorColStart+3)return null;
     if(base){if(base!==ch)return null;connected=true;}
     else{need.push(ch);cellsToPlace.push({r,c,char:ch});}
   }
@@ -7179,6 +7185,7 @@ function reset(){
   clearTimeout(state.popTimer);state.grid=Array.from({length:ROWS},()=>Array(COLS).fill(''));state.dirs=Array.from({length:ROWS},()=>Array(COLS).fill(0));
   state.used.clear();state.words=[];state.scores=[0,0];state.turn=0;state.broomUsed=[false,false];state.temp.clear();state.tempOrder=[];state.drag=null;state.gameOver=false;clearAiTimer();
   state.bag=makeBag();const seed=chooseSeed();consumeSeedFromBag(seed);placeSeed(seed);state.racks=[[],[]];drawRackToNine(0);drawRackToNine(1);
+  const doorWord=document.getElementById('ksm-door-word');if(doorWord)doorWord.textContent=seed;
   document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');
   renderAll();renderRack();updateHud();setFeedback('Başlangıç sözcüğü: '+seed+'. 1. oyuncu başlıyor.','good');centerBoard();startTurnTimer();
 }
