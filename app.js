@@ -482,7 +482,7 @@ document.addEventListener('webkitfullscreenchange',handleFullscreenLayoutChange)
 let remainingSeconds=60;
 let isMatchActive=false;
 
-// v601 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
+// v602 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
 const LETTER_IDLE_WAVE_MS=4000;
 let letterIdleLastActivityAt=0;
 let letterIdleWaveShown=false;
@@ -568,7 +568,31 @@ let activeGameMode = null; // 'single' | 'multi' — replay akışının tek gü
 let selectedHomeGameMode=null; // 'kapisma' | 'patlama'
 let randomMatchGameMode='kapisma';
 const PATLAMA_TRAP_COUNT=7;
+const PATLAMA_TURN_HANDOFF_MS=1000;
+let atismaTurnHandoffTimer=null;
 let atismaTool='trap',atismaSetupTimer=null,atismaTurnTimer=null,atismaSetupActive=false,atismaTimeoutBusy=false;
+
+function stopAtismaTurnHandoff(){
+if(atismaTurnHandoffTimer){clearTimeout(atismaTurnHandoffTimer);atismaTurnHandoffTimer=null;}
+}
+function lockAtismaTurnHandoff(){
+isMatchActive=false;
+stopAtismaTurnTimer();
+const grid=document.getElementById('scrabble-grid');
+if(grid)grid.style.pointerEvents='none';
+}
+function scheduleLocalAtismaTurn(nextTurn){
+stopAtismaTurnHandoff();
+lockAtismaTurnHandoff();
+atismaTurnHandoffTimer=setTimeout(()=>{
+atismaTurnHandoffTimer=null;
+if(isLocalAtisma())startLocalAtismaTurn(nextTurn);
+},PATLAMA_TURN_HANDOFF_MS);
+}
+async function waitAtismaTurnHandoff(){
+lockAtismaTurnHandoff();
+await new Promise(resolve=>setTimeout(resolve,PATLAMA_TURN_HANDOFF_MS));
+}
 let atismaDragType='',atismaDragGhost=null,atismaDragHoverCell=null;
 let atismaLocalActive=false,atismaLocalTurn='player',atismaLocalPlayerTurns=0,atismaLocalAiTurns=0,atismaLocalAiTimer=null;
 let atismaLocalPlayerPlacements={},atismaLocalAiPlacements={},atismaLocalUsedPlayer={},atismaLocalUsedAi={};
@@ -2660,22 +2684,22 @@ paint('p1-turn-dots',p1Used);
 paint('p2-turn-dots',p2Used);
 }
 function startLocalAtismaTurn(turn='player'){
-stopAtismaTurnTimer();stopAtismaLocalAi();atismaLocalTurn=turn;renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);
+stopAtismaTurnHandoff();stopAtismaTurnTimer();stopAtismaLocalAi();atismaLocalTurn=turn;renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);
 if(atismaLocalPlayerTurns>=10&&atismaLocalAiTurns>=10){finishLocalAtisma();return;}if(turn==='player'&&atismaLocalPlayerTurns>=10){startLocalAtismaTurn('ai');return;}if(turn==='ai'&&atismaLocalAiTurns>=10){startLocalAtismaTurn('player');return;}
 isMatchActive=turn==='player';setAtismaPanelVisible(true,true);setPatlamaActivePlayer(turn==='player'?'p1':'p2');atismaLastSecondTick=null;const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents=turn==='player'?'auto':'none';grid.style.opacity=turn==='player'?'1':'.70';grid.style.filter=turn==='player'?'':'saturate(.82) brightness(.92)';grid.style.touchAction='none';}
 const status=document.getElementById('atisma-phase-status');const n=(turn==='player'?atismaLocalPlayerTurns:atismaLocalAiTurns)+1;if(status)status.textContent='';
-const deadline=Date.now()+10000;const tick=()=>{if(!isLocalAtisma())return;const left=Math.max(0,Math.ceil((deadline-Date.now())/1000));updateGameTimerUI(left);playPatlamaSecondTick(left);if(left<=0){stopAtismaTurnTimer();if(turn==='player'){atismaLocalPlayerTurns++;renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);showToast('Süre doldu — sıra '+getBotDisplayName()+'’da.','slate',1200);startLocalAtismaTurn('ai');}else runLocalAtismaAiTurn();}};tick();atismaTurnTimer=setInterval(tick,250);
+const deadline=Date.now()+10000;const tick=()=>{if(!isLocalAtisma())return;const left=Math.max(0,Math.ceil((deadline-Date.now())/1000));updateGameTimerUI(left);playPatlamaSecondTick(left);if(left<=0){stopAtismaTurnTimer();if(turn==='player'){atismaLocalPlayerTurns++;renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);showToast('Süre doldu — sıra '+getBotDisplayName()+'’da.','slate',1200);scheduleLocalAtismaTurn('ai');}else runLocalAtismaAiTurn();}};tick();atismaTurnTimer=setInterval(tick,250);
 if(turn==='ai')atismaLocalAiTimer=setTimeout(()=>runLocalAtismaAiTurn(),1200+Math.floor(Math.random()*1500));
 }
 function runLocalAtismaAiTurn(){
-if(!isLocalAtisma()||atismaLocalTurn!=='ai')return;stopAtismaTurnTimer();stopAtismaLocalAi();const aiName=getBotDisplayName();const match=chooseLocalAtismaAiWord();atismaLocalAiTurns++;renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);if(!match){showToast(aiName+' pas geçti.','slate',1200);startLocalAtismaTurn('player');return;}
+if(!isLocalAtisma()||atismaLocalTurn!=='ai')return;stopAtismaTurnTimer();stopAtismaLocalAi();const aiName=getBotDisplayName();const match=chooseLocalAtismaAiWord();atismaLocalAiTurns++;renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);if(!match){showToast(aiName+' pas geçti.','slate',1200);scheduleLocalAtismaTurn('player');return;}
 const word=match.word,pts=word.split('').reduce((s,c)=>s+(TILE_SCORE_CACHE[c]||1),0);sessionFoundWords.add(word);const effects=applyLocalAtismaEffects(match.path,atismaLocalPlayerPlacements,atismaLocalUsedPlayer);const trapped=effects.trap.length>0;if(trapped){atismaLocalBlastedWords.add(word);showPatlamaReaction('laugh');}const delta=trapped?0:pts;if(trapped)p1Score+=pts;else p2Score+=pts;updateScores();recordMatchWord(word,delta,false);
 match.path.forEach(pt=>document.getElementById('cell-'+pt.r+'-'+pt.c)?.classList.add('tile-claimed-p2'));const badge=addTickerBadge(word,false);flashOpponentWord(match.path,false,badge);let origin=null;const lp=match.path?.[match.path.length-1],el=lp?document.getElementById('cell-'+lp.r+'-'+lp.c):null,rr=el?.getBoundingClientRect?.();if(rr?.width)origin={x:rr.left+rr.width/2,y:rr.top+rr.height/2};flyScore(pts,trapped?true:false,origin);
-if(trapped){playErrorBuzzer();breakCombo(false);showToast('🎈 TUZAK! '+word+' PUANI '+aiName+' TARAFINDAN SANA GEÇTİ: +'+pts,'amber',1900);}else{playCorrectChime();rewardWordFx(false);showToast(aiName+': '+word+'(+'+pts+')','sky',1800);}setTimeout(()=>startLocalAtismaTurn('player'),500);
+if(trapped){playErrorBuzzer();breakCombo(false);showToast('🎈 TUZAK! '+word+' PUANI '+aiName+' TARAFINDAN SANA GEÇTİ: +'+pts,'amber',1900);}else{playCorrectChime();rewardWordFx(false);showToast(aiName+': '+word+'(+'+pts+')','sky',1800);}scheduleLocalAtismaTurn('player');
 }
-function finishLocalAtisma(){stopAtismaTurnTimer();stopAtismaLocalAi();renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);setPatlamaActivePlayer(null);const endGrid=document.getElementById('scrabble-grid');if(endGrid){endGrid.style.opacity='1';endGrid.style.filter='';}isMatchActive=false;updateGameTimerUI(0);setAtismaPanelVisible(true,true);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='PATLAMA BİTTİ • 10 / 10 TUR';showTimeUpPreview(()=>{document.getElementById('modal-gameover')?.classList.remove('hidden');prepareSingleResultScreen();});}
+function finishLocalAtisma(){stopAtismaTurnHandoff();stopAtismaTurnTimer();stopAtismaLocalAi();renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);setPatlamaActivePlayer(null);const endGrid=document.getElementById('scrabble-grid');if(endGrid){endGrid.style.opacity='1';endGrid.style.filter='';}isMatchActive=false;updateGameTimerUI(0);setAtismaPanelVisible(true,true);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='PATLAMA BİTTİ • 10 / 10 TUR';showTimeUpPreview(()=>{document.getElementById('modal-gameover')?.classList.remove('hidden');prepareSingleResultScreen();});}
 function prepareLocalAtisma(){
-stopLocalCountdown();stopAtismaTurnTimer();stopAtismaLocalAi();atismaLocalActive=true;activeGameMode='single';setLongestBonusBadges(false,false);atismaLocalTurn='player';atismaLocalPlayerTurns=0;atismaLocalAiTurns=0;atismaLocalPlayerPlacements={};atismaLocalAiPlacements={};atismaLocalUsedPlayer={};atismaLocalUsedAi={};atismaLocalBlastedWords=new Set();
+stopLocalCountdown();stopAtismaTurnHandoff();stopAtismaTurnTimer();stopAtismaLocalAi();atismaLocalActive=true;activeGameMode='single';setLongestBonusBadges(false,false);atismaLocalTurn='player';atismaLocalPlayerTurns=0;atismaLocalAiTurns=0;atismaLocalPlayerPlacements={};atismaLocalAiPlacements={};atismaLocalUsedPlayer={};atismaLocalUsedAi={};atismaLocalBlastedWords=new Set();
 document.getElementById('p1-title').textContent='OYUNCU';document.getElementById('p2-title').textContent=getBotDisplayName();renderPatlamaTurnDots(0,0);p1Score=0;p2Score=0;resetRewardFx();updateScores();resetMatchWordResults();resetSeriesWordResults();sessionFoundWords.clear();const ticker=document.getElementById('words-ticker');if(ticker)ticker.innerHTML='';document.getElementById('screen-home').classList.add('hidden');document.getElementById('screen-game').classList.remove('hidden');setAtismaPanelVisible(true,false);
 requestAnimationFrame(()=>{try{buildGrid();chooseAtismaAiPlacements();renderLocalAtismaTools();atismaSetupActive=true;isMatchActive=false;setPatlamaActivePlayer(null);const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents='none';grid.style.opacity='1';grid.style.touchAction='none';}updateGameTimerUI(20);showAtismaSetupNotice(()=>{if(!atismaSetupActive)return;if(grid)grid.style.pointerEvents='auto';showAtismaPlacementHint();const endAt=Date.now()+20000;atismaLastSecondTick=null;const tick=()=>{const left=Math.max(0,Math.ceil((endAt-Date.now())/1000));const shown=Math.min(20,left);updateGameTimerUI(shown);playPatlamaSecondTick(shown);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='';if(left<=0){stopAtismaSetupTimer();atismaSetupActive=false;document.getElementById('atisma-setup-notice')?.classList.add('hidden');hideAtismaPlacementHint();renderLocalAtismaTools();showToast('Balonlarını yerleştirdin\nİlk hamle sırası sende','orange',6500);startLocalAtismaTurn('player');}};tick();atismaSetupTimer=setInterval(tick,250);});}catch(err){console.error('Local Atisma startup failed',err);atismaLocalActive=false;showToast('PATLAMA hazırlanamadı.','rose');document.getElementById('screen-game')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}});
 }
@@ -2978,6 +3002,7 @@ return gs;
 return !!tx?.committed;
 }
 async function atismaPassTurn(){
+await waitAtismaTurnHandoff();
 return atismaCompleteTurn(mpRole);
 }
 async function hostFinalizeAtisma(){
@@ -3049,7 +3074,6 @@ const updates={};
 for(const idx of trapHits)updates['atisma/used/'+opponent+'/'+idx]=true;
 if(trapped)updates['atisma/blastedWords/'+wordKey]=true;
 if(Object.keys(updates).length)await mpRoomRef.update(updates);
-await atismaCompleteTurn(mpRole);
 showAtismaEffects({trap:trapHits});
 if(trapped)showPatlamaReaction('cry');
 selectedPath.forEach(p=>p.el.classList.add(isP1?'tile-claimed-p1':'tile-claimed-p2'));
@@ -3057,6 +3081,8 @@ addTickerBadge(word,isP1);
 flyScore(pts,trapped?!isP1:isP1,scoreFxOrigin);
 if(trapped){playErrorBuzzer();flashWordFeedback(false);breakCombo(isP1);showToast(`🎈 TUZAK! ${word} puanı rakibe geçti: +${pts}`,'rose',1900);}
 else{playCorrectChime();flashWordFeedback(true);rewardWordFx(isP1);playWordConfetti(word.length);showToast(`${word}(+${pts})`,isP1?'amber':'sky',1800);}
+await waitAtismaTurnHandoff();
+await atismaCompleteTurn(mpRole);
 return true;
 }
 async function createAtismaRoom(){
@@ -3518,7 +3544,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=601-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=602-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -4802,7 +4828,7 @@ playErrorBuzzer();
 flashWordFeedback(false);
 breakCombo(isP1);
 showToast(`${word} (-3) ARGO/KÜFÜR`, 'rose');
-if(isLocalAtisma()){p1Score-=3;updateScores();atismaLocalPlayerTurns++;renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);clearPath();startLocalAtismaTurn('ai');return;}
+if(isLocalAtisma()){p1Score-=3;updateScores();atismaLocalPlayerTurns++;renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);clearPath();scheduleLocalAtismaTurn('ai');return;}
 if(isHumanMultiplayer&&isAtismaRoom()){await atismaPenaltyAndPass(word,-3);clearPath();return;}
 adjustScore(isP1?-3:0,!isP1?-3:0);
 clearPath();
@@ -4813,7 +4839,7 @@ playErrorBuzzer();
 flashWordFeedback(false);
 breakCombo(isP1);
 showToast(`${word}(-3)Geçersiz!`,'rose');
-if(isLocalAtisma()){p1Score-=3;updateScores();atismaLocalPlayerTurns++;renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);clearPath();startLocalAtismaTurn('ai');return;}
+if(isLocalAtisma()){p1Score-=3;updateScores();atismaLocalPlayerTurns++;renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);clearPath();scheduleLocalAtismaTurn('ai');return;}
 if(isHumanMultiplayer&&isAtismaRoom()){await atismaPenaltyAndPass(word,-3);clearPath();return;}
 adjustScore(isP1?-3:0,!isP1?-3:0);
 clearPath();
@@ -4821,12 +4847,12 @@ return;
 }
 if(isLocalAtisma()){
 if(atismaLocalBlastedWords.has(word)){
-p1Score-=5;updateScores();playErrorBuzzer();flashWordFeedback(false);breakCombo(true);showToast(word+' PATLADI -5','rose',1500);atismaLocalPlayerTurns++;renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);clearPath();startLocalAtismaTurn('ai');return;
+p1Score-=5;updateScores();playErrorBuzzer();flashWordFeedback(false);breakCombo(true);showToast(word+' PATLADI -5','rose',1500);atismaLocalPlayerTurns++;renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);clearPath();scheduleLocalAtismaTurn('ai');return;
 }
 const effects=applyLocalAtismaEffects(selectedPath,atismaLocalAiPlacements,atismaLocalUsedAi);const trapped=effects.trap.length>0;if(trapped){atismaLocalBlastedWords.add(word);showPatlamaReaction('cry');}const delta=trapped?0:pts;sessionFoundWords.add(word);recordMatchWord(word,delta,true);if(trapped)p2Score+=pts;else p1Score+=pts;updateScores();
 selectedPath.forEach(p=>p.el.classList.add('tile-claimed-p1'));addTickerBadge(word,true);flyScore(pts,trapped?false:true,scoreFxOrigin);
 if(trapped){playErrorBuzzer();flashWordFeedback(false);breakCombo(true);showToast('🎈 TUZAK! '+word+' PUANI '+getBotDisplayName()+' TARAFINA GEÇTİ: +'+pts,'rose',1900);}else{playCorrectChime();flashWordFeedback(true);rewardWordFx(true);playWordConfetti(word.length);showToast(word+'(+'+pts+')','amber',1800);}
-atismaLocalPlayerTurns++;clearPath();startLocalAtismaTurn('ai');return;
+atismaLocalPlayerTurns++;clearPath();scheduleLocalAtismaTurn('ai');return;
 }
 if(isHumanMultiplayer&&isAtismaRoom()){
 await submitAtismaWord(word,pts,isP1,scoreFxOrigin);
