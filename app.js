@@ -510,7 +510,7 @@ document.querySelectorAll('.vibration-choice').forEach(btn=>btn.classList.toggle
 const status=document.getElementById('vibration-support-status');
 if(status){
 status.textContent=deviceSupportsVibration()
-?'Oyun içinde harf seçimi, doğru/yanlış sözcük ve patlamada fiziksel titreşim uygulanır.'
+?'Oyun içinde harf seçimi, sözcük geri bildirimi ve patlamada fiziksel titreşim uygulanır.'
 :'Fiziksel titreşim desteklenmiyor; oyun içinde görsel titreme uygulanır.';
 status.className='mt-2 text-center text-[10px] font-bold '+(deviceSupportsVibration()?'text-emerald-700':'text-violet-700');
 }
@@ -609,8 +609,8 @@ vibrateGame('error');
 playTone(185,.14,.12,'square',95);
 playTone(145,.12,.08,'sawtooth',82,.055);
 }
-function playCorrectChime(){
-vibrateGame('success');
+function playCorrectChime(withHaptic=true){
+if(withHaptic)vibrateGame('success');
 playTone(760,.13,.095,'sine',980);
 playTone(1120,.19,.075,'sine',1420,.075);
 }
@@ -3279,7 +3279,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=580-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=581-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -4634,7 +4634,8 @@ mpFoundWords.guest.add(word);
 
 
 recordMatchWord(word,pts,isP1);
-playCorrectChime();
+playCorrectChime(false);
+if(word.length>=5)vibrateGame('success');
 flashWordFeedback(true);
 showToast(`${word}(+${pts})`,isP1?'amber':'sky');
 playWordConfetti(word.length);
