@@ -2192,7 +2192,7 @@ isPointerDown=false;pointerHoldStartedAt=0;clearTimeout(pointerHoldTimer);pointe
 try{clearPath();}catch(_){selectedPath=[];}
 mpEntered=false;mpStarted=false;mpStartBusy=false;mpRematchBusy=false;
 mpRoomRef=null;mpRoomCode=null;mpRole=null;mpRoomData=null;mpRoomMode='';mpRandomMatchSession=false;delete document.body.dataset.randomMatchActive;delete document.body.dataset.privateFriendActive;mpPresenceRef=null;mpLastRoomMetaSig='';
-const _ga=document.getElementById('gameover-actions');if(_ga){_ga.style.removeProperty('display');_ga.classList.remove('hidden');}
+const _ga=document.getElementById('gameover-actions');if(_ga){_ga.style.removeProperty('display');_ga.style.removeProperty('grid-template-columns');_ga.classList.remove('hidden');}
 const _rp=document.getElementById('btn-play-again');if(_rp){_rp.style.removeProperty('display');_rp.style.removeProperty('grid-column');_rp.style.removeProperty('grid-row');}
 const _ex=document.getElementById('btn-game-exit');if(_ex){_ex.style.removeProperty('display');_ex.style.removeProperty('grid-column');_ex.style.removeProperty('grid-row');}
 mpSessionJoinedAt=0;mpExitHandling=false;mpLastExitSignalId='';reconnectPresenceBusy=false;setMpConnectionStatus(false);
