@@ -2355,7 +2355,7 @@ if(!el){
   el=document.createElement('div');
   el.id='atisma-placement-hint';
   el.setAttribute('aria-live','polite');
-  el.innerHTML='Balonunuzu, tuzak kurmak istediğiniz<br>harfin üzerine bırakın.';
+  el.innerHTML='Balonlarınızı, tuzak kurmak istediğiniz<br>harfin üzerine bırakın.';
   const host=document.getElementById('selected-preview-bar')||document.getElementById('screen-game');
   host?.appendChild(el);
 }
@@ -3436,7 +3436,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=597-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=598-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
