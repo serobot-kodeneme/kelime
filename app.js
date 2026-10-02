@@ -6894,7 +6894,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v617 — KESİŞİM: 2 oyuncu, 200 taş, süpürge ve kule */
+/* v618 — KESİŞİM: ahşap tahta, otomatik yön ve sade kontroller */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -6910,7 +6910,7 @@ const state={
   grid:Array.from({length:SIZE},()=>Array(SIZE).fill('')),
   dirs:Array.from({length:SIZE},()=>Array(SIZE).fill(0)),
   used:new Set(),words:[],scores:[0,0],turn:0,bag:[],racks:[[],[]],broomUsed:[false,false],
-  dir:'auto',temp:new Map(),tempOrder:[],drag:null,popTimer:null,gameOver:false
+  temp:new Map(),tempOrder:[],drag:null,popTimer:null,gameOver:false
 };
 const cells=[];
 const key=(r,c)=>r+','+c;
@@ -6935,8 +6935,6 @@ function updateHud(){
   document.getElementById('ksm-p2-label')?.classList.toggle('active',state.turn===1);
   document.getElementById('ksm-p1-card')?.classList.toggle('active',state.turn===0);
   document.getElementById('ksm-p2-card')?.classList.toggle('active',state.turn===1);
-  const turnLabel=document.getElementById('ksm-turn-label');if(turnLabel)turnLabel.textContent=(state.turn+1)+'. oyuncunun sırası.';
-  const owner=document.getElementById('ksm-rack-owner');if(owner)owner.textContent=(state.turn+1)+'. OYUNCU';
   const broom=document.getElementById('ksm-broom-left');if(broom)broom.textContent=state.broomUsed[state.turn]?'0':'1';
   const broomBtn=document.getElementById('btn-ksm-broom');if(broomBtn)broomBtn.disabled=state.broomUsed[state.turn]||state.temp.size>0||state.gameOver;
 }
@@ -6978,7 +6976,7 @@ function dropAt(x,y){
   if(base===state.drag.letter){setFeedback('Aynı harfi üst üste koymaya gerek yok.','bad');return;}
   const item={r,c,char:state.drag.letter,rackIndex:state.drag.index,tower:!!base,under:base||''};
   state.temp.set(key(r,c),item);state.tempOrder.push(key(r,c));renderCell(r,c,false);renderRack();
-  setFeedback(item.tower?'Kule taşı yerleşti. YERLEŞTİR ile kontrol et.':'Taş yerleşti. Sözcüğü tamamla.','');
+  setFeedback(item.tower?'Kule taşı yerleşti. GÖNDER ile kontrol et.':'Taş yerleşti. Sözcüğü tamamla.','');
 }
 function undo(){
   const k=state.tempOrder.pop();if(!k)return;const t=state.temp.get(k);state.temp.delete(k);if(t)renderCell(t.r,t.c,false);renderRack();
@@ -7009,7 +7007,7 @@ function candidateForDir(dr,dc,name,bit){
 }
 function validate(){
   if(!state.temp.size)return{error:'Istakadan en az bir taş yerleştir.'};
-  let dirs=state.dir==='h'?[[0,1,'h',H]]:state.dir==='v'?[[1,0,'v',V]]:[[0,1,'h',H],[1,0,'v',V]];
+  const dirs=[[0,1,'h',H],[1,0,'v',V]];
   const candidates=dirs.map(d=>candidateForDir(...d)).filter(Boolean);
   if(!candidates.length)return{error:'Bu taşlarla geçerli yatay/dikey sözcük oluşmadı.'};
   candidates.sort((a,b)=>b.score-a.score||b.line.length-a.line.length);
@@ -7053,13 +7051,12 @@ function checkEnd(){
   if(txt)txt.textContent='200 taş bitti • '+a+' - '+b;
   document.getElementById('ksm-gameover')?.classList.remove('hidden');
 }
-function setDir(dir){state.dir=dir;for(const[id,d]of[['btn-ksm-auto','auto'],['btn-ksm-h','h'],['btn-ksm-v','v']])document.getElementById(id)?.classList.toggle('selected',d===dir);}
 function reset(){
   clearTimeout(state.popTimer);state.grid=Array.from({length:SIZE},()=>Array(SIZE).fill(''));state.dirs=Array.from({length:SIZE},()=>Array(SIZE).fill(0));
-  state.used.clear();state.words=[];state.scores=[0,0];state.turn=0;state.broomUsed=[false,false];state.temp.clear();state.tempOrder=[];state.drag=null;state.gameOver=false;state.dir='auto';
+  state.used.clear();state.words=[];state.scores=[0,0];state.turn=0;state.broomUsed=[false,false];state.temp.clear();state.tempOrder=[];state.drag=null;state.gameOver=false;
   state.bag=makeBag();const seed=chooseSeed();consumeSeedFromBag(seed);placeSeed(seed);state.racks=[[],[]];drawRackToNine(0);drawRackToNine(1);
   document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');
-  renderAll();renderRack();updateHud();setDir('auto');setFeedback('Başlangıç sözcüğü: '+seed+'. 1. oyuncu başlıyor.','good');centerBoard();
+  renderAll();renderRack();updateHud();setFeedback('Başlangıç sözcüğü: '+seed+'. 1. oyuncu başlıyor.','good');centerBoard();
 }
 function exit(){clearTimeout(state.popTimer);state.drag=null;ghost.style.display='none';screen.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}
 async function open(){document.getElementById('screen-home')?.classList.add('hidden');screen.classList.remove('hidden');setFeedback('KESİŞİM hazırlanıyor…');try{await ensureWordDataLoaded();if(!cells.length)buildBoard();reset();}catch(err){console.error('Kesişim startup failed',err);showToast('KESİŞİM hazırlanamadı.','rose');exit();}}
@@ -7072,9 +7069,6 @@ document.getElementById('btn-ksm-exit')?.addEventListener('click',exit);
 document.getElementById('btn-ksm-home-exit')?.addEventListener('click',exit);
 document.getElementById('btn-ksm-again')?.addEventListener('click',reset);
 document.getElementById('btn-ksm-new')?.addEventListener('click',reset);
-document.getElementById('btn-ksm-auto')?.addEventListener('click',()=>setDir('auto'));
-document.getElementById('btn-ksm-h')?.addEventListener('click',()=>setDir('h'));
-document.getElementById('btn-ksm-v')?.addEventListener('click',()=>setDir('v'));
 document.getElementById('btn-ksm-undo')?.addEventListener('click',undo);
 document.getElementById('btn-ksm-broom')?.addEventListener('click',broom);
 document.getElementById('btn-ksm-shuffle')?.addEventListener('click',shuffleRack);
