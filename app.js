@@ -3601,7 +3601,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=638-gokdelen-birds',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=639-gokdelen-validation',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -6894,7 +6894,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v638 — GÖKDELEN: rastgele başlangıç, geçersiz hamle uyarısı, kuşlar ve iki süpürge */
+/* v639 — GÖKDELEN: bağlı çoklu sözcük, konuma göre doğrulama ve ortak AI kuralları */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -7151,10 +7151,9 @@ function lineThroughOverlay(overlay,r,c,dr,dc){
 }
 function evaluateWordLine(line,name,bit){
   if(line.length<2)return null;
-  if(line.length>9)return{error:'Sözcük en fazla 9 harf olabilir.'};
+  if(line.length>9)return{error:'Sözcük en fazla 9 harf olabilir.',invalidWord:line.map(x=>x.char).join(''),invalidLine:line};
   const word=line.map(x=>x.char).join('');
-  if(state.used.has(word))return{error:word+' daha önce kullanıldı.'};
-  if(!GAME_WORD_SET.has(word)||isArgoWord(word)||isForeignWord(word))return{error:'Dokunan tüm harfler anlamlı sözcük oluşturmalı: '+word};
+  if(!GAME_WORD_SET.has(word)||isArgoWord(word)||isForeignWord(word))return{error:'Geçersiz yan veya ana sözcük: '+word,invalidWord:word,invalidLine:line};
   const flowerBonus=line.some(x=>state.flowers.has(key(x.r,x.c)));
   const baseScore=wordScore(word);
   return{word,line,name,bit,baseScore,score:baseScore,flowerBonus};
@@ -7162,53 +7161,42 @@ function evaluateWordLine(line,name,bit){
 function evaluatePlacement(overlay){
   const temps=[...overlay.values()];
   if(!temps.length)return{error:'Istakadan en az bir taş yerleştir.'};
-  const sameRow=temps.every(t=>t.r===temps[0].r),sameCol=temps.every(t=>t.c===temps[0].c);
-  if(temps.length>1&&!sameRow&&!sameCol)return{error:'Taşlar aynı satırda veya aynı sütunda olmalı.'};
-
-  const words=[],seen=new Set();
-  const addLine=(line,name,bit)=>{
-    if(line.length<2)return null;
-    const first=line[0],last=line[line.length-1],sig=name+'|'+first.r+','+first.c+'|'+last.r+','+last.c;
-    if(seen.has(sig))return null;
-    const result=evaluateWordLine(line,name,bit);
-    if(result?.error)return result;
-    seen.add(sig);words.push(result);return null;
-  };
-
-  if(temps.length===1){
-    const t=temps[0];
-    for(const [dr,dc,name,bit] of [[0,1,'h',H],[1,0,'v',V]]){
-      const err=addLine(lineThroughOverlay(overlay,t.r,t.c,dr,dc),name,bit);
-      if(err)return err;
-    }
-  }else{
-    const main=sameRow?[0,1,'h',H]:[1,0,'v',V];
-    const cross=sameRow?[1,0,'v',V]:[0,1,'h',H];
-    const mainLine=lineThroughOverlay(overlay,temps[0].r,temps[0].c,main[0],main[1]);
-    if(!temps.every(t=>mainLine.some(x=>x.r===t.r&&x.c===t.c)))return{error:'Yerleştirilen taşların arasında boşluk kalamaz.'};
-    const mainErr=addLine(mainLine,main[2],main[3]);if(mainErr)return mainErr;
-    for(const t of temps){
-      const crossErr=addLine(lineThroughOverlay(overlay,t.r,t.c,cross[0],cross[1]),cross[2],cross[3]);
-      if(crossErr)return crossErr;
+  const rackIds=new Set(temps.map(t=>t.rackIndex));
+  if(rackIds.size!==temps.length)return{error:'Aynı taş iki karede kullanılamaz.'};
+  let lowest=-1;for(let r=0;r<ROWS;r++)if(state.grid[r].some(Boolean))lowest=r;
+  for(const t of temps){
+    if(t.r<0||t.r>=ROWS||t.c<0||t.c>=COLS||t.r>lowest)return{error:'GÖKDELEN yalnızca yukarı doğru büyür.'};
+    if(t.r>=ROWS-4&&t.c>=3&&t.c<6)return{error:'Giriş kapısına harf yerleştirilemez.'};
+  }
+  // Every new tile must reach the committed building through orthogonal letters.
+  const reachable=new Set(),queue=[];
+  for(const t of temps)if(state.grid[t.r][t.c]||[[0,1],[0,-1],[1,0],[-1,0]].some(([dr,dc])=>state.grid[t.r+dr]?.[t.c+dc])){reachable.add(key(t.r,t.c));queue.push(t);}
+  for(let i=0;i<queue.length;i++){
+    const {r,c}=queue[i];
+    for(const [dr,dc] of [[0,1],[0,-1],[1,0],[-1,0]]){
+      const k=key(r+dr,c+dc);if(reachable.has(k)||!overlay.has(k))continue;
+      reachable.add(k);queue.push(overlay.get(k));
     }
   }
-
+  if(temps.some(t=>!reachable.has(key(t.r,t.c))))return{error:'Tüm yeni taşlar bir sözcükle mevcut gökdelene bağlanmalı.'};
+  const words=[],seen=new Set(),covered=new Set();
+  for(const t of temps)for(const [dr,dc,name,bit] of [[0,1,'h',H],[1,0,'v',V]]){
+    const line=lineThroughOverlay(overlay,t.r,t.c,dr,dc);if(line.length<2)continue;
+    const first=line[0],last=line[line.length-1],sig=name+'|'+first.r+','+first.c+'|'+last.r+','+last.c;
+    if(seen.has(sig))continue;seen.add(sig);
+    const result=evaluateWordLine(line,name,bit);if(result?.error)return result;
+    // Existing, unchanged occurrences do not earn points again.
+    const oldLine=lineThroughOverlay(new Map(),t.r,t.c,dr,dc);
+    const unchanged=oldLine.length===line.length&&oldLine.every((x,i)=>x.r===line[i].r&&x.c===line[i].c&&x.char===line[i].char);
+    if(unchanged)continue;
+    words.push(result);for(const x of line)if(overlay.has(key(x.r,x.c)))covered.add(key(x.r,x.c));
+  }
+  if(temps.some(t=>!covered.has(key(t.r,t.c))))return{error:'Her yeni taş en az iki harfli geçerli bir sözcüğün içinde olmalı.'};
   if(!words.length)return{error:'En az iki harfli anlamlı bir sözcük oluştur.'};
-  const connected=temps.some(t=>t.tower||!!state.grid[t.r]?.[t.c])||words.some(w=>w.line.some(x=>!!state.grid[x.r]?.[x.c]));
-  if(!connected)return{error:'Yeni sözcük mevcut gökdelene bağlanmalı.'};
-
-  const placedCount=new Set(temps.map(t=>t.rackIndex)).size;
-  const rackBonus=placedCount>=5;
+  const placedCount=rackIds.size,rackBonus=placedCount>=5;
   for(const w of words)w.score=w.baseScore*(w.flowerBonus?3:1)*(rackBonus?2:1);
   words.sort((a,b)=>b.score-a.score||b.line.length-a.line.length);
-  return{
-    ...words[0],
-    words,
-    totalScore:words.reduce((n,w)=>n+w.score,0),
-    rackBonus,
-    placedCount,
-    flowerBonus:words.some(w=>w.flowerBonus)
-  };
+  return{...words[0],words,totalScore:words.reduce((n,w)=>n+w.score,0),rackBonus,placedCount,flowerBonus:words.some(w=>w.flowerBonus)};
 }
 function validate(){return evaluatePlacement(state.temp);}
 function clearAiTimer(){if(state.aiTimer){clearTimeout(state.aiTimer);state.aiTimer=null;}}
@@ -7237,15 +7225,15 @@ function aiPlacement(word,sr,sc,dr,dc){
   const br=sr-dr,bc=sc-dc,ar=er+dr,ac=ec+dc;
   if(br>=0&&bc>=0&&br<ROWS&&bc<COLS&&state.grid[br][bc])return null;
   if(ar>=0&&ac>=0&&ar<ROWS&&ac<COLS&&state.grid[ar][ac])return null;
-  const need=[],cellsToPlace=[];let connected=false;
+  const need=[],cellsToPlace=[];
   for(let i=0;i<word.length;i++){
     const r=sr+dr*i,c=sc+dc*i,ch=word[i],base=state.grid[r][c];
     const doorRowsStart=ROWS-4,doorColStart=Math.floor((COLS-3)/2);
     if(r>=doorRowsStart&&c>=doorColStart&&c<doorColStart+3)return null;
-    if(base){if(base!==ch)return null;connected=true;}
+    if(base){if(base!==ch)return null;}
     else{need.push(ch);cellsToPlace.push({r,c,char:ch});}
   }
-  if(!connected||!need.length||need.length>state.racks[1].length)return null;
+  if(!need.length||need.length>state.racks[1].length)return null;
   const idxs=aiRackIndicesFor(need);if(!idxs)return null;
   const overlay=new Map();
   for(let i=0;i<cellsToPlace.length;i++){
@@ -7265,10 +7253,18 @@ function aiPlacement(word,sr,sc,dr,dc){
   };
 }
 function aiFindMove(){
-  const positions=aiBoardPositions(),candidates=[],seen=new Set();
+  const positions=aiBoardPositions(),candidates=[],seen=new Set(),frontier=[];
+  let lowest=-1;for(let r=0;r<ROWS;r++)if(state.grid[r].some(Boolean))lowest=r;
+  for(let r=0;r<=lowest;r++)for(let c=0;c<COLS;c++)if(!state.grid[r][c]&&[[0,1],[0,-1],[1,0],[-1,0]].some(([dr,dc])=>state.grid[r+dr]?.[c+dc]))frontier.push({r,c});
   for(const raw of GAME_WORD_SET){
     const word=String(raw||'').toLocaleUpperCase('tr-TR');
-    if(word.length<2||word.length>9||state.used.has(word)||isArgoWord(word)||isForeignWord(word))continue;
+    if(word.length<2||word.length>9||isArgoWord(word)||isForeignWord(word))continue;
+    if(word.length<=state.racks[1].length&&aiRackIndicesFor(Array.from(word))){
+      for(const p of frontier)for(let i=0;i<word.length;i++)for(const [dr,dc] of [[0,1],[1,0]]){
+        const sr=p.r-dr*i,sc=p.c-dc*i,k=word+'@'+sr+','+sc+','+dr;
+        if(seen.has(k))continue;seen.add(k);const move=aiPlacement(word,sr,sc,dr,dc);if(move)candidates.push(move);
+      }
+    }
     for(let i=0;i<word.length;i++){
       const anchors=positions.get(word[i]);if(!anchors)continue;
       for(const p of anchors){
@@ -7281,9 +7277,18 @@ function aiFindMove(){
       }
     }
   }
+  // A single replacement tile can form valid tower words in both directions.
+  const unique=new Set();state.racks[1].forEach((char,rackIndex)=>{
+    if(unique.has(char))return;unique.add(char);
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(state.grid[r][c]&&state.grid[r][c]!==char){
+      const placed={r,c,char,rackIndex,tower:true,under:state.grid[r][c]};
+      const result=evaluatePlacement(new Map([[key(r,c),placed]]));
+      if(!result.error)candidates.push({word:result.word,words:result.words,score:result.totalScore,flowerBonus:result.flowerBonus,rackBonus:result.rackBonus,placed:[placed]});
+    }
+  });
   if(!candidates.length)return null;
   candidates.sort((a,b)=>b.score-a.score||b.word.length-a.word.length);
-  const pool=candidates.slice(0,Math.min(5,candidates.length));
+  const pool=candidates.filter(x=>x.score===candidates[0].score&&x.word.length===candidates[0].word.length);
   return pool[Math.floor(Math.random()*pool.length)];
 }
 function aiPassTurn(text='HAMLE BULAMADI'){
@@ -7309,7 +7314,7 @@ function aiTakeTurn(){
   const placeNext=()=>{
     if(state.turn!==1||state.gameOver||screen.classList.contains('hidden'))return;
     const t=move.placed[index++],k=key(t.r,t.c);
-    state.temp.set(k,{...t,tower:false,under:''});state.tempOrder.push(k);
+    state.temp.set(k,{...t,tower:!!t.tower,under:t.under||''});state.tempOrder.push(k);
     renderCell(t.r,t.c);animateTile(t.r,t.c);
     state.aiTimer=setTimeout(index<move.placed.length?placeNext:()=>{if(state.turn===1&&!state.gameOver)commit();},index<move.placed.length?110:480);
   };
@@ -7349,11 +7354,11 @@ function clearInvalidFeedback(){
   clearTimeout(invalidTimer);invalidTimer=null;screen.classList.remove('ksm-invalid-shake');
   document.getElementById('ksm-invalid-word')?.remove();
 }
-function showInvalidFeedback(){
+function showInvalidFeedback(result={}){
   clearInvalidFeedback();
   const pending=[...state.temp.values()];if(!pending.length)return;
-  const label=document.createElement('div');label.id='ksm-invalid-word';label.className='ksm-invalid-word';label.textContent='GEÇERSİZ SÖZCÜK';label.setAttribute('role','status');
-  const positions=pending.map(t=>cells[t.r*COLS+t.c]);
+  const label=document.createElement('div');label.id='ksm-invalid-word';label.className='ksm-invalid-word';label.textContent=result.invalidWord?'GEÇERSİZ SÖZCÜK: '+result.invalidWord:'GEÇERSİZ HAMLE';label.setAttribute('role','status');
+  const positions=(result.invalidLine||pending).map(t=>cells[t.r*COLS+t.c]);
   const x=positions.reduce((sum,el)=>sum+el.offsetLeft+el.offsetWidth/2,0)/positions.length;
   const y=Math.min(...positions.map(el=>el.offsetTop));
   label.style.left=Math.max(90,Math.min(boardEl.clientWidth-90,x))+'px';label.style.top=Math.max(2,y-24)+'px';
@@ -7372,7 +7377,7 @@ function renderBirds(){
 }
 function commit(){
   if(state.gameOver)return;
-  const v=validate();if(v.error){setFeedback(v.error,'bad');showInvalidFeedback();return;}
+  const v=validate();if(v.error){setFeedback(v.error,'bad');showInvalidFeedback(v);return;}
   clearInvalidFeedback();
   const placed=[...state.temp.values()];
   for(const t of placed)state.grid[t.r][t.c]=t.char;
