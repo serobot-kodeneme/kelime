@@ -32,7 +32,7 @@ const COMMON_IMPERATIVE_WORDS=Object.freeze([
 'ZORLA'
 ]);
 
-/* v613 — Açıkça doğrulanmış emir kipleri ve yerel anlam güvencesi.
+/* v614 — Açıkça doğrulanmış emir kipleri ve yerel anlam güvencesi.
 Kökten/ekten otomatik sözcük türetilmez; yalnızca bu tam yazımlar kabul edilir. */
 const IMPERATIVE_MEANING_DICTIONARY=Object.freeze({
 'İLET':['Bir şeyi bir yerden başka bir yere ulaştırmak.','Bir bilgiyi veya haberi başkasına aktarmak.'],
@@ -238,7 +238,7 @@ const CURATED_EXPANSION_WORDS_V3=Object.freeze([
 'MUZ','ÜZGÜ','HEKİM','İTFAİYECİ'
 ]);
 
-/* v613 — Tahta sözcük sıklığı katmanı.
+/* v614 — Tahta sözcük sıklığı katmanı.
 Doğrudan tahta tohumlarında hedef yaklaşık %70 günlük, %20 genel, %10 az bilinen/eğitici Türkçedir.
 Sözlükten hiçbir sözcük silinmez; sınıflandırılmamış teknik/terminolojik sözcükler yalnızca yedek havuzda kalır. */
 const DAILY_BOARD_PRIORITY_WORDS=new Set([
@@ -539,7 +539,7 @@ document.addEventListener('webkitfullscreenchange',handleFullscreenLayoutChange)
 let remainingSeconds=60;
 let isMatchActive=false;
 
-// v613 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
+// v614 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
 const LETTER_IDLE_WAVE_MS=4000;
 let letterIdleLastActivityAt=0;
 let letterIdleWaveShown=false;
@@ -3601,7 +3601,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=613-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=614-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -5994,7 +5994,7 @@ document.getElementById('btn-close-rematch-waiting')?.addEventListener('click',(
 document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePlayAgain);
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
-/* v613 — ZİNCİRLEME: sıra tabanlı 9x9 tahta sözcük zinciri */
+/* v614 — ZİNCİRLEME: sıra tabanlı 9x9 tahta sözcük zinciri */
 (()=>{
 const screen=document.getElementById('screen-zincirleme');
 const homeBtn=document.getElementById('btn-zincirleme-home');
@@ -6314,7 +6314,7 @@ zlmSetMode('ai');
 })();
 
 
-/* v613 — AVCI: hareketli harflerden görev sözcüğü yakalama */
+/* v614 — AVCI: hareketli harflerden görev sözcüğü yakalama */
 (()=>{
 const screen=document.getElementById('screen-avci');
 const homeBtn=document.getElementById('btn-avci-home');
@@ -6603,7 +6603,7 @@ window.addEventListener('resize',()=>{
 })();
 
 
-/* v613 — VURMACA: uçuşan hedef harfleri küçük topla vurma */
+/* v614 — VURMACA: uçuşan hedef harfleri küçük topla vurma */
 (()=>{
 const screen=document.getElementById('screen-vurmaca2');
 const homeBtn=document.getElementById('btn-vurmaca-home');
@@ -6894,211 +6894,64 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-
-/* v613 — KESİŞİM: serbest mini çapraz bulmaca motoru */
+/* v614 — KESİŞİM: Scrabble tipi ıstaka + tut/sürükle/bırak */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const homeBtn=document.getElementById('btn-kesisim-home');
 const boardEl=document.getElementById('ksm-board');
 const wrap=document.getElementById('ksm-board-wrap');
-const form=document.getElementById('ksm-form');
-const input=document.getElementById('ksm-input');
-if(!screen||!homeBtn||!boardEl||!wrap||!form||!input)return;
-
-const SIZE=15;
-const state={
-  grid:Array.from({length:SIZE},()=>Array(SIZE).fill('')),
-  dirs:Array.from({length:SIZE},()=>Array(SIZE).fill(0)),
-  anchor:null,dir:'auto',used:new Set(),words:[],score:0,crossings:0,popTimer:null
-};
-const cells=[];
-const H=1,V=2;
+const rackEl=document.getElementById('ksm-rack');
+const ghost=document.getElementById('ksm-drag-ghost');
+if(!screen||!homeBtn||!boardEl||!wrap||!rackEl||!ghost)return;
+const SIZE=15,H=1,V=2;
+const RACK_FILL='AAAAAAAABCCÇDDEEEEEEEEGĞHIIIIİİİİKKKLLLLMMMNNNNOOÖPRRRRSSSSŞTTTTUUÜVYYZ';
 const SEEDS=['KALEM','YEMEK','KİTAP','DENİZ','BULUT','ORMAN','PERDE','ÇANTA','SABAH','AKŞAM'];
-
-function ksmNorm(v){
-  return String(v||'').trim().toLocaleUpperCase('tr-TR').replace(/[^ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ]/g,'');
-}
-function ksmSetFeedback(text='',kind=''){
-  const el=document.getElementById('ksm-feedback');if(!el)return;
-  el.textContent=text;el.classList.remove('good','bad');if(kind)el.classList.add(kind);
-}
-function ksmUpdateHud(){
-  document.getElementById('ksm-score').textContent=String(state.score);
-  document.getElementById('ksm-word-count').textContent=String(state.words.length);
-  document.getElementById('ksm-cross-count').textContent=String(state.crossings);
-}
-function ksmShowPop(title,sub='',duration=950){
-  const pop=document.getElementById('ksm-pop'),a=document.getElementById('ksm-pop-title'),b=document.getElementById('ksm-pop-sub');
-  if(!pop||!a||!b)return;
-  clearTimeout(state.popTimer);a.textContent=title;b.textContent=sub;pop.classList.add('show');
-  state.popTimer=setTimeout(()=>pop.classList.remove('show'),duration);
-}
-function ksmWordScore(word,crosses=1){
-  return Array.from(word).reduce((sum,ch)=>sum+(TILE_SCORE_CACHE[ch]||1),0)+Math.max(0,word.length-2)*2+Math.max(0,crosses-1)*5;
-}
-function ksmRenderCell(r,c,isNew=false){
-  const el=cells[r*SIZE+c];if(!el)return;
-  const ch=state.grid[r][c];
-  el.className='ksm-cell'+(ch?' filled':'')+(state.anchor?.r===r&&state.anchor?.c===c?' anchor':'')+(isNew?' new-cell':'');
-  el.textContent='';
-  if(ch){
-    const sp=document.createElement('span');sp.textContent=ch;
-    const sm=document.createElement('small');sm.textContent=String(TILE_SCORE_CACHE[ch]||1);
-    el.append(sp,sm);
-  }
-}
-function ksmRenderAll(){
-  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)ksmRenderCell(r,c,false);
-  const label=document.getElementById('ksm-anchor-label');
-  if(label)label.textContent=state.anchor?('Seçili harf: '+state.anchor.char):'Bir harf seç.';
-}
-function ksmBuildBoard(){
-  boardEl.textContent='';cells.length=0;
-  const frag=document.createDocumentFragment();
-  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
-    const el=document.createElement('div');el.className='ksm-cell';el.dataset.r=String(r);el.dataset.c=String(c);
-    el.addEventListener('click',()=>{
-      if(!state.grid[r][c])return;
-      state.anchor={r,c,char:state.grid[r][c]};ksmRenderAll();
-      ksmSetFeedback(state.anchor.char+' harfini içeren yeni bir sözcük yaz.','');
-      input.focus({preventScroll:true});
-    });
-    frag.appendChild(el);cells.push(el);
-  }
-  boardEl.appendChild(frag);
-}
-function ksmChooseSeed(){
-  const valid=SEEDS.filter(w=>GAME_WORD_SET.has(w)&&w.length<=9);
-  return valid[Math.floor(Math.random()*valid.length)]||'KALEM';
-}
-function ksmPlaceSeed(word){
-  const r=Math.floor(SIZE/2),start=Math.floor((SIZE-word.length)/2);
-  for(let i=0;i<word.length;i++){
-    state.grid[r][start+i]=word[i];state.dirs[r][start+i]|=H;
-  }
-  state.words.push({word,r,c:start,dir:'h',crosses:0});
-  state.used.add(word);
-  state.score=0;state.crossings=0;
-  state.anchor={r,c:start+Math.floor(word.length/2),char:word[Math.floor(word.length/2)]};
-}
-function ksmDirList(){
-  if(state.dir==='h')return[{dr:0,dc:1,bit:H,name:'h'}];
-  if(state.dir==='v')return[{dr:1,dc:0,bit:V,name:'v'}];
-  return[{dr:1,dc:0,bit:V,name:'v'},{dr:0,dc:1,bit:H,name:'h'}];
-}
-function ksmCheckPlacement(word,anchorIndex,dir){
-  const a=state.anchor;if(!a)return null;
-  const sr=a.r-anchorIndex*dir.dr,sc=a.c-anchorIndex*dir.dc;
-  const er=sr+(word.length-1)*dir.dr,ec=sc+(word.length-1)*dir.dc;
-  if(sr<0||sc<0||er<0||ec<0||sr>=SIZE||sc>=SIZE||er>=SIZE||ec>=SIZE)return null;
-
-  const beforeR=sr-dir.dr,beforeC=sc-dir.dc,afterR=er+dir.dr,afterC=ec+dir.dc;
-  if(beforeR>=0&&beforeC>=0&&beforeR<SIZE&&beforeC<SIZE&&state.grid[beforeR][beforeC])return null;
-  if(afterR>=0&&afterC>=0&&afterR<SIZE&&afterC<SIZE&&state.grid[afterR][afterC])return null;
-
-  let crosses=0,newCount=0;
-  const cellsToWrite=[];
-  for(let i=0;i<word.length;i++){
-    const r=sr+i*dir.dr,c=sc+i*dir.dc,ch=word[i],existing=state.grid[r][c];
-    if(existing){
-      if(existing!==ch)return null;
-      if(state.dirs[r][c]&dir.bit)return null;
-      crosses++;
-    }else{
-      newCount++;
-      const pr1=r+(dir.dr?0:-1),pc1=c+(dir.dr?-1:0);
-      const pr2=r+(dir.dr?0:1),pc2=c+(dir.dr?1:0);
-      if(pr1>=0&&pc1>=0&&pr1<SIZE&&pc1<SIZE&&state.grid[pr1][pc1])return null;
-      if(pr2>=0&&pc2>=0&&pr2<SIZE&&pc2<SIZE&&state.grid[pr2][pc2])return null;
-    }
-    cellsToWrite.push({r,c,ch});
-  }
-  if(crosses<1||newCount<1)return null;
-  if(!cellsToWrite.some(x=>x.r===a.r&&x.c===a.c))return null;
-  return{word,sr,sc,dir,crosses,newCount,cells:cellsToWrite};
-}
-function ksmFindPlacement(word){
-  if(!state.anchor)return null;
-  const occurrences=[];
-  Array.from(word).forEach((ch,i)=>{if(ch===state.anchor.char)occurrences.push(i);});
-  if(!occurrences.length)return null;
-  const options=[];
-  for(const dir of ksmDirList())for(const idx of occurrences){
-    const p=ksmCheckPlacement(word,idx,dir);if(p)options.push(p);
-  }
-  if(!options.length)return null;
-  options.sort((a,b)=>b.crosses-a.crosses||b.newCount-a.newCount);
-  return options[0];
-}
-function ksmApplyPlacement(p){
-  const newCells=[];
-  for(const item of p.cells){
-    if(!state.grid[item.r][item.c]){
-      state.grid[item.r][item.c]=item.ch;newCells.push(item);
-    }
-    state.dirs[item.r][item.c]|=p.dir.bit;
-  }
-  state.used.add(p.word);state.words.push({word:p.word,r:p.sr,c:p.sc,dir:p.dir.name,crosses:p.crosses});
-  state.crossings+=p.crosses;
-  const pts=ksmWordScore(p.word,p.crosses);state.score+=pts;
-  state.anchor=null;ksmRenderAll();
-  for(const item of newCells)ksmRenderCell(item.r,item.c,true);
-  ksmUpdateHud();input.value='';
-  ksmSetFeedback(p.word+' yerleşti. Yeni bir kesişim harfi seç.','good');
-  ksmShowPop(p.word+'  +'+pts,p.crosses+(p.crosses===1?' kesişim':' kesişim'),1050);
-}
-function ksmSubmit(){
-  const word=ksmNorm(input.value);input.value=word;
-  if(!state.anchor){ksmSetFeedback('Önce tahtadaki bir harfi seç.','bad');return;}
-  if(word.length<2||word.length>9){ksmSetFeedback('Sözcük 2–9 harf olmalı.','bad');return;}
-  if(state.used.has(word)){ksmSetFeedback('Bu sözcüğü daha önce kullandın.','bad');return;}
-  if(!GAME_WORD_SET.has(word)||isArgoWord(word)||isForeignWord(word)){ksmSetFeedback('Sözlükte geçerli bir sözcük değil.','bad');return;}
-  if(!Array.from(word).includes(state.anchor.char)){ksmSetFeedback('Sözcük seçtiğin '+state.anchor.char+' harfini içermeli.','bad');return;}
-  const placement=ksmFindPlacement(word);
-  if(!placement){ksmSetFeedback('Bu sözcük seçilen harften uygun biçimde yerleşmiyor. Başka yön/harf dene.','bad');return;}
-  ksmApplyPlacement(placement);
-}
-function ksmSetDir(dir){
-  state.dir=dir;
-  for(const [id,d] of [['btn-ksm-auto','auto'],['btn-ksm-h','h'],['btn-ksm-v','v']]){
-    document.getElementById(id)?.classList.toggle('selected',d===dir);
-  }
-}
-function ksmCenterBoard(){
-  requestAnimationFrame(()=>{
-    wrap.scrollLeft=Math.max(0,(boardEl.scrollWidth-wrap.clientWidth)/2);
-    wrap.scrollTop=Math.max(0,(boardEl.scrollHeight-wrap.clientHeight)/2);
-  });
-}
-function ksmReset(){
-  clearTimeout(state.popTimer);
-  state.grid=Array.from({length:SIZE},()=>Array(SIZE).fill(''));
-  state.dirs=Array.from({length:SIZE},()=>Array(SIZE).fill(0));
-  state.anchor=null;state.used.clear();state.words.length=0;state.score=0;state.crossings=0;state.dir='auto';
-  const seed=ksmChooseSeed();ksmPlaceSeed(seed);ksmRenderAll();ksmUpdateHud();ksmSetDir('auto');
-  input.value='';document.getElementById('ksm-rules')?.classList.add('hidden');
-  ksmSetFeedback('Başlangıç sözcüğü: '+seed+'. Bir harf seçip yeni sözcük bağla.','good');
-  ksmCenterBoard();
-}
-function ksmExit(){
-  clearTimeout(state.popTimer);screen.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');
-  document.getElementById('screen-home')?.classList.remove('hidden');
-}
-async function ksmOpen(){
-  document.getElementById('screen-home')?.classList.add('hidden');screen.classList.remove('hidden');
-  ksmSetFeedback('KESİŞİM hazırlanıyor…');
-  try{await ensureWordDataLoaded();if(!cells.length)ksmBuildBoard();ksmReset();}
-  catch(err){console.error('Kesişim startup failed',err);showToast('KESİŞİM hazırlanamadı.','rose');ksmExit();}
-}
-
-form.addEventListener('submit',e=>{e.preventDefault();ksmSubmit();});
-input.addEventListener('input',()=>{const n=ksmNorm(input.value);if(input.value!==n)input.value=n;});
+const state={grid:Array.from({length:SIZE},()=>Array(SIZE).fill('')),dirs:Array.from({length:SIZE},()=>Array(SIZE).fill(0)),anchor:null,dir:'auto',used:new Set(),words:[],score:0,crossings:0,popTimer:null,rack:[],temp:new Map(),tempOrder:[],drag:null};
+const cells=[];
+function ksmKey(r,c){return r+','+c;}
+function ksmRandomLetter(){return RACK_FILL[Math.floor(Math.random()*RACK_FILL.length)];}
+function ksmSetFeedback(text='',kind=''){const el=document.getElementById('ksm-feedback');if(!el)return;el.textContent=text;el.classList.remove('good','bad');if(kind)el.classList.add(kind);}
+function ksmUpdateHud(){document.getElementById('ksm-score').textContent=String(state.score);document.getElementById('ksm-word-count').textContent=String(state.words.length);document.getElementById('ksm-cross-count').textContent=String(state.crossings);}
+function ksmShowPop(title,sub='',duration=950){const pop=document.getElementById('ksm-pop'),a=document.getElementById('ksm-pop-title'),b=document.getElementById('ksm-pop-sub');if(!pop||!a||!b)return;clearTimeout(state.popTimer);a.textContent=title;b.textContent=sub;pop.classList.add('show');state.popTimer=setTimeout(()=>pop.classList.remove('show'),duration);}
+function ksmWordScore(word,crosses=1){return Array.from(word).reduce((sum,ch)=>sum+(TILE_SCORE_CACHE[ch]||1),0)+Math.max(0,word.length-2)*2+Math.max(0,crosses-1)*5;}
+function ksmTempAt(r,c){return state.temp.get(ksmKey(r,c))||null;}
+function ksmCharAt(r,c){return state.grid[r]?.[c]||ksmTempAt(r,c)?.char||'';}
+function ksmRackIndexUsed(index){for(const item of state.temp.values())if(item.rackIndex===index)return true;return false;}
+function ksmRenderCell(r,c,isNew=false){const el=cells[r*SIZE+c];if(!el)return;const permanent=state.grid[r][c],temp=ksmTempAt(r,c),ch=permanent||temp?.char||'';el.className='ksm-cell'+(ch?' filled':'')+(temp?' ksm-temp':'')+(state.anchor?.r===r&&state.anchor?.c===c?' anchor':'')+(isNew?' new-cell':'');el.textContent='';if(ch){const sp=document.createElement('span');sp.textContent=ch;const sm=document.createElement('small');sm.textContent=String(TILE_SCORE_CACHE[ch]||1);el.append(sp,sm);}}
+function ksmRenderAll(){for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)ksmRenderCell(r,c,false);const label=document.getElementById('ksm-anchor-label');if(label)label.textContent=state.anchor?('Seçili kesişim: '+state.anchor.char):'Bir harf seç.';}
+function ksmRenderRack(){rackEl.textContent='';state.rack.forEach((letter,index)=>{const b=document.createElement('button');b.type='button';b.className='ksm-rack-tile'+(ksmRackIndexUsed(index)?' used':'');b.textContent=letter;b.dataset.index=String(index);b.setAttribute('aria-label',letter+' taşını sürükle');const sm=document.createElement('small');sm.textContent=String(TILE_SCORE_CACHE[letter]||1);b.appendChild(sm);b.addEventListener('pointerdown',e=>ksmStartDrag(e,index),{passive:false});rackEl.appendChild(b);});}
+function ksmBuildBoard(){boardEl.textContent='';cells.length=0;const frag=document.createDocumentFragment();for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){const el=document.createElement('div');el.className='ksm-cell';el.dataset.r=String(r);el.dataset.c=String(c);el.addEventListener('click',()=>{if(!state.grid[r][c])return;if(state.temp.size)ksmClearTemp();state.anchor={r,c,char:state.grid[r][c]};ksmRenderAll();ksmAssistRackForAnchor();ksmSetFeedback(state.anchor.char+' kesişim harfi seçildi. Istakadan taş sürükle.','');});frag.appendChild(el);cells.push(el);}boardEl.appendChild(frag);}
+function ksmChooseSeed(){const valid=SEEDS.filter(w=>GAME_WORD_SET.has(w)&&w.length<=9);return valid[Math.floor(Math.random()*valid.length)]||'KALEM';}
+function ksmPlaceSeed(word){const r=Math.floor(SIZE/2),start=Math.floor((SIZE-word.length)/2);for(let i=0;i<word.length;i++){state.grid[r][start+i]=word[i];state.dirs[r][start+i]|=H;}state.words.push({word,r,c:start,dir:'h',crosses:0});state.used.add(word);state.score=0;state.crossings=0;state.anchor={r,c:start+Math.floor(word.length/2),char:word[Math.floor(word.length/2)]};}
+function ksmSetDir(dir){state.dir=dir;for(const[id,d]of[['btn-ksm-auto','auto'],['btn-ksm-h','h'],['btn-ksm-v','v']])document.getElementById(id)?.classList.toggle('selected',d===dir);}
+function ksmCenterBoard(){requestAnimationFrame(()=>{wrap.scrollLeft=Math.max(0,(boardEl.scrollWidth-wrap.clientWidth)/2);wrap.scrollTop=Math.max(0,(boardEl.scrollHeight-wrap.clientHeight)/2);});}
+function ksmFillRack(){state.rack=Array.from({length:9},()=>ksmRandomLetter());ksmRenderRack();ksmAssistRackForAnchor();}
+function ksmCandidateWordsForAnchor(){if(!state.anchor)return[];const ch=state.anchor.char;let pool=[];try{if(typeof DAILY_BOARD_PRIORITY_WORDS!=='undefined')pool=[...DAILY_BOARD_PRIORITY_WORDS];}catch(_){}if(pool.length<20)pool=GAME_WORD_LIST.slice(0,4000);const out=[];for(const word of pool){if(out.length>=140)break;if(!word||word.length<2||word.length>7||state.used.has(word)||!word.includes(ch))continue;if(!GAME_WORD_SET.has(word)||isArgoWord(word)||isForeignWord(word))continue;out.push(word);}for(let i=out.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[out[i],out[j]]=[out[j],out[i]];}return out;}
+function ksmCanGhostPlace(word,anchorIndex,dr,dc){const a=state.anchor;if(!a)return null;const bit=dr?V:H,sr=a.r-anchorIndex*dr,sc=a.c-anchorIndex*dc;const er=sr+(word.length-1)*dr,ec=sc+(word.length-1)*dc;if(sr<0||sc<0||er<0||ec<0||sr>=SIZE||sc>=SIZE||er>=SIZE||ec>=SIZE)return null;let needed=[];for(let i=0;i<word.length;i++){const r=sr+i*dr,c=sc+i*dc,ch=word[i],existing=state.grid[r][c];if(existing){if(existing!==ch||(state.dirs[r][c]&bit))return null;}else{const pr1=r+(dr?0:-1),pc1=c+(dr?-1:0),pr2=r+(dr?0:1),pc2=c+(dr?1:0);if(pr1>=0&&pc1>=0&&pr1<SIZE&&pc1<SIZE&&state.grid[pr1][pc1])return null;if(pr2>=0&&pc2>=0&&pr2<SIZE&&pc2<SIZE&&state.grid[pr2][pc2])return null;needed.push(ch);}}return needed.length&&needed.length<=9?needed:null;}
+function ksmAssistRackForAnchor(){if(!state.anchor||state.temp.size)return;const words=ksmCandidateWordsForAnchor();let needed=null;outer:for(const word of words){for(let i=0;i<word.length;i++)if(word[i]===state.anchor.char){for(const[dr,dc]of[[1,0],[0,1]]){const n=ksmCanGhostPlace(word,i,dr,dc);if(n){needed=n;break outer;}}}}if(!needed)return;const rack=state.rack.slice();for(let i=0;i<Math.min(needed.length,7);i++)rack[i]=needed[i];state.rack=rack;ksmRenderRack();}
+function ksmStartDrag(e,index){if(ksmRackIndexUsed(index))return;e.preventDefault();e.stopPropagation();state.drag={index,letter:state.rack[index],pointerId:e.pointerId};ghost.textContent=state.drag.letter;ghost.style.display='flex';ksmMoveGhost(e.clientX,e.clientY);try{e.currentTarget.setPointerCapture?.(e.pointerId);}catch(_){}}
+function ksmMoveGhost(x,y){ghost.style.left=x+'px';ghost.style.top=y+'px';}
+function ksmDropAt(clientX,clientY){const el=document.elementFromPoint(clientX,clientY)?.closest?.('.ksm-cell');if(!el||!boardEl.contains(el)){ksmSetFeedback('Taşı tahtadaki boş bir kareye bırak.','bad');return false;}const r=Number(el.dataset.r),c=Number(el.dataset.c);if(state.grid[r][c]||ksmTempAt(r,c)){ksmSetFeedback('Bu kare dolu.','bad');return false;}const item={r,c,char:state.drag.letter,rackIndex:state.drag.index};const k=ksmKey(r,c);state.temp.set(k,item);state.tempOrder.push(k);ksmRenderCell(r,c,false);ksmRenderRack();ksmSetFeedback('Taş yerleşti. Sözcüğü tamamla ve YERLEŞTİR de.','');return true;}
+function ksmUndo(){const k=state.tempOrder.pop();if(!k)return;const item=state.temp.get(k);state.temp.delete(k);if(item)ksmRenderCell(item.r,item.c,false);ksmRenderRack();ksmSetFeedback('Son taş ıstakaya döndü.','');}
+function ksmClearTemp(){const old=[...state.temp.values()];state.temp.clear();state.tempOrder.length=0;for(const item of old)ksmRenderCell(item.r,item.c,false);ksmRenderRack();}
+function ksmInferDirection(){if(!state.anchor||!state.temp.size)return null;const arr=[...state.temp.values()];if(state.dir==='h')return{dr:0,dc:1,bit:H,name:'h'};if(state.dir==='v')return{dr:1,dc:0,bit:V,name:'v'};const sameRow=arr.every(x=>x.r===state.anchor.r),sameCol=arr.every(x=>x.c===state.anchor.c);if(sameRow&&!sameCol)return{dr:0,dc:1,bit:H,name:'h'};if(sameCol&&!sameRow)return{dr:1,dc:0,bit:V,name:'v'};return null;}
+function ksmValidateTemp(){if(!state.anchor)return{error:'Önce mevcut ağdan bir kesişim harfi seç.'};if(!state.temp.size)return{error:'Istakadan en az bir harf yerleştir.'};const dir=ksmInferDirection();if(!dir)return{error:'Taşları seçtiğin harfle aynı yatay ya da dikey çizgiye yerleştir.'};const a=state.anchor;for(const t of state.temp.values()){if(dir.name==='h'&&t.r!==a.r)return{error:'Yatay modda bütün yeni taşlar aynı satırda olmalı.'};if(dir.name==='v'&&t.c!==a.c)return{error:'Dikey modda bütün yeni taşlar aynı sütunda olmalı.'};}let sr=a.r,sc=a.c;while(true){const nr=sr-dir.dr,nc=sc-dir.dc;if(nr<0||nc<0||nr>=SIZE||nc>=SIZE||!ksmCharAt(nr,nc))break;sr=nr;sc=nc;}let er=a.r,ec=a.c;while(true){const nr=er+dir.dr,nc=ec+dir.dc;if(nr<0||nc<0||nr>=SIZE||nc>=SIZE||!ksmCharAt(nr,nc))break;er=nr;ec=nc;}const line=[];let r=sr,c=sc;while(true){line.push({r,c,char:ksmCharAt(r,c)});if(r===er&&c===ec)break;r+=dir.dr;c+=dir.dc;}if(line.length<2||line.length>9)return{error:'Oluşan sözcük 2–9 harf olmalı.'};for(const t of state.temp.values()){if(!line.some(x=>x.r===t.r&&x.c===t.c))return{error:'Bütün yeni taşlar tek sözcüğün parçası olmalı.'};const pr1=t.r+(dir.dr?0:-1),pc1=t.c+(dir.dr?-1:0),pr2=t.r+(dir.dr?0:1),pc2=t.c+(dir.dr?1:0);if(pr1>=0&&pc1>=0&&pr1<SIZE&&pc1<SIZE&&state.grid[pr1][pc1])return{error:'Yeni taş başka bir sözcüğe yandan değemez.'};if(pr2>=0&&pc2>=0&&pr2<SIZE&&pc2<SIZE&&state.grid[pr2][pc2])return{error:'Yeni taş başka bir sözcüğe yandan değemez.'};}let crosses=0;for(const x of line){if(state.grid[x.r][x.c]){if(state.dirs[x.r][x.c]&dir.bit)return{error:'Mevcut sözcüğün üzerinden aynı yönde geçemezsin.'};crosses++;}}if(crosses<1)return{error:'Yeni sözcük mevcut ağla kesişmeli.'};const word=line.map(x=>x.char).join('');if(state.used.has(word))return{error:'Bu sözcüğü daha önce kullandın.'};if(!GAME_WORD_SET.has(word)||isArgoWord(word)||isForeignWord(word))return{error:word+' sözlükte geçerli değil.'};return{word,line,dir,crosses};}
+function ksmCommit(){const v=ksmValidateTemp();if(v.error){ksmSetFeedback(v.error,'bad');return;}const newCells=[...state.temp.values()];for(const item of newCells)state.grid[item.r][item.c]=item.char;for(const x of v.line)state.dirs[x.r][x.c]|=v.dir.bit;state.used.add(v.word);state.words.push({word:v.word,r:v.line[0].r,c:v.line[0].c,dir:v.dir.name,crosses:v.crosses});state.crossings+=v.crosses;const pts=ksmWordScore(v.word,v.crosses);state.score+=pts;const usedIdx=[...new Set(newCells.map(x=>x.rackIndex))];for(const idx of usedIdx)state.rack[idx]=ksmRandomLetter();state.temp.clear();state.tempOrder.length=0;state.anchor=null;ksmRenderAll();for(const item of newCells)ksmRenderCell(item.r,item.c,true);ksmRenderRack();ksmUpdateHud();ksmSetFeedback(v.word+' yerleşti. Yeni bir kesişim harfi seç.','good');ksmShowPop(v.word+'  +'+pts,v.crosses+' kesişim',1050);}
+function ksmReset(){clearTimeout(state.popTimer);state.grid=Array.from({length:SIZE},()=>Array(SIZE).fill(''));state.dirs=Array.from({length:SIZE},()=>Array(SIZE).fill(0));state.anchor=null;state.used.clear();state.words.length=0;state.score=0;state.crossings=0;state.dir='auto';state.temp.clear();state.tempOrder.length=0;state.drag=null;const seed=ksmChooseSeed();ksmPlaceSeed(seed);ksmFillRack();ksmRenderAll();ksmUpdateHud();ksmSetDir('auto');document.getElementById('ksm-rules')?.classList.add('hidden');ksmSetFeedback('Başlangıç sözcüğü: '+seed+'. Kesişim harfini seçip taşları sürükle.','good');ksmCenterBoard();}
+function ksmExit(){clearTimeout(state.popTimer);state.drag=null;ghost.style.display='none';screen.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}
+async function ksmOpen(){document.getElementById('screen-home')?.classList.add('hidden');screen.classList.remove('hidden');ksmSetFeedback('KESİŞİM hazırlanıyor…');try{await ensureWordDataLoaded();if(!cells.length)ksmBuildBoard();ksmReset();}catch(err){console.error('Kesişim startup failed',err);showToast('KESİŞİM hazırlanamadı.','rose');ksmExit();}}
+document.addEventListener('pointermove',e=>{if(!state.drag||e.pointerId!==state.drag.pointerId)return;e.preventDefault();ksmMoveGhost(e.clientX,e.clientY);},{passive:false});
+document.addEventListener('pointerup',e=>{if(!state.drag||e.pointerId!==state.drag.pointerId)return;e.preventDefault();ksmMoveGhost(e.clientX,e.clientY);ksmDropAt(e.clientX,e.clientY);state.drag=null;ghost.style.display='none';},{passive:false});
+document.addEventListener('pointercancel',e=>{if(!state.drag||e.pointerId!==state.drag.pointerId)return;state.drag=null;ghost.style.display='none';},{passive:true});
 window.openKapmacaKesisim=ksmOpen;
 document.getElementById('btn-ksm-exit')?.addEventListener('click',ksmExit);
 document.getElementById('btn-ksm-new')?.addEventListener('click',ksmReset);
 document.getElementById('btn-ksm-auto')?.addEventListener('click',()=>ksmSetDir('auto'));
 document.getElementById('btn-ksm-h')?.addEventListener('click',()=>ksmSetDir('h'));
 document.getElementById('btn-ksm-v')?.addEventListener('click',()=>ksmSetDir('v'));
+document.getElementById('btn-ksm-undo')?.addEventListener('click',ksmUndo);
+document.getElementById('btn-ksm-clear')?.addEventListener('click',()=>{ksmClearTemp();ksmSetFeedback('Geçici taşlar temizlendi.','');});
+document.getElementById('btn-ksm-place')?.addEventListener('click',ksmCommit);
 document.getElementById('btn-ksm-rules')?.addEventListener('click',()=>document.getElementById('ksm-rules')?.classList.remove('hidden'));
 document.getElementById('btn-ksm-rules-top')?.addEventListener('click',()=>document.getElementById('ksm-rules')?.classList.remove('hidden'));
 document.getElementById('btn-ksm-rule-close')?.addEventListener('click',()=>document.getElementById('ksm-rules')?.classList.add('hidden'));
