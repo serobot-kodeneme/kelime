@@ -1,14 +1,14 @@
-const CACHE_NAME='kapmaca-shell-v576-maintenance';
+const CACHE_NAME='kapmaca-shell-v577-maintenance';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=576-maintenance',
-  './manifest.webmanifest?v=576',
-  './favicon-32.png?v=576',
-  './apple-touch-icon.png?v=576',
-  './icon-192.png?v=576',
-  './icon-512.png?v=576',
-  './icon-maskable-512.png?v=576'
+  './app.js?v=577-maintenance',
+  './manifest.webmanifest?v=577',
+  './favicon-32.png?v=577',
+  './apple-touch-icon.png?v=577',
+  './icon-192.png?v=577',
+  './icon-512.png?v=577',
+  './icon-maskable-512.png?v=577'
 ];
 
 self.addEventListener('install',event=>{
