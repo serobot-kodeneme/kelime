@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v617-maintenance';
+const CACHE_NAME='kapmaca-shell-v637-gokdelen-flow';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=617-maintenance',
+  './app.js?v=637-gokdelen-flow',
   './manifest.webmanifest?v=593',
   './favicon-32.png?v=593',
   './apple-touch-icon.png?v=593',
@@ -92,3 +92,4 @@ self.addEventListener('fetch',event=>{
       .catch(()=>caches.match(event.request))
   );
 });
+
