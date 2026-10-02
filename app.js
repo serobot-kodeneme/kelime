@@ -481,6 +481,87 @@ document.addEventListener('fullscreenchange',handleFullscreenLayoutChange);
 document.addEventListener('webkitfullscreenchange',handleFullscreenLayoutChange);
 let remainingSeconds=60;
 let isMatchActive=false;
+
+// v599 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
+const LETTER_IDLE_WAVE_MS=4000;
+let letterIdleLastActivityAt=0;
+let letterIdleWaveShown=false;
+let letterIdleWasEligible=false;
+function noteLetterInteraction(){
+letterIdleLastActivityAt=performance.now();
+letterIdleWaveShown=false;
+}
+function showLetterIdleWave(){
+const grid=document.getElementById('scrabble-grid');
+if(!grid||document.querySelector('.letter-idle-wave-fx'))return;
+const r=grid.getBoundingClientRect();
+if(!r.width||!r.height)return;
+const fx=document.createElement('div');
+fx.className='letter-idle-wave-fx';
+fx.textContent='👋';
+Object.assign(fx.style,{
+  position:'fixed',
+  left:(r.left+r.width/2)+'px',
+  top:(r.top+r.height/2)+'px',
+  transform:'translate(-50%,-50%) scale(.25)',
+  transformOrigin:'50% 50%',
+  fontSize:'clamp(62px,16vw,116px)',
+  lineHeight:'1',
+  opacity:'0',
+  pointerEvents:'none',
+  userSelect:'none',
+  zIndex:'220',
+  filter:'drop-shadow(0 6px 10px rgba(0,0,0,.28))'
+});
+document.body.appendChild(fx);
+if(typeof fx.animate==='function'){
+  const anim=fx.animate([
+    {transform:'translate(-50%,-50%) scale(.25) rotate(-8deg)',opacity:0},
+    {transform:'translate(-50%,-50%) scale(1.18) rotate(10deg)',opacity:1,offset:.42},
+    {transform:'translate(-50%,-50%) scale(1.42) rotate(-8deg)',opacity:1,offset:.66},
+    {transform:'translate(-50%,-50%) scale(.92) rotate(6deg)',opacity:0}
+  ],{duration:1050,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'});
+  anim.onfinish=()=>fx.remove();
+  anim.oncancel=()=>fx.remove();
+}else{
+  fx.style.transition='transform 900ms ease-out,opacity 900ms ease-out';
+  requestAnimationFrame(()=>{fx.style.transform='translate(-50%,-50%) scale(1.35) rotate(8deg)';fx.style.opacity='1';});
+  setTimeout(()=>{fx.style.opacity='0';fx.style.transform='translate(-50%,-50%) scale(.95) rotate(-6deg)';},650);
+  setTimeout(()=>fx.remove(),1100);
+}
+}
+function isLetterIdleWaveEligible(){
+const game=document.getElementById('screen-game');
+const grid=document.getElementById('scrabble-grid');
+if(!isMatchActive||document.hidden||!game||game.classList.contains('hidden')||!grid||!grid.children.length)return false;
+if(atismaSetupActive)return false;
+return true;
+}
+function checkLetterIdleWave(){
+const eligible=isLetterIdleWaveEligible();
+if(!eligible){
+  letterIdleWasEligible=false;
+  letterIdleWaveShown=false;
+  letterIdleLastActivityAt=0;
+  return;
+}
+const now=performance.now();
+if(!letterIdleWasEligible){
+  letterIdleWasEligible=true;
+  letterIdleLastActivityAt=now;
+  letterIdleWaveShown=false;
+  return;
+}
+if(isPointerDown||selectedPath.length){
+  noteLetterInteraction();
+  return;
+}
+if(!letterIdleWaveShown&&now-letterIdleLastActivityAt>=LETTER_IDLE_WAVE_MS){
+  showLetterIdleWave();
+  letterIdleWaveShown=true;
+}
+}
+setInterval(checkLetterIdleWave,250);
 let botDiffLevel='easy';
 let activeGameMode = null; // 'single' | 'multi' — replay akışının tek güvenilir kaynağı
 let selectedHomeGameMode=null; // 'kapisma' | 'patlama'
@@ -3436,7 +3517,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=598-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=599-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -4529,6 +4610,7 @@ if(hoverLiftCell)hoverLiftCell.classList.remove('tile-hover-p1','tile-hover-p2')
 gridEl.addEventListener('pointerdown',(e)=>{
 if(!isMatchActive&&activeGameMode==='multi'&&mpRole&&mpRoomRef&&mpState===MP_STATES.PLAYING)isMatchActive=true;
 if(!isMatchActive)return;
+noteLetterInteraction();
 e.preventDefault();
 ensureGameAudio();
 isPointerDown=true;
@@ -4624,6 +4706,7 @@ const dc=Math.abs(last.c-c);
 return(dr+dc===1)&&!selectedFlags[r*BOARD_SIZE+c];
 }
 function addCellToPath(r,c,cell){
+noteLetterInteraction();
 selectedPath.push({r,c,char:gridBoard[r][c],el:cell});
 selectedFlags[r*BOARD_SIZE+c]=1;
 playLetterPickSound(selectedPath.length);
