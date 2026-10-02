@@ -32,7 +32,7 @@ const COMMON_IMPERATIVE_WORDS=Object.freeze([
 'ZORLA'
 ]);
 
-/* v616 — Açıkça doğrulanmış emir kipleri ve yerel anlam güvencesi.
+/* v617 — Açıkça doğrulanmış emir kipleri ve yerel anlam güvencesi.
 Kökten/ekten otomatik sözcük türetilmez; yalnızca bu tam yazımlar kabul edilir. */
 const IMPERATIVE_MEANING_DICTIONARY=Object.freeze({
 'İLET':['Bir şeyi bir yerden başka bir yere ulaştırmak.','Bir bilgiyi veya haberi başkasına aktarmak.'],
@@ -238,7 +238,7 @@ const CURATED_EXPANSION_WORDS_V3=Object.freeze([
 'MUZ','ÜZGÜ','HEKİM','İTFAİYECİ'
 ]);
 
-/* v616 — Tahta sözcük sıklığı katmanı.
+/* v617 — Tahta sözcük sıklığı katmanı.
 Doğrudan tahta tohumlarında hedef yaklaşık %70 günlük, %20 genel, %10 az bilinen/eğitici Türkçedir.
 Sözlükten hiçbir sözcük silinmez; sınıflandırılmamış teknik/terminolojik sözcükler yalnızca yedek havuzda kalır. */
 const DAILY_BOARD_PRIORITY_WORDS=new Set([
@@ -539,7 +539,7 @@ document.addEventListener('webkitfullscreenchange',handleFullscreenLayoutChange)
 let remainingSeconds=60;
 let isMatchActive=false;
 
-// v616 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
+// v617 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
 const LETTER_IDLE_WAVE_MS=4000;
 let letterIdleLastActivityAt=0;
 let letterIdleWaveShown=false;
@@ -3601,7 +3601,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=616-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=617-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -5994,7 +5994,7 @@ document.getElementById('btn-close-rematch-waiting')?.addEventListener('click',(
 document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePlayAgain);
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
-/* v616 — ZİNCİRLEME: sıra tabanlı 9x9 tahta sözcük zinciri */
+/* v617 — ZİNCİRLEME: sıra tabanlı 9x9 tahta sözcük zinciri */
 (()=>{
 const screen=document.getElementById('screen-zincirleme');
 const homeBtn=document.getElementById('btn-zincirleme-home');
@@ -6314,7 +6314,7 @@ zlmSetMode('ai');
 })();
 
 
-/* v616 — AVCI: hareketli harflerden görev sözcüğü yakalama */
+/* v617 — AVCI: hareketli harflerden görev sözcüğü yakalama */
 (()=>{
 const screen=document.getElementById('screen-avci');
 const homeBtn=document.getElementById('btn-avci-home');
@@ -6603,7 +6603,7 @@ window.addEventListener('resize',()=>{
 })();
 
 
-/* v616 — VURMACA: uçuşan hedef harfleri küçük topla vurma */
+/* v617 — VURMACA: uçuşan hedef harfleri küçük topla vurma */
 (()=>{
 const screen=document.getElementById('screen-vurmaca2');
 const homeBtn=document.getElementById('btn-vurmaca-home');
@@ -6894,7 +6894,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v616 — KESİŞİM: 2 oyuncu, 200 taş, süpürge ve kule */
+/* v617 — KESİŞİM: 2 oyuncu, 200 taş, süpürge ve kule */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -7040,6 +7040,11 @@ function broom(){
   shuffle(state.bag);drawRackToNine(state.turn);state.broomUsed[state.turn]=true;renderRack();updateHud();
   showPop('🧹 SÜPÜRGE','ISTAKA YENİLENDİ',850);
 }
+function shuffleRack(){
+  if(state.gameOver||state.temp.size)return;
+  shuffle(state.racks[state.turn]);renderRack();
+  showPop('🔀 KARIŞTIR','ISTAKA KARIŞTIRILDI',650);
+}
 function checkEnd(){
   if(state.bag.length||state.racks[0].length||state.racks[1].length)return;
   state.gameOver=true;updateHud();
@@ -7072,7 +7077,10 @@ document.getElementById('btn-ksm-h')?.addEventListener('click',()=>setDir('h'));
 document.getElementById('btn-ksm-v')?.addEventListener('click',()=>setDir('v'));
 document.getElementById('btn-ksm-undo')?.addEventListener('click',undo);
 document.getElementById('btn-ksm-broom')?.addEventListener('click',broom);
+document.getElementById('btn-ksm-shuffle')?.addEventListener('click',shuffleRack);
 document.getElementById('btn-ksm-place')?.addEventListener('click',commit);
+document.getElementById('btn-ksm-fullscreen')?.addEventListener('click',()=>toggleGameFullscreen());
+document.getElementById('btn-ksm-exit-bottom')?.addEventListener('click',exit);
 document.getElementById('btn-ksm-rules')?.addEventListener('click',()=>document.getElementById('ksm-rules')?.classList.remove('hidden'));
 document.getElementById('btn-ksm-rules-top')?.addEventListener('click',()=>document.getElementById('ksm-rules')?.classList.remove('hidden'));
 document.getElementById('btn-ksm-rule-close')?.addEventListener('click',()=>document.getElementById('ksm-rules')?.classList.add('hidden'));
