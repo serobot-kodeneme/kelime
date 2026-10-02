@@ -32,7 +32,7 @@ const COMMON_IMPERATIVE_WORDS=Object.freeze([
 'ZORLA'
 ]);
 
-/* v603 — Açıkça doğrulanmış emir kipleri ve yerel anlam güvencesi.
+/* v604 — Açıkça doğrulanmış emir kipleri ve yerel anlam güvencesi.
 Kökten/ekten otomatik sözcük türetilmez; yalnızca bu tam yazımlar kabul edilir. */
 const IMPERATIVE_MEANING_DICTIONARY=Object.freeze({
 'İLET':['Bir şeyi bir yerden başka bir yere ulaştırmak.','Bir bilgiyi veya haberi başkasına aktarmak.'],
@@ -237,6 +237,49 @@ const CURATED_EXPANSION_WORDS_V3=Object.freeze([
 'KIRMIZI','MAVİ','YEŞİL','SARI','SİYAH','BEYAZ','MOR','PEMBE','TURUNCU','GRİ',
 'MUZ','ÜZGÜ','HEKİM','İTFAİYECİ'
 ]);
+
+/* v604 — Tahta sözcük sıklığı katmanı.
+Doğrudan tahta tohumlarında hedef yaklaşık %70 günlük, %20 genel, %10 az bilinen/eğitici Türkçedir.
+Sözlükten hiçbir sözcük silinmez; sınıflandırılmamış teknik/terminolojik sözcükler yalnızca yedek havuzda kalır. */
+const DAILY_BOARD_PRIORITY_WORDS=new Set([
+...COMMON_IMPERATIVE_WORDS,
+...Object.keys(IMPERATIVE_MEANING_DICTIONARY),
+...CURATED_EXPANSION_WORDS,
+...CURATED_EXPANSION_WORDS_V3,
+'İLET','SULAT','YÜRÜT','GETİR','BIRAK','KURUT','ISIT','SOĞUT','UZAT','KISALT',
+'BARDAK','ÇANTA','PERDE','DURAK','MARKET','KOMŞU','YEMEK','ÇOCUK','SABAH','AKŞAM','YORGUN',
+'EV','ODA','KAPI','CAM','MASA','SANDALYE','LAMBA','ŞİŞE','KUTU','KAPAK','KOVA','SEPET',
+'ANNE','BABA','ABLA','ABİ','KARDEŞ','AİLE','BEBEK','ARKADAŞ','DOST','KOMŞU',
+'OKUL','SINIF','DERS','ÖDEV','SINAV','SORU','CEVAP','KALEM','DEFTER','KİTAP','İŞ','OFİS',
+'YOL','SOKAK','CADDE','PARK','KÖY','KASABA','ŞEHİR','ARABA','OTOBÜS','TREN','VAPUR','TAKSİ','BİLET',
+'SU','SÜT','ÇAY','KAHVE','EKMEK','PEYNİR','YOĞURT','ÇORBA','PİLAV','MAKARNA','YUMURTA',
+'ELMA','ARMUT','ÜZÜM','MUZ','LİMON','DOMATES','BİBER','PATATES','SOĞAN',
+'SABAH','ÖĞLE','AKŞAM','GECE','BUGÜN','YARIN','DÜN','ŞİMDİ','SONRA','ÖNCE','HEMEN',
+'MUTLU','MUTSUZ','ÜZGÜ','YORGUN','KIZGIN','SAKİN','KORKU','SEVGİ','SAYGI','GÜVEN','ÖZLEM',
+'YAĞMUR','KAR','RÜZGAR','BULUT','GÜNEŞ','DENİZ','GÖL','NEHİR','ORMAN','DAĞ','OVA','ADA',
+'KEDİ','KÖPEK','KUŞ','BALIK','AĞAÇ','ÇİÇEK','GÜL','ÇAM',
+'TELEFON','MESAJ','HESAP','DOSYA','RESİM','VİDEO','İNTERNET'
+]);
+
+const GENERAL_BOARD_PRIORITY_WORDS=new Set([
+...CURATED_EXPANSION_WORDS_V2,
+...Object.keys(NATIONALITY_DICTIONARY)
+]);
+
+const RARE_EDUCATIONAL_BOARD_WORDS=new Set([
+'İMECE','SEHER','DORUK','YAMAÇ','UFUK','PUS','ÇİSE','MİHENK','SERZENİŞ','MÜPHEM',
+'NAİF','YADİGAR','SÜKUN','ESİNTİ','DİNGİN','KIRAĞI','ÇERAĞ','TÖRE','OZAN','YAREN',
+'KUŞAK','HARMAN','ÇAĞLA','PINAR','BOZKIR','YAYLA','İKLİM','KEŞİF','MİRAS','ÖYKÜ',
+'MASAL','EFSANE','DEYİM','ATASÖZÜ'
+]);
+
+function boardWordUsageTier(word){
+const w=String(word||'').toLocaleUpperCase('tr-TR');
+if(DAILY_BOARD_PRIORITY_WORDS.has(w))return'daily';
+if(RARE_EDUCATIONAL_BOARD_WORDS.has(w))return'rare';
+if(GENERAL_BOARD_PRIORITY_WORDS.has(w)||GEO_DICTIONARY?.[w])return'general';
+return'other';
+}
 
 function isForeignWord(word){
 const w=String(word||'').toLocaleUpperCase('tr-TR');
@@ -496,7 +539,7 @@ document.addEventListener('webkitfullscreenchange',handleFullscreenLayoutChange)
 let remainingSeconds=60;
 let isMatchActive=false;
 
-// v603 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
+// v604 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
 const LETTER_IDLE_WAVE_MS=4000;
 let letterIdleLastActivityAt=0;
 let letterIdleWaveShown=false;
@@ -3558,7 +3601,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=603-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=604-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -4253,6 +4296,41 @@ if(!used.has(idx)){used.add(idx);out.push(source[idx]);}
 }
 return out;
 }
+function shuffleBoardSeedOrder(list){
+const out=list.slice();
+for(let i=out.length-1;i>0;i--){
+const j=Math.floor(Math.random()*(i+1));
+[out[i],out[j]]=[out[j],out[i]];
+}
+return out;
+}
+function weightedBoardSample(source,count){
+const unique=Array.from(new Set((source||[]).filter(Boolean)));
+const n=Math.min(Math.max(0,Number(count)||0),unique.length);
+if(!n)return[];
+const tiers={daily:[],general:[],rare:[],other:[]};
+for(const word of unique)tiers[boardWordUsageTier(word)].push(word);
+const dailyTarget=Math.min(n,Math.round(n*.70));
+const generalTarget=Math.min(n-dailyTarget,Math.round(n*.20));
+const rareTarget=Math.max(0,n-dailyTarget-generalTarget);
+const out=[];const used=new Set();
+const take=(pool,amount)=>{
+for(const word of shuffledSample(pool,amount)){
+if(used.has(word))continue;
+used.add(word);out.push(word);
+}
+};
+take(tiers.daily,dailyTarget);
+take(tiers.general,generalTarget);
+take(tiers.rare,rareTarget);
+// Bir katman kısa kalırsa önce bilinen Türkçe katmanlarından, en son sınıflandırılmamış havuzdan tamamla.
+if(out.length<n){
+const known=[...tiers.daily,...tiers.general,...tiers.rare].filter(w=>!used.has(w));
+take(known,n-out.length);
+}
+if(out.length<n)take(tiers.other,n-out.length);
+return shuffleBoardSeedOrder(out);
+}
 function tryPlaceWord(board,word,requireCross=false,maxCrosses=1){
 for(let attempt=0;attempt<55;attempt++){
 const dir=BOARD_DIRS[Math.floor(Math.random()*BOARD_DIRS.length)];
@@ -4274,18 +4352,18 @@ return false;
 }
 function makeCandidateBoard(flavor=BOARD_FLAVORS[1]){
 const board=Array.from({length:BOARD_SIZE},()=>Array(BOARD_SIZE).fill(''));
-const bridgeSeeds=shuffledSample(BOARD_POOLS.bridge5,52);
-const medium3Seeds=shuffledSample(BOARD_POOLS.medium3,180);
-const medium4Seeds=shuffledSample(BOARD_POOLS.medium4,160);
-const easySeeds=shuffledSample(BOARD_POOLS.easy2,64);
+const bridgeSeeds=weightedBoardSample(BOARD_POOLS.bridge5,52);
+const medium3Seeds=weightedBoardSample(BOARD_POOLS.medium3,180);
+const medium4Seeds=weightedBoardSample(BOARD_POOLS.medium4,160);
+const easySeeds=weightedBoardSample(BOARD_POOLS.easy2,64);
 let placedLong=0;
 for(const len of[9,8,7,6]){
-const candidates=shuffledSample(FRIENDLY_WORDS_BY_LENGTH.get(len)||GAME_WORDS_BY_LENGTH.get(len)||[],12);
+const candidates=weightedBoardSample(FRIENDLY_WORDS_BY_LENGTH.get(len)||GAME_WORDS_BY_LENGTH.get(len)||[],12);
 for(const word of candidates){
 if(tryPlaceWord(board,word,placedLong>=3)){placedLong++;break;}
 }
 }
-const longSeeds=shuffledSample(BOARD_POOLS.hidden69,28);
+const longSeeds=weightedBoardSample(BOARD_POOLS.hidden69,28);
 for(const word of longSeeds){
 if(placedLong>=flavor.long)break;
 if(tryPlaceWord(board,word,placedLong>=5))placedLong++;
