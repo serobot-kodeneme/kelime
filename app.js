@@ -7056,7 +7056,10 @@ function dropAt(x,y){
     setFeedback('Taşı tahta üzerine bırak.','bad');return;
   }
   const r=Number(el.dataset.r),c=Number(el.dataset.c),destKey=key(r,c),base=state.grid[r][c];
-  if(drag.source==='temp'&&drag.fromKey===destKey)return;
+  if(drag.source==='temp'&&drag.fromKey===destKey){
+    if(drag.from){state.temp.set(drag.fromKey,drag.from);renderCell(drag.from.r,drag.from.c,false);renderRack();}
+    return;
+  }
   const doorRowsStart=ROWS-4,doorColStart=Math.floor((COLS-3)/2);
   const invalidDoor=r>=doorRowsStart&&c>=doorColStart&&c<doorColStart+3;
   const occupiedRows=[];for(let rr=0;rr<ROWS;rr++)if(state.grid[rr].some(Boolean))occupiedRows.push(rr);
