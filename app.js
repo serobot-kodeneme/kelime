@@ -2693,7 +2693,7 @@ if(mpRole!=='host'||!mpRoomRef||!isAtismaRoom())return false;
 if(requireBoth){
 const at=(await mpRoomRef.child('atisma/placements').once('value')).val()||{};
 const count=role=>Object.values(at?.[role]||{}).filter(v=>v==='trap').length;
-if(count('host')<5||count('guest')<5)return false;
+if(count('host')<PATLAMA_TRAP_COUNT||count('guest')<PATLAMA_TRAP_COUNT)return false;
 }
 const playAt=serverNow();
 const tx=await mpRoomRef.child('gameState').transaction(gs=>{
