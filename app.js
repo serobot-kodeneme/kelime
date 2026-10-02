@@ -1684,13 +1684,18 @@ if(!isPrivateFriendRoom())return;
 document.body.dataset.privateFriendActive='1';
 const actions=document.getElementById('gameover-actions');
 const replay=document.getElementById('btn-play-again');
-if(isAtismaRoom()&&replay){replay.classList.add('hidden');replay.style.setProperty('display','none','important');if(actions)actions.style.setProperty('grid-template-columns','1fr','important');}
 const exitBtn=document.getElementById('btn-game-exit');
 const inline=document.getElementById('rematch-inline-status');
-if(actions){actions.classList.remove('hidden');actions.style.setProperty('display','grid','important');}
+if(actions){
+actions.classList.remove('hidden');
+actions.style.setProperty('display','grid','important');
+actions.style.setProperty('grid-template-columns','minmax(0,1fr) minmax(0,1fr)','important');
+}
 if(replay){
 replay.classList.remove('hidden');
 replay.style.setProperty('display','flex','important');
+replay.style.setProperty('grid-column','1','important');
+replay.style.setProperty('grid-row','1','important');
 replay.disabled=false;
 replay.textContent='YENİDEN OYNA';
 replay.classList.add('rematch-pulse');
@@ -1698,11 +1703,13 @@ replay.classList.add('rematch-pulse');
 if(exitBtn){
 exitBtn.classList.remove('hidden');
 exitBtn.style.setProperty('display','flex','important');
+exitBtn.style.setProperty('grid-column','2','important');
+exitBtn.style.setProperty('grid-row','1','important');
 exitBtn.disabled=false;
 exitBtn.className='w-full bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 active:scale-[0.97] text-white font-black text-xs py-3 rounded-2xl uppercase shadow-lg transition';
 exitBtn.textContent='ÇIKIŞ';
 }
-if(inline){inline.classList.add('hidden');inline.textContent='';}
+if(inline){inline.style.setProperty('grid-column','1 / -1','important');inline.style.setProperty('grid-row','2','important');inline.classList.add('hidden');inline.textContent='';}
 }
 function renderRematchState(d){
 if(!mpRole||d?.status!=='finished'||isRandomHumanRoom())return;
@@ -1783,8 +1790,8 @@ const actions=document.getElementById('gameover-actions');
 const replay=document.getElementById('btn-play-again');
 const exitBtn=document.getElementById('btn-game-exit');
 if(actions){actions.classList.remove('hidden');actions.style.setProperty('display','grid','important');actions.style.setProperty('grid-template-columns','1fr','important');}
-if(replay){replay.disabled=true;replay.classList.add('hidden');replay.style.setProperty('display','none','important');replay.classList.remove('rematch-pulse');}
-if(exitBtn){exitBtn.disabled=false;exitBtn.classList.remove('hidden');exitBtn.style.setProperty('display','flex','important');exitBtn.style.setProperty('width','100%','important');exitBtn.textContent='ÇIKIŞ';}
+if(replay){replay.disabled=true;replay.classList.add('hidden');replay.style.setProperty('display','none','important');replay.style.removeProperty('grid-column');replay.style.removeProperty('grid-row');replay.classList.remove('rematch-pulse');}
+if(exitBtn){exitBtn.disabled=false;exitBtn.classList.remove('hidden');exitBtn.style.setProperty('display','flex','important');exitBtn.style.setProperty('width','100%','important');exitBtn.style.setProperty('grid-column','1 / -1','important');exitBtn.style.setProperty('grid-row','1','important');exitBtn.textContent='ÇIKIŞ';}
 }
 function setRandomAutoExitNotice(visible){
 const el=document.getElementById('random-auto-exit-note');
@@ -2186,8 +2193,8 @@ try{clearPath();}catch(_){selectedPath=[];}
 mpEntered=false;mpStarted=false;mpStartBusy=false;mpRematchBusy=false;
 mpRoomRef=null;mpRoomCode=null;mpRole=null;mpRoomData=null;mpRoomMode='';mpRandomMatchSession=false;delete document.body.dataset.randomMatchActive;delete document.body.dataset.privateFriendActive;mpPresenceRef=null;mpLastRoomMetaSig='';
 const _ga=document.getElementById('gameover-actions');if(_ga){_ga.style.removeProperty('display');_ga.classList.remove('hidden');}
-const _rp=document.getElementById('btn-play-again');if(_rp)_rp.style.removeProperty('display');
-const _ex=document.getElementById('btn-game-exit');if(_ex)_ex.style.removeProperty('display');
+const _rp=document.getElementById('btn-play-again');if(_rp){_rp.style.removeProperty('display');_rp.style.removeProperty('grid-column');_rp.style.removeProperty('grid-row');}
+const _ex=document.getElementById('btn-game-exit');if(_ex){_ex.style.removeProperty('display');_ex.style.removeProperty('grid-column');_ex.style.removeProperty('grid-row');}
 mpSessionJoinedAt=0;mpExitHandling=false;mpLastExitSignalId='';reconnectPresenceBusy=false;setMpConnectionStatus(false);
 mpSeenWordEvents.clear();mpFoundWords.host.clear();mpFoundWords.guest.clear();mpLastResultRenderSig='';
 setMpState(MP_STATES.IDLE);
@@ -3285,7 +3292,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=583-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=584-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -5126,17 +5133,30 @@ showToast('Yeni oyun başlatılamadı. Tekrar deneyin.','rose');
 function prepareSingleResultScreen(){
 const longestBonus=applySingleLongestWordBonus();
 const singleActions=document.getElementById('gameover-actions');
-if(singleActions){singleActions.classList.remove('hidden');singleActions.style.setProperty('display','grid','important');}
+if(singleActions){
+singleActions.classList.remove('hidden');
+singleActions.style.setProperty('display','grid','important');
+singleActions.style.setProperty('grid-template-columns','minmax(0,1fr) minmax(0,1fr)','important');
+}
 const replayBtn=document.getElementById('btn-play-again');
-if(replayBtn){replayBtn.style.removeProperty('display');replayBtn.disabled=false;replayBtn.textContent='YENİDEN OYNA';replayBtn.classList.remove('hidden');}
+if(replayBtn){
+replayBtn.style.removeProperty('display');
+replayBtn.style.setProperty('grid-column','1','important');
+replayBtn.style.setProperty('grid-row','1','important');
+replayBtn.disabled=false;replayBtn.textContent='YENİDEN OYNA';replayBtn.classList.remove('hidden');
+}
 const singleExitBtn=document.getElementById('btn-game-exit');
 if(singleExitBtn){
 singleExitBtn.style.removeProperty('display');
+singleExitBtn.style.setProperty('grid-column','2','important');
+singleExitBtn.style.setProperty('grid-row','1','important');
 singleExitBtn.disabled=false;
 singleExitBtn.classList.remove('hidden');
-singleExitBtn.className='w-full mt-2 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-black text-xs py-2.5 rounded-xl uppercase shadow-md transition';
+singleExitBtn.className='w-full bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-black text-xs py-2.5 rounded-xl uppercase shadow-md transition';
 singleExitBtn.textContent='ÇIKIŞ';
 }
+const singleInline=document.getElementById('rematch-inline-status');
+if(singleInline){singleInline.style.setProperty('grid-column','1 / -1','important');singleInline.style.setProperty('grid-row','2','important');}
 document.getElementById('final-score-val-p1').textContent=p1Score;
 document.getElementById('final-score-val-p2').textContent=p2Score;
 const p1Name=document.getElementById('p1-title').textContent,p2Name=document.getElementById('p2-title').textContent;
