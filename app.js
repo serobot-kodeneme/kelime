@@ -2359,6 +2359,34 @@ if(!el){
   const host=document.getElementById('selected-preview-bar')||document.getElementById('screen-game');
   host?.appendChild(el);
 }
+if(el){
+  Object.assign(el.style,{
+    position:'absolute',
+    left:'50%',
+    top:'50%',
+    transform:'translate(-50%,-50%)',
+    transformOrigin:'center center',
+    zIndex:'135',
+    width:'min(74vw,300px)',
+    maxWidth:'calc(100% - 28px)',
+    boxSizing:'border-box',
+    padding:'7px 12px',
+    border:'0',
+    borderRadius:'11px',
+    background:'#dc2626',
+    color:'#fff',
+    boxShadow:'0 5px 14px rgba(127,29,29,.30)',
+    fontFamily:"'Quicksand',Calibri,'Segoe UI',sans-serif",
+    fontSize:'clamp(14px,3.8vw,18px)',
+    lineHeight:'1.18',
+    fontWeight:'1000',
+    textAlign:'center',
+    whiteSpace:'normal',
+    pointerEvents:'none',
+    opacity:'1',
+    margin:'0'
+  });
+}
 return el;
 }
 function showAtismaPlacementHint(){
@@ -2783,7 +2811,7 @@ if(grid){
   grid.style.pointerEvents=introActive?'none':'auto';
   grid.style.opacity='1';
   grid.style.touchAction='manipulation';
-  if(introActive)setTimeout(()=>{if(atismaSetupActive&&grid)grid.style.pointerEvents='auto';},3000);
+  if(introActive)setTimeout(()=>{if(atismaSetupActive&&grid)grid.style.pointerEvents='auto';},4000);
 }
 renderAtismaTools();
 showAtismaPlacementHint();
@@ -3408,7 +3436,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=594-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=595-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
