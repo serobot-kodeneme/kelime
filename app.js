@@ -6894,7 +6894,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v619 — KESİŞİM: masa görünümü ve pill kontroller */
+/* v620 — KESİŞİM: kompakt HUD ve 16x15 tahta */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -6903,12 +6903,12 @@ const rackEl=document.getElementById('ksm-rack');
 const ghost=document.getElementById('ksm-drag-ghost');
 if(!screen||!boardEl||!wrap||!rackEl||!ghost)return;
 
-const SIZE=15,H=1,V=2,TOTAL_TILES=200;
+const ROWS=16,COLS=15,H=1,V=2,TOTAL_TILES=200;
 const LETTER_POOL='AAAAAAAABCCÇDDEEEEEEEEGĞHIIIIİİİİKKKLLLLMMMNNNNOOÖPRRRRSSSSŞTTTTUUÜVYYZ';
 const SEEDS=['KALEM','YEMEK','KİTAP','DENİZ','BULUT','ORMAN','PERDE','ÇANTA','SABAH','AKŞAM','KOLA'];
 const state={
-  grid:Array.from({length:SIZE},()=>Array(SIZE).fill('')),
-  dirs:Array.from({length:SIZE},()=>Array(SIZE).fill(0)),
+  grid:Array.from({length:ROWS},()=>Array(COLS).fill('')),
+  dirs:Array.from({length:ROWS},()=>Array(COLS).fill(0)),
   used:new Set(),words:[],scores:[0,0],turn:0,bag:[],racks:[[],[]],broomUsed:[false,false],
   temp:new Map(),tempOrder:[],drag:null,popTimer:null,gameOver:false
 };
@@ -6939,13 +6939,13 @@ function updateHud(){
   const broomBtn=document.getElementById('btn-ksm-broom');if(broomBtn)broomBtn.disabled=state.broomUsed[state.turn]||state.temp.size>0||state.gameOver;
 }
 function renderCell(r,c,isNew=false){
-  const el=cells[r*SIZE+c];if(!el)return;
+  const el=cells[r*COLS+c];if(!el)return;
   const base=state.grid[r][c],t=tempAt(r,c),ch=t?t.char:base;
   el.className='ksm-cell'+(ch?' filled':'')+(base?' stackable':'')+(t?' ksm-temp':'')+(t?.tower?' ksm-temp-tower':'')+(isNew?' new-cell':'');
   el.textContent='';
   if(ch){const sp=document.createElement('span');sp.textContent=ch;const sm=document.createElement('small');sm.textContent=String(TILE_SCORE_CACHE[ch]||1);el.append(sp,sm);}
 }
-function renderAll(){for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)renderCell(r,c,false);}
+function renderAll(){for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)renderCell(r,c,false);}
 function renderRack(){
   rackEl.textContent='';
   state.racks[state.turn].forEach((letter,index)=>{
@@ -6957,11 +6957,11 @@ function renderRack(){
 }
 function buildBoard(){
   boardEl.textContent='';cells.length=0;const frag=document.createDocumentFragment();
-  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){const el=document.createElement('div');el.className='ksm-cell';el.dataset.r=r;el.dataset.c=c;frag.appendChild(el);cells.push(el);}
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const el=document.createElement('div');el.className='ksm-cell';el.dataset.r=r;el.dataset.c=c;frag.appendChild(el);cells.push(el);}
   boardEl.appendChild(frag);
 }
 function chooseSeed(){const v=SEEDS.filter(w=>GAME_WORD_SET.has(w)&&w.length<=9);return v[Math.floor(Math.random()*v.length)]||'KOLA';}
-function placeSeed(word){const r=Math.floor(SIZE/2),c=Math.floor((SIZE-word.length)/2);for(let i=0;i<word.length;i++){state.grid[r][c+i]=word[i];state.dirs[r][c+i]|=H;}state.used.add(word);state.words.push(word);}
+function placeSeed(word){const r=Math.floor(ROWS/2),c=Math.floor((COLS-word.length)/2);for(let i=0;i<word.length;i++){state.grid[r][c+i]=word[i];state.dirs[r][c+i]|=H;}state.used.add(word);state.words.push(word);}
 function centerBoard(){requestAnimationFrame(()=>{wrap.scrollLeft=Math.max(0,(boardEl.scrollWidth-wrap.clientWidth)/2);wrap.scrollTop=Math.max(0,(boardEl.scrollHeight-wrap.clientHeight)/2);});}
 
 function startDrag(e,index){
@@ -6985,9 +6985,9 @@ function clearTemp(){const all=[...state.temp.values()];state.temp.clear();state
 
 function lineThrough(r,c,dr,dc){
   let sr=r,sc=c;
-  while(sr-dr>=0&&sc-dc>=0&&sr-dr<SIZE&&sc-dc<SIZE&&charAt(sr-dr,sc-dc)){sr-=dr;sc-=dc;}
+  while(sr-dr>=0&&sc-dc>=0&&sr-dr<ROWS&&sc-dc<COLS&&charAt(sr-dr,sc-dc)){sr-=dr;sc-=dc;}
   const out=[];let rr=sr,cc=sc;
-  while(rr>=0&&cc>=0&&rr<SIZE&&cc<SIZE&&charAt(rr,cc)){out.push({r:rr,c:cc,char:charAt(rr,cc)});rr+=dr;cc+=dc;}
+  while(rr>=0&&cc>=0&&rr<ROWS&&cc<COLS&&charAt(rr,cc)){out.push({r:rr,c:cc,char:charAt(rr,cc)});rr+=dr;cc+=dc;}
   return out;
 }
 function candidateForDir(dr,dc,name,bit){
@@ -7052,7 +7052,7 @@ function checkEnd(){
   document.getElementById('ksm-gameover')?.classList.remove('hidden');
 }
 function reset(){
-  clearTimeout(state.popTimer);state.grid=Array.from({length:SIZE},()=>Array(SIZE).fill(''));state.dirs=Array.from({length:SIZE},()=>Array(SIZE).fill(0));
+  clearTimeout(state.popTimer);state.grid=Array.from({length:ROWS},()=>Array(COLS).fill(''));state.dirs=Array.from({length:ROWS},()=>Array(COLS).fill(0));
   state.used.clear();state.words=[];state.scores=[0,0];state.turn=0;state.broomUsed=[false,false];state.temp.clear();state.tempOrder=[];state.drag=null;state.gameOver=false;
   state.bag=makeBag();const seed=chooseSeed();consumeSeedFromBag(seed);placeSeed(seed);state.racks=[[],[]];drawRackToNine(0);drawRackToNine(1);
   document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');
