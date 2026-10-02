@@ -211,6 +211,19 @@ const NATIONALITY_DICTIONARY=Object.freeze({
 'MALEZYALI':'Malezya halkından olan kimse.'
 });
 
+/* v591 — Temel günlük Türkçe paketi.
+Aile, beden, ev, okul, ulaşım, doğa, renk, duygu ve mesleklerden tartışmasız temel sözcükler. */
+const CURATED_EXPANSION_WORDS_V3=Object.freeze([
+'ANNE','BABA','ABLA','ABİ','KARDEŞ','AİLE','BEBEK','ÇOCUK','YAŞLI',
+'SAÇ','GÖZ','KULAK','BURUN','AĞIZ','DİŞ','DİL','BOĞAZ','KOL','EL','PARMAK','BACAK','DİZ','KALP',
+'EV','ODA','MUTFAK','BANYO','SALON','BALKON','ÇATI','DUVAR','TAVAN','PERDE','HALI','YATAK','YASTIK','YORGAN','KOLTUK','DOLAP',
+'OKUL','SINIF','DERS','ÖDEV','SINAV','SORU','CEVAP',
+'ARABA','KÖPRÜ','SOKAK','CADDE',
+'YAĞMUR','KAR','RÜZGAR','BULUT','GÜNEŞ','AY','YILDIZ','DENİZ','GÖL','NEHİR','ORMAN','DAĞ','OVA','ADA',
+'KIRMIZI','MAVİ','YEŞİL','SARI','SİYAH','BEYAZ','MOR','PEMBE','TURUNCU','GRİ',
+'MUZ','ÜZGÜ','HEKİM','İTFAİYECİ'
+]);
+
 function isForeignWord(word){
 const w=String(word||'').toLocaleUpperCase('tr-TR');
 return !TURKISH_WORD_CHARS.test(w)||FOREIGN_EXACT.has(w);
@@ -234,7 +247,7 @@ const word=prev.slice(0,prefixLen)+row.slice(1);
 decodedWords.push(word);prev=word;
 }
 GEO_DICTIONARY=data.GEO_DICTIONARY;
-GAME_WORD_LIST=Array.from(new Set([...decodedWords,...Object.keys(GEO_DICTIONARY),...Object.keys(NATIONALITY_DICTIONARY),...COMMON_IMPERATIVE_WORDS,...CURATED_EXPANSION_WORDS,...CURATED_EXPANSION_WORDS_V2]))
+GAME_WORD_LIST=Array.from(new Set([...decodedWords,...Object.keys(GEO_DICTIONARY),...Object.keys(NATIONALITY_DICTIONARY),...COMMON_IMPERATIVE_WORDS,...CURATED_EXPANSION_WORDS,...CURATED_EXPANSION_WORDS_V2,...CURATED_EXPANSION_WORDS_V3]))
 .filter(w=>w.length>=2&&w.length<=9&&!isArgoWord(w)&&!isForeignWord(w)).sort();
 GAME_WORD_SET=new Set(GAME_WORD_LIST);
 GAME_WORDS_BY_LENGTH.clear();
@@ -3395,7 +3408,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=590-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=591-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
