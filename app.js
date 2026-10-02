@@ -6894,7 +6894,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v631 — GÖKDELEN: 30 sn tur, kalp/çan ve kızaran kalan taş göstergesi */
+/* v632 — GÖKDELEN: temiz mobil cam ızgarası ve okunaklı süre HUD */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
