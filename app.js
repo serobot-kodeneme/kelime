@@ -11,6 +11,11 @@ if(ARGO_EXACT.has(w))return true;
 for(const root of ARGO_PREFIXES)if(w.startsWith(root))return true;
 return w.startsWith('BOK')&&!w.startsWith('BOKS')&&!w.startsWith('BOKSİT');
 }
+// Element symbols are not playable words, in any game mode.
+// Source: IUPAC periodic table; both standard and Turkish uppercase forms.
+const ELEMENT_SYMBOLS=Object.freeze('H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni Cu Zn Ga Ge As Se Br Kr Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe Cs Ba La Ce Pr Nd Pm Sm Eu Gd Tb Dy Ho Er Tm Yb Lu Hf Ta W Re Os Ir Pt Au Hg Tl Pb Bi Po At Rn Fr Ra Ac Th Pa U Np Pu Am Cm Bk Cf Es Fm Md No Lr Rf Db Sg Bh Hs Mt Ds Rg Cn Nh Fl Mc Lv Ts Og'.split(' '));
+const ELEMENT_SYMBOL_WORDS=new Set(ELEMENT_SYMBOLS.flatMap(symbol=>[symbol.toUpperCase(),symbol.toLocaleUpperCase('tr-TR')]));
+function isElementSymbol(word){return ELEMENT_SYMBOL_WORDS.has(String(word||'').trim().toLocaleUpperCase('tr-TR'));}
 const FOREIGN_EXACT=new Set(['ASK','CHANGE','CHAT','RUN','TALK']);
 const TURKISH_WORD_CHARS = /^[ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ]+$/;
 const COMMON_IMPERATIVE_WORDS=Object.freeze([
@@ -305,7 +310,7 @@ decodedWords.push(word);prev=word;
 }
 GEO_DICTIONARY=data.GEO_DICTIONARY;
 GAME_WORD_LIST=Array.from(new Set([...decodedWords,...Object.keys(GEO_DICTIONARY),...Object.keys(NATIONALITY_DICTIONARY),...Object.keys(IMPERATIVE_MEANING_DICTIONARY),...COMMON_IMPERATIVE_WORDS,...CURATED_EXPANSION_WORDS,...CURATED_EXPANSION_WORDS_V2,...CURATED_EXPANSION_WORDS_V3]))
-.filter(w=>w.length>=2&&w.length<=9&&!isArgoWord(w)&&!isForeignWord(w)).sort();
+.filter(w=>w.length>=2&&w.length<=9&&!isArgoWord(w)&&!isForeignWord(w)&&!isElementSymbol(w)).sort();
 GAME_WORD_SET=new Set(GAME_WORD_LIST);
 GAME_WORDS_BY_LENGTH.clear();
 for(const w of GAME_WORD_LIST){
@@ -3601,7 +3606,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=639-gokdelen-validation',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=640-gokdelen-preview',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -6894,7 +6899,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v639 — GÖKDELEN: bağlı çoklu sözcük, konuma göre doğrulama ve ortak AI kuralları */
+/* v640 — GÖKDELEN: gönder öncesi canlı hamle doğrulaması */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -7015,6 +7020,19 @@ function showCellMeaning(r,c){
   modal.classList.remove('hidden');
 }
 function renderAll(){for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)renderCell(r,c,false);}
+function refreshPlacementPreview(){
+  const result=state.turn===0&&state.temp.size?validate():null;
+  for(const el of cells){
+    const pending=!!tempAt(Number(el.dataset.r),Number(el.dataset.c));
+    el.classList.toggle('ksm-preview-valid',pending&&!!result&&!result.error);
+    el.classList.toggle('ksm-preview-invalid',pending&&!!result&&!!result.error);
+  }
+  if(result){
+    if(result.error)setFeedback(result.error,'bad');
+    else setFeedback(result.words.map(w=>w.word).join(' • ')+' • +'+result.totalScore+' puan — GÖNDER ile onayla.','good');
+  }else if(state.turn===0&&!state.gameOver)setFeedback('Harfleri yerleştir; GÖNDER’e kadar düzenleyebilirsin.');
+  return result;
+}
 function renderRack(){
   rackP1El.textContent='';
   state.racks[0].forEach((letter,index)=>{
@@ -7026,7 +7044,7 @@ function renderRack(){
   const row=document.querySelector('.ksm-rack-row.p1');
   row?.classList.toggle('active',state.turn===0);
   row?.classList.toggle('inactive',state.turn===1);
-  updateHud();
+  updateHud();refreshPlacementPreview();
 }
 function buildBoard(){
   boardEl.textContent='';cells.length=0;const frag=document.createDocumentFragment();
@@ -7079,7 +7097,7 @@ function startTempDrag(e,r,c){
   const fromKey=key(r,c),from={...t};
   state.temp.delete(fromKey);
   state.drag={source:'temp',index:t.rackIndex,letter:t.char,pointerId:e.pointerId,fromKey,from};
-  renderCell(r,c,false);
+  renderCell(r,c,false);refreshPlacementPreview();
   ghost.textContent=t.char;ghost.style.display='flex';moveGhost(e.clientX,e.clientY);
 }
 function moveGhost(x,y){ghost.style.left=x+'px';ghost.style.top=y+'px';}
@@ -7089,13 +7107,13 @@ function dropAt(x,y){
   if(target&&(target===rackP1El||rackP1El.contains(target))){
     if(drag.source==='temp'){
       const oi=state.tempOrder.indexOf(drag.fromKey);if(oi>=0)state.tempOrder.splice(oi,1);
-      renderRack();setFeedback('Taş ıstakaya döndü. GÖNDER’e kadar düzenleyebilirsin.');
+      renderRack();if(!state.temp.size)setFeedback('Taş ıstakaya döndü. GÖNDER’e kadar düzenleyebilirsin.');
     }
     return;
   }
   const el=target?.closest?.('.ksm-cell');
   if(!el||!boardEl.contains(el)){
-    if(drag.source==='temp'&&drag.from){state.temp.set(drag.fromKey,drag.from);renderCell(drag.from.r,drag.from.c,false);}
+    if(drag.source==='temp'&&drag.from){state.temp.set(drag.fromKey,drag.from);renderCell(drag.from.r,drag.from.c,false);refreshPlacementPreview();}
     setFeedback('Taşı tahta üzerine bırak.','bad');return;
   }
   const r=Number(el.dataset.r),c=Number(el.dataset.c),destKey=key(r,c),base=state.grid[r][c];
@@ -7111,7 +7129,7 @@ function dropAt(x,y){
   const occupiedTemp=tempAt(r,c);
   const invalidSame=base===drag.letter;
   if(invalidDoor||invalidUp||occupiedTemp||invalidSame){
-    if(drag.source==='temp'&&drag.from){state.temp.set(drag.fromKey,drag.from);renderCell(drag.from.r,drag.from.c,false);}
+    if(drag.source==='temp'&&drag.from){state.temp.set(drag.fromKey,drag.from);renderCell(drag.from.r,drag.from.c,false);refreshPlacementPreview();}
     if(invalidDoor)setFeedback('Giriş kapısına harf yerleştirilemez.','bad');
     else if(invalidUp)setFeedback('GÖKDELEN yalnızca yukarı doğru büyür.','bad');
     else if(occupiedTemp)setFeedback('Bu karede zaten geçici taş var.','bad');
@@ -7125,7 +7143,7 @@ function dropAt(x,y){
   }
   const item={r,c,char:drag.letter,rackIndex:drag.index,tower:!!base,under:base||''};
   state.temp.set(destKey,item);state.tempOrder.push(destKey);renderCell(r,c,false);renderRack();animateTile(r,c,{x,y});
-  setFeedback(item.tower?'Kule taşı yerleşti. GÖNDER ile kontrol et.':'Taşı istediğin kadar taşıyabilirsin. GÖNDER ile onayla.','');
+
 }
 function clearTemp(){state.drag=null;ghost.style.display='none';const all=[...state.temp.values()];state.temp.clear();state.tempOrder.length=0;for(const t of all)renderCell(t.r,t.c,false);renderRack();}
 
