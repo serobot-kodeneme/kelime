@@ -6894,7 +6894,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v630 — GÖKDELEN: HUD süreleri, tek görünür ıstaka ve aydınlık cam cephe */
+/* v631 — GÖKDELEN: 30 sn tur, kalp/çan ve kızaran kalan taş göstergesi */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -6910,7 +6910,7 @@ const state={
   grid:Array.from({length:ROWS},()=>Array(COLS).fill('')),
   dirs:Array.from({length:ROWS},()=>Array(COLS).fill(0)),
   used:new Set(),seedKeys:new Set(),nests:new Set(),words:[],scores:[0,0],turn:0,bag:[],racks:[[],[]],broomUsed:[false,false],
-  temp:new Map(),tempOrder:[],drag:null,popTimer:null,gameOver:false,turnLeft:20,turnTimer:null,aiTimer:null
+  temp:new Map(),tempOrder:[],drag:null,popTimer:null,gameOver:false,turnLeft:30,turnTimer:null,aiTimer:null,lastHeartSec:null,lastBellSec:null
 };
 const cells=[];
 const key=(r,c)=>r+','+c;
@@ -6930,7 +6930,15 @@ function rackIndexUsed(index){for(const t of state.temp.values())if(t.rackIndex=
 function updateHud(){
   document.getElementById('ksm-p1-score').textContent=String(state.scores[0]);
   document.getElementById('ksm-p2-score').textContent=String(state.scores[1]);
-  document.getElementById('ksm-bag-count').textContent=String(state.bag.length);
+  const bagCount=document.getElementById('ksm-bag-count');if(bagCount)bagCount.textContent=String(state.bag.length);
+  const bagCard=bagCount?.closest('.ksm-bag-card');
+  if(bagCard){
+    const left=state.bag.length;
+    bagCard.classList.remove('bag-warm','bag-hot','bag-critical');
+    if(left<=60)bagCard.classList.add('bag-critical');
+    else if(left<=120)bagCard.classList.add('bag-hot');
+    else if(left<=200)bagCard.classList.add('bag-warm');
+  }
   document.getElementById('ksm-p1-label')?.classList.toggle('active',state.turn===0);
   document.getElementById('ksm-p2-label')?.classList.toggle('active',state.turn===1);
   document.getElementById('ksm-p1-card')?.classList.toggle('active',state.turn===0);
@@ -6945,8 +6953,8 @@ function updateHud(){
   if(turnTop)turnTop.textContent=state.turn===1?'BİLGİN düşünüyor…':'1. oyuncunun sırası.';
   const t1=document.getElementById('ksm-timer-p1'),t2=document.getElementById('ksm-timer-p2');
   const a1=t1?.querySelector('strong'),a2=t2?.querySelector('strong');
-  if(a1)a1.textContent=String(state.turn===0?state.turnLeft:20);
-  if(a2)a2.textContent=String(state.turn===1?state.turnLeft:20);
+  if(a1)a1.textContent=String(state.turn===0?state.turnLeft:30);
+  if(a2)a2.textContent=String(state.turn===1?state.turnLeft:30);
   t1?.classList.toggle('active',state.turn===0);t2?.classList.toggle('active',state.turn===1);
   t1?.classList.toggle('danger',state.turn===0&&state.turnLeft<=5);t2?.classList.toggle('danger',state.turn===1&&state.turnLeft<=5);
 }
@@ -7143,13 +7151,21 @@ function aiTakeTurn(){
   setFeedback('BİLGİN sözcüğünü yerleştiriyor…','');
   state.aiTimer=setTimeout(()=>{if(state.turn===1&&!state.gameOver)commit();},550);
 }
-function clearTurnTimer(){if(state.turnTimer){clearInterval(state.turnTimer);state.turnTimer=null;}}
+function playGokdelenBell(){
+  if(masterSoundVolume<=0)return;
+  playTone(880,.11,.055,'sine',1320);
+  playTone(1320,.10,.035,'sine',1760,.08);
+}
+function clearTurnTimer(){if(state.turnTimer){clearInterval(state.turnTimer);state.turnTimer=null;}state.lastHeartSec=null;state.lastBellSec=null;}
 function startTurnTimer(){
-  clearTurnTimer();clearAiTimer();state.turnLeft=20;updateHud();
+  clearTurnTimer();clearAiTimer();state.turnLeft=30;updateHud();
   if(state.turn===1&&!state.gameOver)state.aiTimer=setTimeout(aiTakeTurn,1100);
   state.turnTimer=setInterval(()=>{
     if(state.gameOver||screen.classList.contains('hidden')){clearTurnTimer();return;}
-    state.turnLeft=Math.max(0,state.turnLeft-1);updateHud();
+    state.turnLeft=Math.max(0,state.turnLeft-1);
+    if(state.turnLeft<=10&&state.turnLeft>5&&state.turnLeft!==state.lastHeartSec){state.lastHeartSec=state.turnLeft;playHeartbeat();}
+    if(state.turnLeft<=5&&state.turnLeft>0&&state.turnLeft!==state.lastBellSec){state.lastBellSec=state.turnLeft;playGokdelenBell();}
+    updateHud();
     if(state.turnLeft<=0){
       clearTurnTimer();clearAiTimer();
       clearTemp();
