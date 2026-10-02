@@ -505,34 +505,11 @@ try{return navigator.vibrate(pattern)!==false;}catch(_){}
 }
 return visualGameHaptic(kind);
 }
-function triggerKapismaLongWordImpact(){
-if(document.hidden)return;
-if(vibrationLevel!=='off'){
+function triggerKapismaLongWordVibration(){
+if(document.hidden||vibrationLevel==='off')return false;
 const pattern=vibrationPattern('longword');
-let physical=false;
-if(pattern&&deviceSupportsVibration()){
-try{physical=navigator.vibrate(pattern)!==false;}catch(_){}
-}
-if(!physical){
-const bar=document.getElementById('selected-preview-bar');
-if(bar&&typeof bar.animate==='function'){
-try{
-if(bar.__kapmacaLongWordHaptic)bar.__kapmacaLongWordHaptic.cancel();
-bar.__kapmacaLongWordHaptic=bar.animate(
-[{transform:'translate3d(0,0,0)'},{transform:'translate3d(-2px,0,0)'},{transform:'translate3d(2px,0,0)'},{transform:'translate3d(-1px,0,0)'},{transform:'translate3d(0,0,0)'}],
-{duration:190,easing:'ease-out'}
-);
-}catch(_){}
-}
-}
-}
-const game=document.getElementById('screen-game');
-if(game){
-game.classList.remove('kapisma-long-word-shake');
-void game.offsetWidth;
-game.classList.add('kapisma-long-word-shake');
-setTimeout(()=>game.classList.remove('kapisma-long-word-shake'),430);
-}
+if(!pattern||!deviceSupportsVibration())return false;
+try{return navigator.vibrate(pattern)!==false;}catch(_){return false;}
 }
 function renderVibrationControls(){
 document.querySelectorAll('.vibration-choice').forEach(btn=>btn.classList.toggle('selected',btn.dataset.vibration===vibrationLevel));
@@ -3308,7 +3285,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=582-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=583-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -4664,7 +4641,7 @@ mpFoundWords.guest.add(word);
 
 recordMatchWord(word,pts,isP1);
 playCorrectChime(false);
-if(word.length>=5)triggerKapismaLongWordImpact();
+if(word.length>=5)triggerKapismaLongWordVibration();
 flashWordFeedback(true);
 showToast(`${word}(+${pts})`,isP1?'amber':'sky');
 playWordConfetti(word.length);
