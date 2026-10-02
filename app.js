@@ -6894,7 +6894,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v622 — GÖKDELEN: 9 sütun, yukarı büyüyen tahta */
+/* v623 — GÖKDELEN: 20 sn tur süresi ve yeni kule teması */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -6910,7 +6910,7 @@ const state={
   grid:Array.from({length:ROWS},()=>Array(COLS).fill('')),
   dirs:Array.from({length:ROWS},()=>Array(COLS).fill(0)),
   used:new Set(),words:[],scores:[0,0],turn:0,bag:[],racks:[[],[]],broomUsed:[false,false],
-  temp:new Map(),tempOrder:[],drag:null,popTimer:null,gameOver:false
+  temp:new Map(),tempOrder:[],drag:null,popTimer:null,gameOver:false,turnLeft:20,turnTimer:null
 };
 const cells=[];
 const key=(r,c)=>r+','+c;
@@ -6937,6 +6937,12 @@ function updateHud(){
   document.getElementById('ksm-p2-card')?.classList.toggle('active',state.turn===1);
   const broom=document.getElementById('ksm-broom-left');if(broom)broom.textContent=state.broomUsed[state.turn]?'0':'1';
   const broomBtn=document.getElementById('btn-ksm-broom');if(broomBtn)broomBtn.disabled=state.broomUsed[state.turn]||state.temp.size>0||state.gameOver;
+  const t1=document.getElementById('ksm-timer-p1'),t2=document.getElementById('ksm-timer-p2');
+  const a1=t1?.querySelector('strong'),a2=t2?.querySelector('strong');
+  if(a1)a1.textContent=String(state.turn===0?state.turnLeft:20);
+  if(a2)a2.textContent=String(state.turn===1?state.turnLeft:20);
+  t1?.classList.toggle('active',state.turn===0);t2?.classList.toggle('active',state.turn===1);
+  t1?.classList.toggle('danger',state.turn===0&&state.turnLeft<=5);t2?.classList.toggle('danger',state.turn===1&&state.turnLeft<=5);
 }
 function renderCell(r,c,isNew=false){
   const el=cells[r*COLS+c];if(!el)return;
@@ -7016,6 +7022,24 @@ function validate(){
   candidates.sort((a,b)=>b.score-a.score||b.line.length-a.line.length);
   return candidates[0];
 }
+function clearTurnTimer(){if(state.turnTimer){clearInterval(state.turnTimer);state.turnTimer=null;}}
+function startTurnTimer(){
+  clearTurnTimer();state.turnLeft=20;updateHud();
+  state.turnTimer=setInterval(()=>{
+    if(state.gameOver||screen.classList.contains('hidden')){clearTurnTimer();return;}
+    state.turnLeft=Math.max(0,state.turnLeft-1);updateHud();
+    if(state.turnLeft<=0){
+      clearTurnTimer();
+      clearTemp();
+      state.turn=state.turn?0:1;
+      renderRack();updateHud();
+      showPop('SÜRE DOLDU','SIRA DEĞİŞTİ',850);
+      setFeedback((state.turn+1)+'. oyuncunun sırası.','bad');
+      startTurnTimer();
+    }
+  },1000);
+}
+
 function commit(){
   if(state.gameOver)return;
   const v=validate();if(v.error){setFeedback(v.error,'bad');return;}
@@ -7032,6 +7056,7 @@ function commit(){
   showPop(v.word+'  +'+v.score,placed.some(t=>t.tower)?'KULE HAMLESİ':'GEÇERLİ SÖZCÜK',1000);
   state.turn=state.turn?0:1;renderRack();updateHud();
   setFeedback((state.turn+1)+'. oyuncunun sırası.','good');
+  startTurnTimer();
   requestAnimationFrame(()=>{
     let top=ROWS-1;
     for(let rr=0;rr<ROWS;rr++){if(state.grid[rr].some(Boolean)){top=rr;break;}}
@@ -7053,7 +7078,7 @@ function shuffleRack(){
 }
 function checkEnd(){
   if(state.bag.length||state.racks[0].length||state.racks[1].length)return;
-  state.gameOver=true;updateHud();
+  state.gameOver=true;clearTurnTimer();updateHud();
   const a=state.scores[0],b=state.scores[1],title=document.getElementById('ksm-over-title'),txt=document.getElementById('ksm-over-text');
   if(title)title.textContent=a===b?'BERABERE!':(a>b?'1. OYUNCU KAZANDI!':'2. OYUNCU KAZANDI!');
   if(txt)txt.textContent='Harfler bitti • '+a+' - '+b;
@@ -7064,9 +7089,9 @@ function reset(){
   state.used.clear();state.words=[];state.scores=[0,0];state.turn=0;state.broomUsed=[false,false];state.temp.clear();state.tempOrder=[];state.drag=null;state.gameOver=false;
   state.bag=makeBag();const seed=chooseSeed();consumeSeedFromBag(seed);placeSeed(seed);state.racks=[[],[]];drawRackToNine(0);drawRackToNine(1);
   document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');
-  renderAll();renderRack();updateHud();setFeedback('Başlangıç sözcüğü: '+seed+'. 1. oyuncu başlıyor.','good');centerBoard();
+  renderAll();renderRack();updateHud();setFeedback('Başlangıç sözcüğü: '+seed+'. 1. oyuncu başlıyor.','good');centerBoard();startTurnTimer();
 }
-function exit(){clearTimeout(state.popTimer);state.drag=null;ghost.style.display='none';screen.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}
+function exit(){clearTimeout(state.popTimer);clearTurnTimer();state.drag=null;ghost.style.display='none';screen.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}
 async function open(){document.getElementById('screen-home')?.classList.add('hidden');screen.classList.remove('hidden');setFeedback('GÖKDELEN hazırlanıyor…');try{await ensureWordDataLoaded();if(!cells.length)buildBoard();reset();}catch(err){console.error('Kesişim startup failed',err);showToast('GÖKDELEN hazırlanamadı.','rose');exit();}}
 
 document.addEventListener('pointermove',e=>{if(!state.drag||e.pointerId!==state.drag.pointerId)return;e.preventDefault();moveGhost(e.clientX,e.clientY);},{passive:false});
