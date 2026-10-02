@@ -6894,7 +6894,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v635 — GÖKDELEN: kesişen harf her sözcükte ayrı puanlanır */
+/* v636 — GÖKDELEN: ortak Scrabble doğrulaması, hata ayıklama ve sadeleştirme */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -6919,7 +6919,7 @@ function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random
 function makeBag(){const a=[];for(let i=0;i<TOTAL_TILES;i++)a.push(randLetter());return shuffle(a);}
 function drawOne(){return state.bag.length?state.bag.pop():null;}
 function drawRackToNine(p){while(state.racks[p].length<9){const ch=drawOne();if(!ch)break;state.racks[p].push(ch);}}
-function consumeSeedFromBag(word){for(const ch of word){const i=state.bag.indexOf(ch);if(i>=0)state.bag.splice(i,1);}}
+function consumeSeedFromBag(word){for(const ch of word){const i=state.bag.indexOf(ch);if(i>=0)state.bag.splice(i,1);else if(state.bag.length)state.bag.pop();}}
 function setFeedback(text='',kind=''){const el=document.getElementById('ksm-feedback');if(el){el.textContent=text;el.classList.remove('good','bad');if(kind)el.classList.add(kind);}const top=document.getElementById('ksm-turn-status-top');if(top&&text)top.textContent=text;}
 function showPop(title,sub='',duration=950){const pop=document.getElementById('ksm-pop'),a=document.getElementById('ksm-pop-title'),b=document.getElementById('ksm-pop-sub');if(!pop||!a||!b)return;clearTimeout(state.popTimer);pop.classList.remove('ksm-bonus-pop','ksm-nest-pop');a.textContent=title;b.textContent=sub;pop.classList.add('show');state.popTimer=setTimeout(()=>pop.classList.remove('show'),duration);}
 function showBonusPop(title,sub='',nest=false,duration=1100){
@@ -7093,55 +7093,81 @@ function lineThrough(r,c,dr,dc){
   while(rr>=0&&cc>=0&&rr<ROWS&&cc<COLS&&charAt(rr,cc)){out.push({r:rr,c:cc,char:charAt(rr,cc)});rr+=dr;cc+=dc;}
   return out;
 }
-function candidateForDir(dr,dc,name,bit){
-  const temps=[...state.temp.values()];if(!temps.length)return null;
-  if(temps.length>1){
-    if(name==='h'&&!temps.every(t=>t.r===temps[0].r))return null;
-    if(name==='v'&&!temps.every(t=>t.c===temps[0].c))return null;
+function overlayChar(overlay,r,c){
+  const t=overlay.get(key(r,c));
+  return t?t.char:(state.grid[r]?.[c]||'');
+}
+function lineThroughOverlay(overlay,r,c,dr,dc){
+  let sr=r,sc=c;
+  while(sr-dr>=0&&sc-dc>=0&&sr-dr<ROWS&&sc-dc<COLS&&overlayChar(overlay,sr-dr,sc-dc)){sr-=dr;sc-=dc;}
+  const out=[];let rr=sr,cc=sc;
+  while(rr>=0&&cc>=0&&rr<ROWS&&cc<COLS&&overlayChar(overlay,rr,cc)){
+    out.push({r:rr,c:cc,char:overlayChar(overlay,rr,cc)});rr+=dr;cc+=dc;
   }
-  const line=lineThrough(temps[0].r,temps[0].c,dr,dc);
-  if(line.length<2||line.length>9)return null;
-  if(!temps.every(t=>line.some(x=>x.r===t.r&&x.c===t.c)))return null;
+  return out;
+}
+function evaluateWordLine(line,name,bit){
+  if(line.length<2)return null;
+  if(line.length>9)return{error:'Sözcük en fazla 9 harf olabilir.'};
   const word=line.map(x=>x.char).join('');
-  if(state.used.has(word)||!GAME_WORD_SET.has(word)||isArgoWord(word)||isForeignWord(word))return null;
-  const connected=line.some(x=>state.grid[x.r][x.c])||temps.some(t=>t.tower);
-  if(!connected)return null;
+  if(state.used.has(word))return{error:word+' daha önce kullanıldı.'};
+  if(!GAME_WORD_SET.has(word)||isArgoWord(word)||isForeignWord(word))return{error:'Dokunan tüm harfler anlamlı sözcük oluşturmalı: '+word};
   const nestBonus=line.some(x=>state.nests.has(key(x.r,x.c)));
   const baseScore=wordScore(word);
-  return{word,line,name,bit,baseScore,score:baseScore*(nestBonus?3:1),nestBonus};
+  return{word,line,name,bit,baseScore,score:baseScore,nestBonus};
 }
-function candidateAt(r,c,dr,dc,name,bit){
-  const line=lineThrough(r,c,dr,dc);
-  if(line.length<2||line.length>9)return null;
-  const word=line.map(x=>x.char).join('');
-  if(state.used.has(word)||!GAME_WORD_SET.has(word)||isArgoWord(word)||isForeignWord(word))return null;
-  const nestBonus=line.some(x=>state.nests.has(key(x.r,x.c)));
-  const baseScore=wordScore(word);
-  return{word,line,name,bit,baseScore,score:baseScore*(nestBonus?3:1),nestBonus};
-}
-function validate(){
-  if(!state.temp.size)return{error:'Istakadan en az bir taş yerleştir.'};
-  const dirs=[[0,1,'h',H],[1,0,'v',V]];
-  const primaries=dirs.map(d=>candidateForDir(...d)).filter(Boolean);
-  if(!primaries.length)return{error:'Bu taşlarla geçerli yatay/dikey sözcük oluşmadı.'};
-  const raw=[...primaries];
-  for(const t of state.temp.values()){
-    for(const d of dirs){const x=candidateAt(t.r,t.c,...d);if(x)raw.push(x);}
+function evaluatePlacement(overlay){
+  const temps=[...overlay.values()];
+  if(!temps.length)return{error:'Istakadan en az bir taş yerleştir.'};
+  const sameRow=temps.every(t=>t.r===temps[0].r),sameCol=temps.every(t=>t.c===temps[0].c);
+  if(temps.length>1&&!sameRow&&!sameCol)return{error:'Taşlar aynı satırda veya aynı sütunda olmalı.'};
+
+  const words=[],seen=new Set();
+  const addLine=(line,name,bit)=>{
+    if(line.length<2)return null;
+    const first=line[0],last=line[line.length-1],sig=name+'|'+first.r+','+first.c+'|'+last.r+','+last.c;
+    if(seen.has(sig))return null;
+    const result=evaluateWordLine(line,name,bit);
+    if(result?.error)return result;
+    seen.add(sig);words.push(result);return null;
+  };
+
+  if(temps.length===1){
+    const t=temps[0];
+    for(const [dr,dc,name,bit] of [[0,1,'h',H],[1,0,'v',V]]){
+      const err=addLine(lineThroughOverlay(overlay,t.r,t.c,dr,dc),name,bit);
+      if(err)return err;
+    }
+  }else{
+    const main=sameRow?[0,1,'h',H]:[1,0,'v',V];
+    const cross=sameRow?[1,0,'v',V]:[0,1,'h',H];
+    const mainLine=lineThroughOverlay(overlay,temps[0].r,temps[0].c,main[0],main[1]);
+    if(!temps.every(t=>mainLine.some(x=>x.r===t.r&&x.c===t.c)))return{error:'Yerleştirilen taşların arasında boşluk kalamaz.'};
+    const mainErr=addLine(mainLine,main[2],main[3]);if(mainErr)return mainErr;
+    for(const t of temps){
+      const crossErr=addLine(lineThroughOverlay(overlay,t.r,t.c,cross[0],cross[1]),cross[2],cross[3]);
+      if(crossErr)return crossErr;
+    }
   }
-  const seen=new Set(),candidates=raw.filter(x=>{
-    const first=x.line[0],last=x.line[x.line.length-1],k=x.word+'|'+x.name+'|'+first.r+','+first.c+'|'+last.r+','+last.c;
-    if(seen.has(k))return false;seen.add(k);return true;
-  });
-  const placedCount=new Set([...state.temp.values()].map(t=>t.rackIndex)).size;
+
+  if(!words.length)return{error:'En az iki harfli anlamlı bir sözcük oluştur.'};
+  const connected=temps.some(t=>t.tower||!!state.grid[t.r]?.[t.c])||words.some(w=>w.line.some(x=>!!state.grid[x.r]?.[x.c]));
+  if(!connected)return{error:'Yeni sözcük mevcut gökdelene bağlanmalı.'};
+
+  const placedCount=new Set(temps.map(t=>t.rackIndex)).size;
   const rackBonus=placedCount>=5;
-  // Her geçerli sözcük bağımsız puanlanır. Kesişen ortak harf,
-  // yer aldığı her sözcüğün wordScore hesabında yeniden sayılır.
-  for(const cand of candidates){
-    cand.score=cand.baseScore*(cand.nestBonus?3:1)*(rackBonus?2:1);
-  }
-  candidates.sort((a,b)=>b.score-a.score||b.line.length-a.line.length);
-  return{...candidates[0],words:candidates,totalScore:candidates.reduce((n,x)=>n+x.score,0),rackBonus,placedCount,nestBonus:candidates.some(x=>x.nestBonus)};
+  for(const w of words)w.score=w.baseScore*(w.nestBonus?3:1)*(rackBonus?2:1);
+  words.sort((a,b)=>b.score-a.score||b.line.length-a.line.length);
+  return{
+    ...words[0],
+    words,
+    totalScore:words.reduce((n,w)=>n+w.score,0),
+    rackBonus,
+    placedCount,
+    nestBonus:words.some(w=>w.nestBonus)
+  };
 }
+function validate(){return evaluatePlacement(state.temp);}
 function clearAiTimer(){if(state.aiTimer){clearTimeout(state.aiTimer);state.aiTimer=null;}}
 function aiBoardPositions(){
   const map=new Map();
@@ -7178,10 +7204,22 @@ function aiPlacement(word,sr,sc,dr,dc){
   }
   if(!connected||!need.length||need.length>state.racks[1].length)return null;
   const idxs=aiRackIndicesFor(need);if(!idxs)return null;
-  for(let i=0;i<cellsToPlace.length;i++)cellsToPlace[i].rackIndex=idxs[i];
-  const line=Array.from({length:word.length},(_,i)=>({r:sr+dr*i,c:sc+dc*i,char:word[i]}));
-  const nestBonus=line.some(x=>state.nests.has(key(x.r,x.c)));
-  return{word,line,bit:dr?V:H,score:wordScore(word)*(nestBonus?3:1),nestBonus,placed:cellsToPlace};
+  const overlay=new Map();
+  for(let i=0;i<cellsToPlace.length;i++){
+    cellsToPlace[i].rackIndex=idxs[i];
+    const t={...cellsToPlace[i],tower:false,under:''};
+    overlay.set(key(t.r,t.c),t);
+  }
+  const evaluated=evaluatePlacement(overlay);
+  if(evaluated.error)return null;
+  return{
+    word:evaluated.word,
+    words:evaluated.words,
+    score:evaluated.totalScore,
+    nestBonus:evaluated.nestBonus,
+    rackBonus:evaluated.rackBonus,
+    placed:cellsToPlace
+  };
 }
 function aiFindMove(){
   const positions=aiBoardPositions(),candidates=[],seen=new Set();
@@ -7319,7 +7357,12 @@ async function open(){document.getElementById('screen-home')?.classList.add('hid
 
 document.addEventListener('pointermove',e=>{if(!state.drag||e.pointerId!==state.drag.pointerId)return;e.preventDefault();moveGhost(e.clientX,e.clientY);},{passive:false});
 document.addEventListener('pointerup',e=>{if(!state.drag||e.pointerId!==state.drag.pointerId)return;e.preventDefault();dropAt(e.clientX,e.clientY);state.drag=null;ghost.style.display='none';},{passive:false});
-document.addEventListener('pointercancel',e=>{if(state.drag&&e.pointerId===state.drag.pointerId){state.drag=null;ghost.style.display='none';}},{passive:true});
+document.addEventListener('pointercancel',e=>{
+  if(!state.drag||e.pointerId!==state.drag.pointerId)return;
+  const drag=state.drag;
+  if(drag.source==='temp'&&drag.from){state.temp.set(drag.fromKey,drag.from);renderCell(drag.from.r,drag.from.c,false);renderRack();}
+  state.drag=null;ghost.style.display='none';
+},{passive:true});
 window.openKapmacaKesisim=open;
 document.getElementById('btn-ksm-exit')?.addEventListener('click',exit);
 document.getElementById('btn-ksm-home-exit')?.addEventListener('click',exit);
