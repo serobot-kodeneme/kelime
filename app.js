@@ -6894,7 +6894,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v628 — GÖKDELEN: 300 harf, kuş yuvası x3 ve iki gizli ıstaka */
+/* v629 — GÖKDELEN: dik ekran merkez kolonu ve kompakt süre rozetleri */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
