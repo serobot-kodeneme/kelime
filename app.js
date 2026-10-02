@@ -2272,7 +2272,7 @@ if(btn){btn.classList.add('hidden');btn.onclick=null;btn.disabled=false;}
 wrap._hideTimer=setTimeout(()=>{
   wrap.classList.add('hidden');
   game?.classList.remove('atisma-setup-intro-active');
-},3000);
+},4000);
 }
 function ensureAtismaPlacementHint(){
 let el=document.getElementById('atisma-placement-hint');
@@ -3292,7 +3292,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=586-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=587-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
