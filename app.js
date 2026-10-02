@@ -6004,7 +6004,7 @@ if(!screen||!homeBtn||!boardEl)return;
 const state={
   mode:'ai',running:false,paused:false,turn:0,required:'N',
   board:[],solutions:[],used:new Set(),scores:[0,0],path:[],selected:new Uint8Array(81),
-  pointerId:null,lastCell:null,aiTimer:null,turnTimer:null,timeLeft:18,turnLimit:18,
+  pointerId:null,lastCell:null,lastX:null,lastY:null,aiTimer:null,turnTimer:null,timeLeft:18,turnLimit:18,
   chainCount:0,messageTimer:null
 };
 const cells=[];
@@ -6146,6 +6146,17 @@ function zlmProcessPoint(x,y){
   if(state.lastCell&&state.lastCell.r===pos.r&&state.lastCell.c===pos.c)return;
   state.lastCell=pos;zlmAddCell(pos.r,pos.c);
 }
+function zlmProcessSegment(x,y){
+  if(state.lastX===null||state.lastY===null){
+    zlmProcessPoint(x,y);state.lastX=x;state.lastY=y;return;
+  }
+  const dx=x-state.lastX,dy=y-state.lastY;
+  const rect=boardEl.getBoundingClientRect();
+  const step=Math.max(7,(Math.min(rect.width,rect.height)/9)*.42);
+  const count=Math.min(10,Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/step)));
+  for(let i=1;i<=count;i++)zlmProcessPoint(state.lastX+dx*i/count,state.lastY+dy*i/count);
+  state.lastX=x;state.lastY=y;
+}
 function zlmStartTurn(){
   zlmClearPath();
   if(!zlmEnsurePlayable()){zlmEndGame('Bu harfle tahtada sözcük kalmadı.');return;}
@@ -6267,18 +6278,18 @@ async function zlmOpen(){
 boardEl.addEventListener('pointerdown',e=>{
   if(!state.running||state.paused||(state.mode==='ai'&&state.turn===1))return;
   e.preventDefault();state.pointerId=e.pointerId;boardEl.setPointerCapture?.(e.pointerId);boardEl.classList.add('grabbing');state.lastCell=null;
-  zlmProcessPoint(e.clientX,e.clientY);
+  state.lastX=null;state.lastY=null;zlmProcessSegment(e.clientX,e.clientY);
 },{passive:false});
 boardEl.addEventListener('pointermove',e=>{
-  if(state.pointerId!==e.pointerId)return;e.preventDefault();zlmProcessPoint(e.clientX,e.clientY);
+  if(state.pointerId!==e.pointerId)return;e.preventDefault();zlmProcessSegment(e.clientX,e.clientY);
 },{passive:false});
 const finish=e=>{
   if(state.pointerId!==e.pointerId)return;
   e.preventDefault();try{boardEl.releasePointerCapture(e.pointerId);}catch(_){}
-  state.pointerId=null;boardEl.classList.remove('grabbing');zlmProcessPoint(e.clientX,e.clientY);state.lastCell=null;zlmSubmitPlayer();
+  state.pointerId=null;boardEl.classList.remove('grabbing');zlmProcessSegment(e.clientX,e.clientY);state.lastCell=null;state.lastX=null;state.lastY=null;zlmSubmitPlayer();
 };
 boardEl.addEventListener('pointerup',finish,{passive:false});
-boardEl.addEventListener('pointercancel',e=>{if(state.pointerId===e.pointerId){state.pointerId=null;boardEl.classList.remove('grabbing');zlmClearPath();}},{passive:false});
+boardEl.addEventListener('pointercancel',e=>{if(state.pointerId===e.pointerId){state.pointerId=null;state.lastX=null;state.lastY=null;boardEl.classList.remove('grabbing');zlmClearPath();}},{passive:false});
 
 homeBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();zlmOpen();});
 document.getElementById('btn-zlm-exit')?.addEventListener('click',zlmExit);
