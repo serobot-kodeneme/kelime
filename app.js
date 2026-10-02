@@ -2267,7 +2267,7 @@ if(!el){
   el=document.createElement('div');
   el.id='atisma-placement-hint';
   el.setAttribute('aria-live','polite');
-  el.textContent='Balonu tutup harfin üzerine bırakın';
+  el.textContent='Balonunuzu, tuzak kurmak istediğiniz harfin üzerine bırakın.';
   const host=document.getElementById('selected-preview-bar')||document.getElementById('screen-game');
   host?.appendChild(el);
 }
