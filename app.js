@@ -2267,7 +2267,7 @@ if(!el){
   el=document.createElement('div');
   el.id='atisma-placement-hint';
   el.setAttribute('aria-live','polite');
-  el.textContent='Balonunuzu, tuzak kurmak istediğiniz harfin üzerine bırakın.';
+  el.innerHTML='Balonunuzu, tuzak kurmak istediğiniz<br>harfin üzerine bırakın.';
   const host=document.getElementById('selected-preview-bar')||document.getElementById('screen-game');
   host?.appendChild(el);
 }
@@ -2277,6 +2277,7 @@ function showAtismaPlacementHint(){
 if(!atismaSetupActive)return;
 const el=ensureAtismaPlacementHint();
 if(!el)return;
+el.innerHTML='Balonunuzu, tuzak kurmak istediğiniz<br>harfin üzerine bırakın.';
 el.classList.remove('atisma-placement-hint-pulse');
 el.style.display='block';
 }
