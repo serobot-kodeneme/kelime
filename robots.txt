@@ -2,4 +2,12 @@ User-agent: *
 Allow: /
 Disallow: /*?room=
 
+User-agent: Yandex
+Allow: /
+Disallow: /*?room=
+
+User-agent: bingbot
+Allow: /
+Disallow: /*?room=
+
 Sitemap: https://kapmaca.tr/sitemap.xml
