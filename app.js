@@ -32,7 +32,7 @@ const COMMON_IMPERATIVE_WORDS=Object.freeze([
 'ZORLA'
 ]);
 
-/* v608 — Açıkça doğrulanmış emir kipleri ve yerel anlam güvencesi.
+/* v609 — Açıkça doğrulanmış emir kipleri ve yerel anlam güvencesi.
 Kökten/ekten otomatik sözcük türetilmez; yalnızca bu tam yazımlar kabul edilir. */
 const IMPERATIVE_MEANING_DICTIONARY=Object.freeze({
 'İLET':['Bir şeyi bir yerden başka bir yere ulaştırmak.','Bir bilgiyi veya haberi başkasına aktarmak.'],
@@ -238,7 +238,7 @@ const CURATED_EXPANSION_WORDS_V3=Object.freeze([
 'MUZ','ÜZGÜ','HEKİM','İTFAİYECİ'
 ]);
 
-/* v608 — Tahta sözcük sıklığı katmanı.
+/* v609 — Tahta sözcük sıklığı katmanı.
 Doğrudan tahta tohumlarında hedef yaklaşık %70 günlük, %20 genel, %10 az bilinen/eğitici Türkçedir.
 Sözlükten hiçbir sözcük silinmez; sınıflandırılmamış teknik/terminolojik sözcükler yalnızca yedek havuzda kalır. */
 const DAILY_BOARD_PRIORITY_WORDS=new Set([
@@ -539,7 +539,7 @@ document.addEventListener('webkitfullscreenchange',handleFullscreenLayoutChange)
 let remainingSeconds=60;
 let isMatchActive=false;
 
-// v608 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
+// v609 — Oyun sırasında 4 sn harf etkileşimi olmazsa 👋 hatırlatması
 const LETTER_IDLE_WAVE_MS=4000;
 let letterIdleLastActivityAt=0;
 let letterIdleWaveShown=false;
@@ -3601,7 +3601,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=608-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=609-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -5994,7 +5994,7 @@ document.getElementById('btn-close-rematch-waiting')?.addEventListener('click',(
 document.getElementById('btn-rematch-accept')?.addEventListener('click',handlePlayAgain);
 document.getElementById('btn-rematch-decline')?.addEventListener('click',()=>document.getElementById('modal-rematch-waiting')?.classList.add('hidden'));
 
-/* v608 — ZİNCİRLEME: sıra tabanlı 9x9 tahta sözcük zinciri */
+/* v609 — ZİNCİRLEME: sıra tabanlı 9x9 tahta sözcük zinciri */
 (()=>{
 const screen=document.getElementById('screen-zincirleme');
 const homeBtn=document.getElementById('btn-zincirleme-home');
@@ -6002,7 +6002,7 @@ const boardEl=document.getElementById('zlm-board');
 if(!screen||!homeBtn||!boardEl)return;
 
 const state={
-  mode:'ai',running:false,paused:false,turn:0,required:'N',
+  mode:'ai',running:false,paused:false,turn:0,required:'N',initialLetter:'N',
   board:[],solutions:[],used:new Set(),scores:[0,0],path:[],selected:new Uint8Array(81),
   pointerId:null,lastCell:null,lastX:null,lastY:null,aiTimer:null,turnTimer:null,timeLeft:18,turnLimit:18,
   chainCount:0,messageTimer:null
@@ -6013,6 +6013,11 @@ const key=(r,c)=>r*9+c;
 
 function zlmScore(word){
   return Array.from(word).reduce((sum,ch)=>sum+(TILE_SCORE_CACHE[ch]||1),0)+Math.max(0,word.length-2)*2;
+}
+function zlmPointInfo(word){
+  const base=zlmScore(word);
+  const bonus=state.chainCount>0&&!!state.initialLetter&&Array.from(word).includes(state.initialLetter);
+  return{base,bonus,points:bonus?base*2:base};
 }
 function zlmClearTimers(){
   clearTimeout(state.aiTimer);state.aiTimer=null;
@@ -6046,7 +6051,8 @@ function zlmUpdateStatus(extra=''){
   if(state.turn===0)who=state.mode==='local'?'1. oyuncu':'Sıra sende';
   else who=state.mode==='local'?'2. oyuncu':'BİLGİN düşünüyor';
   const time=state.running&&!state.paused?' • '+Math.max(0,state.timeLeft)+' sn':'';
-  el.textContent=extra||(`${who}: ${state.required} ile başlayan sözcük bul${time}`);
+  const bonus=state.chainCount>0&&state.initialLetter?' • '+state.initialLetter+' içerirse 2×':'';
+  el.textContent=extra||(`${who}: ${state.required} ile başlayan sözcük bul${bonus}${time}`);
 }
 function zlmRenderPreview(){
   const host=document.getElementById('zlm-preview-word'),status=document.getElementById('zlm-preview-status');
@@ -6062,7 +6068,8 @@ function zlmRenderPreview(){
   if(word[0]!==state.required){status.textContent=state.required+' İLE BAŞLAMALI';status.className='bad';return;}
   if(state.used.has(word)){status.textContent='DAHA ÖNCE KULLANILDI';status.className='bad';return;}
   const valid=word.length>=2&&GAME_WORD_SET.has(word)&&!isArgoWord(word)&&!isForeignWord(word);
-  status.textContent=valid?'SÖZLÜKTE VAR':'SÖZLÜKTE YOK';status.className=valid?'good':'bad';
+  const bonus=valid&&state.chainCount>0&&state.initialLetter&&Array.from(word).includes(state.initialLetter);
+  status.textContent=valid?(bonus?'SÖZLÜKTE VAR • 2×':'SÖZLÜKTE VAR'):'SÖZLÜKTE YOK';status.className=valid?'good':'bad';
 }
 function zlmClearPath(){
   for(const p of state.path)p.el?.classList.remove('sel-p1','sel-p2');
@@ -6175,14 +6182,14 @@ function zlmStartTurn(){
   if(state.mode==='ai'&&state.turn===1)zlmScheduleAi();
 }
 function zlmCommitWord(word,path,actor=state.turn){
-  const pts=zlmScore(word);
+  const info=zlmPointInfo(word),pts=info.points;
   state.used.add(word);state.scores[actor]+=pts;state.chainCount++;
   state.required=Array.from(word).slice(-1)[0]||state.required;
   zlmRenderHud();
   for(const p of path){
     const el=cells[key(p.r,p.c)];if(el){el.classList.add('ai-pulse');setTimeout(()=>el.classList.remove('ai-pulse'),520);}
   }
-  zlmShowMessage(word+'  +'+pts,1000);
+  zlmShowMessage(word+'  +'+pts+(info.bonus?'  •  '+state.initialLetter+' BONUSU 2×':''),1100);
   clearInterval(state.turnTimer);state.turnTimer=null;
   state.turn=actor===0?1:0;
   setTimeout(()=>{if(state.running)zlmStartTurn();},780);
@@ -6209,7 +6216,7 @@ function zlmPlayAi(){
   const ranked=choices.map(item=>{
     const tier=typeof boardWordUsageTier==='function'?boardWordUsageTier(item.word):'other';
     const tierBonus=tier==='daily'?30:tier==='general'?14:tier==='rare'?7:0;
-    const score=zlmScore(item.word)+tierBonus-Math.max(0,item.word.length-6)*2;
+    const score=zlmPointInfo(item.word).points+tierBonus-Math.max(0,item.word.length-6)*2;
     return{item,score};
   }).sort((a,b)=>b.score-a.score);
   const top=ranked.slice(0,Math.min(8,ranked.length));
@@ -6261,7 +6268,7 @@ function zlmReset(){
   zlmClearTimers();state.running=true;state.paused=false;state.turn=0;state.used.clear();state.scores=[0,0];state.chainCount=0;
   document.getElementById('zlm-gameover')?.classList.add('hidden');document.getElementById('zlm-rules')?.classList.add('hidden');
   const pause=document.getElementById('btn-zlm-pause');if(pause)pause.textContent='Ⅱ';boardEl.style.pointerEvents='';
-  zlmGenerateBoard('N');state.required=zlmChooseInitial();zlmRenderHud();zlmStartTurn();
+  zlmGenerateBoard('N');state.required=zlmChooseInitial();state.initialLetter=state.required;zlmRenderHud();zlmStartTurn();
 }
 function zlmExit(){
   state.running=false;state.paused=false;zlmClearTimers();zlmClearPath();
