@@ -2400,42 +2400,47 @@ return{trap};
 function localAtismaDelta(base,effects){return effects.trap.length?0:base;}
 function chooseLocalAtismaAiWord(){const level=BOT_LEVELS[botDiffLevel]||BOT_LEVELS.medium;const available=getBotRankedWords().filter(({item})=>!sessionFoundWords.has(item.word));if(!available.length)return null;let ranked=available.filter(({item})=>item.word.length>=level.minLen&&item.word.length<=level.maxLen);if(!ranked.length)ranked=available;if(Math.random()<level.focus){const topCount=Math.min(ranked.length,level.top);return ranked[Math.floor(Math.random()*topCount)].item;}return ranked[Math.floor(Math.random()*ranked.length)].item;}
 function showPatlamaTurnFly(side){
-if(side!=='p1'&&side!=='p2'||document.hidden)return;
+if((side!=='p1'&&side!=='p2')||document.hidden)return;
 const game=document.getElementById('screen-game');
 const grid=document.getElementById('scrabble-grid');
 if(!game||game.classList.contains('hidden')||!grid)return;
-document.querySelectorAll('.patlama-turn-fly').forEach(el=>el.remove());
+game.querySelectorAll('.patlama-turn-fly').forEach(el=>el.remove());
 const gr=grid.getBoundingClientRect();
-if(!gr.width||!gr.height)return;
+const sr=game.getBoundingClientRect();
+if(!gr.width||!gr.height||!sr.width||!sr.height)return;
+
 const fly=document.createElement('div');
 fly.className='patlama-turn-fly '+side;
 fly.textContent='SIRA SENDE!';
 fly.setAttribute('aria-hidden','true');
-const cx=gr.left+gr.width/2;
-const cy=gr.top+gr.height/2;
-const shift=Math.min(145,Math.max(95,gr.width*.27))*(side==='p1'?-1:1);
-fly.style.left=cx+'px';
-fly.style.top=cy+'px';
-fly.style.color=side==='p1'?'#fbbf24':'#38bdf8';
-fly.style.transform='translate3d(-50%,-50%,0) scale(.90)';
-fly.style.opacity='.92';
-document.body.appendChild(fly);
+
+const startX=(gr.left-sr.left)+(gr.width/2);
+const startY=(gr.top-sr.top)+(gr.height/2);
+const shift=Math.min(150,Math.max(105,gr.width*.30))*(side==='p1'?-1:1);
+
+fly.style.setProperty('left',startX+'px','important');
+fly.style.setProperty('top',startY+'px','important');
+fly.style.setProperty('color',side==='p1'?'#fbbf24':'#38bdf8','important');
+fly.style.setProperty('transform','translate3d(-50%,-50%,0) scale(.9)','important');
+fly.style.setProperty('opacity','.96','important');
+game.appendChild(fly);
+
 requestAnimationFrame(()=>requestAnimationFrame(()=>{
   if(typeof fly.animate==='function'){
     const anim=fly.animate([
-      {transform:'translate3d(-50%,-50%,0) scale(.90)',opacity:.92},
-      {transform:'translate3d(calc(-50% + '+shift+'px),-50%,0) scale(1.08)',opacity:.72,offset:.62},
-      {transform:'translate3d(calc(-50% + '+shift+'px),-50%,0) scale(1.12)',opacity:0}
-    ],{duration:820,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'});
+      {transform:'translate3d(-50%,-50%,0) scale(.9)',opacity:.96},
+      {transform:'translate3d(calc(-50% + '+(shift*.62)+'px),-50%,0) scale(1.04)',opacity:.82,offset:.56},
+      {transform:'translate3d(calc(-50% + '+shift+'px),-50%,0) scale(1.10)',opacity:0}
+    ],{duration:850,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'});
     anim.onfinish=()=>fly.remove();
   }else{
     fly.style.setProperty('--dx',shift+'px');
     fly.style.setProperty('--dy','0px');
     fly.classList.add('go');
-    setTimeout(()=>fly.remove(),860);
+    setTimeout(()=>fly.remove(),900);
   }
 }));
-setTimeout(()=>{if(fly.isConnected)fly.remove();},980);
+setTimeout(()=>{if(fly.isConnected)fly.remove();},1050);
 }
 function setPatlamaActivePlayer(side=null){
 const p1=document.getElementById('p1-player-card'),p2=document.getElementById('p2-player-card');
