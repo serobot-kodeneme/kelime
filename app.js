@@ -2362,6 +2362,7 @@ if(tc)tc.textContent=String(Math.max(0,PATLAMA_TRAP_COUNT-atismaLocalCount('trap
 const tb=document.getElementById('atisma-trap-tool');
 tb?.classList.add('atisma-tool-active');
 if(tb)tb.disabled=atismaLocalCount('trap')>=PATLAMA_TRAP_COUNT;
+if(document.getElementById('screen-game')?.classList.contains('atisma-playing'))return;
 document.querySelectorAll('.atisma-piece-own').forEach(el=>el.remove());
 for(const [key,type] of Object.entries(atismaLocalPlayerPlacements)){
 if(type!=='trap')continue;
@@ -2469,7 +2470,7 @@ function finishLocalAtisma(){stopAtismaTurnTimer();stopAtismaLocalAi();renderPat
 function prepareLocalAtisma(){
 stopLocalCountdown();stopAtismaTurnTimer();stopAtismaLocalAi();atismaLocalActive=true;activeGameMode='single';setLongestBonusBadges(false,false);atismaLocalTurn='player';atismaLocalPlayerTurns=0;atismaLocalAiTurns=0;atismaLocalPlayerPlacements={};atismaLocalAiPlacements={};atismaLocalUsedPlayer={};atismaLocalUsedAi={};atismaLocalBlastedWords=new Set();
 document.getElementById('p1-title').textContent='OYUNCU';document.getElementById('p2-title').textContent=getBotDisplayName();renderPatlamaTurnDots(0,0);p1Score=0;p2Score=0;resetRewardFx();updateScores();resetMatchWordResults();resetSeriesWordResults();sessionFoundWords.clear();const ticker=document.getElementById('words-ticker');if(ticker)ticker.innerHTML='';document.getElementById('screen-home').classList.add('hidden');document.getElementById('screen-game').classList.remove('hidden');setAtismaPanelVisible(true,false);
-requestAnimationFrame(()=>{try{buildGrid();chooseAtismaAiPlacements();renderLocalAtismaTools();atismaSetupActive=true;isMatchActive=false;setPatlamaActivePlayer(null);const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents='none';grid.style.opacity='1';grid.style.touchAction='none';}updateGameTimerUI(20);showAtismaSetupNotice(()=>{if(!atismaSetupActive)return;if(grid)grid.style.pointerEvents='auto';showAtismaPlacementHint();const endAt=Date.now()+20000;atismaLastSecondTick=null;const tick=()=>{const left=Math.max(0,Math.ceil((endAt-Date.now())/1000));const shown=Math.min(20,left);updateGameTimerUI(shown);playPatlamaSecondTick(shown);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='';if(left<=0){stopAtismaSetupTimer();atismaSetupActive=false;document.getElementById('atisma-setup-notice')?.classList.add('hidden');hideAtismaPlacementHint();hideAtismaPlacementHint();renderLocalAtismaTools();showToast('Balonlarını yerleştirdin\nİlk hamle sırası sende','orange',4500);startLocalAtismaTurn('player');}};tick();atismaSetupTimer=setInterval(tick,250);});}catch(err){console.error('Local Atisma startup failed',err);atismaLocalActive=false;showToast('PATLAMA hazırlanamadı.','rose');document.getElementById('screen-game')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}});
+requestAnimationFrame(()=>{try{buildGrid();chooseAtismaAiPlacements();renderLocalAtismaTools();atismaSetupActive=true;isMatchActive=false;setPatlamaActivePlayer(null);const grid=document.getElementById('scrabble-grid');if(grid){grid.style.pointerEvents='none';grid.style.opacity='1';grid.style.touchAction='none';}updateGameTimerUI(20);showAtismaSetupNotice(()=>{if(!atismaSetupActive)return;if(grid)grid.style.pointerEvents='auto';showAtismaPlacementHint();const endAt=Date.now()+20000;atismaLastSecondTick=null;const tick=()=>{const left=Math.max(0,Math.ceil((endAt-Date.now())/1000));const shown=Math.min(20,left);updateGameTimerUI(shown);playPatlamaSecondTick(shown);const status=document.getElementById('atisma-phase-status');if(status)status.textContent='';if(left<=0){stopAtismaSetupTimer();atismaSetupActive=false;document.getElementById('atisma-setup-notice')?.classList.add('hidden');hideAtismaPlacementHint();renderLocalAtismaTools();showToast('Balonlarını yerleştirdin\nİlk hamle sırası sende','orange',4500);startLocalAtismaTurn('player');}};tick();atismaSetupTimer=setInterval(tick,250);});}catch(err){console.error('Local Atisma startup failed',err);atismaLocalActive=false;showToast('PATLAMA hazırlanamadı.','rose');document.getElementById('screen-game')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}});
 }
 function isAtismaRoom(){
 return /^(?:invite-only|random-match)-(?:atisma|patlama)-/.test(String(mpRoomMode||'')); 
@@ -2519,6 +2520,8 @@ function bothAtismaPlacementsComplete(){
 return atismaPlacementCount('host')>=PATLAMA_TRAP_COUNT&&atismaPlacementCount('guest')>=PATLAMA_TRAP_COUNT;
 }
 function renderAtismaPieces(){
+const game=document.getElementById('screen-game');
+if(game?.classList.contains('atisma-playing'))return;
 document.querySelectorAll('.atisma-piece-own').forEach(el=>el.remove());
 if(isLocalAtisma()){renderLocalAtismaTools();return;}
 if(!isAtismaRoom()||!mpRole)return;
