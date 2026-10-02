@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v641-gokdelen-soft';
+const CACHE_NAME='kapmaca-shell-v642-gokdelen-undo';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=641-gokdelen-soft',
+  './app.js?v=642-gokdelen-undo',
   './manifest.webmanifest?v=593',
   './favicon-32.png?v=593',
   './apple-touch-icon.png?v=593',
