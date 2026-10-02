@@ -1,10 +1,14 @@
-const CACHE_NAME='kapmaca-shell-v550-remove-round-completely';
+const CACHE_NAME='kapmaca-shell-v575-maintenance';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=550-remove-round-completely',
-  './manifest.webmanifest',
-  './kapmaca-icon.svg'
+  './app.js?v=575-maintenance',
+  './manifest.webmanifest?v=575',
+  './favicon-32.png?v=575',
+  './apple-touch-icon.png?v=575',
+  './icon-192.png?v=575',
+  './icon-512.png?v=575',
+  './icon-maskable-512.png?v=575'
 ];
 
 self.addEventListener('install',event=>{
@@ -33,6 +37,7 @@ self.addEventListener('fetch',event=>{
     event.request.mode==='navigate' ||
     url.pathname.endsWith('/index.html') ||
     url.pathname.endsWith('/app.js') ||
+    url.pathname.endsWith('/manifest.webmanifest') ||
     url.pathname==='/';
 
   if(isCritical){
