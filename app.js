@@ -6894,15 +6894,14 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v629 — GÖKDELEN: dik ekran merkez kolonu ve kompakt süre rozetleri */
+/* v630 — GÖKDELEN: HUD süreleri, tek görünür ıstaka ve aydınlık cam cephe */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
 const wrap=document.getElementById('ksm-board-wrap');
 const rackP1El=document.getElementById('ksm-rack-p1');
-const rackP2El=document.getElementById('ksm-rack-p2');
 const ghost=document.getElementById('ksm-drag-ghost');
-if(!screen||!boardEl||!wrap||!rackP1El||!rackP2El||!ghost)return;
+if(!screen||!boardEl||!wrap||!rackP1El||!ghost)return;
 
 const ROWS=24,COLS=9,H=1,V=2,TOTAL_TILES=300;
 const LETTER_POOL='AAAAAAAABCCÇDDEEEEEEEEGĞHIIIIİİİİKKKLLLLMMMNNNNOOÖPRRRRSSSSŞTTTTUUÜVYYZ';
@@ -6961,16 +6960,16 @@ function renderCell(r,c,isNew=false){
 }
 function renderAll(){for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)renderCell(r,c,false);}
 function renderRack(){
-  rackP1El.textContent='';rackP2El.textContent='';
+  rackP1El.textContent='';
   state.racks[0].forEach((letter,index)=>{
     const b=document.createElement('button');b.type='button';b.className='ksm-rack-tile'+(rackIndexUsed(index)?' used':'');
     const sp=document.createElement('span');sp.textContent=letter;
     const sm=document.createElement('small');sm.textContent=String(TILE_SCORE_CACHE[letter]||1);
     b.append(sp,sm);b.addEventListener('pointerdown',e=>startDrag(e,index),{passive:false});rackP1El.appendChild(b);
   });
-  for(let i=0;i<state.racks[1].length;i++){const back=document.createElement('span');back.className='ksm-rack-back';back.setAttribute('aria-hidden','true');rackP2El.appendChild(back);}
-  document.querySelector('.ksm-rack-row.p1')?.classList.toggle('active',state.turn===0);
-  document.querySelector('.ksm-rack-row.p2')?.classList.toggle('active',state.turn===1);
+  const row=document.querySelector('.ksm-rack-row.p1');
+  row?.classList.toggle('active',state.turn===0);
+  row?.classList.toggle('inactive',state.turn===1);
   updateHud();
 }
 function buildBoard(){
