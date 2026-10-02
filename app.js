@@ -6894,7 +6894,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v633 — GÖKDELEN: kuş yuvası, 5+ harf ve çoklu sözcük konfeti bonusları */
+/* v634 — GÖKDELEN: serbest geçici taş taşıma, seyrek yuva ve kuş efekti */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -6973,7 +6973,6 @@ function updateHud(){
   const aiTurn=state.turn===1;
   const broomBtn=document.getElementById('btn-ksm-broom');if(broomBtn)broomBtn.disabled=aiTurn||state.broomUsed[state.turn]||state.temp.size>0||state.gameOver;
   const shuffleBtn=document.getElementById('btn-ksm-shuffle');if(shuffleBtn)shuffleBtn.disabled=aiTurn||state.temp.size>0||state.gameOver;
-  const undoBtn=document.getElementById('btn-ksm-undo');if(undoBtn)undoBtn.disabled=aiTurn||!state.temp.size||state.gameOver;
   const placeBtn=document.getElementById('btn-ksm-place');if(placeBtn)placeBtn.disabled=aiTurn||!state.temp.size||state.gameOver;
   const turnTop=document.getElementById('ksm-turn-status-top');
   if(turnTop)turnTop.textContent=state.turn===1?'BİLGİN düşünüyor…':'1. oyuncunun sırası.';
@@ -7008,7 +7007,7 @@ function renderRack(){
 }
 function buildBoard(){
   boardEl.textContent='';cells.length=0;const frag=document.createDocumentFragment();
-  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const el=document.createElement('div');el.className='ksm-cell';el.dataset.r=r;el.dataset.c=c;frag.appendChild(el);cells.push(el);}
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const el=document.createElement('div');el.className='ksm-cell';el.dataset.r=r;el.dataset.c=c;el.addEventListener('pointerdown',e=>{if(tempAt(r,c))startTempDrag(e,r,c);},{passive:false});frag.appendChild(el);cells.push(el);}
   boardEl.appendChild(frag);
   const door=document.createElement('div');door.id='ksm-building-door';door.setAttribute('aria-label','Gökdelen giriş kapısı');
   const crown=document.createElement('div');crown.className='ksm-door-crown';crown.setAttribute('aria-hidden','true');
@@ -7017,7 +7016,7 @@ function buildBoard(){
   const sill=document.createElement('div');sill.className='ksm-door-sill';sill.setAttribute('aria-hidden','true');
   door.append(crown,panels,sill);boardEl.appendChild(door);
 }
-function placeNests(count=6){
+function placeNests(count=3){
   state.nests.clear();
   const pool=[];
   const doorRowsStart=ROWS-4,doorColStart=Math.floor((COLS-3)/2);
@@ -7036,25 +7035,51 @@ function centerBoard(){requestAnimationFrame(()=>{wrap.scrollLeft=Math.max(0,(bo
 
 function startDrag(e,index){
   if(state.gameOver||state.turn!==0||rackIndexUsed(index))return;e.preventDefault();e.stopPropagation();
-  state.drag={index,letter:state.racks[state.turn][index],pointerId:e.pointerId};ghost.textContent=state.drag.letter;ghost.style.display='flex';moveGhost(e.clientX,e.clientY);
+  state.drag={source:'rack',index,letter:state.racks[state.turn][index],pointerId:e.pointerId};ghost.textContent=state.drag.letter;ghost.style.display='flex';moveGhost(e.clientX,e.clientY);
+}
+function startTempDrag(e,r,c){
+  if(state.gameOver||state.turn!==0)return;
+  const t=tempAt(r,c);if(!t)return;
+  e.preventDefault();e.stopPropagation();
+  const fromKey=key(r,c),from={...t};
+  state.temp.delete(fromKey);
+  state.drag={source:'temp',index:t.rackIndex,letter:t.char,pointerId:e.pointerId,fromKey,from};
+  renderCell(r,c,false);
+  ghost.textContent=t.char;ghost.style.display='flex';moveGhost(e.clientX,e.clientY);
 }
 function moveGhost(x,y){ghost.style.left=x+'px';ghost.style.top=y+'px';}
 function dropAt(x,y){
-  const el=document.elementFromPoint(x,y)?.closest?.('.ksm-cell');if(!el||!boardEl.contains(el)){setFeedback('Taşı tahta üzerine bırak.','bad');return;}
-  const r=Number(el.dataset.r),c=Number(el.dataset.c),base=state.grid[r][c];
+  const drag=state.drag;if(!drag)return;
+  const el=document.elementFromPoint(x,y)?.closest?.('.ksm-cell');
+  if(!el||!boardEl.contains(el)){
+    if(drag.source==='temp'&&drag.from){state.temp.set(drag.fromKey,drag.from);renderCell(drag.from.r,drag.from.c,false);}
+    setFeedback('Taşı tahta üzerine bırak.','bad');return;
+  }
+  const r=Number(el.dataset.r),c=Number(el.dataset.c),destKey=key(r,c),base=state.grid[r][c];
+  if(drag.source==='temp'&&drag.fromKey===destKey)return;
   const doorRowsStart=ROWS-4,doorColStart=Math.floor((COLS-3)/2);
-  if(r>=doorRowsStart&&c>=doorColStart&&c<doorColStart+3){setFeedback('Giriş kapısına harf yerleştirilemez.','bad');return;}
+  const invalidDoor=r>=doorRowsStart&&c>=doorColStart&&c<doorColStart+3;
   const occupiedRows=[];for(let rr=0;rr<ROWS;rr++)if(state.grid[rr].some(Boolean))occupiedRows.push(rr);
   const lowestOccupied=occupiedRows.length?Math.max(...occupiedRows):ROWS-1;
-  if(r>lowestOccupied){setFeedback('GÖKDELEN yalnızca yukarı doğru büyür.','bad');return;}
-  if(tempAt(r,c)){setFeedback('Bu karede zaten geçici taş var.','bad');return;}
-  if(base===state.drag.letter){setFeedback('Aynı harfi üst üste koymaya gerek yok.','bad');return;}
-  const item={r,c,char:state.drag.letter,rackIndex:state.drag.index,tower:!!base,under:base||''};
-  state.temp.set(key(r,c),item);state.tempOrder.push(key(r,c));renderCell(r,c,false);renderRack();
-  setFeedback(item.tower?'Kule taşı yerleşti. GÖNDER ile kontrol et.':'Taş yerleşti. Sözcüğü tamamla.','');
-}
-function undo(){
-  const k=state.tempOrder.pop();if(!k)return;const t=state.temp.get(k);state.temp.delete(k);if(t)renderCell(t.r,t.c,false);renderRack();
+  const invalidUp=r>lowestOccupied;
+  const occupiedTemp=tempAt(r,c);
+  const invalidSame=base===drag.letter;
+  if(invalidDoor||invalidUp||occupiedTemp||invalidSame){
+    if(drag.source==='temp'&&drag.from){state.temp.set(drag.fromKey,drag.from);renderCell(drag.from.r,drag.from.c,false);}
+    if(invalidDoor)setFeedback('Giriş kapısına harf yerleştirilemez.','bad');
+    else if(invalidUp)setFeedback('GÖKDELEN yalnızca yukarı doğru büyür.','bad');
+    else if(occupiedTemp)setFeedback('Bu karede zaten geçici taş var.','bad');
+    else setFeedback('Aynı harfi üst üste koymaya gerek yok.','bad');
+    return;
+  }
+  if(drag.source==='temp'&&drag.from){
+    state.temp.delete(drag.fromKey);
+    const oi=state.tempOrder.indexOf(drag.fromKey);if(oi>=0)state.tempOrder.splice(oi,1);
+    renderCell(drag.from.r,drag.from.c,false);
+  }
+  const item={r,c,char:drag.letter,rackIndex:drag.index,tower:!!base,under:base||''};
+  state.temp.set(destKey,item);state.tempOrder.push(destKey);renderCell(r,c,false);renderRack();
+  setFeedback(item.tower?'Kule taşı yerleşti. GÖNDER ile kontrol et.':'Taşı istediğin kadar taşıyabilirsin. GÖNDER ile onayla.','');
 }
 function clearTemp(){const all=[...state.temp.values()];state.temp.clear();state.tempOrder.length=0;for(const t of all)renderCell(t.r,t.c,false);renderRack();}
 
@@ -7239,6 +7264,7 @@ function commit(){
   drawRackToNine(state.turn);
   state.temp.clear();state.tempOrder.length=0;
   renderAll();for(const t of placed)renderCell(t.r,t.c,true);
+  wrap.classList.remove('ksm-send-burst');void wrap.offsetWidth;wrap.classList.add('ksm-send-burst');setTimeout(()=>wrap.classList.remove('ksm-send-burst'),460);
   v.words.forEach((w,i)=>ksmConfettiBurst(i*1000));
   if(v.nestBonus)showBonusPop('YUMURTAYI KAPTIN!','PUAN ×3',true,1200);
   else if(v.rackBonus)showBonusPop('5+ HARF BONUSU!','SÖZCÜK PUANI ×2',false,1200);
@@ -7277,7 +7303,7 @@ function checkEnd(){
 function reset(){
   clearTimeout(state.popTimer);state.grid=Array.from({length:ROWS},()=>Array(COLS).fill(''));state.dirs=Array.from({length:ROWS},()=>Array(COLS).fill(0));
   state.used.clear();state.seedKeys.clear();state.nests.clear();state.words=[];state.scores=[0,0];state.turn=0;state.broomUsed=[false,false];state.temp.clear();state.tempOrder=[];state.drag=null;state.gameOver=false;clearAiTimer();
-  state.bag=makeBag();const seed=chooseSeed();consumeSeedFromBag(seed);placeSeed(seed);placeNests(6);state.racks=[[],[]];drawRackToNine(0);drawRackToNine(1);
+  state.bag=makeBag();const seed=chooseSeed();consumeSeedFromBag(seed);placeSeed(seed);placeNests(3);state.racks=[[],[]];drawRackToNine(0);drawRackToNine(1);
   document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');
   renderAll();renderRack();updateHud();setFeedback('Başlangıç sözcüğü: '+seed+'. 1. oyuncu başlıyor.','good');centerBoard();startTurnTimer();
 }
@@ -7292,7 +7318,6 @@ document.getElementById('btn-ksm-exit')?.addEventListener('click',exit);
 document.getElementById('btn-ksm-home-exit')?.addEventListener('click',exit);
 document.getElementById('btn-ksm-again')?.addEventListener('click',reset);
 document.getElementById('btn-ksm-new')?.addEventListener('click',reset);
-document.getElementById('btn-ksm-undo')?.addEventListener('click',undo);
 document.getElementById('btn-ksm-broom')?.addEventListener('click',broom);
 document.getElementById('btn-ksm-shuffle')?.addEventListener('click',shuffleRack);
 document.getElementById('btn-ksm-place')?.addEventListener('click',commit);
