@@ -2381,7 +2381,15 @@ const ranked=Array.from({length:BOARD_SIZE*BOARD_SIZE},(_,i)=>i).sort((a,b)=>fre
 const take=()=>{let x=null;for(let tries=0;tries<80;tries++){const c=pool[Math.floor(Math.random()*pool.length)];if(!picked.has(c)){x=c;break;}}if(x===null)x=ranked.find(i=>!picked.has(i));picked.add(x);return x;};
 for(let n=0;n<PATLAMA_TRAP_COUNT;n++)atismaLocalAiPlacements[take()]='trap';
 }
-function playAtismaTrapExplosion(idx){
+function flashPatlamaVictimScreen(){
+const game=document.getElementById('screen-game');if(!game)return;
+const flash=document.createElement('div');
+flash.className='atisma-victim-flash';
+flash.setAttribute('aria-hidden','true');
+game.appendChild(flash);
+setTimeout(()=>flash.remove(),360);
+}
+function playAtismaTrapExplosion(idx,flashVictim=false){
 vibrateGame('blast');
 playAtismaExplosionSound();
 const cell=domCells[Number(idx)]||document.getElementById('cell-'+Math.floor(Number(idx)/BOARD_SIZE)+'-'+(Number(idx)%BOARD_SIZE));
@@ -2390,11 +2398,22 @@ cell.classList.remove('atisma-explode');
 void cell.offsetWidth;
 cell.classList.add('atisma-explode');
 setTimeout(()=>cell.classList.remove('atisma-explode'),1650);
+const wave=document.createElement('span');
+wave.className='atisma-shockwave';
+wave.setAttribute('aria-hidden','true');
+cell.appendChild(wave);
+setTimeout(()=>wave.remove(),720);
 const fx=document.createElement('span');
 fx.className='atisma-bomb-fx';
 fx.textContent='💥';
 cell.appendChild(fx);
 setTimeout(()=>fx.remove(),900);
+const smoke=document.createElement('span');
+smoke.className='atisma-smoke';
+smoke.setAttribute('aria-hidden','true');
+smoke.innerHTML='<i></i><i></i><i></i>';
+cell.appendChild(smoke);
+setTimeout(()=>smoke.remove(),1050);
 const game=document.getElementById('screen-game');
 if(game){
 game.classList.remove('atisma-screen-shake');
@@ -2402,16 +2421,25 @@ void game.offsetWidth;
 game.classList.add('atisma-screen-shake');
 setTimeout(()=>game.classList.remove('atisma-screen-shake'),500);
 }
+if(flashVictim)flashPatlamaVictimScreen();
 }
-function revealLocalAtismaHit(idx,type){const cell=domCells[Number(idx)];if(!cell)return;playAtismaTrapExplosion(idx);cell.querySelectorAll('.atisma-piece-hit').forEach(x=>x.remove());const mark=document.createElement('span');mark.className='atisma-piece-hit atisma-piece-used';mark.textContent='🎈';cell.appendChild(mark);}
-function applyLocalAtismaEffects(path,placements,usedTarget){
+function revealLocalAtismaHit(idx,type,delay=0,flashVictim=false){
+const run=()=>{
+const cell=domCells[Number(idx)];if(!cell)return;
+playAtismaTrapExplosion(idx,flashVictim);
+cell.querySelectorAll('.atisma-piece-hit').forEach(x=>x.remove());
+const mark=document.createElement('span');mark.className='atisma-piece-hit atisma-piece-used';mark.textContent='🎈';cell.appendChild(mark);
+};
+if(delay>0)setTimeout(run,delay);else run();
+}
+function applyLocalAtismaEffects(path,placements,usedTarget,flashVictim=false){
 const trap=[];
 for(const p of path||[]){
 const idx=p.r*BOARD_SIZE+p.c,key=String(idx);
 if(usedTarget[key])continue;
 if(placements[key]==='trap')trap.push(idx);
 }
-for(const idx of trap){usedTarget[idx]=true;revealLocalAtismaHit(idx,'trap');}
+trap.forEach((idx,i)=>{usedTarget[idx]=true;revealLocalAtismaHit(idx,'trap',i*140,flashVictim);});
 return{trap};
 }
 function localAtismaDelta(base,effects){return effects.trap.length?0:base;}
@@ -2581,14 +2609,18 @@ if(usedCount+1>=PATLAMA_TRAP_COUNT)setAtismaPlacementWaiting(true);
 }catch(_){}
 renderAtismaTools();
 }
-function showAtismaEffects(effects){
+function showAtismaEffects(effects,flashVictim=false){
 if(!effects)return;
-for(const idx of effects.trap||[]){
-const cell=domCells[Number(idx)];if(!cell)continue;
-playAtismaTrapExplosion(idx);
+const traps=Array.from(effects.trap||[]);
+traps.forEach((idx,i)=>{
+const run=()=>{
+const cell=domCells[Number(idx)];if(!cell)return;
+playAtismaTrapExplosion(idx,flashVictim);
 cell.querySelectorAll('.atisma-piece-hit').forEach(x=>x.remove());
 const mark=document.createElement('span');mark.className='atisma-piece-hit atisma-piece-used';mark.textContent='🎈';cell.appendChild(mark);
-}
+};
+if(i>0)setTimeout(run,i*140);else run();
+});
 }
 function syncAtismaTurnUi(gs=mpRoomData){
 if(!isAtismaRoom()||!mpRole)return;
@@ -2800,7 +2832,7 @@ for(const idx of trapHits)updates['atisma/used/'+opponent+'/'+idx]=true;
 if(trapped)updates['atisma/blastedWords/'+wordKey]=true;
 if(Object.keys(updates).length)await mpRoomRef.update(updates);
 await atismaCompleteTurn(mpRole);
-showAtismaEffects({trap:trapHits});
+showAtismaEffects({trap:trapHits},trapped);
 selectedPath.forEach(p=>p.el.classList.add(isP1?'tile-claimed-p1':'tile-claimed-p2'));
 addTickerBadge(word,isP1);
 flyScore(pts,trapped?!isP1:isP1,scoreFxOrigin);
@@ -3267,7 +3299,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=577-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=578-maintenance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -4570,7 +4602,7 @@ if(isLocalAtisma()){
 if(atismaLocalBlastedWords.has(word)){
 p1Score-=5;updateScores();playErrorBuzzer();flashWordFeedback(false);breakCombo(true);showToast(word+' PATLADI -5','rose',1500);atismaLocalPlayerTurns++;renderPatlamaTurnDots(atismaLocalPlayerTurns,atismaLocalAiTurns);clearPath();startLocalAtismaTurn('ai');return;
 }
-const effects=applyLocalAtismaEffects(selectedPath,atismaLocalAiPlacements,atismaLocalUsedAi);const trapped=effects.trap.length>0;if(trapped)atismaLocalBlastedWords.add(word);const delta=trapped?0:pts;sessionFoundWords.add(word);recordMatchWord(word,delta,true);if(trapped)p2Score+=pts;else p1Score+=pts;updateScores();
+const effects=applyLocalAtismaEffects(selectedPath,atismaLocalAiPlacements,atismaLocalUsedAi,true);const trapped=effects.trap.length>0;if(trapped)atismaLocalBlastedWords.add(word);const delta=trapped?0:pts;sessionFoundWords.add(word);recordMatchWord(word,delta,true);if(trapped)p2Score+=pts;else p1Score+=pts;updateScores();
 selectedPath.forEach(p=>p.el.classList.add('tile-claimed-p1'));addTickerBadge(word,true);flyScore(pts,trapped?false:true,scoreFxOrigin);
 if(trapped){playErrorBuzzer();flashWordFeedback(false);breakCombo(true);showToast('🎈 TUZAK! '+word+' PUANI '+getBotDisplayName()+' TARAFINA GEÇTİ: +'+pts,'rose',1900);}else{playCorrectChime();flashWordFeedback(true);rewardWordFx(true);playWordConfetti(word.length);showToast(word+'(+'+pts+')','amber',1800);}
 atismaLocalPlayerTurns++;clearPath();startLocalAtismaTurn('ai');return;
