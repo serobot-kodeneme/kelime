@@ -6111,7 +6111,12 @@ function addFallingTile(tile,bonus=false){
   state.falling.push({x:p.x,y:p.y,letter:tile.letter,type:tile.type,vy:70+Math.random()*60,vx:(Math.random()-.5)*35,rot:(Math.random()-.5)*.4,life:1.05,bonus});
 }
 function addTopRow(){
-  for(const t of state.tiles.values())t.r+=1;
+  const shifted=new Map();
+  for(const t of state.tiles.values()){
+    t.r+=1;
+    shifted.set(key(t.r,t.c),t);
+  }
+  state.tiles=shifted;
   const seed=TOP_WORDS[Math.floor(Math.random()*TOP_WORDS.length)];
   const keep=Math.min(seed.length,3+Math.floor(Math.random()*Math.min(3,Math.max(1,seed.length-2))));
   const part=seed.slice(0,keep);
