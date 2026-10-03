@@ -1,11 +1,11 @@
-const CACHE_NAME='kapmaca-shell-v667-maintenance';
+const CACHE_NAME='kapmaca-shell-v668-istanbul';
 const APP_SHELL=[
   './',
   './index.html',
-  './gokdelen-menu.css?v=667',
+  './gokdelen-menu.css?v=668',
   // GÖKDELEN game CSS, network code and pixel scenery load on demand from the page;
   // do not duplicate them in the install-time shell cache.
-  './app.js?v=667-gokdelen-maintenance',
+  './app.js?v=668-gokdelen-istanbul',
   './manifest.webmanifest?v=593',
   './favicon-32.png?v=593',
   './apple-touch-icon.png?v=593',
