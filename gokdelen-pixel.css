@@ -135,7 +135,7 @@
 
 /* v659 — Istanbul skyline, compact HUD and top controls. Gameplay logic unchanged. */
 #screen-kesisim{
-  background:#17355f url('assets/gokdelen-pixel/city-v659.svg?v=660') center bottom/cover no-repeat!important;
+  background:#17355f url('assets/gokdelen-pixel/city-v659.svg?v=661') center bottom/cover no-repeat!important;
 }
 #screen-kesisim .ksm-topline{
   flex:0 0 auto!important;
@@ -177,7 +177,7 @@
 #screen-kesisim #btn-ksm-exit-bottom{background:#df4362!important}
 #screen-kesisim #ksm-board .ksm-cell.entry-wall:not(.filled){
   border:0!important;border-radius:0!important;box-shadow:none!important;
-  background:#a63c1b url('assets/gokdelen-pixel/brick-v659.svg?v=660') center/64px 48px repeat!important;
+  background:#a63c1b url('assets/gokdelen-pixel/brick-v659.svg?v=661') center/64px 48px repeat!important;
   image-rendering:pixelated!important;
 }
 @media(max-width:430px){
@@ -202,3 +202,101 @@
 /* v660 — HUD nesting hotfix. Keeps v659 Istanbul art and top-control design intact. */
 #screen-kesisim .ksm-topline>.ksm-hud{align-self:stretch!important;height:auto!important}
 #screen-kesisim .ksm-topline>.ksm-top-action{align-self:stretch!important}
+
+
+/* v661 — slimmer HUD, edge controls and six-second quick-start guide. */
+#screen-kesisim .ksm-topline{
+  position:relative!important;
+  width:100%!important;max-width:none!important;
+  min-height:36px!important;height:36px!important;
+  margin:1px 0 3px!important;padding:0!important;
+  display:flex!important;align-items:flex-start!important;justify-content:center!important;
+}
+#screen-kesisim .ksm-topline>.ksm-hud{
+  width:min(330px,calc(100% - 126px))!important;
+  margin:0 auto!important;
+  grid-template-columns:minmax(0,1fr) 60px minmax(0,1fr)!important;
+  gap:3px!important;
+}
+#screen-kesisim .ksm-topline .ksm-hud>div{
+  min-height:29px!important;height:29px!important;
+  padding:2px 4px!important;
+}
+#screen-kesisim .ksm-topline .ksm-player-card{gap:4px!important;padding:2px 5px!important}
+#screen-kesisim .ksm-topline .ksm-player-avatar{
+  width:23px!important;height:23px!important;flex-basis:23px!important;
+  background-size:100% 100%!important;opacity:1!important;
+}
+#screen-kesisim .ksm-topline .ksm-player-meta{gap:2px!important}
+#screen-kesisim .ksm-topline .ksm-player-meta>span{font-size:5.5px!important;line-height:6px!important}
+#screen-kesisim .ksm-topline .ksm-name-timer{
+  min-width:31px!important;height:16px!important;padding:1px 4px!important;
+}
+#screen-kesisim .ksm-topline .ksm-name-timer strong{font-size:10px!important;line-height:11px!important}
+#screen-kesisim .ksm-topline .ksm-name-timer small{font-size:4px!important}
+#screen-kesisim .ksm-topline .ksm-player-card>strong{font-size:14px!important;line-height:16px!important}
+#screen-kesisim .ksm-topline .ksm-center-stack{gap:1px!important}
+#screen-kesisim .ksm-topline #ksm-turn-status-top{
+  min-height:9px!important;height:9px!important;padding:0 2px!important;font-size:4.8px!important;
+}
+#screen-kesisim .ksm-topline .ksm-center-stack .ksm-bag-card{
+  width:58px!important;min-height:19px!important;height:19px!important;padding:1px 2px!important;
+}
+#screen-kesisim .ksm-topline .ksm-bag-card span,
+#screen-kesisim .ksm-topline .ksm-bag-card small{font-size:4px!important}
+#screen-kesisim .ksm-topline .ksm-bag-card strong{font-size:13px!important;line-height:14px!important}
+#screen-kesisim .ksm-top-action{
+  position:absolute!important;top:0!important;
+  width:56px!important;height:33px!important;min-height:33px!important;
+  padding:2px!important;z-index:11!important;
+}
+#screen-kesisim #btn-ksm-fullscreen{left:max(6px,env(safe-area-inset-left))!important}
+#screen-kesisim #btn-ksm-exit-bottom{right:max(6px,env(safe-area-inset-right))!important}
+#screen-kesisim .ksm-top-action .ksm-top-icon{font-size:16px!important;line-height:16px!important}
+#screen-kesisim .ksm-top-action .ksm-top-label{font-size:5px!important}
+#screen-kesisim .ksm-player-card:not(.active){opacity:.82!important}
+
+#ksm-quick-guide{
+  position:absolute;inset:0;z-index:35;
+  display:flex;align-items:center;justify-content:center;
+  padding:18px;
+  background:rgba(10,28,48,.34);
+  backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+}
+#ksm-quick-guide.hidden{display:none!important}
+#ksm-quick-guide .ksm-quick-guide-card{
+  width:min(92%,330px);
+  padding:14px 14px 13px;
+  border:3px solid #193d50;border-radius:2px;
+  background:#fff4d9;color:#193d50;
+  box-shadow:5px 5px 0 #193d50;
+  text-align:center;font-family:'Courier New',monospace;
+}
+#ksm-quick-guide .ksm-quick-guide-title{
+  margin-bottom:8px;font-size:17px;line-height:18px;font-weight:900;letter-spacing:.08em;color:#b53b16;
+}
+#ksm-quick-guide p{margin:5px 0;font-size:10px;line-height:1.35;font-weight:700}
+#ksm-quick-guide b{font-weight:900}
+#btn-ksm-quick-guide-ok{
+  width:min(100%,190px);min-height:34px;margin-top:10px;
+  border:2px solid #193d50;border-radius:2px;
+  background:#40885e;color:#fff5d9;
+  box-shadow:0 3px #193d50;
+  font:900 10px 'Courier New',monospace;
+}
+#btn-ksm-quick-guide-ok:active{transform:translateY(2px);box-shadow:0 1px #193d50}
+
+@media(max-width:430px){
+  #screen-kesisim .ksm-topline>.ksm-hud{
+    width:min(252px,calc(100% - 96px))!important;
+    grid-template-columns:minmax(0,1fr) 52px minmax(0,1fr)!important;
+  }
+  #screen-kesisim .ksm-top-action{width:42px!important;height:31px!important;min-height:31px!important}
+  #screen-kesisim .ksm-top-action .ksm-top-icon{font-size:14px!important;line-height:14px!important}
+  #screen-kesisim .ksm-top-action .ksm-top-label{font-size:4.2px!important}
+  #screen-kesisim .ksm-topline .ksm-player-avatar{width:20px!important;height:20px!important;flex-basis:20px!important}
+  #screen-kesisim .ksm-topline .ksm-player-card{padding:2px 3px!important;gap:2px!important}
+  #screen-kesisim .ksm-topline .ksm-player-meta>span{font-size:4.7px!important}
+  #screen-kesisim .ksm-topline .ksm-player-card>strong{font-size:12px!important}
+  #ksm-quick-guide .ksm-quick-guide-card{width:min(94%,300px);padding:12px}
+}
