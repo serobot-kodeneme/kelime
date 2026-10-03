@@ -135,7 +135,7 @@
 
 /* v659 — Istanbul skyline, compact HUD and top controls. Gameplay logic unchanged. */
 #screen-kesisim{
-  background:#17355f url('assets/gokdelen-pixel/city-v659.svg?v=664') center bottom/cover no-repeat!important;
+  background:#17355f url('assets/gokdelen-pixel/city-v659.svg?v=665') center bottom/cover no-repeat!important;
 }
 #screen-kesisim .ksm-topline{
   flex:0 0 auto!important;
@@ -177,7 +177,7 @@
 #screen-kesisim #btn-ksm-exit-bottom{background:#df4362!important}
 #screen-kesisim #ksm-board .ksm-cell.entry-wall:not(.filled){
   border:0!important;border-radius:0!important;box-shadow:none!important;
-  background:#a63c1b url('assets/gokdelen-pixel/brick-v659.svg?v=664') center/64px 48px repeat!important;
+  background:#a63c1b url('assets/gokdelen-pixel/brick-v659.svg?v=665') center/64px 48px repeat!important;
   image-rendering:pixelated!important;
 }
 @media(max-width:430px){
@@ -536,4 +536,17 @@
   .ksm-window-flash{animation:none;opacity:.25}
   .ksm-cell-bonus-tag{animation:none}
   .ksm-cell.ksm-opponent-p1,.ksm-cell.ksm-opponent-p2{animation:none!important}
+}
+
+
+/* v665 — raised seed row, transparent classical pediment and free opening move. */
+#ksm-door-pediment{
+  position:absolute;left:50%;bottom:132px;z-index:21;pointer-events:none;
+  width:calc(var(--ksm-cell-size)*4.7);height:calc(var(--ksm-cell-size)*2.05);
+  transform:translateX(-50%);
+  background:transparent url('assets/gokdelen-pixel/pediment-v665.svg?v=665') center bottom/contain no-repeat;
+  image-rendering:pixelated;
+}
+@media(max-width:430px){
+  #ksm-door-pediment{bottom:130px;width:calc(var(--ksm-cell-size)*4.55);height:calc(var(--ksm-cell-size)*1.95)}
 }
