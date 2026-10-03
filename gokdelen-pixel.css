@@ -135,7 +135,7 @@
 
 /* v659 — Istanbul skyline, compact HUD and top controls. Gameplay logic unchanged. */
 #screen-kesisim{
-  background:#17355f url('assets/gokdelen-pixel/city-v659.svg?v=663') center bottom/cover no-repeat!important;
+  background:#17355f url('assets/gokdelen-pixel/city-v659.svg?v=664') center bottom/cover no-repeat!important;
 }
 #screen-kesisim .ksm-topline{
   flex:0 0 auto!important;
@@ -177,7 +177,7 @@
 #screen-kesisim #btn-ksm-exit-bottom{background:#df4362!important}
 #screen-kesisim #ksm-board .ksm-cell.entry-wall:not(.filled){
   border:0!important;border-radius:0!important;box-shadow:none!important;
-  background:#a63c1b url('assets/gokdelen-pixel/brick-v659.svg?v=663') center/64px 48px repeat!important;
+  background:#a63c1b url('assets/gokdelen-pixel/brick-v659.svg?v=664') center/64px 48px repeat!important;
   image-rendering:pixelated!important;
 }
 @media(max-width:430px){
@@ -442,4 +442,98 @@
   #screen-kesisim #ksm-pop strong{font-size:21px!important;line-height:23px!important}
   #screen-kesisim #ksm-pop span{font-size:10px!important;line-height:13px!important}
   #screen-kesisim .ksm-invalid-word{font-size:10.8px!important}
+}
+
+
+/* v664 — Gokdelen identity layer: floors, climb feedback, roof goal and end stats. */
+#screen-kesisim{transition:background-position 1.1s ease}
+#screen-kesisim[data-sky-level="0"]{background-position:center 100%!important}
+#screen-kesisim[data-sky-level="1"]{background-position:center 82%!important}
+#screen-kesisim[data-sky-level="2"]{background-position:center 58%!important}
+#screen-kesisim[data-sky-level="3"]{background-position:center 30%!important}
+#screen-kesisim[data-sky-level="0"] .ksm-flying-bird{opacity:.38}
+#screen-kesisim[data-sky-level="1"] .ksm-flying-bird{opacity:.58}
+#screen-kesisim[data-sky-level="2"] .ksm-flying-bird{opacity:.78}
+#screen-kesisim[data-sky-level="3"] .ksm-flying-bird{opacity:1}
+
+#ksm-floor-current{
+  position:absolute;right:7px;top:6px;z-index:29;pointer-events:none;
+  min-width:44px;padding:4px 6px;border:2px solid #193d50;border-radius:2px;
+  background:#fff4d9;color:#193d50;box-shadow:2px 2px 0 #193d50;
+  font:900 7px 'Courier New',monospace;text-align:center;letter-spacing:.03em;
+}
+#ksm-floor-markers{position:absolute;inset:0 8px;z-index:22;pointer-events:none}
+#ksm-floor-markers .ksm-floor-marker{
+  position:absolute;left:2px;right:2px;top:calc(var(--floor-row) * var(--ksm-cell-size));
+  height:0;border-top:1px dashed rgba(255,229,138,.38);
+  color:#fff1b8;text-shadow:1px 1px 0 #17384a;
+  font:900 6px 'Courier New',monospace;letter-spacing:.04em;
+}
+#ksm-floor-markers .ksm-floor-marker.roof{
+  border-top-style:solid;border-top-color:rgba(255,214,107,.72);
+  color:#ffd66b;
+}
+/* JS marker text is visible through the element itself. */
+#ksm-floor-markers .ksm-floor-marker{
+  font-size:6px!important;line-height:7px!important;padding-top:1px!important;
+}
+
+.ksm-cell-bonus-tag{
+  position:absolute;z-index:48;transform:translate(-50%,-100%);
+  padding:3px 5px;border:2px solid #193d50;border-radius:2px;pointer-events:none;
+  font:900 8px 'Courier New',monospace;white-space:nowrap;
+  background:#fff4d9;color:#193d50;box-shadow:2px 2px 0 #193d50;
+  animation:ksmCellBonusTag 1.7s ease both;
+}
+.ksm-cell-bonus-tag.climb{background:#d1fae5;color:#14532d}
+.ksm-cell-bonus-tag.tower{background:#fed7aa;color:#9a3412}
+.ksm-cell-bonus-tag.roof{background:#fde68a;color:#713f12;font-size:9px}
+@keyframes ksmCellBonusTag{
+  0%{opacity:0;transform:translate(-50%,-80%) scale(.8)}
+  12%,72%{opacity:1;transform:translate(-50%,-115%) scale(1)}
+  100%{opacity:0;transform:translate(-50%,-145%) scale(.92)}
+}
+
+.ksm-window-flash{
+  position:absolute;inset:0 8px;z-index:19;pointer-events:none;
+  background:
+    radial-gradient(circle at 50% 50%,rgba(255,233,117,.95) 0 30%,transparent 36%)
+    0 0/var(--ksm-cell-size) var(--ksm-cell-size);
+  mix-blend-mode:screen;animation:ksmWindowCelebrate 1.3s steps(4,end) both;
+}
+@keyframes ksmWindowCelebrate{
+  0%,100%{opacity:0}15%{opacity:.62}35%{opacity:.08}55%{opacity:.72}75%{opacity:.12}90%{opacity:.55}
+}
+.ksm-cell.ksm-opponent-p1{animation:ksmOpponentP1 1.1s ease both!important;z-index:24!important}
+.ksm-cell.ksm-opponent-p2{animation:ksmOpponentP2 1.1s ease both!important;z-index:24!important}
+@keyframes ksmOpponentP1{0%,100%{box-shadow:0 2px 0 #aab7c5}30%,72%{box-shadow:0 0 0 3px #facc15,0 0 14px rgba(250,204,21,.9)}}
+@keyframes ksmOpponentP2{0%,100%{box-shadow:0 2px 0 #aab7c5}30%,72%{box-shadow:0 0 0 3px #38bdf8,0 0 14px rgba(56,189,248,.9)}}
+
+#screen-kesisim .ksm-bag-card.ksm-final-bag{
+  border-color:#fb7185!important;box-shadow:0 0 0 2px rgba(251,113,133,.35),0 4px 0 #9f1239!important;
+}
+#screen-kesisim .ksm-bag-card.ksm-final-bag span::after{content:' • SON';color:#be123c}
+
+#ksm-gameover .ksm-modal{width:min(92%,390px)!important}
+.ksm-over-stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}
+.ksm-over-player{
+  border:2px solid #193d50;border-radius:2px;background:#fff4d9;color:#193d50;
+  box-shadow:2px 2px 0 #193d50;padding:8px 7px;text-align:left;
+  font-family:'Courier New',monospace;
+}
+.ksm-over-player>b{display:block;text-align:center;font-size:9px;line-height:11px;margin-bottom:6px;color:#a33a21}
+.ksm-over-player>span{display:flex;justify-content:space-between;gap:5px;font-size:7px;line-height:12px;font-weight:900}
+.ksm-over-player strong{font-size:8px;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+@media(max-width:430px){
+  #ksm-floor-current{right:4px;top:4px;font-size:6px;min-width:39px;padding:3px 4px}
+  #ksm-floor-markers .ksm-floor-marker{font-size:5px!important}
+  .ksm-cell-bonus-tag{font-size:7px;padding:2px 4px}
+  .ksm-over-player{padding:7px 5px}
+  .ksm-over-player>b{font-size:8px}.ksm-over-player>span{font-size:6px}.ksm-over-player strong{font-size:7px}
+}
+@media(prefers-reduced-motion:reduce){
+  .ksm-window-flash{animation:none;opacity:.25}
+  .ksm-cell-bonus-tag{animation:none}
+  .ksm-cell.ksm-opponent-p1,.ksm-cell.ksm-opponent-p2{animation:none!important}
 }
