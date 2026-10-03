@@ -6977,6 +6977,7 @@ const state={
   used:new Set(),seedKeys:new Set(),flowers:new Set(),flowerIcons:new Map(),words:[],scores:[0,0],turn:0,bag:[],racks:[[],[]],broomUsed:[0,0],
   temp:new Map(),tempOrder:[],drag:null,meaningBlockedUntil:0,popTimer:null,gameOver:false,turnLeft:30,turnTimer:null,aiTimer:null,lastHeartSec:null,lastBellSec:null,
   highestFloors:[0,0],longestWords:['',''],wordCounts:[0,0],roofWinner:-1,lowBagWarned:false,finalBagTimer:null,
+  missStreak:[0,0],forcedWinner:-1,endReason:'',
   introActive:false,introToken:0,introFrame:null,introCamera:null,introTimers:new Set()
 };
 const cells=[];
@@ -7879,14 +7880,16 @@ function shuffleRack(){
 }
 function showGokdelenGameOver(){
   const a=state.scores[0],b=state.scores[1],title=document.getElementById('ksm-over-title'),txt=document.getElementById('ksm-over-text');
+  const threeMissWin=state.endReason==='three-misses'&&(state.forcedWinner===0||state.forcedWinner===1);
   const roofWon=state.roofWinner===0||state.roofWinner===1;
   if(title){
-    if(roofWon){
+    if(threeMissWin)title.textContent=state.multiplayer&&state.forcedWinner===state.mySide?'KAZANDIN!':(state.forcedWinner===0?'1. OYUNCU KAZANDI!':'2. OYUNCU KAZANDI!');
+    else if(roofWon){
       if(state.multiplayer)title.textContent=state.roofWinner===state.mySide?'KAZANDIN!':'RAKİP KAZANDI!';
       else title.textContent=state.roofWinner===0?'KAZANDIN!':aiName()+' KAZANDI!';
     }else title.textContent=a===b?'BERABERE!':(a>b?'1. OYUNCU KAZANDI!':'2. OYUNCU KAZANDI!');
   }
-  if(txt)txt.textContent=roofWon?'🇹🇷 Çatıya ilk ulaşan kazandı • '+a+' - '+b:'200 harf bitti • '+a+' - '+b;
+  if(txt)txt.textContent=threeMissWin?'Rakip art arda 3 tur sözcük yazamadı • '+a+' - '+b:(roofWon?'🇹🇷 Çatıya ilk ulaşan kazandı • '+a+' - '+b:'200 harf bitti • '+a+' - '+b);
   renderGameOverStats();
   document.getElementById('ksm-gameover')?.classList.remove('hidden');
 }
@@ -7899,13 +7902,16 @@ function checkEnd(){
   return true;
 }
 function reset(){
-  if(state.multiplayer){window.gokdelenNetwork.restart();return;}
+  if(state.multiplayer){
+    if(state.endReason==='three-misses'){window.gokdelenNetwork.leaveAfterResult?.();return;}
+    window.gokdelenNetwork.restart();return;
+  }
   state.aiLevel=AI_LEVELS[botDiffLevel]?botDiffLevel:'easy';state.mySide=0;document.getElementById('btn-ksm-again')?.classList.remove('hidden');
   cancelIntro();clearTurnTimer();
   clearReturnFlights();document.getElementById('ksm-confetti-layer')?.remove();
   clearInvalidFeedback();
   clearTimeout(state.popTimer);state.grid=Array.from({length:ROWS},()=>Array(COLS).fill(''));state.dirs=Array.from({length:ROWS},()=>Array(COLS).fill(0));
-  state.used.clear();state.seedKeys.clear();state.flowers.clear();state.words=[];state.scores=[0,0];state.turn=0;state.broomUsed=[0,0];state.highestFloors=[0,0];state.longestWords=['',''];state.wordCounts=[0,0];state.roofWinner=-1;state.lowBagWarned=false;clearGokdelenFx();state.temp.clear();state.tempOrder=[];state.drag=null;state.meaningBlockedUntil=0;ghost.style.display='none';state.gameOver=false;state.turnLeft=30;clearAiTimer();
+  state.used.clear();state.seedKeys.clear();state.flowers.clear();state.words=[];state.scores=[0,0];state.turn=0;state.broomUsed=[0,0];state.highestFloors=[0,0];state.longestWords=['',''];state.wordCounts=[0,0];state.roofWinner=-1;state.missStreak=[0,0];state.forcedWinner=-1;state.endReason='';state.lowBagWarned=false;clearGokdelenFx();state.temp.clear();state.tempOrder=[];state.drag=null;state.meaningBlockedUntil=0;ghost.style.display='none';state.gameOver=false;state.turnLeft=30;clearAiTimer();
   state.bag=makeBag();const seed=chooseSeed();consumeSeedFromBag(seed);state.flowerIcons.clear();state.racks=[[],[]];drawRackToNine(0);drawRackToNine(1);
   document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');
   renderAll();renderBirds();renderRack();setFeedback('GÖKDELEN • Açılış hazırlanıyor…');playIntro(seed);
@@ -7922,7 +7928,7 @@ document.addEventListener('pointercancel',e=>{
   state.drag=null;ghost.style.display='none';
 },{passive:true});
 // The same pure rule engine is used locally and by both network clients.
-const MATCH_FIELDS=['grid','dirs','used','seedKeys','words','scores','turn','bag','racks','broomUsed','highestFloors','longestWords','wordCounts','roofWinner','gameOver','multiplayer','mySide'];
+const MATCH_FIELDS=['grid','dirs','used','seedKeys','words','scores','turn','bag','racks','broomUsed','highestFloors','longestWords','wordCounts','roofWinner','missStreak','forcedWinner','endReason','gameOver','multiplayer','mySide'];
 function withMatch(data,fn){
   const saved=Object.fromEntries(MATCH_FIELDS.map(k=>[k,state[k]]));
   try{
@@ -7936,19 +7942,22 @@ function withMatch(data,fn){
     state.longestWords=[String(data.longestWords?.[0]||''),String(data.longestWords?.[1]||'')];
     state.wordCounts=[Number(data.wordCounts?.[0]||0),Number(data.wordCounts?.[1]||0)];
     state.roofWinner=Number.isInteger(data.roofWinner)?data.roofWinner:-1;
+    state.missStreak=[Number(data.missStreak?.[0]||0),Number(data.missStreak?.[1]||0)];
+    state.forcedWinner=Number.isInteger(data.forcedWinner)?data.forcedWinner:-1;
+    state.endReason=String(data.endReason||'');
     state.gameOver=!!data.gameOver;state.multiplayer=true;
     return fn();
   }finally{for(const k of MATCH_FIELDS)state[k]=saved[k];}
 }
 function serializeMatch(extra={}){
-  return{grid:state.grid,dirs:state.dirs,words:[...state.used],seedKeys:[...state.seedKeys],scores:state.scores,turn:state.turn,bag:state.bag,racks:state.racks,broomUsed:state.broomUsed,highestFloors:state.highestFloors,longestWords:state.longestWords,wordCounts:state.wordCounts,roofWinner:state.roofWinner,gameOver:state.gameOver,...extra};
+  return{grid:state.grid,dirs:state.dirs,words:[...state.used],seedKeys:[...state.seedKeys],scores:state.scores,turn:state.turn,bag:state.bag,racks:state.racks,broomUsed:state.broomUsed,highestFloors:state.highestFloors,longestWords:state.longestWords,wordCounts:state.wordCounts,roofWinner:state.roofWinner,missStreak:state.missStreak,forcedWinner:state.forcedWinner,endReason:state.endReason,gameOver:state.gameOver,...extra};
 }
 function makeNetworkMatch(){
   const seed=chooseSeed();
   return withMatch({},()=>{
     state.bag=makeBag();consumeSeedFromBag(seed);drawRackToNine(0);drawRackToNine(1);
     for(let i=0;i<seed.length;i++){const r=GOKDELEN_SEED_ROW,c=1+i;state.grid[r][c]=seed[i];state.dirs[r][c]=H;state.seedKeys.add(key(r,c));}
-    state.used.add(seed);return serializeMatch({seed,revision:0,turnDeadline:0,passCount:0});
+    state.used.add(seed);state.missStreak=[0,0];state.forcedWinner=-1;state.endReason='';return serializeMatch({seed,revision:0,turnDeadline:0,passCount:0});
   });
 }
 function reduceNetworkMatch(data,side,action,placed,now,revision){
@@ -7973,6 +7982,7 @@ function reduceNetworkMatch(data,side,action,placed,now,revision){
       recordMoveStats(side,result,[...overlay.values()]);
       [...overlay.values()].map(t=>t.rackIndex).sort((a,b)=>b-a).forEach(i=>state.racks[side].splice(i,1));
       drawRackToNine(side);passes=0;
+      state.missStreak[side]=0;
       lastMove={side,placed:[...overlay.values()],word:result.word,words:result.words.map(w=>({word:w.word,score:w.score})),climbCount:result.climbCount,climbTiles:result.climbTiles,climbBonus:result.climbBonus,roofReached:!!result.roofReached,roofBonus:0,score:result.totalScore};
       state.turn=1-side;
     }else if(action==='broom'){
@@ -7982,12 +7992,18 @@ function reduceNetworkMatch(data,side,action,placed,now,revision){
     else if(action==='timeout'){
       const expiredSide=state.turn;
       state.scores[expiredSide]-=10;
+      state.missStreak[expiredSide]=Number(state.missStreak[expiredSide]||0)+1;
       state.turn=1-expiredSide;passes++;
-      lastPass={side:expiredSide,score:-10,reason:'BOŞ GEÇTİ'};
+      lastPass={side:expiredSide,score:-10,reason:'BOŞ GEÇTİ',streak:state.missStreak[expiredSide]};
+      if(state.missStreak[expiredSide]>=3){
+        state.forcedWinner=1-expiredSide;
+        state.endReason='three-misses';
+        state.gameOver=true;
+      }
     }
     else return null;
-    state.gameOver=(state.roofWinner===0||state.roofWinner===1)||(!state.bag.length&&!state.racks[0].length&&!state.racks[1].length);
-    return serializeMatch({seed:data.seed,revision:revision+1,turnDeadline:action==='broom'||action==='shuffle'?Number(data.turnDeadline):now+30000,passCount:passes,lastMove,lastPass});
+    if(!state.gameOver)state.gameOver=(state.roofWinner===0||state.roofWinner===1)||(!state.bag.length&&!state.racks[0].length&&!state.racks[1].length);
+    return serializeMatch({seed:data.seed,revision:revision+1,turnDeadline:state.gameOver?0:(action==='broom'||action==='shuffle'?Number(data.turnDeadline):now+30000),passCount:passes,lastMove,lastPass});
   });
 }
 function applyNetworkMatch(data,round,intro=false){
@@ -7997,7 +8013,8 @@ function applyNetworkMatch(data,round,intro=false){
   const restored=withMatch(data,()=>serializeMatch());
   state.grid=restored.grid;state.dirs=restored.dirs;state.used=new Set(restored.words);state.words=restored.words;state.seedKeys=new Set(restored.seedKeys);
   state.scores=restored.scores;state.turn=restored.turn;state.bag=restored.bag;state.racks=restored.racks;state.broomUsed=restored.broomUsed;
-  state.highestFloors=restored.highestFloors;state.longestWords=restored.longestWords;state.wordCounts=restored.wordCounts;state.roofWinner=restored.roofWinner;state.gameOver=restored.gameOver;
+  state.highestFloors=restored.highestFloors;state.longestWords=restored.longestWords;state.wordCounts=restored.wordCounts;state.roofWinner=restored.roofWinner;
+  state.missStreak=restored.missStreak||[0,0];state.forcedWinner=Number.isInteger(restored.forcedWinner)?restored.forcedWinner:-1;state.endReason=String(restored.endReason||'');state.gameOver=restored.gameOver;
   state.flowers.clear();state.flowerIcons.clear();state.revision=Number(data.revision||0);
   document.getElementById('ksm-gameover')?.classList.add('hidden');
   if(intro){
@@ -8009,7 +8026,8 @@ function applyNetworkMatch(data,round,intro=false){
   renderRack();
   if(data.lastPass&&previousRevision>=0&&previousRevision!==state.revision){
     const who=Number(data.lastPass.side)===state.mySide?'SEN':'RAKİP';
-    showPop('BOŞ GEÇTİ','-10 PUAN • '+who,1000);
+    const streak=Math.max(1,Number(data.lastPass.streak||1));
+    showPop('BOŞ GEÇTİ','-10 PUAN • '+who+' • '+streak+'/3',1000);
   }
   if(data.lastMove&&previousRevision>=0&&previousRevision!==state.revision){
     const moveWords=Array.isArray(data.lastMove.words)&&data.lastMove.words.length?data.lastMove.words.map(w=>w.word+' +'+Number(w.score||0)).join(' • '):data.lastMove.word+' +'+data.lastMove.score;
@@ -8021,7 +8039,13 @@ function applyNetworkMatch(data,round,intro=false){
     const top=Math.min(...(data.lastMove.placed||[]).map(t=>t.r));
     if(Number.isFinite(top))wrap.scrollTo({top:Math.max(0,boardEl.offsetTop+top*boardEl.clientHeight/ROWS-wrap.clientHeight*.35),behavior:'smooth'});
   }
-  if(state.gameOver)showGokdelenGameOver();
+  if(state.gameOver){
+    if(state.multiplayer&&state.endReason==='three-misses'&&state.forcedWinner!==state.mySide){
+      setTimeout(()=>window.gokdelenNetwork.leaveAfterForcedLoss?.(),0);
+      return;
+    }
+    showGokdelenGameOver();
+  }
 }
 function enterNetworkScene(data){
   cancelIntro();clearReturnFlights();clearInvalidFeedback();clearTurnTimer();clearAiTimer();
