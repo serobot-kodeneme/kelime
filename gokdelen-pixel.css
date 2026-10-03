@@ -1187,7 +1187,7 @@ button:disabled{cursor:default!important}
   bottom:calc(var(--ksm-cell-size)*1.02);
   width:calc(var(--ksm-cell-size)*1.48);
   height:calc(var(--ksm-cell-size)*1.98);
-  background:#d9d8d2 url('assets/gokdelen-pixel/ataturk-poster-v709.svg?v=709') center/cover no-repeat;
+  background:#d9d8d2 url('assets/gokdelen-pixel/ataturk-poster-v710.jpg?v=710') center/cover no-repeat;
   border:2px solid #33271f;
   box-shadow:2px 2px 0 #6b4b34,0 0 0 1px #d8b777;
   image-rendering:pixelated;
