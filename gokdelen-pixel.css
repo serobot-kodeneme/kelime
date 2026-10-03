@@ -1187,3 +1187,47 @@ button:disabled{cursor:default!important}
   #screen-kesisim #ksm-board-wrap.ksm-bomb-shake{animation:none!important}
   .ksm-bomb-burst{animation:none!important;opacity:.9!important}
 }
+
+
+/* v702 — GÖKDELEN strateji okunaklılığı ve oyun sonu özeti */
+#screen-kesisim .ksm-cell.ksm-bomb-preview{
+  z-index:36!important;
+  outline:2px solid #f59e0b!important;
+  outline-offset:-2px!important;
+  filter:brightness(1.12) saturate(1.15)!important;
+  box-shadow:inset 0 0 0 2px rgba(255,244,190,.78),0 0 10px rgba(245,158,11,.72)!important;
+}
+#screen-kesisim .ksm-cell.ksm-bomb-preview-center{
+  outline:3px solid #ef4444!important;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.9),0 0 16px rgba(239,68,68,.95)!important;
+}
+#screen-kesisim .ksm-cell.ksm-bomb-preview-invalid{
+  outline:3px solid #ef4444!important;
+  filter:grayscale(.35) brightness(.82)!important;
+}
+#screen-kesisim .ksm-cell.ksm-word-preview-side{
+  box-shadow:inset 0 0 0 2px rgba(56,189,248,.9),0 0 8px rgba(56,189,248,.48)!important;
+}
+#screen-kesisim .ksm-cell.ksm-word-preview-main{
+  box-shadow:inset 0 0 0 2px rgba(34,197,94,.98),0 0 11px rgba(34,197,94,.62)!important;
+  filter:brightness(1.07)!important;
+}
+#screen-kesisim .ksm-rack-tools>button.ksm-tool-empty{
+  opacity:.42!important;
+  filter:grayscale(.75)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.22),0 2px #183d4e!important;
+}
+#screen-kesisim .ksm-rack-tools>button.ksm-tool-empty .ksm-bomb-count,
+#screen-kesisim .ksm-rack-tools>button.ksm-tool-empty #ksm-broom-left{
+  font-size:6px!important;
+  letter-spacing:-.02em!important;
+}
+#screen-kesisim .ksm-cell.ksm-opponent-p1,
+#screen-kesisim .ksm-cell.ksm-opponent-p2{
+  animation-duration:1.8s!important;
+}
+#ksm-gameover .ksm-over-player>span:nth-last-child(-n+2){
+  margin-top:2px;
+  padding-top:2px;
+  border-top:1px dashed rgba(25,61,80,.36);
+}
