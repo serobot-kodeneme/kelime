@@ -6927,7 +6927,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v644 — GÖKDELEN: çatıdan girişe sinematik açılış */
+/* v645 — GÖKDELEN: ağır kamera inişi, uzun başlık ve yaşayan kaldırım */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -7143,7 +7143,7 @@ function playIntro(seed){
   state.introActive=true;const token=state.introToken;
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const title=document.getElementById('ksm-intro-title');
-  screen.classList.add('ksm-intro');title?.classList.add('show');
+  screen.classList.add('ksm-intro');if(title){void title.offsetWidth;title.classList.add('show');}
   wrap.scrollTop=0;wrap.scrollLeft=Math.max(0,(boardEl.scrollWidth-wrap.clientWidth)/2);updateHud();
   const finish=()=>{
     state.used.add(seed);state.words.push(seed);
@@ -7157,26 +7157,25 @@ function playIntro(seed){
     let index=0;
     const next=()=>{
       placeSeedLetter(seed,index,!reduced);index++;
-      introLater(index<seed.length?next:finish,index<seed.length?(reduced?70:420):(reduced?100:900),token);
+      introLater(index<seed.length?next:finish,index<seed.length?(reduced?70:420):(reduced?100:1200),token);
     };
     next();
   };
   const descend=()=>{
-    title?.classList.add('fading');
     if(reduced){reveal();return;}
     let started=null;
     const step=now=>{
       if(!state.introActive||token!==state.introToken||screen.classList.contains('hidden'))return;
       if(started===null)started=now;
-      const progress=Math.min(1,(now-started)/5200);
-      const eased=progress*progress*(3-2*progress);
+      const progress=Math.min(1,(now-started)/11000);
+      const eased=progress*progress*progress*(progress*(progress*6-15)+10);
       wrap.scrollTop=Math.max(0,wrap.scrollHeight-wrap.clientHeight)*eased;
       if(progress<1)state.introFrame=requestAnimationFrame(step);
       else{state.introFrame=null;introLater(reveal,350,token);}
     };
     state.introFrame=requestAnimationFrame(step);
   };
-  introLater(descend,reduced?450:1400,token);
+  introLater(descend,reduced?450:2400,token);
 }
 
 function startDrag(e,index){
