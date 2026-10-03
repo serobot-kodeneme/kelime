@@ -310,6 +310,8 @@ const word=prev.slice(0,prefixLen)+row.slice(1);
 decodedWords.push(word);prev=word;
 }
 GEO_DICTIONARY=data.GEO_DICTIONARY;
+// v693 — eksik temel Türkçe sözcük düzeltmesi.
+decodedWords.push('KIT');
 GAME_WORD_LIST=Array.from(new Set(decodedWords))
 .filter(w=>w.length>=2&&w.length<=9&&!isArgoWord(w)&&!isForeignWord(w)&&!isElementSymbol(w)).sort();
 GAME_WORD_SET=new Set(GAME_WORD_LIST);
