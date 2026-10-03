@@ -1185,11 +1185,11 @@ button:disabled{cursor:default!important}
   position:absolute;
   right:calc(100% + var(--ksm-cell-size)*.34);
   bottom:calc(var(--ksm-cell-size)*1.02);
-  width:calc(var(--ksm-cell-size)*1.48);
-  height:calc(var(--ksm-cell-size)*1.98);
-  background:#d9d8d2 url('assets/gokdelen-pixel/ataturk-poster-v710.jpg?v=710') center/cover no-repeat;
-  border:2px solid #33271f;
-  box-shadow:2px 2px 0 #6b4b34,0 0 0 1px #d8b777;
+  width:calc(var(--ksm-cell-size)*1.55);
+  height:calc(var(--ksm-cell-size)*2.15);
+  background:transparent url('assets/gokdelen-pixel/ataturk-wall-v711.png?v=711') center/contain no-repeat;
+  border:0;
+  box-shadow:none;
   image-rendering:pixelated;
   pointer-events:none;
   z-index:24;
@@ -1198,7 +1198,7 @@ button:disabled{cursor:default!important}
   #screen-kesisim #ksm-building-door::before{
     right:calc(100% + var(--ksm-cell-size)*.18);
     bottom:calc(var(--ksm-cell-size)*1.08);
-    width:calc(var(--ksm-cell-size)*1.28);
-    height:calc(var(--ksm-cell-size)*1.72);
+    width:calc(var(--ksm-cell-size)*1.42);
+    height:calc(var(--ksm-cell-size)*1.95);
   }
 }
