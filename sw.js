@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v646-living-street';
+const CACHE_NAME='kapmaca-shell-v647-smooth-camera';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=646-living-street',
+  './app.js?v=647-smooth-camera',
   './manifest.webmanifest?v=593',
   './favicon-32.png?v=593',
   './apple-touch-icon.png?v=593',

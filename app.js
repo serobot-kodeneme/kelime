@@ -6927,7 +6927,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v646 — GÖKDELEN: kesintisiz yavaş kamera ve gerçek ölçekli sokak */
+/* v647 — GÖKDELEN: kesintisiz yavaş kamera ve gerçek ölçekli sokak */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -6944,7 +6944,7 @@ const state={
   dirs:Array.from({length:ROWS},()=>Array(COLS).fill(0)),
   used:new Set(),seedKeys:new Set(),flowers:new Set(),flowerIcons:new Map(),words:[],scores:[0,0],turn:0,bag:[],racks:[[],[]],broomUsed:[0,0],
   temp:new Map(),tempOrder:[],drag:null,meaningBlockedUntil:0,popTimer:null,gameOver:false,turnLeft:30,turnTimer:null,aiTimer:null,lastHeartSec:null,lastBellSec:null,
-  introActive:false,introToken:0,introFrame:null,introTimers:new Set()
+  introActive:false,introToken:0,introFrame:null,introCamera:null,introTimers:new Set()
 };
 const cells=[];
 const key=(r,c)=>r+','+c;
@@ -7130,6 +7130,7 @@ function placeSeedLetter(word,index,animate=false){
 }
 function cancelIntro(){
   state.introToken++;state.introActive=false;
+  if(state.introCamera){state.introCamera.cancel();state.introCamera=null;}
   if(state.introFrame!==null){cancelAnimationFrame(state.introFrame);state.introFrame=null;}
   for(const timer of state.introTimers)clearTimeout(timer);state.introTimers.clear();
   screen.classList.remove('ksm-intro');
@@ -7153,6 +7154,7 @@ function playIntro(seed){
   const reveal=()=>{
     title?.classList.add('fading');
     wrap.scrollTop=Math.max(0,wrap.scrollHeight-wrap.clientHeight);
+    if(state.introCamera){state.introCamera.cancel();state.introCamera=null;}
     setFeedback('BİLGİN başlangıç sözcüğünü yerleştiriyor…');
     let index=0;
     const next=()=>{
@@ -7162,6 +7164,14 @@ function playIntro(seed){
     next();
   };
   const descend=()=>{
+    const content=document.getElementById('ksm-building-content');
+    if(content&&typeof content.animate==='function'){
+      const distance=Math.max(0,wrap.scrollHeight-wrap.clientHeight);
+      const camera=content.animate([{transform:'translate3d(0,0,0)'},{transform:`translate3d(0,${-distance}px,0)`}],{duration:reduced?17000:14000,easing:'cubic-bezier(.45,0,.55,1)',fill:'forwards'});
+      state.introCamera=camera;
+      camera.onfinish=()=>{if(state.introActive&&token===state.introToken)introLater(reveal,350,token);};
+      return;
+    }
     let lastFrame=null,elapsed=0;
     const step=now=>{
       if(!state.introActive||token!==state.introToken||screen.classList.contains('hidden'))return;
