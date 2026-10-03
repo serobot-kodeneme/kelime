@@ -119,3 +119,10 @@
 
 #screen-home#screen-home .home-logo-tile{transform:none!important}
 #screen-home#screen-home .home-mode-guide-button small{color:#28544d!important}
+
+#modal-countdown#modal-countdown #countdown-card#countdown-card{border-radius:2px!important}
+#modal-countdown#modal-countdown #countdown-status#countdown-status{border-radius:2px!important}
+#screen-game#screen-game:not(.atisma-mode) #game-timer,#screen-game#screen-game:not(.atisma-mode) .timer-label{color:#193d50!important;text-shadow:none!important}
+#screen-game#screen-game:not(.atisma-mode) .compact-timer.timer-danger #game-timer{color:#fff4d9!important}
+#screen-game#screen-game:not(.atisma-mode)>div.flex-1{background:transparent!important}
+#screen-game#screen-game:not(.atisma-mode) .letter-cell:not(.tile-claimed-p1):not(.tile-claimed-p2):not(.tile-dragging):not(.tile-hover-p1):not(.tile-hover-p2){background:#fff5d9!important;border-color:#b99a65!important}
