@@ -135,7 +135,7 @@
 
 /* v659 — Istanbul skyline, compact HUD and top controls. Gameplay logic unchanged. */
 #screen-kesisim{
-  background:#17355f url('assets/gokdelen-pixel/city-v659.svg?v=662') center bottom/cover no-repeat!important;
+  background:#17355f url('assets/gokdelen-pixel/city-v659.svg?v=663') center bottom/cover no-repeat!important;
 }
 #screen-kesisim .ksm-topline{
   flex:0 0 auto!important;
@@ -177,7 +177,7 @@
 #screen-kesisim #btn-ksm-exit-bottom{background:#df4362!important}
 #screen-kesisim #ksm-board .ksm-cell.entry-wall:not(.filled){
   border:0!important;border-radius:0!important;box-shadow:none!important;
-  background:#a63c1b url('assets/gokdelen-pixel/brick-v659.svg?v=662') center/64px 48px repeat!important;
+  background:#a63c1b url('assets/gokdelen-pixel/brick-v659.svg?v=663') center/64px 48px repeat!important;
   image-rendering:pixelated!important;
 }
 @media(max-width:430px){
@@ -305,3 +305,141 @@
 /* v662 — explicit guide acknowledgement; no countdown or auto-close. */
 #ksm-quick-guide{pointer-events:auto}
 #btn-ksm-quick-guide-ok{cursor:pointer}
+
+
+/* v663 — pixel-style readable UI typography; board and rack tiles intentionally unchanged. */
+#screen-kesisim{
+  --ksm-pixel-font:'Courier New','Lucida Console',monospace;
+}
+#screen-kesisim :is(
+  .ksm-player-card,.ksm-center-stack,.ksm-top-action,.ksm-rack-tools button,
+  #ksm-feedback,#ksm-pop,.ksm-invalid-word,.ksm-modal,.ksm-quick-guide-card
+){
+  font-family:var(--ksm-pixel-font)!important;
+  font-weight:900!important;
+  letter-spacing:.035em!important;
+  text-rendering:geometricPrecision;
+}
+#screen-kesisim :is(
+  .ksm-player-card,.ksm-center-stack,.ksm-top-action,.ksm-rack-tools button,
+  #ksm-feedback,#ksm-pop,.ksm-invalid-word
+){
+  text-shadow:1px 1px 0 rgba(20,40,55,.38);
+}
+
+/* Never change the letter-tile typeface. */
+#screen-kesisim :is(
+  .ksm-cell.filled,.ksm-cell.filled small,
+  .ksm-rack-tile,.ksm-rack-tile small,
+  #ksm-drag-ghost,.ksm-return-flight
+){
+  font-family:'Quicksand',sans-serif!important;
+  letter-spacing:normal!important;
+  text-shadow:none!important;
+}
+
+/* HUD: one readable step larger without increasing its overall height. */
+#screen-kesisim .ksm-topline .ksm-player-meta>span{
+  font-size:6.4px!important;line-height:7px!important;
+}
+#screen-kesisim .ksm-topline .ksm-name-timer strong{
+  font-size:11.5px!important;line-height:12px!important;
+}
+#screen-kesisim .ksm-topline .ksm-name-timer small{
+  font-size:4.8px!important;line-height:5px!important;
+}
+#screen-kesisim .ksm-topline .ksm-player-card>strong{
+  font-size:15.5px!important;line-height:16px!important;
+}
+#screen-kesisim .ksm-topline #ksm-turn-status-top{
+  font-size:5.7px!important;line-height:7px!important;
+}
+#screen-kesisim .ksm-topline .ksm-bag-card span,
+#screen-kesisim .ksm-topline .ksm-bag-card small{
+  font-size:4.8px!important;line-height:5px!important;
+}
+#screen-kesisim .ksm-topline .ksm-bag-card strong{
+  font-size:14px!important;line-height:15px!important;
+}
+#screen-kesisim .ksm-top-action .ksm-top-label{
+  font-size:5.7px!important;line-height:6px!important;
+}
+
+/* Action and status text. */
+#screen-kesisim .ksm-rack-tools button{
+  font-size:8.7px!important;line-height:10px!important;
+  letter-spacing:.025em!important;
+}
+#screen-kesisim #ksm-feedback{
+  font-size:10.2px!important;line-height:18px!important;min-height:19px!important;
+  letter-spacing:.025em!important;
+}
+
+/* Scores, warnings and transient notices. */
+#screen-kesisim #ksm-pop{
+  min-width:150px!important;max-width:min(88%,340px)!important;
+  padding:12px 15px!important;border-radius:3px!important;
+  border:3px solid #193d50!important;
+  background:rgba(12,39,57,.96)!important;
+  box-shadow:4px 4px 0 #193d50!important;
+}
+#screen-kesisim #ksm-pop strong{
+  font-family:var(--ksm-pixel-font)!important;
+  font-size:23px!important;line-height:25px!important;
+  letter-spacing:.055em!important;color:#ffe38a!important;
+  text-shadow:2px 2px 0 #6f452b!important;
+}
+#screen-kesisim #ksm-pop span{
+  font-family:var(--ksm-pixel-font)!important;
+  margin-top:5px!important;font-size:10.8px!important;line-height:14px!important;
+  letter-spacing:.035em!important;color:#f2f7ff!important;
+  text-shadow:1px 1px 0 #193d50!important;
+}
+#screen-kesisim .ksm-invalid-word{
+  padding:6px 9px!important;border-radius:2px!important;
+  font-family:var(--ksm-pixel-font)!important;
+  font-size:11.5px!important;line-height:14px!important;
+  letter-spacing:.035em!important;
+  border:2px solid #76252d!important;
+  box-shadow:3px 3px 0 #76252d!important;
+  animation:ksmInvalidLabel663 2.5s ease both!important;
+}
+@keyframes ksmInvalidLabel663{
+  0%{opacity:0;transform:translate(-50%,6px)}
+  7%,88%{opacity:1;transform:translate(-50%,0)}
+  100%{opacity:0;transform:translate(-50%,-5px)}
+}
+
+/* Quick guide / rule modal also follows the arcade text language. */
+#screen-kesisim .ksm-quick-guide-title{
+  font-family:var(--ksm-pixel-font)!important;
+  font-size:18px!important;line-height:20px!important;
+}
+#screen-kesisim .ksm-quick-guide-card p{
+  font-family:var(--ksm-pixel-font)!important;
+  font-size:11px!important;line-height:1.45!important;
+}
+#screen-kesisim #btn-ksm-quick-guide-ok{
+  font-family:var(--ksm-pixel-font)!important;
+  font-size:11px!important;
+}
+#screen-kesisim .ksm-modal h2{
+  font-family:var(--ksm-pixel-font)!important;
+  letter-spacing:.04em!important;
+}
+#screen-kesisim .ksm-modal p,
+#screen-kesisim .ksm-modal button{
+  font-family:var(--ksm-pixel-font)!important;
+  letter-spacing:.02em!important;
+}
+
+@media(max-width:430px){
+  #screen-kesisim .ksm-topline .ksm-player-meta>span{font-size:5.3px!important}
+  #screen-kesisim .ksm-topline .ksm-player-card>strong{font-size:13px!important}
+  #screen-kesisim .ksm-top-action .ksm-top-label{font-size:4.8px!important}
+  #screen-kesisim .ksm-rack-tools button{font-size:7.8px!important}
+  #screen-kesisim #ksm-feedback{font-size:9.4px!important}
+  #screen-kesisim #ksm-pop strong{font-size:21px!important;line-height:23px!important}
+  #screen-kesisim #ksm-pop span{font-size:10px!important;line-height:13px!important}
+  #screen-kesisim .ksm-invalid-word{font-size:10.8px!important}
+}
