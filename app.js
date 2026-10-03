@@ -6927,7 +6927,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v643 — GÖKDELEN: dengeli ıstakalar, yumuşak yerleşme ve tanımlı sözlük */
+/* v644 — GÖKDELEN: çatıdan girişe sinematik açılış */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -6938,12 +6938,13 @@ if(!screen||!boardEl||!wrap||!rackP1El||!ghost)return;
 
 const ROWS=40,COLS=9,H=1,V=2,TOTAL_TILES=300;
 const LETTER_POOL='AAAAAAAABCCÇDDEEEEEEEEGĞHIIIIİİİİKKKLLLLMMMNNNNOOÖPRRRRSSSSŞTTTTUUÜVYYZ';
-const SEEDS=['KALEM','YEMEK','KİTAP','DENİZ','BULUT','ORMAN','PERDE','ÇANTA','SABAH','AKŞAM','KOLA'];
+const SEEDS=['ARKADAŞ','PENCERE','ÇİÇEKLİ','BİLGİLİ','KARINCA','KELEBEK','GÖKYÜZÜ','KİTAPÇI','SÜPÜRGE','KAPLAMA','ÖĞRENCİ','SEVGİLİ','KIRMIZI','TURUNCU','DOSTLUK','BAHÇELİ','ÇOCUKÇA','DÜŞÜNCE','BULMACA','DENİZCİ','GÜNEŞLİ'];
 const state={
   grid:Array.from({length:ROWS},()=>Array(COLS).fill('')),
   dirs:Array.from({length:ROWS},()=>Array(COLS).fill(0)),
   used:new Set(),seedKeys:new Set(),flowers:new Set(),flowerIcons:new Map(),words:[],scores:[0,0],turn:0,bag:[],racks:[[],[]],broomUsed:[0,0],
-  temp:new Map(),tempOrder:[],drag:null,meaningBlockedUntil:0,popTimer:null,gameOver:false,turnLeft:30,turnTimer:null,aiTimer:null,lastHeartSec:null,lastBellSec:null
+  temp:new Map(),tempOrder:[],drag:null,meaningBlockedUntil:0,popTimer:null,gameOver:false,turnLeft:30,turnTimer:null,aiTimer:null,lastHeartSec:null,lastBellSec:null,
+  introActive:false,introToken:0,introFrame:null,introTimers:new Set()
 };
 const cells=[];
 const key=(r,c)=>r+','+c;
@@ -7011,13 +7012,13 @@ function updateHud(){
   document.getElementById('ksm-p1-card')?.classList.toggle('active',state.turn===0);
   document.getElementById('ksm-p2-card')?.classList.toggle('active',state.turn===1);
   const broom=document.getElementById('ksm-broom-left');if(broom)broom.textContent='×'+Math.max(0,2-state.broomUsed[0]);
-  const aiTurn=state.turn===1;
+  const aiTurn=state.introActive||state.turn===1;
   const broomBtn=document.getElementById('btn-ksm-broom');if(broomBtn)broomBtn.disabled=aiTurn||state.broomUsed[0]>=2||state.temp.size>0||state.gameOver;
   const shuffleBtn=document.getElementById('btn-ksm-shuffle');if(shuffleBtn)shuffleBtn.disabled=aiTurn||state.temp.size>0||state.gameOver;
   const undoBtn=document.getElementById('btn-ksm-undo');if(undoBtn)undoBtn.disabled=aiTurn||!state.temp.size||state.gameOver;
   const placeBtn=document.getElementById('btn-ksm-place');if(placeBtn)placeBtn.disabled=aiTurn||!state.temp.size||state.gameOver;
   const turnTop=document.getElementById('ksm-turn-status-top');
-  if(turnTop)turnTop.textContent=state.turn===1?'BİLGİN düşünüyor…':'1. oyuncunun sırası.';
+  if(turnTop)turnTop.textContent=state.introActive?'GÖKDELEN • BİLGİN açılışı hazırlıyor…':(state.turn===1?'BİLGİN düşünüyor…':'1. oyuncunun sırası.');
   const t1=document.getElementById('ksm-timer-p1'),t2=document.getElementById('ksm-timer-p2');
   const a1=t1?.querySelector('strong'),a2=t2?.querySelector('strong');
   if(a1)a1.textContent=String(state.turn===0?state.turnLeft:30);
@@ -7046,7 +7047,7 @@ function animateTile(r,c,from=null){
   ],{duration:850,easing:'cubic-bezier(.25,.65,.28,1)'});
 }
 function showCellMeaning(r,c){
-  if(state.drag||Date.now()<state.meaningBlockedUntil||tempAt(r,c)||!state.grid[r][c])return;
+  if(state.introActive||state.drag||Date.now()<state.meaningBlockedUntil||tempAt(r,c)||!state.grid[r][c])return;
   const words=[...new Set([[0,1],[1,0]].map(([dr,dc])=>lineThroughOverlay(new Map(),r,c,dr,dc).map(x=>x.char).join('')).filter(w=>w.length>=2&&state.used.has(w)))];
   if(!words.length)return;
   if(words.length===1){openFoundWordMeaning(words[0]);return;}
@@ -7115,16 +7116,71 @@ function placeFlowers(count=3){
 }
 let previousSeed='';
 function chooseSeed(){
-  const valid=SEEDS.filter(w=>GAME_WORD_SET.has(w)&&w.length<=9);
+  const common=SEEDS.filter(w=>GAME_WORD_SET.has(w)&&w.length===7);
+  const valid=common.length?common:[...GAME_WORD_SET].filter(w=>w.length===7);
   const pool=valid.filter(w=>w!==previousSeed);
   const choices=pool.length?pool:valid;
-  previousSeed=choices[Math.floor(Math.random()*choices.length)]||'KOLA';return previousSeed;
+  if(!choices.length)throw new Error('seven-letter-seed-missing');
+  previousSeed=choices[Math.floor(Math.random()*choices.length)];return previousSeed;
 }
-function placeSeed(word){const r=ROWS-5,c=Math.floor((COLS-word.length)/2);for(let i=0;i<word.length;i++){state.grid[r][c+i]=word[i];state.dirs[r][c+i]|=H;state.seedKeys.add(key(r,c+i));}state.used.add(word);state.words.push(word);}
-function centerBoard(){requestAnimationFrame(()=>{wrap.scrollLeft=Math.max(0,(boardEl.scrollWidth-wrap.clientWidth)/2);wrap.scrollTop=wrap.scrollHeight;});}
+function placeSeedLetter(word,index,animate=false){
+  const r=ROWS-5,c=Math.floor((COLS-word.length)/2)+index;
+  state.grid[r][c]=word[index];state.dirs[r][c]|=H;state.seedKeys.add(key(r,c));renderCell(r,c,animate);
+  if(animate)animateTile(r,c);
+}
+function cancelIntro(){
+  state.introToken++;state.introActive=false;
+  if(state.introFrame!==null){cancelAnimationFrame(state.introFrame);state.introFrame=null;}
+  for(const timer of state.introTimers)clearTimeout(timer);state.introTimers.clear();
+  screen.classList.remove('ksm-intro');
+  const title=document.getElementById('ksm-intro-title');title?.classList.remove('show','fading');
+}
+function introLater(fn,ms,token){
+  const timer=setTimeout(()=>{state.introTimers.delete(timer);if(state.introActive&&token===state.introToken&&!screen.classList.contains('hidden'))fn();},ms);
+  state.introTimers.add(timer);
+}
+function playIntro(seed){
+  state.introActive=true;const token=state.introToken;
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const title=document.getElementById('ksm-intro-title');
+  screen.classList.add('ksm-intro');title?.classList.add('show');
+  wrap.scrollTop=0;wrap.scrollLeft=Math.max(0,(boardEl.scrollWidth-wrap.clientWidth)/2);updateHud();
+  const finish=()=>{
+    state.used.add(seed);state.words.push(seed);
+    state.introActive=false;screen.classList.remove('ksm-intro');title?.classList.remove('show','fading');
+    renderRack();setFeedback('Başlangıç sözcüğü: '+seed+'. 1. oyuncu başlıyor.','good');startTurnTimer();
+  };
+  const reveal=()=>{
+    title?.classList.add('fading');
+    wrap.scrollTop=Math.max(0,wrap.scrollHeight-wrap.clientHeight);
+    setFeedback('BİLGİN başlangıç sözcüğünü yerleştiriyor…');
+    let index=0;
+    const next=()=>{
+      placeSeedLetter(seed,index,!reduced);index++;
+      introLater(index<seed.length?next:finish,index<seed.length?(reduced?70:420):(reduced?100:900),token);
+    };
+    next();
+  };
+  const descend=()=>{
+    title?.classList.add('fading');
+    if(reduced){reveal();return;}
+    let started=null;
+    const step=now=>{
+      if(!state.introActive||token!==state.introToken||screen.classList.contains('hidden'))return;
+      if(started===null)started=now;
+      const progress=Math.min(1,(now-started)/5200);
+      const eased=progress*progress*(3-2*progress);
+      wrap.scrollTop=Math.max(0,wrap.scrollHeight-wrap.clientHeight)*eased;
+      if(progress<1)state.introFrame=requestAnimationFrame(step);
+      else{state.introFrame=null;introLater(reveal,350,token);}
+    };
+    state.introFrame=requestAnimationFrame(step);
+  };
+  introLater(descend,reduced?450:1400,token);
+}
 
 function startDrag(e,index){
-  if(state.gameOver||state.turn!==0||rackIndexUsed(index))return;e.preventDefault();e.stopPropagation();lastTempTap=null;
+  if(state.introActive||state.gameOver||state.turn!==0||rackIndexUsed(index))return;e.preventDefault();e.stopPropagation();lastTempTap=null;
   state.drag={source:'rack',index,letter:state.racks[state.turn][index],pointerId:e.pointerId};ghost.textContent=state.drag.letter;ghost.style.display='flex';moveGhost(e.clientX,e.clientY);
 }
 let lastTempTap=null;
@@ -7144,7 +7200,7 @@ function animateReturn(letter,rackIndex,from){
   setTimeout(()=>{fly.remove();returnFlights.delete(fly);},600);
 }
 function returnTempTile(k,fromItem=null,fromPoint=null){
-  if(state.gameOver||state.turn!==0)return;
+  if(state.introActive||state.gameOver||state.turn!==0)return;
   const item=state.temp.get(k)||fromItem;if(!item)return;
   const rect=cells[item.r*COLS+item.c].getBoundingClientRect();
   const origin=fromPoint||{x:rect.left+rect.width/2,y:rect.top+rect.height/2};
@@ -7152,11 +7208,11 @@ function returnTempTile(k,fromItem=null,fromPoint=null){
   clearInvalidFeedback();renderCell(item.r,item.c);renderRack();animateReturn(item.char,item.rackIndex,origin);
 }
 function undoLastTile(){
-  if(state.drag||state.turn!==0||state.gameOver)return;
+  if(state.introActive||state.drag||state.turn!==0||state.gameOver)return;
   const k=[...state.tempOrder].reverse().find(k=>state.temp.has(k));if(k)returnTempTile(k);
 }
 function startTempDrag(e,r,c){
-  if(state.gameOver||state.turn!==0)return;
+  if(state.introActive||state.gameOver||state.turn!==0)return;
   const t=tempAt(r,c);if(!t)return;
   e.preventDefault();e.stopPropagation();
   const now=Date.now();
@@ -7406,7 +7462,7 @@ function aiTakeTurn(){
     state.aiTimer=setTimeout(index<move.placed.length?placeNext:()=>{if(state.turn===1&&!state.gameOver)commit();},index<move.placed.length?380:900);
   };
   const top=Math.min(...move.placed.map(t=>t.r));
-  wrap.scrollTo({top:Math.max(0,top*boardEl.clientHeight/ROWS-wrap.clientHeight*.35),behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+  wrap.scrollTo({top:Math.max(0,boardEl.offsetTop+top*boardEl.clientHeight/ROWS-wrap.clientHeight*.35),behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
   state.aiTimer=setTimeout(placeNext,240);
 }
 function playGokdelenBell(){
@@ -7416,6 +7472,7 @@ function playGokdelenBell(){
 }
 function clearTurnTimer(){if(state.turnTimer){clearInterval(state.turnTimer);state.turnTimer=null;}state.lastHeartSec=null;state.lastBellSec=null;}
 function startTurnTimer(){
+  if(state.introActive)return;
   clearTurnTimer();clearAiTimer();state.turnLeft=30;updateHud();
   if(state.turn===1&&!state.gameOver)state.aiTimer=setTimeout(aiTakeTurn,1100);
   state.turnTimer=setInterval(()=>{
@@ -7463,7 +7520,7 @@ function renderBirds(){
   boardEl.appendChild(layer);
 }
 function commit(){
-  if(state.gameOver)return;
+  if(state.introActive||state.gameOver)return;
   const v=validate();if(v.error){setFeedback(v.error,'bad');showInvalidFeedback(v);return;}
   clearInvalidFeedback();
   const placed=[...state.temp.values()];
@@ -7488,19 +7545,19 @@ function commit(){
   requestAnimationFrame(()=>{
     let top=ROWS-1;
     for(let rr=0;rr<ROWS;rr++){if(state.grid[rr].some(Boolean)){top=rr;break;}}
-    wrap.scrollTo({top:Math.max(0,top*boardEl.clientHeight/ROWS-wrap.clientHeight*.35),behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+    wrap.scrollTo({top:Math.max(0,boardEl.offsetTop+top*boardEl.clientHeight/ROWS-wrap.clientHeight*.35),behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
   });
   checkEnd();
 }
 function broom(){
-  if(state.gameOver||state.broomUsed[state.turn]>=2||state.temp.size)return;
+  if(state.introActive||state.gameOver||state.broomUsed[state.turn]>=2||state.temp.size)return;
   const rack=state.racks[state.turn];
   while(rack.length)state.bag.push(rack.pop());
   shuffle(state.bag);drawRackToNine(state.turn);state.broomUsed[state.turn]++;renderRack();updateHud();
   showPop('🧹 SÜPÜRGE','ISTAKA YENİLENDİ',850);
 }
 function shuffleRack(){
-  if(state.gameOver||state.temp.size)return;
+  if(state.introActive||state.gameOver||state.temp.size)return;
   shuffle(state.racks[state.turn]);renderRack();
   showPop('🔀 KARIŞTIR','ISTAKA KARIŞTIRILDI',650);
 }
@@ -7513,16 +7570,17 @@ function checkEnd(){
   document.getElementById('ksm-gameover')?.classList.remove('hidden');
 }
 function reset(){
+  cancelIntro();clearTurnTimer();
   clearReturnFlights();document.getElementById('ksm-confetti-layer')?.remove();
   clearInvalidFeedback();
   clearTimeout(state.popTimer);state.grid=Array.from({length:ROWS},()=>Array(COLS).fill(''));state.dirs=Array.from({length:ROWS},()=>Array(COLS).fill(0));
-  state.used.clear();state.seedKeys.clear();state.flowers.clear();state.words=[];state.scores=[0,0];state.turn=0;state.broomUsed=[0,0];state.temp.clear();state.tempOrder=[];state.drag=null;state.meaningBlockedUntil=0;ghost.style.display='none';state.gameOver=false;clearAiTimer();
-  state.bag=makeBag();const seed=chooseSeed();consumeSeedFromBag(seed);placeSeed(seed);placeFlowers(3);state.racks=[[],[]];drawRackToNine(0);drawRackToNine(1);
+  state.used.clear();state.seedKeys.clear();state.flowers.clear();state.words=[];state.scores=[0,0];state.turn=0;state.broomUsed=[0,0];state.temp.clear();state.tempOrder=[];state.drag=null;state.meaningBlockedUntil=0;ghost.style.display='none';state.gameOver=false;state.turnLeft=30;clearAiTimer();
+  state.bag=makeBag();const seed=chooseSeed();consumeSeedFromBag(seed);placeFlowers(3);state.racks=[[],[]];drawRackToNine(0);drawRackToNine(1);
   document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');
-  renderAll();renderBirds();renderRack();updateHud();setFeedback('Başlangıç sözcüğü: '+seed+'. 1. oyuncu başlıyor.','good');centerBoard();startTurnTimer();
+  renderAll();renderBirds();renderRack();setFeedback('GÖKDELEN • BİLGİN açılışı hazırlıyor…');playIntro(seed);
 }
-function exit(){clearReturnFlights();document.getElementById('ksm-confetti-layer')?.remove();clearInvalidFeedback();clearTimeout(state.popTimer);clearTurnTimer();clearAiTimer();state.drag=null;ghost.style.display='none';screen.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}
-async function open(){document.getElementById('screen-home')?.classList.add('hidden');screen.classList.remove('hidden');setFeedback('GÖKDELEN hazırlanıyor…');try{await ensureWordDataLoaded();if(!cells.length)buildBoard();reset();}catch(err){console.error('Kesişim startup failed',err);showToast('GÖKDELEN hazırlanamadı.','rose');exit();}}
+function exit(){cancelIntro();clearReturnFlights();document.getElementById('ksm-confetti-layer')?.remove();clearInvalidFeedback();clearTimeout(state.popTimer);clearTurnTimer();clearAiTimer();state.drag=null;ghost.style.display='none';screen.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}
+async function open(){cancelIntro();const openingToken=state.introToken;document.getElementById('screen-home')?.classList.add('hidden');screen.classList.remove('hidden');setFeedback('GÖKDELEN hazırlanıyor…');try{await ensureWordDataLoaded();if(openingToken!==state.introToken||screen.classList.contains('hidden'))return;if(!cells.length)buildBoard();reset();}catch(err){console.error('Kesişim startup failed',err);showToast('GÖKDELEN hazırlanamadı.','rose');exit();}}
 
 document.addEventListener('pointermove',e=>{if(!state.drag||e.pointerId!==state.drag.pointerId)return;e.preventDefault();if(lastTempTap&&Math.hypot(e.clientX-lastTempTap.x,e.clientY-lastTempTap.y)>8)lastTempTap=null;moveGhost(e.clientX,e.clientY);},{passive:false});
 document.addEventListener('pointerup',e=>{if(!state.drag||e.pointerId!==state.drag.pointerId)return;e.preventDefault();state.meaningBlockedUntil=Date.now()+250;dropAt(e.clientX,e.clientY);state.drag=null;ghost.style.display='none';},{passive:false});
