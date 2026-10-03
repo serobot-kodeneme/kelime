@@ -7049,7 +7049,7 @@ function updateHud(){
   const undoBtn=document.getElementById('btn-ksm-undo');if(undoBtn)undoBtn.disabled=aiTurn||!state.temp.size||state.gameOver;
   const placeBtn=document.getElementById('btn-ksm-place');if(placeBtn)placeBtn.disabled=aiTurn||!state.temp.size||state.gameOver;
   const turnTop=document.getElementById('ksm-turn-status-top');
-  if(turnTop)turnTop.textContent=state.introActive?'GÖKDELEN • BİLGİN açılışı hazırlıyor…':(state.turn===1?aiName()+' düşünüyor…':'1. oyuncunun sırası.');
+  if(turnTop)turnTop.textContent=state.introActive?'GÖKDELEN • Açılış hazırlanıyor…':(state.multiplayer?(state.turn+1)+'. oyuncunun sırası.':(state.turn===1?aiName()+' düşünüyor…':'1. oyuncunun sırası.'));
   const t1=document.getElementById('ksm-timer-p1'),t2=document.getElementById('ksm-timer-p2');
   const a1=t1?.querySelector('strong'),a2=t2?.querySelector('strong');
   if(a1)a1.textContent=String(state.turn===0?state.turnLeft:30);
@@ -7169,7 +7169,7 @@ function playIntro(seed){
     title?.classList.add('fading');
     wrap.scrollTop=Math.max(0,wrap.scrollHeight-wrap.clientHeight);
     if(state.introCamera){state.introCamera.cancel();state.introCamera=null;}
-    setFeedback('BİLGİN başlangıç sözcüğünü yerleştiriyor…');
+    setFeedback('Başlangıç sözcüğü yerleştiriliyor…');
     let index=0;
     const next=()=>{
       placeSeedLetter(seed,index,!reduced);index++;
@@ -7627,7 +7627,7 @@ function reset(){
   state.used.clear();state.seedKeys.clear();state.flowers.clear();state.words=[];state.scores=[0,0];state.turn=0;state.broomUsed=[0,0];state.temp.clear();state.tempOrder=[];state.drag=null;state.meaningBlockedUntil=0;ghost.style.display='none';state.gameOver=false;state.turnLeft=30;clearAiTimer();
   state.bag=makeBag();const seed=chooseSeed();consumeSeedFromBag(seed);state.flowerIcons.clear();state.racks=[[],[]];drawRackToNine(0);drawRackToNine(1);
   document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');
-  renderAll();renderBirds();renderRack();setFeedback('GÖKDELEN • BİLGİN açılışı hazırlıyor…');playIntro(seed);
+  renderAll();renderBirds();renderRack();setFeedback('GÖKDELEN • Açılış hazırlanıyor…');playIntro(seed);
 }
 function exit(){if(state.multiplayer){window.gokdelenNetwork.leave();return;}cancelIntro();clearReturnFlights();document.getElementById('ksm-confetti-layer')?.remove();clearInvalidFeedback();clearTimeout(state.popTimer);clearTurnTimer();clearAiTimer();state.drag=null;ghost.style.display='none';screen.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}
 async function open(){activeGameMode='single';state.multiplayer=false;state.mySide=0;document.body.dataset.gokdelenMenu='1';cancelIntro();const openingToken=state.introToken;document.getElementById('screen-home')?.classList.add('hidden');screen.classList.remove('hidden');setFeedback('GÖKDELEN hazırlanıyor…');try{await ensureWordDataLoaded();if(openingToken!==state.introToken||screen.classList.contains('hidden'))return;if(!cells.length)buildBoard();reset();}catch(err){console.error('Kesişim startup failed',err);showToast('GÖKDELEN hazırlanamadı.','rose');exit();}}
