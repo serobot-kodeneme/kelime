@@ -681,9 +681,9 @@
   font-size:5.4px!important;line-height:6px!important;
 }
 
-/* The GÖKDELEN opening title finishes disappearing 0.5 s earlier. */
+/* v699 — GÖKDELEN opening title clears 1 s earlier before KISACA appears. */
 #screen-kesisim #ksm-intro-title.show.fading{
-  transition:opacity 3.1s ease,transform 3.3s ease,visibility 0s 3.3s!important;
+  transition:opacity 2.1s ease,transform 2.3s ease,visibility 0s 2.3s!important;
 }
 
 @media(max-width:430px){
