@@ -544,7 +544,7 @@
   position:absolute;left:50%;bottom:132px;z-index:21;pointer-events:none;
   width:calc(var(--ksm-cell-size)*4.7);height:calc(var(--ksm-cell-size)*2.05);
   transform:translateX(-50%);
-  background:transparent url('assets/gokdelen-pixel/pediment-v666.svg?v=667') center bottom/contain no-repeat;
+  background:transparent url('assets/gokdelen-pixel/pediment-v666.svg?v=668') center bottom/contain no-repeat;
   image-rendering:pixelated;
 }
 @media(max-width:430px){
@@ -560,26 +560,21 @@
 }
 #ksm-door-pediment{
   left:calc(8px + var(--ksm-cell-size)*4.5)!important;
-  bottom:calc(var(--ksm-cell-size)*4 - 2px)!important;
+  bottom:calc(var(--ksm-cell-size)*4 - 7px)!important;
   width:calc(var(--ksm-cell-size)*3)!important;
   height:calc(var(--ksm-cell-size)*1.35)!important;
   transform:translateX(-50%)!important;
-  background:transparent url('assets/gokdelen-pixel/pediment-v666.svg?v=667') center bottom/100% 100% no-repeat!important;
+  background:transparent url('assets/gokdelen-pixel/pediment-v666.svg?v=668') center bottom/100% 100% no-repeat!important;
   z-index:29!important;
 }
 #screen-kesisim #ksm-board .ksm-cell.architectural-blocked{
   cursor:default!important;
   pointer-events:none!important;
 }
-#screen-kesisim #ksm-board .ksm-cell.pediment-cell{
-  border:0!important;border-radius:0!important;box-shadow:none!important;
-  background:transparent!important;
-}
-#screen-kesisim #ksm-board .ksm-cell.pediment-cell::before,
-#screen-kesisim #ksm-board .ksm-cell.pediment-cell::after{display:none!important}
+/* v668: pediment is an overlay; keep the normal window/cell artwork visible underneath. */
 @media(max-width:430px){
   #ksm-door-pediment{
-    bottom:calc(var(--ksm-cell-size)*4 - 2px)!important;
+    bottom:calc(var(--ksm-cell-size)*4 - 7px)!important;
     width:calc(var(--ksm-cell-size)*3)!important;
     height:calc(var(--ksm-cell-size)*1.35)!important;
   }
