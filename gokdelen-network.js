@@ -1,11 +1,10 @@
 /* GÖKDELEN — shared board and atomic, revision-checked turns. */
 (()=>{
-let activeRef=null,generation=0,clock=null,startTimer=null,autoExit=null,sceneRound=0,introRound=0,lastRevision=-1,startBusy=false,enterBusy=false,submitBusy=false,latest=null,lastCountdown=-1;
-const INTRO_READY_MS=15400;
+let activeRef=null,generation=0,clock=null,autoExit=null,sceneRound=0,introRound=0,lastRevision=-1,startBusy=false,enterBusy=false,submitBusy=false,latest=null;
 const engine=()=>window.gokdelenEngine;
 const side=()=>mpRole==='guest'?1:0;
 function stop(){
-  generation++;clearInterval(clock);clock=null;clearTimeout(startTimer);startTimer=null;clearTimeout(autoExit);autoExit=null;
+  generation++;clearInterval(clock);clock=null;clearTimeout(autoExit);autoExit=null;
   if(activeRef)engine()?.stop();activeRef=null;latest=null;sceneRound=0;introRound=0;lastRevision=-1;enterBusy=false;startBusy=false;submitBusy=false;
 }
 async function createRecord(mode,hostId,guestId=null){
@@ -58,19 +57,20 @@ async function start(){
     await ref.transaction(data=>{
       if(!data?.gokdelen||data.gameState?.status!=='waiting'||!data.guestId||!data.ready?.host||!data.ready?.guest)return;
       if(!/^random-match-/.test(data.mode)&&data.invite?.guest!=='accepted')return;
-      const at=serverNow()+INTRO_READY_MS;data.gameState.status='countdown';data.gameState.startAt=at;
-      data.gokdelen.turnDeadline=at+30000;return data;
+      data.gameState.status='countdown';
+      delete data.gameState.startAt;
+      data.gokdelen.turnDeadline=0;
+      data.gokdelenIntroReady={host:false,guest:false};
+      return data;
     },undefined,false);
   }catch(err){console.error('Gökdelen start failed',err);}
   finally{startBusy=false;}
 }
-function beginRound(record){
+function beginRound(record,showIntro=false){
   if(!activeRef||!record?.gokdelen)return;
   const round=Number(record.gameState?.round||1);if(introRound===round)return;introRound=round;mpStarted=true;
   document.getElementById('modal-countdown')?.classList.add('hidden');document.getElementById('modal-mp-waiting')?.classList.add('hidden');
-  const fresh=Number(record.gokdelen.revision||0)===0&&serverNow()<Number(record.gameState.startAt)+10000;
-  engine().apply(record.gokdelen,round,fresh);lastRevision=Number(record.gokdelen.revision||0);
-  startTurnClock();
+  engine().apply(record.gokdelen,round,showIntro);lastRevision=Number(record.gokdelen.revision||0);
 }
 function startTurnClock(){
   clearInterval(clock);
@@ -107,14 +107,10 @@ async function watch(snapshot){
     if(gs.status==='countdown'){
       document.getElementById('modal-countdown')?.classList.add('hidden');
       document.querySelector('#modal-countdown .mp-demo')?.classList.add('hidden');
-      if(introRound!==round)beginRound(data);
-      clearTimeout(startTimer);startTimer=setTimeout(async()=>{
-        if(token!==generation||ref!==activeRef)return;
-        try{await ref.child('gameState').transaction(cur=>{if(cur?.status==='countdown'&&Number(cur.round)===round&&serverNow()>=Number(cur.startAt)){return{...cur,status:'playing'};}},undefined,false);}catch(err){console.error('Gökdelen intro sync failed',err);}
-      },Math.max(0,gs.startAt-serverNow()));
+      if(introRound!==round)beginRound(data,true);
       return;
     }
-    if(introRound!==round)beginRound(data);
+    if(introRound!==round)beginRound(data,false);
     if(Number(data.gokdelen.revision||0)!==lastRevision){
       engine().apply(data.gokdelen,round);lastRevision=Number(data.gokdelen.revision||0);
     }
@@ -148,14 +144,36 @@ async function submit(action,placed=null){
   }catch(err){console.error('Gökdelen move failed',err);showToast('Hamle gönderilemedi. Bağlantını kontrol edip tekrar dene.','rose');return false;}
   finally{if(token===generation&&ref===activeRef){submitBusy=false;engine().busy(false);}}
 }
+async function introReady(){
+  const ref=activeRef,role=mpRole;
+  if(!ref||!role||!latest||latest.gameState?.status!=='countdown')return false;
+  try{
+    const tx=await ref.transaction(data=>{
+      if(!data?.gokdelen||data.gameState?.status!=='countdown')return;
+      const ready={host:false,guest:false,...(data.gokdelenIntroReady||{})};
+      ready[role]=true;data.gokdelenIntroReady=ready;
+      if(ready.host&&ready.guest){
+        data.gameState.status='playing';
+        data.gokdelen.turnDeadline=serverNow()+30000;
+      }
+      return data;
+    },undefined,false);
+    return !!tx.committed;
+  }catch(err){
+    console.error('Gökdelen intro ready failed',err);
+    showToast('Bağlantı bekleniyor. Oyun henüz başlamadı.','rose');
+    return false;
+  }
+}
 async function restart(){
   if(!activeRef||submitBusy||isRandomHumanRoom())return;const ref=activeRef,token=generation;submitBusy=true;engine().busy(true);
   try{
-    const fresh=engine().makeMatch(),at=serverNow()+INTRO_READY_MS;fresh.turnDeadline=at+30000;
+    const fresh=engine().makeMatch();fresh.turnDeadline=0;
     const expectedRound=Number(latest?.gameState?.round||1);
     await ref.transaction(data=>{
       if(!data||Number(data.gameState?.round)!==expectedRound||!['playing','finished'].includes(data.gameState?.status))return;
-      data.gokdelen=fresh;data.scores={host:0,guest:0};data.gameState={status:'countdown',board:fresh.grid,startAt:at,round:expectedRound+1};return data;
+      data.gokdelen=fresh;data.gokdelenIntroReady={host:false,guest:false};data.scores={host:0,guest:0};
+      data.gameState={status:'countdown',board:fresh.grid,round:expectedRound+1};return data;
     },undefined,false);
   }catch(err){console.error('Gökdelen rematch failed',err);showToast('Yeni oyun açılamadı. Tekrar dene.','rose');}
   finally{if(token===generation){submitBusy=false;engine().busy(false);}}
@@ -165,5 +183,5 @@ async function leave(){
   try{if(ref)await closeAndLockPrivateRoom(ref,mpRoomCode,'gokdelen-exit');}catch(err){console.error('Gökdelen exit failed',err);}
   returnToHomeFromMultiplayer();
 }
-window.gokdelenNetwork={attach,enter,start,stop,startTurnClock,submit,restart,leave,createPrivate,openPrivate,createRandom:async(host,guest)=>(await createRecord('random-match-gokdelen-v1',host,guest)).code};
+window.gokdelenNetwork={attach,enter,start,stop,startTurnClock,introReady,submit,restart,leave,createPrivate,openPrivate,createRandom:async(host,guest)=>(await createRecord('random-match-gokdelen-v1',host,guest)).code};
 })();
