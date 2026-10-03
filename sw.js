@@ -1,4 +1,4 @@
-const CACHE_NAME='kapmaca-shell-v654-gokdelen';
+const CACHE_NAME='kapmaca-shell-v654-gokdelen-qa';
 const APP_SHELL=[
   './',
   './index.html',
@@ -13,7 +13,7 @@ const APP_SHELL=[
   './assets/gokdelen-pixel/door.svg',
   './assets/gokdelen-pixel/city.svg',
 
-  './app.js?v=654-gokdelen',
+  './app.js?v=654-gokdelen-qa',
   './manifest.webmanifest?v=593',
   './favicon-32.png?v=593',
   './apple-touch-icon.png?v=593',
