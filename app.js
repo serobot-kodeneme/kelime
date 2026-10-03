@@ -831,7 +831,9 @@ playTone(560,.028,.028,'sine',690);
 }
 function isUiSoundTarget(target){
 const el=target?.closest?.('button,a,[role="button"]');
-return el&&!el.disabled?el:null;
+if(!el||el.disabled)return null;
+if(el.classList?.contains('ksm-cell'))return null; // v671: GÖKDELEN cam/hücre geçişlerinde pıt sesi yok.
+return el;
 }
 document.addEventListener('pointerover',(e)=>{
 if(e.pointerType==='touch')return;
@@ -6959,7 +6961,7 @@ const rackP1El=document.getElementById('ksm-rack-p1');
 const ghost=document.getElementById('ksm-drag-ghost');
 if(!screen||!boardEl||!wrap||!rackP1El||!ghost)return;
 
-const ROWS=40,COLS=9,H=1,V=2,TOTAL_TILES=300;
+const ROWS=40,COLS=9,H=1,V=2,TOTAL_TILES=200;
 const LETTER_POOL='AAAAAAAABCCÇDDEEEEEEEEGĞHIIIIİİİİKKKLLLLMMMNNNNOOÖPRRRRSSSSŞTTTTUUÜVYYZ';
 const SEEDS=['ARKADAŞ','PENCERE','ÇİÇEKLİ','BİLGİLİ','KARINCA','KELEBEK','GÖKYÜZÜ','KİTAPÇI','SÜPÜRGE','KAPLAMA','ÖĞRENCİ','SEVGİLİ','KIRMIZI','TURUNCU','DOSTLUK','BAHÇELİ','ÇOCUKÇA','DÜŞÜNCE','BULMACA','DENİZCİ','GÜNEŞLİ'];
 const AI_LEVELS={
@@ -7039,7 +7041,6 @@ function rackIndexUsed(index){for(const t of state.temp.values())if(t.rackIndex=
 
 const GOKDELEN_SEED_ROW=ROWS-9; // v666: başlangıç sözcüğü bir satır daha yukarı
 const GOKDELEN_BASE_ROW=GOKDELEN_SEED_ROW;
-const GOKDELEN_ROOF_BONUS=20;
 const GOKDELEN_DOOR_ROW=ROWS-4;
 const GOKDELEN_PEDIMENT_ROW=ROWS-5;
 const GOKDELEN_DOOR_COL=3;
@@ -7069,7 +7070,7 @@ function recordMoveStats(side,result,placed){
     const prev=String(state.longestWords[side]||'');
     if(word.length>prev.length)state.longestWords[side]=word;
   }
-  if(Number(result.roofBonus||0)>0&&state.roofWinner<0)state.roofWinner=side;
+  if(result.roofReached&&state.roofWinner<0)state.roofWinner=side;
 }
 function clearGokdelenFx(){
   if(state.finalBagTimer){clearTimeout(state.finalBagTimer);state.finalBagTimer=null;}
@@ -7117,14 +7118,14 @@ function flashNewFloor(result){
 }
 function celebrateRoof(){
   boardEl.querySelector('.ksm-roof-flag')?.remove();
-  const flag=document.createElement('div');flag.className='ksm-roof-flag';flag.setAttribute('aria-hidden','true');boardEl.appendChild(flag);
-  setTimeout(()=>flag.remove(),1900);
+  const flag=document.createElement('div');flag.className='ksm-roof-flag';flag.setAttribute('aria-label','Türk bayrağı');boardEl.appendChild(flag);
+  setTimeout(()=>flag.remove(),2600);
 }
 function showMoveIdentityFx(result,placed,side){
   for(const t of result.climbTiles||[])showCellBonusTag(t.r,t.c,'+5','climb');
   const tower=(placed||[]).find(t=>t.tower);if(tower)showCellBonusTag(tower.r,tower.c,'▲ KULE','tower');
-  if(Number(result.roofBonus||0)>0){
-    const roof=(placed||[]).find(t=>t.r===0);if(roof)showCellBonusTag(roof.r,roof.c,'ÇATI +20','roof');
+  if(result.roofReached){
+    const roof=(placed||[]).find(t=>t.r===0);if(roof)showCellBonusTag(roof.r,roof.c,'🇹🇷 ÇATI','roof');
     celebrateRoof();
   }
   if((result.words||[]).length)celebrateWordConfetti();
@@ -7231,7 +7232,7 @@ function refreshPlacementPreview(){
   }
   if(result){
     if(result.error)setFeedback(result.error,'bad');
-    else setFeedback(result.words.map(w=>w.word).join(' • ')+' • +'+result.totalScore+' puan'+(result.climbBonus?' • YÜKSELİŞ +'+result.climbBonus:'')+(result.roofBonus?' • ÇATI +'+result.roofBonus:'')+' — GÖNDER ile onayla.','good');
+    else setFeedback(result.words.map(w=>w.word).join(' • ')+' • +'+result.totalScore+' puan'+(result.climbBonus?' • YÜKSELİŞ +'+result.climbBonus:'')+(result.roofReached?' • 🇹🇷 ÇATIYA ULAŞIRSA MAÇI KAZANIRSIN':'')+' — GÖNDER ile onayla.','good');
   }else if(myTurn()&&!state.gameOver)setFeedback('Açılış sözcüğünün dört yanını kullan; diğer hamlelerde gökdeleni yukarı doğru büyüt.');
   return result;
 }
@@ -7573,9 +7574,8 @@ function evaluatePlacement(overlay){
   const climbCount=climbTiles.length;
   const climbBonus=climbCount*5;
   const roofReached=state.roofWinner<0&&temps.some(t=>!state.grid[t.r]?.[t.c]&&t.r===0);
-  const roofBonus=roofReached?GOKDELEN_ROOF_BONUS:0;
-  const totalScore=words.reduce((sum,w)=>sum+w.score,0)+climbBonus+roofBonus;
-  return{...main,words,totalScore,rackBonus,placedCount,climbCount,climbTiles,climbBonus,roofBonus,flowerBonus:false};
+  const totalScore=words.reduce((sum,w)=>sum+w.score,0)+climbBonus;
+  return{...main,words,totalScore,rackBonus,placedCount,climbCount,climbTiles,climbBonus,roofReached,roofBonus:0,flowerBonus:false};
 }
 function validate(){return evaluatePlacement(state.temp);}
 function clearAiTimer(){if(state.aiTimer){clearTimeout(state.aiTimer);state.aiTimer=null;}}
@@ -7845,11 +7845,12 @@ function commit(){
   wrap.classList.remove('ksm-send-burst');void wrap.offsetWidth;wrap.classList.add('ksm-send-burst');setTimeout(()=>wrap.classList.remove('ksm-send-burst'),460);
   const scoredWords=v.words.map(w=>w.word+' +'+w.score).join(' • ');
   const climbText=v.climbBonus?' • YÜKSELİŞ +'+v.climbBonus:'';
-  const roofText=v.roofBonus?' • ÇATI +'+v.roofBonus:'';
+  const roofText=v.roofReached?' • 🇹🇷 ÇATIYA ULAŞTI':'';
   const towerText=placed.some(t=>t.tower)?' • KULE HAMLESİ':'';
   if(v.rackBonus)showBonusPop('5+ HARF BONUSU!','TOPLAM +'+v.totalScore+' • '+scoredWords+climbText+roofText+towerText,false,1350);
   else showPop('+'+v.totalScore,scoredWords+climbText+roofText+towerText,1250);
   showMoveIdentityFx(v,placed,moveSide);maybeWarnFinalBag();
+  if(checkEnd())return;
   const matchToken=state.introToken;
   state.turn=state.turn?0:1;renderRack();updateHud();
   setFeedback(state.turn===1?aiName()+' düşünüyor…':'1. oyuncunun sırası.','good');
@@ -7876,14 +7877,26 @@ function shuffleRack(){
   shuffle(state.racks[state.turn]);renderRack();
   showPop('🔀 KARIŞTIR','ISTAKA KARIŞTIRILDI',650);
 }
-function checkEnd(){
-  if(state.bag.length||state.racks[0].length||state.racks[1].length)return;
-  state.gameOver=true;clearTurnTimer();clearAiTimer();updateHud();
+function showGokdelenGameOver(){
   const a=state.scores[0],b=state.scores[1],title=document.getElementById('ksm-over-title'),txt=document.getElementById('ksm-over-text');
-  if(title)title.textContent=a===b?'BERABERE!':(a>b?'1. OYUNCU KAZANDI!':'2. OYUNCU KAZANDI!');
-  if(txt)txt.textContent='300 harf bitti • '+a+' - '+b;
+  const roofWon=state.roofWinner===0||state.roofWinner===1;
+  if(title){
+    if(roofWon){
+      if(state.multiplayer)title.textContent=state.roofWinner===state.mySide?'KAZANDIN!':'RAKİP KAZANDI!';
+      else title.textContent=state.roofWinner===0?'KAZANDIN!':aiName()+' KAZANDI!';
+    }else title.textContent=a===b?'BERABERE!':(a>b?'1. OYUNCU KAZANDI!':'2. OYUNCU KAZANDI!');
+  }
+  if(txt)txt.textContent=roofWon?'🇹🇷 Çatıya ilk ulaşan kazandı • '+a+' - '+b:'200 harf bitti • '+a+' - '+b;
   renderGameOverStats();
   document.getElementById('ksm-gameover')?.classList.remove('hidden');
+}
+function checkEnd(){
+  const roofWon=state.roofWinner===0||state.roofWinner===1;
+  const tilesDone=!state.bag.length&&!state.racks[0].length&&!state.racks[1].length;
+  if(!roofWon&&!tilesDone)return false;
+  state.gameOver=true;clearTurnTimer();clearAiTimer();updateHud();
+  showGokdelenGameOver();
+  return true;
 }
 function reset(){
   if(state.multiplayer){window.gokdelenNetwork.restart();return;}
@@ -7960,7 +7973,7 @@ function reduceNetworkMatch(data,side,action,placed,now,revision){
       recordMoveStats(side,result,[...overlay.values()]);
       [...overlay.values()].map(t=>t.rackIndex).sort((a,b)=>b-a).forEach(i=>state.racks[side].splice(i,1));
       drawRackToNine(side);passes=0;
-      lastMove={side,placed:[...overlay.values()],word:result.word,words:result.words.map(w=>({word:w.word,score:w.score})),climbCount:result.climbCount,climbTiles:result.climbTiles,climbBonus:result.climbBonus,roofBonus:result.roofBonus,score:result.totalScore};
+      lastMove={side,placed:[...overlay.values()],word:result.word,words:result.words.map(w=>({word:w.word,score:w.score})),climbCount:result.climbCount,climbTiles:result.climbTiles,climbBonus:result.climbBonus,roofReached:!!result.roofReached,roofBonus:0,score:result.totalScore};
       state.turn=1-side;
     }else if(action==='broom'){
       if(state.broomUsed[side]>=3)return null;
@@ -7973,7 +7986,7 @@ function reduceNetworkMatch(data,side,action,placed,now,revision){
       lastPass={side:expiredSide,score:-10,reason:'BOŞ GEÇTİ'};
     }
     else return null;
-    state.gameOver=!state.bag.length&&!state.racks[0].length&&!state.racks[1].length;
+    state.gameOver=(state.roofWinner===0||state.roofWinner===1)||(!state.bag.length&&!state.racks[0].length&&!state.racks[1].length);
     return serializeMatch({seed:data.seed,revision:revision+1,turnDeadline:action==='broom'||action==='shuffle'?Number(data.turnDeadline):now+30000,passCount:passes,lastMove,lastPass});
   });
 }
@@ -8001,17 +8014,14 @@ function applyNetworkMatch(data,round,intro=false){
   if(data.lastMove&&previousRevision>=0&&previousRevision!==state.revision){
     const moveWords=Array.isArray(data.lastMove.words)&&data.lastMove.words.length?data.lastMove.words.map(w=>w.word+' +'+Number(w.score||0)).join(' • '):data.lastMove.word+' +'+data.lastMove.score;
     const climbText=Number(data.lastMove.climbBonus||0)>0?' • YÜKSELİŞ +'+Number(data.lastMove.climbBonus):'';
-    const roofText=Number(data.lastMove.roofBonus||0)>0?' • ÇATI +'+Number(data.lastMove.roofBonus):'';
+    const roofText=data.lastMove.roofReached?' • 🇹🇷 ÇATIYA ULAŞTI':'';
     const towerText=(data.lastMove.placed||[]).some(t=>t.tower)?' • KULE HAMLESİ':'';
     showPop('+'+data.lastMove.score,moveWords+climbText+roofText+towerText+' • '+(data.lastMove.side===state.mySide?'HAMLE ONAYLANDI':'RAKİBİN HAMLESİ'),1250);
     showMoveIdentityFx(data.lastMove,data.lastMove.placed||[],Number(data.lastMove.side));maybeWarnFinalBag();
     const top=Math.min(...(data.lastMove.placed||[]).map(t=>t.r));
     if(Number.isFinite(top))wrap.scrollTo({top:Math.max(0,boardEl.offsetTop+top*boardEl.clientHeight/ROWS-wrap.clientHeight*.35),behavior:'smooth'});
   }
-  if(state.gameOver){
-    const [a,b]=state.scores;document.getElementById('ksm-over-title').textContent=a===b?'BERABERE!':(a>b?'1. OYUNCU KAZANDI!':'2. OYUNCU KAZANDI!');
-    document.getElementById('ksm-over-text').textContent='300 taş bitti • '+a+' - '+b;renderGameOverStats();document.getElementById('ksm-gameover')?.classList.remove('hidden');
-  }
+  if(state.gameOver)showGokdelenGameOver();
 }
 function enterNetworkScene(data){
   cancelIntro();clearReturnFlights();clearInvalidFeedback();clearTurnTimer();clearAiTimer();

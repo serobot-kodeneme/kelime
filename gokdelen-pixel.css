@@ -588,8 +588,8 @@
 @keyframes ksmPixelConfetti{0%{opacity:0;transform:translate(-50%,-10px) rotate(0)}12%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),var(--dy)) rotate(var(--rot))}}
 .ksm-floor-rise-flash{position:absolute;left:8px;right:8px;height:var(--ksm-cell-size);z-index:31;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,228,138,.72),transparent);mix-blend-mode:screen;animation:ksmFloorRise .72s steps(5,end) both}
 @keyframes ksmFloorRise{0%,100%{opacity:0}20%{opacity:.9}52%{opacity:.22}75%{opacity:.7}}
-.ksm-roof-flag{position:absolute;z-index:55;left:50%;top:2px;width:2px;height:22px;background:#193d50;pointer-events:none;animation:ksmRoofFlag 1.8s steps(6,end) both}
-.ksm-roof-flag::after{content:'';position:absolute;left:2px;top:1px;width:16px;height:9px;background:#ffd65a;border:2px solid #193d50;box-sizing:border-box;clip-path:polygon(0 0,100% 0,72% 50%,100% 100%,0 100%)}
-@keyframes ksmRoofFlag{0%{opacity:0;transform:translateY(10px)}12%,78%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-3px)}}
+.ksm-roof-flag{position:absolute;z-index:55;left:50%;top:2px;width:3px;height:30px;background:#193d50;pointer-events:none;transform-origin:bottom center;animation:ksmRoofFlag 2.45s steps(7,end) both}
+.ksm-roof-flag::after{content:'🇹🇷';position:absolute;left:2px;top:-5px;width:34px;height:24px;font-size:28px;line-height:24px;filter:drop-shadow(2px 2px 0 #193d50);transform-origin:left center}
+@keyframes ksmRoofFlag{0%{opacity:0;transform:translateY(28px) scaleY(.45)}16%{opacity:1;transform:translateY(10px) scaleY(.8)}34%,82%{opacity:1;transform:translateY(-4px) scaleY(1)}100%{opacity:0;transform:translateY(-12px) scaleY(1)}}
 #screen-kesisim :is(#ksm-p1-card,#ksm-p2-card).active{filter:brightness(1.045);transform:translateY(-1px)}
 @media(prefers-reduced-motion:reduce){#ksm-confetti-layer,.ksm-floor-rise-flash,.ksm-roof-flag{display:none!important}}
