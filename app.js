@@ -3626,7 +3626,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=702',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=703',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -7326,17 +7326,28 @@ function buildBoard(){
   const roof=document.createElement('span');roof.className='ksm-floor-marker roof';roof.style.setProperty('--floor-row','0');roof.textContent='ÇATI';markers.appendChild(roof);
   boardEl.appendChild(markers);
 }
-const GOKDELEN_RECENT_SEEDS_KEY='kapmaca-gokdelen-recent-seeds-v699';
+const GOKDELEN_RECENT_SEEDS_KEY='kapmaca-gokdelen-recent-seeds-v703';
+const GOKDELEN_SEED_USAGE_KEY='kapmaca-gokdelen-seed-usage-v703';
 const recentSeeds=(()=>{
   try{
     const saved=JSON.parse(localStorage.getItem(GOKDELEN_RECENT_SEEDS_KEY)||'[]');
-    return Array.isArray(saved)?saved.filter(w=>typeof w==='string').slice(-20):[];
+    return Array.isArray(saved)?saved.filter(w=>typeof w==='string').slice(-80):[];
   }catch(_){return [];}
+})();
+const seedUsage=(()=>{
+  try{
+    const saved=JSON.parse(localStorage.getItem(GOKDELEN_SEED_USAGE_KEY)||'{}');
+    return saved&&typeof saved==='object'?saved:{};
+  }catch(_){return {};}
 })();
 function rememberSeed(word){
   recentSeeds.push(word);
-  while(recentSeeds.length>20)recentSeeds.shift();
-  try{localStorage.setItem(GOKDELEN_RECENT_SEEDS_KEY,JSON.stringify(recentSeeds));}catch(_){}
+  while(recentSeeds.length>80)recentSeeds.shift();
+  seedUsage[word]=Number(seedUsage[word]||0)+1;
+  try{
+    localStorage.setItem(GOKDELEN_RECENT_SEEDS_KEY,JSON.stringify(recentSeeds));
+    localStorage.setItem(GOKDELEN_SEED_USAGE_KEY,JSON.stringify(seedUsage));
+  }catch(_){}
 }
 function seedEaseScore(word){
   const chars=Array.from(String(word||'').toLocaleUpperCase('tr-TR'));
@@ -7354,26 +7365,32 @@ function seedEaseScore(word){
   return easy*3+vowels*2+alternating*2+balance+Math.min(6,distinct)-rare*2+common;
 }
 function chooseSeed(){
-  const allSeven=[...GAME_WORD_SET].filter(w=>Array.from(w).length===7);
+  const allSeven=[...GAME_WORD_SET].filter(w=>Array.from(w).length===7&&!isArgoWord(w)&&!isForeignWord(w));
   if(!allSeven.length)throw new Error('seven-letter-seed-missing');
-  const curated=SEEDS.filter(w=>GAME_WORD_SET.has(w)&&Array.from(w).length===7);
   const recentSet=new Set(recentSeeds);
-  let pool=curated.filter(w=>!recentSet.has(w));
-  if(pool.length<8){
-    const productive=allSeven
-      .filter(w=>!recentSet.has(w))
-      .map(w=>({w,score:seedEaseScore(w)}))
-      .sort((x,y)=>y.score-x.score)
-      .slice(0,80)
-      .map(x=>x.w);
-    pool=[...new Set([...pool,...productive])];
+  const scored=allSeven
+    .map(w=>({w,score:seedEaseScore(w),used:Number(seedUsage[w]||0)}))
+    .sort((a,b)=>b.score-a.score||a.used-b.used);
+  // Yalnız küçük sabit bir listeye bağlı kalma: sözlükteki üretken 7 harflilerin geniş bölümünü kullan.
+  // Çok zor/garip dizilimleri ayıklarken yüzlerce farklı başlangıç sözcüğüne izin ver.
+  const qualityFloor=(scored[0]?.score||0)-18;
+  let broad=scored.filter(x=>x.score>=qualityFloor).slice(0,420);
+  if(broad.length<120)broad=scored.slice(0,Math.min(420,scored.length));
+  let available=broad.filter(x=>!recentSet.has(x.w));
+  if(available.length<40){
+    // 80 maçlık tekrar kilidi havuzu aşırı daraltırsa sadece en eski yarısını serbest bırak.
+    const protectedRecent=new Set(recentSeeds.slice(-40));
+    available=broad.filter(x=>!protectedRecent.has(x.w));
   }
-  if(!pool.length)pool=curated.length?curated:allSeven;
-  const scored=pool.map(w=>({w,score:seedEaseScore(w)}));
-  const max=Math.max(...scored.map(x=>x.score));
-  const broad=scored.filter(x=>x.score>=max-14);
-  const choices=broad.length>=12?broad:scored;
-  const selected=choices[Math.floor(Math.random()*choices.length)]?.w||pool[0];
+  if(!available.length)available=broad.length?broad:scored;
+  // Daha az kullanılan sözcükleri kuvvetle öne çıkar; kolay/üretken sözcük niteliğini de koru.
+  const minUsed=Math.min(...available.map(x=>x.used));
+  let leastUsed=available.filter(x=>x.used<=minUsed+1);
+  if(leastUsed.length<24)leastUsed=available;
+  const weights=leastUsed.map(x=>Math.max(1,1+(x.score-qualityFloor)*.35)/(1+x.used*2.5));
+  const total=weights.reduce((a,b)=>a+b,0);
+  let roll=Math.random()*total,selected=leastUsed[leastUsed.length-1]?.w||available[0]?.w||allSeven[0];
+  for(let i=0;i<leastUsed.length;i++){roll-=weights[i];if(roll<=0){selected=leastUsed[i].w;break;}}
   rememberSeed(selected);
   return selected;
 }
