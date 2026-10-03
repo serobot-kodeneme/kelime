@@ -3626,7 +3626,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=706',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=707',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -7934,23 +7934,23 @@ function scheduleGokdelenCityAmbience(delay=1200){
   },Math.max(250,delay));
 }
 
-/* v706 — GÖKDELEN için tamamen özgün, kodla üretilen 8-bit arka plan müziği. */
+/* v707 — GÖKDELEN için özgün, daha yavaş ve piyanomsu 8-bit arka plan müziği. */
 let gokdelenMusicTimer=null,gokdelenMusicStep=0,gokdelenMusicTrack=0;
 const GOKDELEN_CHIP_TRACKS=[
   {
-    lead:[72,76,79,76,74,77,81,77,72,76,79,83,81,79,77,74],
-    bass:[48,48,43,43,45,45,41,41],
-    chord:[[60,64,67],[60,64,67],[55,59,62],[55,59,62],[57,60,64],[57,60,64],[53,57,60],[53,57,60]]
+    melody:[72,null,76,null,79,null,76,null,74,null,72,null,69,null,67,null],
+    bass:[48,null,null,null,43,null,null,null,45,null,null,null,41,null,null,null],
+    harmony:[[60,64,67],null,null,null,[55,59,62],null,null,null,[57,60,64],null,null,null,[53,57,60],null,null,null]
   },
   {
-    lead:[67,69,72,74,72,69,67,64,65,67,69,72,69,67,65,62],
-    bass:[43,43,45,45,41,41,48,48],
-    chord:[[55,59,62],[55,59,62],[57,60,64],[57,60,64],[53,57,60],[53,57,60],[60,64,67],[60,64,67]]
+    melody:[67,null,69,null,72,null,74,null,72,null,69,null,67,null,64,null],
+    bass:[43,null,null,null,45,null,null,null,41,null,null,null,48,null,null,null],
+    harmony:[[55,59,62],null,null,null,[57,60,64],null,null,null,[53,57,60],null,null,null,[60,64,67],null,null,null]
   },
   {
-    lead:[76,74,72,69,72,76,79,76,77,76,74,72,69,72,74,67],
-    bass:[48,45,43,41,48,45,43,41],
-    chord:[[60,64,67],[57,60,64],[55,59,62],[53,57,60],[60,64,67],[57,60,64],[55,59,62],[53,57,60]]
+    melody:[76,null,74,null,72,null,69,null,72,null,76,null,74,null,67,null],
+    bass:[48,null,null,null,45,null,null,null,43,null,null,null,41,null,null,null],
+    harmony:[[60,64,67],null,null,null,[57,60,64],null,null,null,[55,59,62],null,null,null,[53,57,60],null,null,null]
   }
 ];
 function midiToHz(note){return 440*Math.pow(2,(Number(note)-69)/12);}
@@ -7959,24 +7959,24 @@ function playGokdelenChipStep(){
   const step=gokdelenMusicStep++;
   const track=GOKDELEN_CHIP_TRACKS[gokdelenMusicTrack%GOKDELEN_CHIP_TRACKS.length];
   if(gokdelenCityCanPlay()){
-    const lead=track.lead[step%track.lead.length];
-    const bass=track.bass[Math.floor(step/2)%track.bass.length];
-    playTone(midiToHz(lead),.115,.014,'square',null,0);
-    if(step%2===0)playTone(midiToHz(bass),.19,.010,'triangle',null,0);
-    if(step%4===0){
-      const chord=track.chord[Math.floor(step/2)%track.chord.length]||[];
-      chord.forEach((note,i)=>playTone(midiToHz(note),.12,.0042,'square',null,i*.012));
+    const melody=track.melody[step%track.melody.length];
+    const bass=track.bass[step%track.bass.length];
+    const chord=track.harmony[step%track.harmony.length];
+    // Yumuşak "piyano" hissi: kısa atak, daha uzun sönüm ve sine/triangle tonları.
+    if(melody!==null)playTone(midiToHz(melody),.42,.0105,'sine',null,0);
+    if(bass!==null)playTone(midiToHz(bass),.58,.0075,'triangle',null,0);
+    if(chord){
+      chord.forEach((note,i)=>playTone(midiToHz(note),.50,.0032,'sine',null,i*.055));
     }
-    if(step%8===6)playTone(155,.035,.0035,'square',null,0);
   }
   if(step>0&&step%64===0)gokdelenMusicTrack=(gokdelenMusicTrack+1)%GOKDELEN_CHIP_TRACKS.length;
-  gokdelenMusicTimer=setTimeout(playGokdelenChipStep,185);
+  gokdelenMusicTimer=setTimeout(playGokdelenChipStep,430);
 }
 function startGokdelenChipMusic(){
   clearTimeout(gokdelenMusicTimer);
   gokdelenMusicStep=0;
   gokdelenMusicTrack=Math.floor(Math.random()*GOKDELEN_CHIP_TRACKS.length);
-  gokdelenMusicTimer=setTimeout(playGokdelenChipStep,520);
+  gokdelenMusicTimer=setTimeout(playGokdelenChipStep,900);
 }
 function stopGokdelenChipMusic(){
   clearTimeout(gokdelenMusicTimer);gokdelenMusicTimer=null;gokdelenMusicStep=0;
