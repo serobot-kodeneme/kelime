@@ -3626,7 +3626,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=705',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=706',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -7929,17 +7929,67 @@ function scheduleGokdelenCityAmbience(delay=1200){
         else playGokdelenHorn();
       }
     }
-    const next=gokdelenCityIntroStep<5?2200+Math.random()*1000:3800+Math.random()*4500;
+    const next=gokdelenCityIntroStep<5?2200+Math.random()*1000:5000+Math.random()*5500;
     scheduleGokdelenCityAmbience(next);
   },Math.max(250,delay));
+}
+
+/* v706 — GÖKDELEN için tamamen özgün, kodla üretilen 8-bit arka plan müziği. */
+let gokdelenMusicTimer=null,gokdelenMusicStep=0,gokdelenMusicTrack=0;
+const GOKDELEN_CHIP_TRACKS=[
+  {
+    lead:[72,76,79,76,74,77,81,77,72,76,79,83,81,79,77,74],
+    bass:[48,48,43,43,45,45,41,41],
+    chord:[[60,64,67],[60,64,67],[55,59,62],[55,59,62],[57,60,64],[57,60,64],[53,57,60],[53,57,60]]
+  },
+  {
+    lead:[67,69,72,74,72,69,67,64,65,67,69,72,69,67,65,62],
+    bass:[43,43,45,45,41,41,48,48],
+    chord:[[55,59,62],[55,59,62],[57,60,64],[57,60,64],[53,57,60],[53,57,60],[60,64,67],[60,64,67]]
+  },
+  {
+    lead:[76,74,72,69,72,76,79,76,77,76,74,72,69,72,74,67],
+    bass:[48,45,43,41,48,45,43,41],
+    chord:[[60,64,67],[57,60,64],[55,59,62],[53,57,60],[60,64,67],[57,60,64],[55,59,62],[53,57,60]]
+  }
+];
+function midiToHz(note){return 440*Math.pow(2,(Number(note)-69)/12);}
+function playGokdelenChipStep(){
+  if(!gokdelenCityActive)return;
+  const step=gokdelenMusicStep++;
+  const track=GOKDELEN_CHIP_TRACKS[gokdelenMusicTrack%GOKDELEN_CHIP_TRACKS.length];
+  if(gokdelenCityCanPlay()){
+    const lead=track.lead[step%track.lead.length];
+    const bass=track.bass[Math.floor(step/2)%track.bass.length];
+    playTone(midiToHz(lead),.115,.014,'square',null,0);
+    if(step%2===0)playTone(midiToHz(bass),.19,.010,'triangle',null,0);
+    if(step%4===0){
+      const chord=track.chord[Math.floor(step/2)%track.chord.length]||[];
+      chord.forEach((note,i)=>playTone(midiToHz(note),.12,.0042,'square',null,i*.012));
+    }
+    if(step%8===6)playTone(155,.035,.0035,'square',null,0);
+  }
+  if(step>0&&step%64===0)gokdelenMusicTrack=(gokdelenMusicTrack+1)%GOKDELEN_CHIP_TRACKS.length;
+  gokdelenMusicTimer=setTimeout(playGokdelenChipStep,185);
+}
+function startGokdelenChipMusic(){
+  clearTimeout(gokdelenMusicTimer);
+  gokdelenMusicStep=0;
+  gokdelenMusicTrack=Math.floor(Math.random()*GOKDELEN_CHIP_TRACKS.length);
+  gokdelenMusicTimer=setTimeout(playGokdelenChipStep,520);
+}
+function stopGokdelenChipMusic(){
+  clearTimeout(gokdelenMusicTimer);gokdelenMusicTimer=null;gokdelenMusicStep=0;
 }
 function startGokdelenCityAmbience(){
   if(gokdelenCityActive)return;
   gokdelenCityActive=true;gokdelenCityIntroStep=0;ensureGameAudio();
   scheduleGokdelenCityAmbience(900);
+  startGokdelenChipMusic();
 }
 function stopGokdelenCityAmbience(){
   gokdelenCityActive=false;gokdelenCityIntroStep=0;clearTimeout(gokdelenCityTimer);gokdelenCityTimer=null;
+  stopGokdelenChipMusic();
 }
 function commit(){
   if(state.introActive||state.gameOver)return;
