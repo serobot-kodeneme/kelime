@@ -3626,7 +3626,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=701',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=702',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -7020,7 +7020,7 @@ const state={
   dirs:Array.from({length:ROWS},()=>Array(COLS).fill(0)),
   used:new Set(),seedKeys:new Set(),flowers:new Set(),flowerIcons:new Map(),words:[],scores:[0,0],turn:0,bag:[],racks:[[],[]],broomUsed:[0,0],bombUsed:[0,0],
   temp:new Map(),tempOrder:[],drag:null,meaningBlockedUntil:0,popTimer:null,gameOver:false,turnLeft:30,turnTimer:null,aiTimer:null,lastHeartSec:null,lastBellSec:null,
-  highestFloors:[0,0],longestWords:['',''],wordCounts:[0,0],roofWinner:-1,lowBagWarned:false,finalBagTimer:null,
+  highestFloors:[0,0],longestWords:['',''],wordCounts:[0,0],bestMoveScores:[0,0],climbBonusTotals:[0,0],roofWinner:-1,lowBagWarned:false,finalBagTimer:null,
   missStreak:[0,0],forcedWinner:-1,endReason:'',
   introActive:false,introToken:0,introFrame:null,introCamera:null,introTimers:new Set()
 };
@@ -7111,6 +7111,8 @@ function recordMoveStats(side,result,placed){
   state.highestFloors[side]=Math.max(Number(state.highestFloors[side]||0),floor);
   const moveWords=(result.words||[]).map(w=>String(w.word||'')).filter(Boolean);
   state.wordCounts[side]=Number(state.wordCounts[side]||0)+moveWords.length;
+  state.bestMoveScores[side]=Math.max(Number(state.bestMoveScores[side]||0),Number(result.totalScore||0));
+  state.climbBonusTotals[side]=Number(state.climbBonusTotals[side]||0)+Number(result.climbBonus||0);
   for(const word of moveWords){
     const prev=String(state.longestWords[side]||'');
     if(word.length>prev.length)state.longestWords[side]=word;
@@ -7133,7 +7135,7 @@ function flashOpponentMove(placed,side){
   if(Number(side)===Number(state.mySide))return;
   const cls=Number(side)===0?'ksm-opponent-p1':'ksm-opponent-p2';
   for(const t of placed||[])cells[t.r*COLS+t.c]?.classList.add(cls);
-  setTimeout(()=>{for(const t of placed||[])cells[t.r*COLS+t.c]?.classList.remove(cls);},3200);
+  setTimeout(()=>{for(const t of placed||[])cells[t.r*COLS+t.c]?.classList.remove(cls);},1800);
 }
 function celebrateLongWord(){
   boardEl.querySelector('.ksm-window-flash')?.remove();
@@ -7196,6 +7198,8 @@ function renderGameOverStats(){
   set('ksm-over-p1-floor',state.highestFloors[0]+' KAT');set('ksm-over-p2-floor',state.highestFloors[1]+' KAT');
   set('ksm-over-p1-longest',state.longestWords[0]||'—');set('ksm-over-p2-longest',state.longestWords[1]||'—');
   set('ksm-over-p1-words',String(state.wordCounts[0]||0));set('ksm-over-p2-words',String(state.wordCounts[1]||0));
+  set('ksm-over-p1-best','+'+Number(state.bestMoveScores[0]||0));set('ksm-over-p2-best','+'+Number(state.bestMoveScores[1]||0));
+  set('ksm-over-p1-climb','+'+Number(state.climbBonusTotals[0]||0));set('ksm-over-p2-climb','+'+Number(state.climbBonusTotals[1]||0));
 }
 
 function updateHud(){
@@ -7216,13 +7220,15 @@ function updateHud(){
   document.getElementById('ksm-p2-label')?.classList.toggle('active',state.turn===1);
   document.getElementById('ksm-p1-card')?.classList.toggle('active',state.turn===0);
   document.getElementById('ksm-p2-card')?.classList.toggle('active',state.turn===1);
-  const broom=document.getElementById('ksm-broom-left');if(broom)broom.textContent='×'+Math.max(0,3-state.broomUsed[state.mySide]);
-  const bombLeft=document.getElementById('ksm-bomb-left');if(bombLeft)bombLeft.textContent='×'+Math.max(0,1-state.bombUsed[state.mySide]);
+  const broomRemaining=Math.max(0,3-state.broomUsed[state.mySide]);
+  const bombRemaining=Math.max(0,1-state.bombUsed[state.mySide]);
+  const broom=document.getElementById('ksm-broom-left');if(broom)broom.textContent=broomRemaining?'×'+broomRemaining:' BİTTİ';
+  const bombLeft=document.getElementById('ksm-bomb-left');if(bombLeft)bombLeft.textContent=bombRemaining?'×'+bombRemaining:'BİTTİ';
   document.getElementById('ksm-p1-label').textContent=state.multiplayer?'1. OYUNCU':'OYUNCU';
   document.getElementById('ksm-p2-label').textContent=aiName();
   const aiTurn=state.introActive||!myTurn();
-  const broomBtn=document.getElementById('btn-ksm-broom');if(broomBtn)broomBtn.disabled=aiTurn||state.broomUsed[state.mySide]>=3||state.temp.size>0||state.gameOver||bombArmed;
-  const bombBtn=document.getElementById('btn-ksm-bomb');if(bombBtn){bombBtn.disabled=aiTurn||state.bombUsed[state.mySide]>=1||state.temp.size>0||state.gameOver;bombBtn.classList.toggle('armed',bombArmed);}
+  const broomBtn=document.getElementById('btn-ksm-broom');if(broomBtn){broomBtn.disabled=aiTurn||state.broomUsed[state.mySide]>=3||state.temp.size>0||state.gameOver||bombArmed;broomBtn.classList.toggle('ksm-tool-empty',broomRemaining===0);}
+  const bombBtn=document.getElementById('btn-ksm-bomb');if(bombBtn){bombBtn.disabled=aiTurn||state.bombUsed[state.mySide]>=1||state.temp.size>0||state.gameOver;bombBtn.classList.toggle('armed',bombArmed);bombBtn.classList.toggle('ksm-tool-empty',bombRemaining===0);}
   const shuffleBtn=document.getElementById('btn-ksm-shuffle');if(shuffleBtn)shuffleBtn.disabled=aiTurn||state.temp.size>0||state.gameOver||bombArmed;
   const undoBtn=document.getElementById('btn-ksm-undo');if(undoBtn)undoBtn.disabled=aiTurn||!state.temp.size||state.gameOver;
   const placeBtn=document.getElementById('btn-ksm-place');if(placeBtn)placeBtn.disabled=aiTurn||!state.temp.size||state.gameOver;
@@ -7274,8 +7280,13 @@ function refreshPlacementPreview(){
   const result=myTurn()&&state.temp.size?validate():null;
   for(const el of cells){
     const pending=!!tempAt(Number(el.dataset.r),Number(el.dataset.c));
+    el.classList.remove('ksm-word-preview-main','ksm-word-preview-side');
     el.classList.toggle('ksm-preview-valid',pending&&!!result&&!result.error);
     el.classList.toggle('ksm-preview-invalid',pending&&!!result&&!!result.error);
+  }
+  if(result&&!result.error){
+    for(const w of result.words||[])for(const p of w.line||[])cells[p.r*COLS+p.c]?.classList.add('ksm-word-preview-side');
+    for(const p of result.line||[]){const el=cells[p.r*COLS+p.c];el?.classList.remove('ksm-word-preview-side');el?.classList.add('ksm-word-preview-main');}
   }
   if(result){
     if(result.error)setFeedback(result.error,'bad');
@@ -7962,6 +7973,22 @@ function bombArea(r,c){
 function canBombAt(r,c){
   return Number.isInteger(r)&&Number.isInteger(c)&&r>=1&&r<ROWS-1&&c>=1&&c<COLS-1;
 }
+function clearBombPreview(){
+  cells.forEach(el=>el.classList.remove('ksm-bomb-preview','ksm-bomb-preview-center','ksm-bomb-preview-invalid'));
+}
+function previewBombAt(r,c){
+  clearBombPreview();
+  if(!Number.isInteger(r)||!Number.isInteger(c))return;
+  if(!canBombAt(r,c)){cells[r*COLS+c]?.classList.add('ksm-bomb-preview-invalid');return;}
+  for(const p of bombArea(r,c))cells[p.r*COLS+p.c]?.classList.add('ksm-bomb-preview');
+  cells[r*COLS+c]?.classList.add('ksm-bomb-preview-center');
+}
+function previewBombFromPoint(x,y){
+  if(!state.drag||state.drag.source!=='bomb')return clearBombPreview();
+  const target=document.elementFromPoint(x,y),el=target?.closest?.('.ksm-cell');
+  if(!el||!boardEl.contains(el))return clearBombPreview();
+  previewBombAt(Number(el.dataset.r),Number(el.dataset.c));
+}
 function applyBombAt(r,c){
   if(!canBombAt(r,c))return [];
   const hit=bombArea(r,c),changed=[];
@@ -8015,6 +8042,7 @@ function armBomb(){
   setFeedback(bombArmed?'💣 BOMBA HAZIR • Kırmak istediğin 3×3 alanın ortasındaki cama dokun.':'Bomba iptal edildi.',bombArmed?'good':'');
 }
 function handleBombTarget(r,c){
+  clearBombPreview();
   if(!bombArmed)return;
   if(!canBombAt(r,c)){setFeedback('Bombayı 3×3 alan oluşturabilecek bir iç hücreye bırak.','bad');return;}
   if(!bombArea(r,c).some(p=>!!state.grid[p.r]?.[p.c])){setFeedback('Bu 3×3 alanda kırılacak harf yok.','bad');return;}
@@ -8078,7 +8106,7 @@ function reset(){
   clearReturnFlights();document.getElementById('ksm-confetti-layer')?.remove();
   clearInvalidFeedback();
   clearTimeout(state.popTimer);state.grid=Array.from({length:ROWS},()=>Array(COLS).fill(''));state.dirs=Array.from({length:ROWS},()=>Array(COLS).fill(0));
-  state.used.clear();state.seedKeys.clear();state.flowers.clear();state.words=[];state.scores=[0,0];state.turn=0;state.broomUsed=[0,0];state.bombUsed=[0,0];bombArmed=false;state.highestFloors=[0,0];state.longestWords=['',''];state.wordCounts=[0,0];state.roofWinner=-1;state.missStreak=[0,0];state.forcedWinner=-1;state.endReason='';state.lowBagWarned=false;clearGokdelenFx();state.temp.clear();state.tempOrder=[];state.drag=null;state.meaningBlockedUntil=0;ghost.style.display='none';state.gameOver=false;state.turnLeft=30;clearAiTimer();
+  state.used.clear();state.seedKeys.clear();state.flowers.clear();state.words=[];state.scores=[0,0];state.turn=0;state.broomUsed=[0,0];state.bombUsed=[0,0];bombArmed=false;state.highestFloors=[0,0];state.longestWords=['',''];state.wordCounts=[0,0];state.bestMoveScores=[0,0];state.climbBonusTotals=[0,0];state.roofWinner=-1;state.missStreak=[0,0];state.forcedWinner=-1;state.endReason='';state.lowBagWarned=false;clearGokdelenFx();state.temp.clear();state.tempOrder=[];state.drag=null;state.meaningBlockedUntil=0;ghost.style.display='none';state.gameOver=false;state.turnLeft=30;clearAiTimer();
   state.bag=makeBag();const seed=chooseSeed();consumeSeedFromBag(seed);state.flowerIcons.clear();state.racks=[[],[]];drawRackToNine(0);drawRackToNine(1);
   document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');
   renderAll();renderBirds();renderRack();setFeedback('GÖKDELEN • Açılış hazırlanıyor…');playIntro(seed);
@@ -8086,17 +8114,17 @@ function reset(){
 function exit(){if(state.multiplayer){window.gokdelenNetwork.leave();return;}stopGokdelenCityAmbience();cancelIntro();clearReturnFlights();document.getElementById('ksm-confetti-layer')?.remove();clearInvalidFeedback();clearTimeout(state.popTimer);clearTurnTimer();clearAiTimer();state.drag=null;ghost.style.display='none';screen.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}
 async function open(){activeGameMode='single';state.multiplayer=false;state.mySide=0;document.body.dataset.gokdelenMenu='1';cancelIntro();const openingToken=state.introToken;document.getElementById('screen-home')?.classList.add('hidden');screen.classList.remove('hidden');startGokdelenCityAmbience();setFeedback('GÖKDELEN hazırlanıyor…');try{await ensureWordDataLoaded();if(openingToken!==state.introToken||screen.classList.contains('hidden'))return;if(!cells.length)buildBoard();reset();}catch(err){console.error('Kesişim startup failed',err);showToast('GÖKDELEN hazırlanamadı.','rose');exit();}}
 
-document.addEventListener('pointermove',e=>{if(!state.drag||e.pointerId!==state.drag.pointerId)return;e.preventDefault();if(lastTempTap&&Math.hypot(e.clientX-lastTempTap.x,e.clientY-lastTempTap.y)>8)lastTempTap=null;moveGhost(e.clientX,e.clientY);},{passive:false});
-document.addEventListener('pointerup',e=>{if(!state.drag||e.pointerId!==state.drag.pointerId)return;e.preventDefault();state.meaningBlockedUntil=Date.now()+250;dropAt(e.clientX,e.clientY);state.drag=null;bombArmed=false;ghost.classList.remove('ksm-bomb-drag');ghost.style.display='none';updateHud();},{passive:false});
+document.addEventListener('pointermove',e=>{if(!state.drag||e.pointerId!==state.drag.pointerId)return;e.preventDefault();if(lastTempTap&&Math.hypot(e.clientX-lastTempTap.x,e.clientY-lastTempTap.y)>8)lastTempTap=null;moveGhost(e.clientX,e.clientY);if(state.drag.source==='bomb')previewBombFromPoint(e.clientX,e.clientY);},{passive:false});
+document.addEventListener('pointerup',e=>{if(!state.drag||e.pointerId!==state.drag.pointerId)return;e.preventDefault();state.meaningBlockedUntil=Date.now()+250;dropAt(e.clientX,e.clientY);clearBombPreview();state.drag=null;bombArmed=false;ghost.classList.remove('ksm-bomb-drag');ghost.style.display='none';updateHud();},{passive:false});
 document.addEventListener('pointercancel',e=>{
   if(!state.drag||e.pointerId!==state.drag.pointerId)return;
   const drag=state.drag;
   if(drag.source==='temp'&&drag.from){state.temp.set(drag.fromKey,drag.from);renderCell(drag.from.r,drag.from.c,false);renderRack();}
-  if(drag.source==='bomb')bombArmed=false;
+  if(drag.source==='bomb'){bombArmed=false;clearBombPreview();}
   state.drag=null;ghost.classList.remove('ksm-bomb-drag');ghost.style.display='none';updateHud();
 },{passive:true});
 // The same pure rule engine is used locally and by both network clients.
-const MATCH_FIELDS=['grid','dirs','used','seedKeys','words','scores','turn','bag','racks','broomUsed','bombUsed','highestFloors','longestWords','wordCounts','roofWinner','missStreak','forcedWinner','endReason','gameOver','multiplayer','mySide'];
+const MATCH_FIELDS=['grid','dirs','used','seedKeys','words','scores','turn','bag','racks','broomUsed','bombUsed','highestFloors','longestWords','wordCounts','bestMoveScores','climbBonusTotals','roofWinner','missStreak','forcedWinner','endReason','gameOver','multiplayer','mySide'];
 function withMatch(data,fn){
   const saved=Object.fromEntries(MATCH_FIELDS.map(k=>[k,state[k]]));
   try{
@@ -8110,6 +8138,8 @@ function withMatch(data,fn){
     state.highestFloors=[Number(data.highestFloors?.[0]||0),Number(data.highestFloors?.[1]||0)];
     state.longestWords=[String(data.longestWords?.[0]||''),String(data.longestWords?.[1]||'')];
     state.wordCounts=[Number(data.wordCounts?.[0]||0),Number(data.wordCounts?.[1]||0)];
+    state.bestMoveScores=[Number(data.bestMoveScores?.[0]||0),Number(data.bestMoveScores?.[1]||0)];
+    state.climbBonusTotals=[Number(data.climbBonusTotals?.[0]||0),Number(data.climbBonusTotals?.[1]||0)];
     state.roofWinner=Number.isInteger(data.roofWinner)?data.roofWinner:-1;
     state.missStreak=[Number(data.missStreak?.[0]||0),Number(data.missStreak?.[1]||0)];
     state.forcedWinner=Number.isInteger(data.forcedWinner)?data.forcedWinner:-1;
@@ -8119,7 +8149,7 @@ function withMatch(data,fn){
   }finally{for(const k of MATCH_FIELDS)state[k]=saved[k];}
 }
 function serializeMatch(extra={}){
-  return{grid:state.grid,dirs:state.dirs,words:[...state.used],seedKeys:[...state.seedKeys],scores:state.scores,turn:state.turn,bag:state.bag,racks:state.racks,broomUsed:state.broomUsed,bombUsed:state.bombUsed,highestFloors:state.highestFloors,longestWords:state.longestWords,wordCounts:state.wordCounts,roofWinner:state.roofWinner,missStreak:state.missStreak,forcedWinner:state.forcedWinner,endReason:state.endReason,gameOver:state.gameOver,...extra};
+  return{grid:state.grid,dirs:state.dirs,words:[...state.used],seedKeys:[...state.seedKeys],scores:state.scores,turn:state.turn,bag:state.bag,racks:state.racks,broomUsed:state.broomUsed,bombUsed:state.bombUsed,highestFloors:state.highestFloors,longestWords:state.longestWords,wordCounts:state.wordCounts,bestMoveScores:state.bestMoveScores,climbBonusTotals:state.climbBonusTotals,roofWinner:state.roofWinner,missStreak:state.missStreak,forcedWinner:state.forcedWinner,endReason:state.endReason,gameOver:state.gameOver,...extra};
 }
 function makeNetworkMatch(){
   const seed=chooseSeed();
@@ -8188,7 +8218,7 @@ function applyNetworkMatch(data,round,intro=false){
   const restored=withMatch(data,()=>serializeMatch());
   state.grid=restored.grid;state.dirs=restored.dirs;state.used=new Set(restored.words);state.words=restored.words;state.seedKeys=new Set(restored.seedKeys);
   state.scores=restored.scores;state.turn=restored.turn;state.bag=restored.bag;state.racks=restored.racks;state.broomUsed=restored.broomUsed;state.bombUsed=restored.bombUsed||[0,0];bombArmed=false;
-  state.highestFloors=restored.highestFloors;state.longestWords=restored.longestWords;state.wordCounts=restored.wordCounts;state.roofWinner=restored.roofWinner;
+  state.highestFloors=restored.highestFloors;state.longestWords=restored.longestWords;state.wordCounts=restored.wordCounts;state.bestMoveScores=restored.bestMoveScores||[0,0];state.climbBonusTotals=restored.climbBonusTotals||[0,0];state.roofWinner=restored.roofWinner;
   state.missStreak=restored.missStreak||[0,0];state.forcedWinner=Number.isInteger(restored.forcedWinner)?restored.forcedWinner:-1;state.endReason=String(restored.endReason||'');state.gameOver=restored.gameOver;
   state.flowers.clear();state.flowerIcons.clear();state.revision=Number(data.revision||0);
   document.getElementById('ksm-gameover')?.classList.add('hidden');
