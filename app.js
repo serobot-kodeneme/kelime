@@ -7734,6 +7734,64 @@ function renderBirds(){
   }
   boardEl.appendChild(layer);
 }
+
+/* v668 — lightweight Istanbul city ambience generated with Web Audio; no media files. */
+let gokdelenCityTimer=null,gokdelenCityActive=false,gokdelenCityIntroStep=0;
+function gokdelenCityCanPlay(){
+  return gokdelenCityActive&&!screen.classList.contains('hidden')&&!document.hidden&&masterSoundVolume>0;
+}
+function playGokdelenCarPass(){
+  playTone(118,.72,.007,'sawtooth',72);
+  playTone(176,.56,.0045,'triangle',112,.12);
+}
+function playGokdelenGull(){
+  playTone(1220,.16,.014,'sine',1760);
+  playTone(1710,.18,.012,'sine',1080,.13);
+}
+function playGokdelenHorn(){
+  playTone(392,.16,.012,'square',354);
+  playTone(330,.19,.010,'square',300,.18);
+}
+function playGokdelenFerry(){
+  playTone(112,.78,.016,'triangle',86);
+  playTone(168,.68,.008,'sine',128,.03);
+  playTone(104,.62,.012,'triangle',82,.92);
+}
+function playGokdelenTramBell(){
+  playTone(1380,.14,.017,'sine',1120);
+  playTone(2070,.09,.009,'sine',1740,.015);
+  playTone(1380,.14,.016,'sine',1120,.34);
+  playTone(2070,.09,.008,'sine',1740,.355);
+}
+function scheduleGokdelenCityAmbience(delay=1200){
+  clearTimeout(gokdelenCityTimer);
+  if(!gokdelenCityActive)return;
+  gokdelenCityTimer=setTimeout(()=>{
+    if(!gokdelenCityActive)return;
+    if(gokdelenCityCanPlay()){
+      const showcase=[playGokdelenCarPass,playGokdelenGull,playGokdelenTramBell,playGokdelenFerry,playGokdelenHorn];
+      if(gokdelenCityIntroStep<showcase.length)showcase[gokdelenCityIntroStep++]();
+      else{
+        const roll=Math.random();
+        if(roll<.31)playGokdelenCarPass();
+        else if(roll<.55)playGokdelenGull();
+        else if(roll<.69)playGokdelenTramBell();
+        else if(roll<.82)playGokdelenFerry();
+        else playGokdelenHorn();
+      }
+    }
+    const next=gokdelenCityIntroStep<5?2400+Math.random()*1200:5200+Math.random()*6500;
+    scheduleGokdelenCityAmbience(next);
+  },Math.max(250,delay));
+}
+function startGokdelenCityAmbience(){
+  if(gokdelenCityActive)return;
+  gokdelenCityActive=true;gokdelenCityIntroStep=0;ensureGameAudio();
+  scheduleGokdelenCityAmbience(900);
+}
+function stopGokdelenCityAmbience(){
+  gokdelenCityActive=false;gokdelenCityIntroStep=0;clearTimeout(gokdelenCityTimer);gokdelenCityTimer=null;
+}
 function commit(){
   if(state.introActive||state.gameOver)return;
   if(state.multiplayer){if(myTurn())window.gokdelenNetwork.submit('move',[...state.temp.values()]);return;}
@@ -7808,8 +7866,8 @@ function reset(){
   document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');
   renderAll();renderBirds();renderRack();setFeedback('GÖKDELEN • Açılış hazırlanıyor…');playIntro(seed);
 }
-function exit(){if(state.multiplayer){window.gokdelenNetwork.leave();return;}cancelIntro();clearReturnFlights();document.getElementById('ksm-confetti-layer')?.remove();clearInvalidFeedback();clearTimeout(state.popTimer);clearTurnTimer();clearAiTimer();state.drag=null;ghost.style.display='none';screen.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}
-async function open(){activeGameMode='single';state.multiplayer=false;state.mySide=0;document.body.dataset.gokdelenMenu='1';cancelIntro();const openingToken=state.introToken;document.getElementById('screen-home')?.classList.add('hidden');screen.classList.remove('hidden');setFeedback('GÖKDELEN hazırlanıyor…');try{await ensureWordDataLoaded();if(openingToken!==state.introToken||screen.classList.contains('hidden'))return;if(!cells.length)buildBoard();reset();}catch(err){console.error('Kesişim startup failed',err);showToast('GÖKDELEN hazırlanamadı.','rose');exit();}}
+function exit(){if(state.multiplayer){window.gokdelenNetwork.leave();return;}stopGokdelenCityAmbience();cancelIntro();clearReturnFlights();document.getElementById('ksm-confetti-layer')?.remove();clearInvalidFeedback();clearTimeout(state.popTimer);clearTurnTimer();clearAiTimer();state.drag=null;ghost.style.display='none';screen.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}
+async function open(){activeGameMode='single';state.multiplayer=false;state.mySide=0;document.body.dataset.gokdelenMenu='1';cancelIntro();const openingToken=state.introToken;document.getElementById('screen-home')?.classList.add('hidden');screen.classList.remove('hidden');startGokdelenCityAmbience();setFeedback('GÖKDELEN hazırlanıyor…');try{await ensureWordDataLoaded();if(openingToken!==state.introToken||screen.classList.contains('hidden'))return;if(!cells.length)buildBoard();reset();}catch(err){console.error('Kesişim startup failed',err);showToast('GÖKDELEN hazırlanamadı.','rose');exit();}}
 
 document.addEventListener('pointermove',e=>{if(!state.drag||e.pointerId!==state.drag.pointerId)return;e.preventDefault();if(lastTempTap&&Math.hypot(e.clientX-lastTempTap.x,e.clientY-lastTempTap.y)>8)lastTempTap=null;moveGhost(e.clientX,e.clientY);},{passive:false});
 document.addEventListener('pointerup',e=>{if(!state.drag||e.pointerId!==state.drag.pointerId)return;e.preventDefault();state.meaningBlockedUntil=Date.now()+250;dropAt(e.clientX,e.clientY);state.drag=null;ghost.style.display='none';},{passive:false});
@@ -7919,7 +7977,7 @@ function enterNetworkScene(data){
   cancelIntro();clearReturnFlights();clearInvalidFeedback();clearTurnTimer();clearAiTimer();
   state.multiplayer=true;state.networkPlaying=false;state.mySide=mpRole==='guest'?1:0;state.revision=-1;state.networkBusy=false;state.lowBagWarned=false;clearGokdelenFx();
   if(!cells.length)buildBoard();
-  document.body.dataset.gokdelenMenu='1';document.getElementById('screen-home')?.classList.add('hidden');screen.classList.remove('hidden');
+  document.body.dataset.gokdelenMenu='1';document.getElementById('screen-home')?.classList.add('hidden');screen.classList.remove('hidden');startGokdelenCityAmbience();
   document.getElementById('screen-game')?.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');
   document.querySelector('.ksm-rack-row.p1')?.setAttribute('aria-label',(state.mySide+1)+'. oyuncunun 9 harflik ıstakası');
   applyNetworkMatch(data,0);wrap.scrollTop=Math.max(0,wrap.scrollHeight-wrap.clientHeight);
@@ -7930,7 +7988,7 @@ function networkTick(deadline,playing){
   if(!state.introActive){updateHud();if(!state.gameOver)setFeedback(playing?(myTurn()?'Sıra sende. Harflerini tek hatta yerleştir.':'Rakibinin hamlesi bekleniyor…'):'Rakip bekleniyor…');}
 }
 function stopNetworkScene(){
-  cancelIntro();clearReturnFlights();clearInvalidFeedback();clearTurnTimer();clearAiTimer();clearTemp();
+  stopGokdelenCityAmbience();cancelIntro();clearReturnFlights();clearInvalidFeedback();clearTurnTimer();clearAiTimer();clearTemp();
   state.multiplayer=false;state.networkPlaying=false;state.mySide=0;state.networkBusy=false;state.revision=-1;screen.classList.add('hidden');document.getElementById('ksm-gameover')?.classList.add('hidden');
 }
 function networkBusy(busy){state.networkBusy=busy;updateHud();}
