@@ -76,3 +76,76 @@ body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes#home-game-su
 #screen-home :is(#btn-mode-kapisma,#btn-mode-patlama,#btn-mode-gokdelen){transition:transform .08s ease,filter .08s ease}
 #screen-home :is(#btn-mode-kapisma,#btn-mode-patlama,#btn-mode-gokdelen):active{transform:translateY(2px) scale(.995);filter:brightness(.97)}
 @media(prefers-reduced-motion:reduce){#screen-home :is(#btn-mode-kapisma,#btn-mode-patlama,#btn-mode-gokdelen){transition:none}}
+
+
+/* v669 — readable long-form text and three member-room modes. */
+#account-room-mode-picker{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+}
+#account-room-card .member-room-mode{
+  min-width:0!important;min-height:62px!important;padding:6px 3px!important;
+  flex-direction:column!important;gap:3px!important;
+  font-size:10.5px!important;line-height:1.15!important;
+  overflow:hidden!important;
+}
+#account-room-card .member-room-mode>span,
+#account-room-card .member-room-mode>b{
+  max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;
+}
+#account-room-card #btn-account-room-gokdelen.selected{
+  background:#e0e7ff!important;border-color:#818cf8!important;color:#3730a3!important;
+  box-shadow:0 0 0 3px rgba(129,140,248,.16),0 4px 10px rgba(79,70,229,.12)!important;
+}
+#account-room-card #btn-account-room-gokdelen .gokdelen-pixel-icon{
+  width:24px!important;height:28px!important;
+}
+.gokdelen-guide-card{
+  width:min(94vw,520px)!important;
+  max-height:min(90dvh,720px)!important;
+  padding:clamp(14px,4vw,22px)!important;
+  overflow-y:auto!important;overflow-x:hidden!important;
+  overscroll-behavior:contain;
+  font-family:'Quicksand','Trebuchet MS',Arial,sans-serif!important;
+  font-size:clamp(14px,3.6vw,16px)!important;
+  line-height:1.68!important;
+  letter-spacing:0!important;
+  overflow-wrap:anywhere;
+}
+.gokdelen-guide-card p{margin:14px 0!important}
+.gokdelen-guide-card b{font-weight:900}
+.gokdelen-guide-lead{font-size:clamp(15px,4vw,17px)!important;line-height:1.55!important}
+#screen-kesisim #ksm-rules{
+  padding:12px!important;overflow:hidden!important;
+}
+#screen-kesisim #ksm-rules .ksm-modal{
+  width:min(94vw,520px)!important;
+  max-height:min(88dvh,720px)!important;
+  padding:clamp(15px,4vw,22px)!important;
+  overflow-y:auto!important;overflow-x:hidden!important;
+  overscroll-behavior:contain;
+  font-family:'Quicksand','Trebuchet MS',Arial,sans-serif!important;
+  letter-spacing:0!important;
+  text-rendering:optimizeLegibility;
+}
+#screen-kesisim #ksm-rules .ksm-modal h2{
+  font-family:'Courier New',monospace!important;
+  font-size:clamp(22px,6vw,28px)!important;
+  line-height:1.1!important;
+}
+#screen-kesisim #ksm-rules .ksm-modal p{
+  font-family:'Quicksand','Trebuchet MS',Arial,sans-serif!important;
+  font-size:clamp(14px,3.6vw,16px)!important;
+  line-height:1.68!important;
+  font-weight:700!important;
+  letter-spacing:0!important;
+  text-align:left!important;
+  overflow-wrap:anywhere;
+}
+#screen-kesisim #ksm-rules .ksm-modal button{
+  min-height:44px!important;font-size:13px!important;
+}
+@media(max-width:360px){
+  #account-room-card .member-room-mode{font-size:9.5px!important;padding:5px 2px!important}
+  .gokdelen-guide-card,
+  #screen-kesisim #ksm-rules .ksm-modal{padding:13px!important}
+}
