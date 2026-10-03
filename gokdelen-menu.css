@@ -158,3 +158,26 @@ body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes#home-game-su
   letter-spacing:-.02em!important;
   white-space:nowrap!important;
 }
+
+
+/* v676 — two complete skyscraper icons for GÖKDELEN multiplayer. */
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes#home-game-submodes #btn-friend-mode>span:first-child{
+  width:42px!important;
+  height:34px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:3px!important;
+  background:none!important;
+  overflow:visible!important;
+}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes#home-game-submodes #btn-friend-mode>span:first-child::before,
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes#home-game-submodes #btn-friend-mode>span:first-child::after{
+  content:''!important;
+  display:block!important;
+  width:18px!important;
+  height:28px!important;
+  flex:0 0 18px!important;
+  background:url('assets/gokdelen-pixel/icon.svg') center/contain no-repeat!important;
+  image-rendering:pixelated!important;
+}
