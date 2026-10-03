@@ -126,3 +126,16 @@
 #screen-game#screen-game:not(.atisma-mode) .compact-timer.timer-danger #game-timer{color:#fff4d9!important}
 #screen-game#screen-game:not(.atisma-mode)>div.flex-1{background:transparent!important}
 #screen-game#screen-game:not(.atisma-mode) .letter-cell:not(.tile-claimed-p1):not(.tile-claimed-p2):not(.tile-dragging):not(.tile-hover-p1):not(.tile-hover-p2){background:#fff5d9!important;border-color:#b99a65!important}
+
+/* Final shared-menu details, including nested legacy frames. */
+#screen-home#screen-home#screen-home :is(div,span){border-radius:2px!important}
+#screen-home#screen-home#screen-home::before,#screen-home#screen-home#screen-home::after{display:none!important}
+#screen-home#screen-home#screen-home .home-domain-tile{transform:none!important}
+#screen-home#screen-home#screen-home .home-logo-duel{background:#168bb4!important;border:2px solid #193d50!important;box-shadow:0 3px #193d50,inset 0 2px #56b6d0!important}
+#screen-home#screen-home#screen-home .support-heart-icon{display:inline-block!important;background:var(--px-heart) center/contain no-repeat!important}
+#screen-howto#screen-howto#screen-howto .demo-tile{border-radius:2px!important;box-shadow:0 2px #8b6b46!important}
+#screen-howto#screen-howto#screen-howto #btn-howto-kapisma{background:#40885e!important}
+#screen-howto#screen-howto#screen-howto #btn-howto-patlama{background:#a7d6dd!important}
+#screen-howto#screen-howto#screen-howto :is(#btn-howto-kapisma,#btn-howto-patlama)>span:first-child{font-size:0!important;width:28px;height:28px;display:inline-block;background:var(--px-hand) center/contain no-repeat!important;image-rendering:pixelated}
+#screen-howto#screen-howto#screen-howto #btn-howto-patlama>span:first-child{background-image:var(--px-balloon)!important}
+#screen-howto#screen-howto#screen-howto #howto-kapisma-panel>div:first-child{background:#285e62!important}
