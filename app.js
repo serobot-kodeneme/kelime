@@ -3617,7 +3617,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=669-readability-room',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=670-gokdelen-balance',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -6962,7 +6962,12 @@ if(!screen||!boardEl||!wrap||!rackP1El||!ghost)return;
 const ROWS=40,COLS=9,H=1,V=2,TOTAL_TILES=300;
 const LETTER_POOL='AAAAAAAABCCÇDDEEEEEEEEGĞHIIIIİİİİKKKLLLLMMMNNNNOOÖPRRRRSSSSŞTTTTUUÜVYYZ';
 const SEEDS=['ARKADAŞ','PENCERE','ÇİÇEKLİ','BİLGİLİ','KARINCA','KELEBEK','GÖKYÜZÜ','KİTAPÇI','SÜPÜRGE','KAPLAMA','ÖĞRENCİ','SEVGİLİ','KIRMIZI','TURUNCU','DOSTLUK','BAHÇELİ','ÇOCUKÇA','DÜŞÜNCE','BULMACA','DENİZCİ','GÜNEŞLİ'];
-const AI_LEVELS={easy:{maxLen:3,focus:.15,top:20,delay:2100,rackTrials:24},medium:{maxLen:4,focus:.40,top:12,delay:1700,rackTrials:48},hard:{maxLen:5,focus:.70,top:6,delay:1300,rackTrials:80},expert:{maxLen:6,focus:.90,top:3,delay:1100,rackTrials:128}};
+const AI_LEVELS={
+  easy:{maxLen:4,focus:.12,top:24,variety:.38,delay:2200,rackTrials:24},
+  medium:{maxLen:5,focus:.28,top:16,variety:.31,delay:1800,rackTrials:48},
+  hard:{maxLen:6,focus:.48,top:10,variety:.23,delay:1450,rackTrials:80},
+  expert:{maxLen:6,focus:.66,top:6,variety:.16,delay:1250,rackTrials:112}
+};
 const state={
   multiplayer:false,networkPlaying:false,mySide:0,aiLevel:'easy',networkBusy:false,revision:-1,
   grid:Array.from({length:ROWS},()=>Array(COLS).fill('')),
@@ -7165,11 +7170,11 @@ function updateHud(){
   document.getElementById('ksm-p2-label')?.classList.toggle('active',state.turn===1);
   document.getElementById('ksm-p1-card')?.classList.toggle('active',state.turn===0);
   document.getElementById('ksm-p2-card')?.classList.toggle('active',state.turn===1);
-  const broom=document.getElementById('ksm-broom-left');if(broom)broom.textContent='×'+Math.max(0,2-state.broomUsed[state.mySide]);
+  const broom=document.getElementById('ksm-broom-left');if(broom)broom.textContent='×'+Math.max(0,3-state.broomUsed[state.mySide]);
   document.getElementById('ksm-p1-label').textContent=state.multiplayer?'1. OYUNCU':'OYUNCU';
   document.getElementById('ksm-p2-label').textContent=aiName();
   const aiTurn=state.introActive||!myTurn();
-  const broomBtn=document.getElementById('btn-ksm-broom');if(broomBtn)broomBtn.disabled=aiTurn||state.broomUsed[state.mySide]>=2||state.temp.size>0||state.gameOver;
+  const broomBtn=document.getElementById('btn-ksm-broom');if(broomBtn)broomBtn.disabled=aiTurn||state.broomUsed[state.mySide]>=3||state.temp.size>0||state.gameOver;
   const shuffleBtn=document.getElementById('btn-ksm-shuffle');if(shuffleBtn)shuffleBtn.disabled=aiTurn||state.temp.size>0||state.gameOver;
   const undoBtn=document.getElementById('btn-ksm-undo');if(undoBtn)undoBtn.disabled=aiTurn||!state.temp.size||state.gameOver;
   const placeBtn=document.getElementById('btn-ksm-place');if(placeBtn)placeBtn.disabled=aiTurn||!state.temp.size||state.gameOver;
@@ -7227,7 +7232,7 @@ function refreshPlacementPreview(){
   if(result){
     if(result.error)setFeedback(result.error,'bad');
     else setFeedback(result.words.map(w=>w.word).join(' • ')+' • +'+result.totalScore+' puan'+(result.climbBonus?' • YÜKSELİŞ +'+result.climbBonus:'')+(result.roofBonus?' • ÇATI +'+result.roofBonus:'')+' — GÖNDER ile onayla.','good');
-  }else if(myTurn()&&!state.gameOver)setFeedback('Başlangıç sözcüğüne bağlan; gökdeleni yalnız yukarı doğru büyüt.');
+  }else if(myTurn()&&!state.gameOver)setFeedback('Açılış sözcüğünün dört yanını kullan; diğer hamlelerde gökdeleni yukarı doğru büyüt.');
   return result;
 }
 function renderRack(){
@@ -7262,13 +7267,29 @@ function buildBoard(){
   boardEl.appendChild(markers);
 }
 let previousSeed='';
+function seedEaseScore(word){
+  const chars=Array.from(String(word||'').toLocaleUpperCase('tr-TR'));
+  const easyVowels=new Set(Array.from('AEIİ')),allVowels=RACK_VOWELS;
+  let easy=0,vowels=0,alternating=0,rare=0;
+  for(let i=0;i<chars.length;i++){
+    if(easyVowels.has(chars[i]))easy++;
+    if(allVowels.has(chars[i]))vowels++;
+    if(i&&allVowels.has(chars[i])!==allVowels.has(chars[i-1]))alternating++;
+    if('ĞJÖŞÜ'.includes(chars[i]))rare++;
+  }
+  const balance=Math.max(0,4-Math.abs(3-vowels));
+  return easy*4+vowels*2+alternating*2+balance-rare*2;
+}
 function chooseSeed(){
   const common=SEEDS.filter(w=>GAME_WORD_SET.has(w)&&w.length===7);
   const valid=common.length?common:[...GAME_WORD_SET].filter(w=>w.length===7);
-  const pool=valid.filter(w=>w!==previousSeed);
-  const choices=pool.length?pool:valid;
-  if(!choices.length)throw new Error('seven-letter-seed-missing');
-  previousSeed=choices[Math.floor(Math.random()*choices.length)];return previousSeed;
+  const ranked=valid.filter(w=>w!==previousSeed).map(w=>({w,score:seedEaseScore(w)})).sort((a,b)=>b.score-a.score);
+  const source=ranked.length?ranked:valid.map(w=>({w,score:seedEaseScore(w)})).sort((a,b)=>b.score-a.score);
+  if(!source.length)throw new Error('seven-letter-seed-missing');
+  const best=source[0].score;
+  const easyPool=source.filter(x=>x.score>=best-5).slice(0,10);
+  const choices=easyPool.length?easyPool:source.slice(0,Math.min(10,source.length));
+  previousSeed=choices[Math.floor(Math.random()*choices.length)].w;return previousSeed;
 }
 function placeSeedLetter(word,index,animate=false){
   const r=GOKDELEN_SEED_ROW,c=Math.floor((COLS-word.length)/2)+index;
@@ -7435,14 +7456,11 @@ function dropAt(x,y){
     return;
   }
   const invalidArchitecture=isArchitecturalBlockedCell(r,c);
-  let lowestOccupied=-1;for(let rr=0;rr<ROWS;rr++)if(state.grid[rr].some(Boolean))lowestOccupied=rr;
-  const invalidUp=lowestOccupied>=0&&r>lowestOccupied;
   const occupiedTemp=tempAt(r,c);
   const invalidSame=base===drag.letter;
-  if(invalidArchitecture||invalidUp||occupiedTemp||invalidSame){
+  if(invalidArchitecture||occupiedTemp||invalidSame){
     if(drag.source==='temp'&&drag.from){state.temp.set(drag.fromKey,drag.from);renderCell(drag.from.r,drag.from.c,false);refreshPlacementPreview();}
     if(invalidArchitecture)setFeedback(r===GOKDELEN_PEDIMENT_ROW?'Kapı üstü süsü oynanamaz.':'Giriş kapısına harf yerleştirilemez.','bad');
-    else if(invalidUp)setFeedback('GÖKDELEN yalnızca başlangıç sözcüğünden yukarı doğru büyür.','bad');
     else if(occupiedTemp)setFeedback('Bu karede zaten geçici taş var.','bad');
     else setFeedback('Aynı harfi üst üste koymaya gerek yok.','bad');
     return;
@@ -7502,12 +7520,11 @@ function evaluatePlacement(overlay){
   }
   const rackIds=new Set(temps.map(t=>t.rackIndex));
   if(rackIds.size!==temps.length)return{error:'Aynı taş iki karede kullanılamaz.'};
-  let topRow=ROWS,lowest=-1;
-  for(let r=0;r<ROWS;r++)if(state.grid[r].some(Boolean)){if(topRow===ROWS)topRow=r;lowest=r;}
+  let topRow=ROWS;
+  for(let r=0;r<ROWS;r++)if(state.grid[r].some(Boolean)){topRow=r;break;}
   for(const t of temps){
     if(t.r<0||t.r>=ROWS||t.c<0||t.c>=COLS)return{error:'Taş oyun alanının dışında.'};
     if(isArchitecturalBlockedCell(t.r,t.c))return{error:t.r===GOKDELEN_PEDIMENT_ROW?'Kapı üstü süsü oynanamaz.':'Giriş kapısına harf yerleştirilemez.'};
-    if(lowest>=0&&t.r>lowest)return{error:'GÖKDELEN yalnızca başlangıç sözcüğünden yukarı doğru büyür.'};
   }
   // Every newly placed tile must connect orthogonally to the committed building,
   // directly or through the other tiles in this same move.
@@ -7524,6 +7541,11 @@ function evaluatePlacement(overlay){
     }
   }
   if(temps.some(t=>!reachable.has(key(t.r,t.c))))return{error:'Tüm yeni taşlar mevcut gökdelene bağlanmalı.'};
+  const extendsBelowSeed=temps.some(t=>t.r>GOKDELEN_SEED_ROW);
+  if(extendsBelowSeed){
+    const touchesOpening=temps.some(t=>[[0,1],[0,-1],[1,0],[-1,0]].some(([dr,dc])=>state.seedKeys.has(key(t.r+dr,t.c+dc))));
+    if(!touchesOpening)return{error:'Açılış sözcüğünün altına yalnız açılış sözcüğüne bağlı hamle yapılabilir.'};
+  }
   const words=[],seen=new Set(),covered=new Set();
   for(const t of temps)for(const [dr,dc,name,bit] of [[0,1,'h',H],[1,0,'v',V]]){
     const line=lineThroughOverlay(overlay,t.r,t.c,dr,dc);if(line.length<2)continue;
@@ -7611,11 +7633,11 @@ function aiPlacement(word,sr,sc,dr,dc){
 function aiFindMove(){
   const positions=aiBoardPositions(),pool=[],seen=new Set(),frontier=[];
   const level=AI_LEVELS[state.aiLevel];
-  // Keep only equally best moves, in the same order as the previous stable sort.
+  // Keep a wider set so the bot can occasionally choose a valid but non-optimal move.
   const keepBest=move=>{
     if(move.words.some(w=>w.word.length>level.maxLen))return;
-    pool.push(move);pool.sort((a,b)=>b.score-a.score||a.word.length-b.word.length);
-    if(pool.length>32)pool.length=32;
+    pool.push(move);pool.sort((a,b)=>b.score-a.score||b.word.length-a.word.length);
+    if(pool.length>64)pool.length=64;
   };
   let lowest=-1;for(let r=0;r<ROWS;r++)if(state.grid[r].some(Boolean))lowest=r;
   for(let r=0;r<=lowest;r++)for(let c=0;c<COLS;c++)if(!state.grid[r][c]&&[[0,1],[0,-1],[1,0],[-1,0]].some(([dr,dc])=>state.grid[r+dr]?.[c+dc]))frontier.push({r,c});
@@ -7645,6 +7667,11 @@ function aiFindMove(){
     }
   });
   if(!pool.length)return null;
+  if(Math.random()<level.variety){
+    const longMin=Math.max(4,level.maxLen-1);
+    const longPool=pool.filter(m=>String(m.word||'').length>=longMin).sort((a,b)=>a.score-b.score||b.word.length-a.word.length);
+    if(longPool.length)return longPool[Math.floor(Math.random()*Math.min(10,longPool.length))];
+  }
   const count=Math.random()<level.focus?Math.min(level.top,pool.length):pool.length;
   return pool[Math.floor(Math.random()*count)];
 }
@@ -7659,7 +7686,7 @@ function aiTakeTurn(){
   if(state.gameOver||state.turn!==1||screen.classList.contains('hidden'))return;
   const move=aiFindMove();
   if(!move){
-    if(state.broomUsed[1]<2&&state.bag.length){
+    if(state.broomUsed[1]<3&&state.bag.length){
       broom();
       state.aiTimer=setTimeout(aiTakeTurn,650);
       return;
@@ -7837,7 +7864,7 @@ function commit(){
 }
 function broom(){
   if(state.multiplayer){if(myTurn()&&!state.temp.size)window.gokdelenNetwork.submit('broom');return;}
-  if(state.introActive||state.gameOver||state.broomUsed[state.turn]>=2||state.temp.size)return;
+  if(state.introActive||state.gameOver||state.broomUsed[state.turn]>=3||state.temp.size)return;
   const rack=state.racks[state.turn];
   while(rack.length)state.bag.push(rack.pop());
   shuffle(state.bag);drawRackToNine(state.turn);state.broomUsed[state.turn]++;renderRack();updateHud();
@@ -7936,7 +7963,7 @@ function reduceNetworkMatch(data,side,action,placed,now,revision){
       lastMove={side,placed:[...overlay.values()],word:result.word,words:result.words.map(w=>({word:w.word,score:w.score})),climbCount:result.climbCount,climbTiles:result.climbTiles,climbBonus:result.climbBonus,roofBonus:result.roofBonus,score:result.totalScore};
       state.turn=1-side;
     }else if(action==='broom'){
-      if(state.broomUsed[side]>=2)return null;
+      if(state.broomUsed[side]>=3)return null;
       state.bag.push(...state.racks[side]);state.racks[side]=[];shuffle(state.bag);drawRackToNine(side);state.broomUsed[side]++;
     }else if(action==='shuffle')shuffle(state.racks[side]);
     else if(action==='timeout'){
