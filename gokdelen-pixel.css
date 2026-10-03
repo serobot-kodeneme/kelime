@@ -851,64 +851,6 @@
 }
 
 
-/* v677 — pin fullscreen/exit below rack controls. */
-#screen-kesisim #btn-ksm-fullscreen,
-#screen-kesisim #btn-ksm-exit-bottom{
-  position:fixed!important;
-  top:auto!important;
-  bottom:max(8px,env(safe-area-inset-bottom))!important;
-  z-index:90!important;
-  width:58px!important;
-  height:38px!important;
-  min-height:38px!important;
-  margin:0!important;
-}
-#screen-kesisim #btn-ksm-fullscreen{left:max(8px,env(safe-area-inset-left))!important;right:auto!important}
-#screen-kesisim #btn-ksm-exit-bottom{right:max(8px,env(safe-area-inset-right))!important;left:auto!important}
-#screen-kesisim .ksm-entry{padding-bottom:50px!important}
-@media(max-width:430px){
-  #screen-kesisim #btn-ksm-fullscreen,
-  #screen-kesisim #btn-ksm-exit-bottom{
-    width:56px!important;height:38px!important;min-height:38px!important;
-    bottom:max(7px,env(safe-area-inset-bottom))!important
-  }
-  #screen-kesisim .ksm-entry{padding-bottom:50px!important}
-}
-
-
-/* v681 — GÖKDELEN stratejik 3x3 bomba efekti */
-#screen-kesisim .ksm-cell.ksm-bomb-hit{
-  z-index:34!important;
-  animation:ksmBombHit681 1.05s steps(6,end) both!important;
-}
-@keyframes ksmBombHit681{
-  0%{filter:brightness(1);transform:scale(1);box-shadow:inset 0 0 0 0 rgba(255,255,255,0)}
-  12%{filter:brightness(2.2) saturate(1.5);transform:scale(1.12);box-shadow:inset 0 0 0 3px #fff7c2,0 0 18px rgba(255,189,46,.95)}
-  28%{filter:brightness(.55) saturate(.75);transform:scale(.88);box-shadow:inset 0 0 0 3px #7f1d1d,0 0 12px rgba(239,68,68,.9)}
-  48%{filter:brightness(1.65);transform:scale(1.05)}
-  72%{filter:brightness(.72);transform:scale(.96)}
-  100%{filter:none;transform:scale(1);box-shadow:none}
-}
-@media(prefers-reduced-motion:reduce){
-  #screen-kesisim .ksm-cell.ksm-bomb-hit{animation:none!important;outline:3px solid #ef4444!important;outline-offset:-3px}
-}
-
-
-/* v682 — GÖKDELEN bomba ekran sarsıntısı */
-#screen-kesisim #ksm-board-wrap.ksm-bomb-shake{animation:ksmBombShake682 .62s cubic-bezier(.22,.61,.36,1) both}
-@keyframes ksmBombShake682{
-  0%,100%{transform:translate(0,0) rotate(0)}
-  10%{transform:translate(-5px,2px) rotate(-.35deg)}
-  20%{transform:translate(6px,-3px) rotate(.45deg)}
-  32%{transform:translate(-7px,3px) rotate(-.4deg)}
-  44%{transform:translate(6px,1px) rotate(.32deg)}
-  58%{transform:translate(-4px,-2px) rotate(-.24deg)}
-  72%{transform:translate(3px,2px) rotate(.18deg)}
-  86%{transform:translate(-2px,0) rotate(-.08deg)}
-}
-@media(prefers-reduced-motion:reduce){#screen-kesisim #ksm-board-wrap.ksm-bomb-shake{animation:none!important}}
-
-
 /* v691 — Alt kontrolleri fixed konumdan çıkar; BOMBA ve GERİ AL sütunlarının altına hizala */
 #screen-kesisim .ksm-bottom{
   display:grid!important;
@@ -1124,7 +1066,7 @@
 }
 
 
-/* v701 — tüm etkin butonlarda el imleci + daha güçlü GÖKDELEN bomba patlaması */
+/* v708 — ortak el imleci kuralı; eski bomba efekt CSS'i v705 tarafından karşılandığı için kaldırıldı. */
 button:not(:disabled),
 [role="button"]:not([aria-disabled="true"]){
   cursor:pointer!important;
@@ -1132,61 +1074,6 @@ button:not(:disabled),
 button:disabled{cursor:default!important}
 #screen-kesisim #btn-ksm-bomb:not(:disabled){cursor:pointer!important}
 #screen-kesisim #btn-ksm-bomb:active:not(:disabled){cursor:grabbing!important}
-
-#screen-kesisim.ksm-bomb-flash::after{
-  content:"";
-  position:fixed;
-  inset:0;
-  z-index:135;
-  pointer-events:none;
-  background:rgba(255,248,210,.96);
-  animation:ksmBombFlash701 .52s steps(1,end) both;
-}
-@keyframes ksmBombFlash701{
-  0%{opacity:0}
-  8%{opacity:.95}
-  18%{opacity:.16}
-  28%{opacity:.76;background:rgba(255,194,72,.72)}
-  42%{opacity:.08}
-  58%{opacity:.38;background:rgba(255,255,255,.75)}
-  100%{opacity:0}
-}
-#screen-kesisim #ksm-board-wrap.ksm-bomb-shake{
-  animation:ksmBombShake701 .76s cubic-bezier(.2,.7,.2,1) both!important;
-}
-@keyframes ksmBombShake701{
-  0%,100%{transform:translate(0,0) rotate(0)}
-  8%{transform:translate(-8px,3px) rotate(-.55deg)}
-  16%{transform:translate(9px,-4px) rotate(.65deg)}
-  26%{transform:translate(-10px,4px) rotate(-.6deg)}
-  38%{transform:translate(8px,2px) rotate(.48deg)}
-  50%{transform:translate(-6px,-3px) rotate(-.36deg)}
-  64%{transform:translate(5px,2px) rotate(.26deg)}
-  78%{transform:translate(-3px,-1px) rotate(-.14deg)}
-  90%{transform:translate(2px,0) rotate(.06deg)}
-}
-.ksm-bomb-burst{
-  position:fixed;
-  z-index:145;
-  transform:translate(-50%,-50%);
-  pointer-events:none;
-  font-size:24px;
-  line-height:1;
-  filter:drop-shadow(0 3px 0 rgba(25,61,80,.7));
-  animation:ksmBombBurst701 .82s cubic-bezier(.18,.8,.2,1) both;
-}
-@keyframes ksmBombBurst701{
-  0%{opacity:0;transform:translate(-50%,-50%) scale(.35) rotate(-8deg)}
-  12%{opacity:1;transform:translate(-50%,-50%) scale(2.25) rotate(6deg)}
-  36%{opacity:1;transform:translate(-50%,-50%) scale(1.65) rotate(-3deg)}
-  72%{opacity:.9;transform:translate(-50%,-50%) scale(2.05) rotate(3deg)}
-  100%{opacity:0;transform:translate(-50%,-58%) scale(2.55) rotate(0)}
-}
-@media(prefers-reduced-motion:reduce){
-  #screen-kesisim.ksm-bomb-flash::after{animation:none!important;opacity:.18!important}
-  #screen-kesisim #ksm-board-wrap.ksm-bomb-shake{animation:none!important}
-  .ksm-bomb-burst{animation:none!important;opacity:.9!important}
-}
 
 
 /* v702 — GÖKDELEN strateji okunaklılığı ve oyun sonu özeti */
@@ -1234,7 +1121,6 @@ button:disabled{cursor:default!important}
 
 
 /* v705 — GÖKDELEN bomba efekti PATLAMA balon patlamasıyla aynı ritimde */
-#screen-kesisim.ksm-bomb-flash::after{display:none!important}
 #screen-kesisim .ksm-cell.ksm-bomb-hit{
   z-index:34!important;
   animation:ksmBombCell705 .62s ease-out 1!important;
@@ -1280,7 +1166,11 @@ button:disabled{cursor:default!important}
   #screen-kesisim .ksm-cell .ksm-bomb-burst{font-size:50px!important}
 }
 @media(prefers-reduced-motion:reduce){
-  #screen-kesisim .ksm-cell.ksm-bomb-hit,
-  #screen-kesisim #ksm-board-wrap.ksm-bomb-shake,
-  #screen-kesisim .ksm-cell .ksm-bomb-burst{animation:none!important}
+  #screen-kesisim .ksm-cell.ksm-bomb-hit{
+    animation:none!important;
+    outline:3px solid #ef4444!important;
+    outline-offset:-3px;
+  }
+  #screen-kesisim #ksm-board-wrap.ksm-bomb-shake{animation:none!important}
+  #screen-kesisim .ksm-cell .ksm-bomb-burst{animation:none!important;opacity:.9!important}
 }
