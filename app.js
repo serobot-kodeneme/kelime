@@ -7374,8 +7374,11 @@ function evaluatePlacement(overlay){
   mainWords.sort((a,b)=>b.baseScore-a.baseScore||b.line.length-a.line.length);
   const main=mainWords[0];
   if(temps.some(t=>!main.line.some(x=>x.r===t.r&&x.c===t.c)))return{error:'Yeni harfler tek bir ana sözcükte birleşmeli.'};
-  for(const w of words)w.score=w===main?w.baseScore*(rackBonus?2:1):0;
-  return{...main,words,totalScore:main.score,rackBonus,placedCount,flowerBonus:false};
+  // v655 — Scrabble tipi puanlama: bu hamlede oluşan ana ve tüm yan sözcükler ayrı ayrı puanlanır.
+  for(const w of words)w.score=w.baseScore;
+  if(rackBonus)main.score*=2;
+  const totalScore=words.reduce((sum,w)=>sum+w.score,0);
+  return{...main,words,totalScore,rackBonus,placedCount,flowerBonus:false};
 }
 function validate(){return evaluatePlacement(state.temp);}
 function clearAiTimer(){if(state.aiTimer){clearTimeout(state.aiTimer);state.aiTimer=null;}}
@@ -7581,8 +7584,9 @@ function commit(){
   // Committing changes only placed squares; preserve all other cell DOM and animations.
   for(const t of placed)renderCell(t.r,t.c,true);
   wrap.classList.remove('ksm-send-burst');void wrap.offsetWidth;wrap.classList.add('ksm-send-burst');setTimeout(()=>wrap.classList.remove('ksm-send-burst'),460);
-  if(v.rackBonus)showBonusPop('5+ HARF BONUSU!','ANA SÖZCÜK PUANI ×2',false,1200);
-  else showPop(v.word+'  +'+v.totalScore,placed.some(t=>t.tower)?'KULE HAMLESİ':'GEÇERLİ SÖZCÜK',1100);
+  const scoredWords=v.words.map(w=>w.word+' +'+w.score).join(' • ');
+  if(v.rackBonus)showBonusPop('5+ HARF BONUSU!','TOPLAM +'+v.totalScore+' • '+scoredWords,false,1350);
+  else showPop('+'+v.totalScore,scoredWords+(placed.some(t=>t.tower)?' • KULE HAMLESİ':''),1250);
   const matchToken=state.introToken;
   state.turn=state.turn?0:1;renderRack();updateHud();
   setFeedback(state.turn===1?aiName()+' düşünüyor…':'1. oyuncunun sırası.','good');
@@ -7686,7 +7690,7 @@ function reduceNetworkMatch(data,side,action,placed,now,revision){
       state.scores[side]+=result.totalScore;
       [...overlay.values()].map(t=>t.rackIndex).sort((a,b)=>b-a).forEach(i=>state.racks[side].splice(i,1));
       drawRackToNine(side);passes=0;
-      lastMove={side,placed:[...overlay.values()],word:result.word,score:result.totalScore};
+      lastMove={side,placed:[...overlay.values()],word:result.word,words:result.words.map(w=>({word:w.word,score:w.score})),score:result.totalScore};
       state.turn=1-side;
     }else if(action==='broom'){
       if(state.broomUsed[side]>=2)return null;
@@ -7715,7 +7719,8 @@ function applyNetworkMatch(data,round,intro=false){
   }
   renderRack();
   if(data.lastMove&&previousRevision>=0&&previousRevision!==state.revision){
-    showPop(data.lastMove.word+'  +'+data.lastMove.score,data.lastMove.side===state.mySide?'HAMLE ONAYLANDI':'RAKİBİN HAMLESİ',1100);
+    const moveWords=Array.isArray(data.lastMove.words)&&data.lastMove.words.length?data.lastMove.words.map(w=>w.word+' +'+Number(w.score||0)).join(' • '):data.lastMove.word+' +'+data.lastMove.score;
+    showPop('+'+data.lastMove.score,moveWords+' • '+(data.lastMove.side===state.mySide?'HAMLE ONAYLANDI':'RAKİBİN HAMLESİ'),1250);
     const top=Math.min(...(data.lastMove.placed||[]).map(t=>t.r));
     if(Number.isFinite(top))wrap.scrollTo({top:Math.max(0,boardEl.offsetTop+top*boardEl.clientHeight/ROWS-wrap.clientHeight*.35),behavior:'smooth'});
   }
