@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v650-shared-letters';
+const CACHE_NAME='kapmaca-shell-v651-optimized';
 const APP_SHELL=[
   './',
   './index.html',
-  './gokdelen-pixel.css?v=650',
+  './gokdelen-pixel.css?v=651',
   './assets/gokdelen-pixel/window.svg',
   './assets/gokdelen-pixel/wall.svg',
   './assets/gokdelen-pixel/roof.svg',
@@ -10,7 +10,7 @@ const APP_SHELL=[
   './assets/gokdelen-pixel/door.svg',
   './assets/gokdelen-pixel/city.svg',
 
-  './app.js?v=650-shared-letters',
+  './app.js?v=651-optimized',
   './manifest.webmanifest?v=593',
   './favicon-32.png?v=593',
   './apple-touch-icon.png?v=593',
@@ -30,7 +30,7 @@ self.addEventListener('install',event=>{
 self.addEventListener('activate',event=>{
   event.waitUntil(
     caches.keys()
-      .then(keys=>Promise.all(keys.filter(key=>key!==CACHE_NAME).map(key=>caches.delete(key))))
+      .then(keys=>Promise.all(keys.filter(key=>key.startsWith('kapmaca-shell-')&&key!==CACHE_NAME).map(key=>caches.delete(key))))
       .then(()=>self.clients.claim())
   );
 });
@@ -78,13 +78,16 @@ self.addEventListener('fetch',event=>{
     url.searchParams.has('v') &&
     (
       url.pathname.endsWith('/app.js') ||
+      url.pathname.endsWith('.css') ||
       url.pathname.endsWith('/word-data.js') ||
       /\/meanings\/[0-9a-f]+\.json$/.test(url.pathname) ||
       url.pathname.endsWith('/manifest.webmanifest') ||
       /\.(?:png|jpg|jpeg|svg|webp)$/.test(url.pathname)
     );
 
-  if(isVersionedStatic){
+  // Pixel sprites are refreshed by each version's shell install, then read locally.
+  const isPixelSprite=url.pathname.startsWith('/assets/gokdelen-pixel/')&&url.pathname.endsWith('.svg');
+  if(isVersionedStatic||isPixelSprite){
     event.respondWith(cacheFirst(event.request));
     return;
   }

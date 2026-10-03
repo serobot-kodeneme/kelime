@@ -7134,6 +7134,8 @@ function cancelIntro(){
   if(state.introFrame!==null){cancelAnimationFrame(state.introFrame);state.introFrame=null;}
   for(const timer of state.introTimers)clearTimeout(timer);state.introTimers.clear();
   screen.classList.remove('ksm-intro');
+  clearTimeout(state.popTimer);state.popTimer=null;
+  document.getElementById('ksm-pop')?.classList.remove('show','ksm-bonus-pop','ksm-flower-pop');
   const title=document.getElementById('ksm-intro-title');title?.classList.remove('show','fading');
 }
 function introLater(fn,ms,token){
@@ -7542,16 +7544,19 @@ function commit(){
   for(const idx of used)rack.splice(idx,1);
   drawRackToNine(state.turn);
   state.temp.clear();state.tempOrder.length=0;
-  renderAll();for(const t of placed)renderCell(t.r,t.c,true);
+  // Committing changes only placed squares; preserve all other cell DOM and animations.
+  for(const t of placed)renderCell(t.r,t.c,true);
   wrap.classList.remove('ksm-send-burst');void wrap.offsetWidth;wrap.classList.add('ksm-send-burst');setTimeout(()=>wrap.classList.remove('ksm-send-burst'),460);
   if(v.flowerBonus)showBonusPop('ÇİÇEK BONUSU!','PUAN ×3',true,1200);
   else if(v.rackBonus)showBonusPop('5+ HARF BONUSU!','SÖZCÜK PUANI ×2',false,1200);
   else showPop(v.words.map(w=>w.word).join(' • ')+'  +'+v.totalScore,placed.some(t=>t.tower)?'KULE HAMLESİ':'GEÇERLİ SÖZCÜK',1100);
-  if(v.flowerBonus&&v.rackBonus)setTimeout(()=>showBonusPop('5+ HARF BONUSU!','SÖZCÜK PUANI ×2',false,1100),1250);
+  const matchToken=state.introToken;
+  if(v.flowerBonus&&v.rackBonus)setTimeout(()=>{if(matchToken===state.introToken&&!screen.classList.contains('hidden'))showBonusPop('5+ HARF BONUSU!','SÖZCÜK PUANI ×2',false,1100);},1250);
   state.turn=state.turn?0:1;renderRack();updateHud();
   setFeedback(state.turn===1?'BİLGİN düşünüyor…':'1. oyuncunun sırası.','good');
   startTurnTimer();
   requestAnimationFrame(()=>{
+    if(matchToken!==state.introToken||screen.classList.contains('hidden'))return;
     let top=ROWS-1;
     for(let rr=0;rr<ROWS;rr++){if(state.grid[rr].some(Boolean)){top=rr;break;}}
     wrap.scrollTo({top:Math.max(0,boardEl.offsetTop+top*boardEl.clientHeight/ROWS-wrap.clientHeight*.35),behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
