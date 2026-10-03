@@ -3626,7 +3626,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=704',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=705',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -8021,28 +8021,24 @@ function applyBombAt(r,c){
 }
 function animateBombArea(r,c){
   if(!canBombAt(r,c))return;
+  // v705 — GÖKDELEN bombasını PATLAMA balon patlamasının aynı görsel ritmine getir.
+  try{vibrateGame('blast');}catch(_){try{if(navigator.vibrate)navigator.vibrate([90,35,130]);}catch(__){}}
   try{playAtismaExplosionSound();}catch(_){}
-  try{if(navigator.vibrate)navigator.vibrate([90,35,130]);}catch(_){}
   wrap.classList.remove('ksm-bomb-shake');void wrap.offsetWidth;wrap.classList.add('ksm-bomb-shake');
-  screen.classList.remove('ksm-bomb-flash');void screen.offsetWidth;screen.classList.add('ksm-bomb-flash');
-  setTimeout(()=>wrap.classList.remove('ksm-bomb-shake'),760);
-  setTimeout(()=>screen.classList.remove('ksm-bomb-flash'),520);
+  setTimeout(()=>wrap.classList.remove('ksm-bomb-shake'),500);
   const target=cells[r*COLS+c];
   if(target){
-    const rect=target.getBoundingClientRect();
-    const burst=document.createElement('div');
+    const burst=document.createElement('span');
     burst.className='ksm-bomb-burst';
     burst.textContent='💥';
     burst.setAttribute('aria-hidden','true');
-    burst.style.left=(rect.left+rect.width/2)+'px';
-    burst.style.top=(rect.top+rect.height/2)+'px';
-    document.body.appendChild(burst);
-    setTimeout(()=>burst.remove(),820);
+    target.appendChild(burst);
+    setTimeout(()=>burst.remove(),900);
   }
   for(const p of bombArea(r,c)){
     const el=cells[p.r*COLS+p.c];if(!el)continue;
     el.classList.remove('ksm-bomb-hit');void el.offsetWidth;el.classList.add('ksm-bomb-hit');
-    setTimeout(()=>el.classList.remove('ksm-bomb-hit'),1100);
+    setTimeout(()=>el.classList.remove('ksm-bomb-hit'),1650);
   }
 }
 function startBombDrag(e){
