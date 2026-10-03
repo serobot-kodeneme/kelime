@@ -1174,3 +1174,31 @@ button:disabled{cursor:default!important}
   #screen-kesisim #ksm-board-wrap.ksm-bomb-shake{animation:none!important}
   #screen-kesisim .ksm-cell .ksm-bomb-burst{animation:none!important;opacity:.9!important}
 }
+
+
+/* v709 — Atatürk pixel poster: entrance door's left-side empty brick wall. */
+#screen-kesisim #ksm-building-door{
+  overflow:visible!important;
+}
+#screen-kesisim #ksm-building-door::before{
+  content:"";
+  position:absolute;
+  right:calc(100% + var(--ksm-cell-size)*.34);
+  bottom:calc(var(--ksm-cell-size)*1.02);
+  width:calc(var(--ksm-cell-size)*1.48);
+  height:calc(var(--ksm-cell-size)*1.98);
+  background:#d9d8d2 url('assets/gokdelen-pixel/ataturk-poster-v709.svg?v=709') center/cover no-repeat;
+  border:2px solid #33271f;
+  box-shadow:2px 2px 0 #6b4b34,0 0 0 1px #d8b777;
+  image-rendering:pixelated;
+  pointer-events:none;
+  z-index:24;
+}
+@media(max-width:430px){
+  #screen-kesisim #ksm-building-door::before{
+    right:calc(100% + var(--ksm-cell-size)*.18);
+    bottom:calc(var(--ksm-cell-size)*1.08);
+    width:calc(var(--ksm-cell-size)*1.28);
+    height:calc(var(--ksm-cell-size)*1.72);
+  }
+}
