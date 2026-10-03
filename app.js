@@ -3626,7 +3626,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=707',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=708',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -7007,7 +7007,6 @@ document.addEventListener('scroll',hideControlTip,{passive:true,capture:true});
 
 const ROWS=40,COLS=9,H=1,V=2,TOTAL_TILES=200;
 const LETTER_POOL='AAAAAAAABCCÇDDEEEEEEEEGĞHIIIIİİİİKKKLLLLMMMNNNNOOÖPRRRRSSSSŞTTTTUUÜVYYZ';
-const SEEDS=['ARKADAŞ','PENCERE','KARINCA','KELEBEK','GÖKYÜZÜ','KİTAPÇI','SÜPÜRGE','KAPLAMA','ÖĞRENCİ','SEVGİLİ','KIRMIZI','TURUNCU','DOSTLUK','BAHÇELİ','ÇOCUKÇA','DÜŞÜNCE','BULMACA','DENİZCİ','GÜNEŞLİ','OYUNCAK','PATATES','DOMATES','BALIKÇI','ÇALIŞMA','DÜNYALI','KÖPEKÇİ','KEDİCİK','SOKAKTA','MERAKLI','SEVİMLİ','YUMUŞAK'];
 const AI_LEVELS={
   easy:{maxLen:4,focus:.12,top:24,variety:.38,delay:2200,rackTrials:24},
   medium:{maxLen:5,focus:.28,top:16,variety:.31,delay:1800,rackTrials:48},
@@ -7587,13 +7586,6 @@ function dropAt(x,y){
 }
 function clearTemp(){lastTempTap=null;state.drag=null;ghost.style.display='none';const all=[...state.temp.values()];state.temp.clear();state.tempOrder.length=0;for(const t of all)renderCell(t.r,t.c,false);renderRack();}
 
-function lineThrough(r,c,dr,dc){
-  let sr=r,sc=c;
-  while(sr-dr>=0&&sc-dc>=0&&sr-dr<ROWS&&sc-dc<COLS&&charAt(sr-dr,sc-dc)){sr-=dr;sc-=dc;}
-  const out=[];let rr=sr,cc=sc;
-  while(rr>=0&&cc>=0&&rr<ROWS&&cc<COLS&&charAt(rr,cc)){out.push({r:rr,c:cc,char:charAt(rr,cc)});rr+=dr;cc+=dc;}
-  return out;
-}
 function overlayChar(overlay,r,c){
   const t=overlay.get(key(r,c));
   return t?t.char:(state.grid[r]?.[c]||'');
@@ -8097,12 +8089,6 @@ function startBombDrag(e){
   state.drag={source:'bomb',pointerId:e.pointerId,letter:'💣'};
   ghost.classList.add('ksm-bomb-drag');ghost.textContent='💣';ghost.style.display='flex';moveGhost(e.clientX,e.clientY);
   setFeedback('💣 Bombayı hedef 3×3 alanın orta hücresine sürükleyip bırak.','good');
-}
-function armBomb(){
-  if(state.introActive||state.gameOver||!myTurn()||state.temp.size||state.bombUsed[state.mySide]>=1)return;
-  bombArmed=!bombArmed;
-  updateHud();
-  setFeedback(bombArmed?'💣 BOMBA HAZIR • Kırmak istediğin 3×3 alanın ortasındaki cama dokun.':'Bomba iptal edildi.',bombArmed?'good':'');
 }
 function handleBombTarget(r,c){
   clearBombPreview();
