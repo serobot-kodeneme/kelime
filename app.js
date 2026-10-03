@@ -7889,13 +7889,13 @@ function showGokdelenGameOver(){
       else title.textContent=state.roofWinner===0?'KAZANDIN!':aiName()+' KAZANDI!';
     }else title.textContent=a===b?'BERABERE!':(a>b?'1. OYUNCU KAZANDI!':'2. OYUNCU KAZANDI!');
   }
-  if(txt)txt.textContent=threeMissWin?'Rakip art arda 3 tur sözcük yazamadı • '+a+' - '+b:(roofWon?'🇹🇷 Çatıya ilk ulaşan kazandı • '+a+' - '+b:'200 harf bitti • '+a+' - '+b);
+  if(txt)txt.textContent=threeMissWin?'Rakip art arda 3 tur sözcük yazamadı • '+a+' - '+b:(roofWon?'🇹🇷 Çatıya ilk ulaşan kazandı • '+a+' - '+b:'Kalan harfler bitti • '+a+' - '+b);
   renderGameOverStats();
   document.getElementById('ksm-gameover')?.classList.remove('hidden');
 }
 function checkEnd(){
   const roofWon=state.roofWinner===0||state.roofWinner===1;
-  const tilesDone=!state.bag.length&&!state.racks[0].length&&!state.racks[1].length;
+  const tilesDone=!state.bag.length;
   if(!roofWon&&!tilesDone)return false;
   state.gameOver=true;clearTurnTimer();clearAiTimer();updateHud();
   showGokdelenGameOver();
@@ -8002,7 +8002,7 @@ function reduceNetworkMatch(data,side,action,placed,now,revision){
       }
     }
     else return null;
-    if(!state.gameOver)state.gameOver=(state.roofWinner===0||state.roofWinner===1)||(!state.bag.length&&!state.racks[0].length&&!state.racks[1].length);
+    if(!state.gameOver)state.gameOver=(state.roofWinner===0||state.roofWinner===1)||!state.bag.length;
     return serializeMatch({seed:data.seed,revision:revision+1,turnDeadline:state.gameOver?0:(action==='broom'||action==='shuffle'?Number(data.turnDeadline):now+30000),passCount:passes,lastMove,lastPass});
   });
 }
