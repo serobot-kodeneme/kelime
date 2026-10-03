@@ -66,6 +66,13 @@
         ".indexOn": [
           "enteredAt"
         ]
+      },
+      "randomPoolGokdelen": {
+        ".read": true,
+        ".write": true,
+        ".indexOn": [
+          "enteredAt"
+        ]
       }
     },
     "users": {

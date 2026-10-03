@@ -1,8 +1,11 @@
-const CACHE_NAME='kapmaca-shell-v653-v651-restored';
+const CACHE_NAME='kapmaca-shell-v654-gokdelen';
 const APP_SHELL=[
   './',
   './index.html',
-  './gokdelen-pixel.css?v=653',
+  './gokdelen-pixel.css?v=654',
+  './gokdelen-menu.css?v=654',
+  './gokdelen-network.js?v=654',
+  './assets/gokdelen-pixel/icon.svg',
   './assets/gokdelen-pixel/window.svg',
   './assets/gokdelen-pixel/wall.svg',
   './assets/gokdelen-pixel/roof.svg',
@@ -10,7 +13,7 @@ const APP_SHELL=[
   './assets/gokdelen-pixel/door.svg',
   './assets/gokdelen-pixel/city.svg',
 
-  './app.js?v=653-optimized',
+  './app.js?v=654-gokdelen',
   './manifest.webmanifest?v=593',
   './favicon-32.png?v=593',
   './apple-touch-icon.png?v=593',
@@ -86,6 +89,7 @@ self.addEventListener('fetch',event=>{
     url.searchParams.has('v') &&
     (
       url.pathname.endsWith('/app.js') ||
+      url.pathname.endsWith('/gokdelen-network.js') ||
       url.pathname.endsWith('.css') ||
       url.pathname.endsWith('/word-data.js') ||
       /\/meanings\/[0-9a-f]+\.json$/.test(url.pathname) ||

@@ -1,0 +1,58 @@
+/* The GÖKDELEN skin is scoped; Kapışma and Patlama keep their stable appearance. */
+#btn-kesisim-home#btn-kesisim-home{display:none!important}
+#screen-home#screen-home#screen-home .gokdelen-row :is(button,span){border-radius:2px!important}
+#screen-home#screen-home#screen-home .gokdelen-row button{border:3px solid #193d50!important;box-shadow:0 4px #193d50,inset 0 2px #fff3bd!important;backdrop-filter:none!important;font-family:'Courier New',monospace!important;color:#193d50!important}
+#screen-home#screen-home#screen-home .gokdelen-row .gokdelen{background:#a8d3bb!important;min-height:76px!important}
+#screen-home#screen-home#screen-home .gokdelen-row .gokdelen-guide{background:#f4d593!important}
+#screen-home#screen-home#screen-home .gokdelen-guide .guide-mark{background:#fff4d9!important;border:2px solid #193d50!important;color:#193d50!important;border-radius:0!important}
+#screen-home#screen-home#screen-home .gokdelen-guide .guide-label{color:#193d50!important;font-size:9px!important}
+.gokdelen-pixel-icon{display:block;width:34px;height:44px;flex-shrink:0;background:url('assets/gokdelen-pixel/icon.svg') center/contain no-repeat;image-rendering:pixelated}
+#modal-gokdelen-guide{position:absolute;inset:0;z-index:95;background:#193d5099;display:flex;align-items:center;justify-content:center;padding:14px}
+#modal-gokdelen-guide.hidden{display:none!important}
+.gokdelen-guide-card{width:min(100%,440px);max-height:94%;overflow-y:auto;background:#fff4d9;border:3px solid #193d50;box-shadow:4px 4px #193d50;color:#193d50;padding:16px;font-family:'Quicksand',sans-serif;font-size:13px;line-height:1.55}
+.gokdelen-guide-card p{margin:12px 0}
+.gokdelen-guide-heading{display:flex;align-items:center;gap:12px;border-bottom:2px solid #c2a478;padding-bottom:10px}
+.gokdelen-guide-heading h2{flex:1;font:bold 23px 'Courier New',monospace}
+.gokdelen-guide-heading button{border:2px solid #193d50;background:#dc5263;color:#fff4d9;width:34px;height:34px;box-shadow:0 3px #193d50;font-weight:900}
+.gokdelen-guide-lead{font-weight:900;text-align:center}
+.gokdelen-guide-example{display:flex;justify-content:center;gap:3px;background:#418272;border:2px solid #193d50;padding:12px}
+.gokdelen-guide-example>span{position:relative;background:#fff5df;color:#172b38;border:1px solid #b19c72;box-shadow:0 3px #826d4f;width:36px;height:39px;text-align:center;line-height:35px;font-weight:900;font-size:25px}
+.gokdelen-guide-example small{position:absolute;bottom:1px;right:3px;font-size:8px;line-height:10px}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes#home-game-submodes :is(button,div,span){border-radius:2px!important;backdrop-filter:none!important}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes#home-game-submodes button{border:2px solid #193d50!important;box-shadow:0 3px #193d50,inset 0 2px #ffffff65!important;font-family:'Courier New',monospace!important}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes #btn-solo-mode{background:#40885e!important;color:#fff5d9!important}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes #btn-friend-mode{background:#2b8aa7!important;color:#fff5d9!important}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes :is(#bot-settings-panel,#friend-invite-panel){background:#fff4d9!important;border:2px solid #193d50!important;box-shadow:0 3px #193d50!important;color:#193d50!important}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes .bot-diff-choice{background:#e3eccc!important;color:#193d50!important}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes .bot-diff-choice[data-diff='medium']{background:#b9e0df!important}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes .bot-diff-choice[data-diff='hard']{background:#f4d493!important}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes .bot-diff-choice[data-diff='expert']{background:#eeb6a3!important}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes #btn-random-match{background:#e5b957!important;color:#193d50!important}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes #btn-create-room{background:#3595b2!important;color:#fff5d9!important}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes #btn-copy-link{background:#7453a4!important;color:#fff5d9!important}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes #btn-share-link{background:#40885e!important;color:#fff5d9!important}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes :is(#btn-close-room,#btn-close-friend,#btn-close-difficulty){background:#dc5263!important;color:#fff5d9!important}
+body[data-gokdelen-menu='1'] :is(#modal-room-invite,#modal-mp-waiting,#modal-countdown,#modal-found-meaning){backdrop-filter:none!important;font-family:'Courier New',monospace!important}
+body[data-gokdelen-menu='1'] :is(#modal-mp-waiting,#modal-found-meaning)>div,body[data-gokdelen-menu='1'] #modal-countdown#modal-countdown #countdown-card{background:#fff4d9!important;border:3px solid #193d50!important;box-shadow:0 4px #193d50!important;border-radius:2px!important;color:#193d50!important}
+body[data-gokdelen-menu='1'] :is(#modal-room-invite,#modal-mp-waiting,#modal-countdown,#modal-found-meaning) button{border:2px solid #193d50!important;border-radius:2px!important;box-shadow:0 3px #193d50!important}
+body[data-gokdelen-menu='1'] #modal-room-invite{background:#72b8c5 url('assets/gokdelen-pixel/city.svg') center bottom/cover no-repeat!important}
+body[data-gokdelen-menu='1'] #modal-room-invite :is(.invite-panel,.invite-logo-card){border-radius:2px!important;border:3px solid #193d50!important;box-shadow:0 4px #193d50!important}
+body[data-gokdelen-menu='1'] #modal-room-invite .invite-title{font-family:'Courier New',monospace!important}
+body[data-gokdelen-menu='1'] #btn-invite-start{background:#40885e!important;color:#fff5d9!important}
+body[data-gokdelen-menu='1'] #btn-invite-cancel{background:#dc5263!important;color:#fff5d9!important}
+body[data-gokdelen-menu='1'] #countdown-number{color:#193d50!important;text-shadow:2px 2px #dfbd76!important}
+body[data-gokdelen-menu='1'] #countdown-status{border-radius:2px!important;background:#40885e!important;color:#fff5d9!important}
+#screen-kesisim#screen-kesisim .ksm-cell.filled,#screen-kesisim#screen-kesisim .ksm-rack-tile{border-radius:2px!important;box-shadow:0 2px #9a815b,inset 0 1px #fffdf1!important}
+#screen-kesisim#screen-kesisim .ksm-cell.filled:not(.ksm-temp),#screen-kesisim#screen-kesisim .ksm-rack-tile{background:#fff5d9!important}
+#screen-kesisim#screen-kesisim .ksm-cell.ksm-temp.ksm-preview-valid{background:#bbf7d0!important;box-shadow:0 2px #16a34a!important}
+#screen-kesisim#screen-kesisim .ksm-cell.ksm-temp.ksm-preview-invalid{background:#fca5a5!important;box-shadow:0 2px #dc2626!important}
+#ksm-drag-ghost#ksm-drag-ghost,.ksm-return-flight.ksm-return-flight{border-radius:2px!important;box-shadow:0 3px #9a815b!important}
+#btn-account-room-gokdelen#btn-account-room-gokdelen{border-radius:2px!important;border:2px solid #193d50!important;background:#c4dfc0!important;color:#193d50!important;box-shadow:0 3px #193d50!important;font-family:'Courier New',monospace!important}
+#btn-account-room-gokdelen#btn-account-room-gokdelen .gokdelen-pixel-icon{width:22px;height:28px}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes#home-game-submodes .bot-diff-choice>span:first-child{display:none!important}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes#home-game-submodes :is(#btn-solo-mode,#btn-friend-mode)>span:first-child{width:30px;height:34px;background:url('assets/gokdelen-pixel/icon.svg') center/contain no-repeat!important;border:0!important;box-shadow:none!important}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes#home-game-submodes :is(#btn-solo-mode,#btn-friend-mode)>span:first-child>svg{visibility:hidden!important}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes#home-game-submodes #btn-friend-mode>span:first-child{background-size:18px 27px!important;background-repeat:repeat-x!important}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes#home-game-submodes #btn-create-room>span:first-child{font-size:0!important;background:url('assets/gokdelen-pixel/icon.svg') center/contain no-repeat!important;width:54px;height:58px;display:block}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes#home-game-submodes #btn-random-match>span:first-child{font-size:0!important;filter:none!important;width:54px;height:58px;display:flex;align-items:center;justify-content:center}
+body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes#home-game-submodes #btn-random-match>span:first-child::after{content:'?';font:bold 40px 'Courier New',monospace;color:#193d50;border:3px solid #193d50;background:#fff4d9;width:42px;height:44px;line-height:38px}
