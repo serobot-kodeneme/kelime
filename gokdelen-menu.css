@@ -70,3 +70,9 @@ body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes#home-game-su
 @media(max-width:380px){
   #screen-home #btn-mode-gokdelen .home-game-mode-copy b{width:min(150px,100%)!important;height:30px!important}
 }
+
+
+/* v667 — tactile main mode buttons; only runs while the user presses. */
+#screen-home :is(#btn-mode-kapisma,#btn-mode-patlama,#btn-mode-gokdelen){transition:transform .08s ease,filter .08s ease}
+#screen-home :is(#btn-mode-kapisma,#btn-mode-patlama,#btn-mode-gokdelen):active{transform:translateY(2px) scale(.995);filter:brightness(.97)}
+@media(prefers-reduced-motion:reduce){#screen-home :is(#btn-mode-kapisma,#btn-mode-patlama,#btn-mode-gokdelen){transition:none}}
