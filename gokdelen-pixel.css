@@ -907,3 +907,33 @@
   86%{transform:translate(-2px,0) rotate(-.08deg)}
 }
 @media(prefers-reduced-motion:reduce){#screen-kesisim #ksm-board-wrap.ksm-bomb-shake{animation:none!important}}
+
+
+/* v691 — Alt kontrolleri fixed konumdan çıkar; BOMBA ve GERİ AL sütunlarının altına hizala */
+#screen-kesisim .ksm-bottom{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:5px!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:6px 0 0!important;
+  padding:0!important;
+  position:relative!important;
+}
+#screen-kesisim #btn-ksm-fullscreen,
+#screen-kesisim #btn-ksm-exit-bottom{
+  position:static!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  left:auto!important;
+  width:100%!important;
+  min-width:0!important;
+  height:36px!important;
+  min-height:36px!important;
+  margin:0!important;
+  z-index:auto!important;
+}
+#screen-kesisim #btn-ksm-fullscreen{grid-column:2!important;grid-row:1!important}
+#screen-kesisim #btn-ksm-exit-bottom{grid-column:3!important;grid-row:1!important}
+#screen-kesisim .ksm-entry{padding-bottom:4px!important}
