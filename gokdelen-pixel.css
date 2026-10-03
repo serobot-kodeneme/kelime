@@ -593,3 +593,116 @@
 @keyframes ksmRoofFlag{0%{opacity:0;transform:translateY(28px) scaleY(.45)}16%{opacity:1;transform:translateY(10px) scaleY(.8)}34%,82%{opacity:1;transform:translateY(-4px) scaleY(1)}100%{opacity:0;transform:translateY(-12px) scaleY(1)}}
 #screen-kesisim :is(#ksm-p1-card,#ksm-p2-card).active{filter:brightness(1.045);transform:translateY(-1px)}
 @media(prefers-reduced-motion:reduce){#ksm-confetti-layer,.ksm-floor-rise-flash,.ksm-roof-flag{display:none!important}}
+
+
+/* v672 — mobile readability, host/guest colors and intro fade. */
+#screen-kesisim #ksm-quick-guide .ksm-quick-guide-card{
+  width:min(94%,350px)!important;
+  padding:16px 16px 15px!important;
+}
+#screen-kesisim #ksm-quick-guide .ksm-quick-guide-title{
+  margin-bottom:10px!important;
+  font-size:20px!important;
+  line-height:22px!important;
+}
+#screen-kesisim #ksm-quick-guide p{
+  margin:7px 0!important;
+  font-size:12.5px!important;
+  line-height:1.42!important;
+}
+#screen-kesisim #btn-ksm-quick-guide-ok{
+  width:min(100%,210px)!important;
+  min-height:39px!important;
+  margin-top:12px!important;
+  font-size:12px!important;
+}
+
+/* Host is always yellow; guest/second player is always blue. */
+#screen-kesisim .ksm-player-card.p1{
+  background:linear-gradient(#ffe88b 0 3px,#f6c94f 3px calc(100% - 3px),#d99b2b calc(100% - 3px))!important;
+  border-color:#8f6618!important;
+  box-shadow:2px 0 0 #5f481c,-2px 0 0 #5f481c,0 3px 0 #5f481c,inset 2px 0 #fff4b3!important;
+}
+#screen-kesisim .ksm-player-card.p2{
+  background:linear-gradient(#90d8ff 0 3px,#3fa9e8 3px calc(100% - 3px),#2477ba calc(100% - 3px))!important;
+  border-color:#174f83!important;
+  box-shadow:2px 0 0 #173f61,-2px 0 0 #173f61,0 3px 0 #173f61,inset 2px 0 #c9efff!important;
+}
+#screen-kesisim .ksm-player-card.p1 .ksm-player-meta>span,
+#screen-kesisim .ksm-player-card.p1>strong{
+  color:#513b10!important;
+  text-shadow:1px 1px 0 rgba(255,248,210,.72)!important;
+}
+#screen-kesisim .ksm-player-card.p2 .ksm-player-meta>span,
+#screen-kesisim .ksm-player-card.p2>strong{
+  color:#fff!important;
+  text-shadow:1px 1px 0 rgba(7,53,93,.72)!important;
+}
+#screen-kesisim .ksm-player-card.p1 .ksm-name-timer{
+  background:#795716!important;border-color:#ffe9a0!important;color:#fff!important;
+}
+#screen-kesisim .ksm-player-card.p2 .ksm-name-timer{
+  background:#15558a!important;border-color:#bdeaff!important;color:#fff!important;
+}
+#screen-kesisim .ksm-player-card:not(.active){opacity:.88!important}
+
+/* Make the score/name/timer area easier to read without crowding the board. */
+#screen-kesisim .ksm-topline .ksm-player-card{
+  min-height:44px!important;
+  padding:4px 6px!important;
+  gap:4px!important;
+}
+#screen-kesisim .ksm-topline .ksm-player-avatar{
+  width:25px!important;height:25px!important;flex-basis:25px!important;
+}
+#screen-kesisim .ksm-topline .ksm-player-meta>span{
+  font-size:7.2px!important;line-height:8px!important;
+}
+#screen-kesisim .ksm-topline .ksm-player-card>strong{
+  font-size:18px!important;line-height:19px!important;
+}
+#screen-kesisim .ksm-topline .ksm-name-timer{
+  min-width:43px!important;height:22px!important;padding:2px 7px!important;
+}
+#screen-kesisim .ksm-topline .ksm-name-timer strong{
+  font-size:13px!important;line-height:14px!important;
+}
+#screen-kesisim .ksm-topline .ksm-name-timer small{
+  font-size:5.4px!important;line-height:6px!important;
+}
+
+/* The GÖKDELEN opening title finishes disappearing 0.5 s earlier. */
+#screen-kesisim #ksm-intro-title.show.fading{
+  transition:opacity 3.1s ease,transform 3.3s ease,visibility 0s 3.3s!important;
+}
+
+@media(max-width:430px){
+  #screen-kesisim .ksm-topline>.ksm-hud{
+    width:min(270px,calc(100% - 88px))!important;
+    grid-template-columns:minmax(0,1fr) 54px minmax(0,1fr)!important;
+  }
+  #screen-kesisim .ksm-topline .ksm-player-card{
+    min-height:42px!important;
+    padding:4px 5px!important;
+    gap:3px!important;
+  }
+  #screen-kesisim .ksm-topline .ksm-player-avatar{
+    width:23px!important;height:23px!important;flex-basis:23px!important;
+  }
+  #screen-kesisim .ksm-topline .ksm-player-meta>span{
+    font-size:6.6px!important;line-height:7px!important;
+  }
+  #screen-kesisim .ksm-topline .ksm-player-card>strong{
+    font-size:17px!important;line-height:18px!important;
+  }
+  #screen-kesisim .ksm-topline .ksm-name-timer{
+    min-width:40px!important;height:21px!important;padding:2px 6px!important;
+  }
+  #screen-kesisim .ksm-topline .ksm-name-timer strong{font-size:12.5px!important}
+  #screen-kesisim .ksm-topline .ksm-name-timer small{font-size:5.1px!important}
+  #screen-kesisim #ksm-quick-guide .ksm-quick-guide-card{
+    width:min(96%,320px)!important;
+    padding:15px!important;
+  }
+  #screen-kesisim #ksm-quick-guide p{font-size:12px!important}
+}
