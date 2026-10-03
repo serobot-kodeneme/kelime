@@ -3626,7 +3626,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=703',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=704',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -7019,7 +7019,7 @@ const state={
   grid:Array.from({length:ROWS},()=>Array(COLS).fill('')),
   dirs:Array.from({length:ROWS},()=>Array(COLS).fill(0)),
   used:new Set(),seedKeys:new Set(),flowers:new Set(),flowerIcons:new Map(),words:[],scores:[0,0],turn:0,bag:[],racks:[[],[]],broomUsed:[0,0],bombUsed:[0,0],
-  temp:new Map(),tempOrder:[],drag:null,meaningBlockedUntil:0,popTimer:null,gameOver:false,turnLeft:30,turnTimer:null,aiTimer:null,lastHeartSec:null,lastBellSec:null,
+  temp:new Map(),tempOrder:[],drag:null,meaningBlockedUntil:0,popTimer:null,gameOver:false,turnLeft:40,turnTimer:null,aiTimer:null,lastHeartSec:null,lastBellSec:null,
   highestFloors:[0,0],longestWords:['',''],wordCounts:[0,0],bestMoveScores:[0,0],climbBonusTotals:[0,0],roofWinner:-1,lowBagWarned:false,finalBagTimer:null,
   missStreak:[0,0],forcedWinner:-1,endReason:'',
   introActive:false,introToken:0,introFrame:null,introCamera:null,introTimers:new Set()
@@ -7236,8 +7236,8 @@ function updateHud(){
   if(turnTop)turnTop.textContent=state.introActive?'GÖKDELEN • Açılış hazırlanıyor…':(state.multiplayer?(state.turn+1)+'. oyuncunun sırası.':(state.turn===1?aiName()+' düşünüyor…':'1. oyuncunun sırası.'));
   const t1=document.getElementById('ksm-timer-p1'),t2=document.getElementById('ksm-timer-p2');
   const a1=t1?.querySelector('strong'),a2=t2?.querySelector('strong');
-  if(a1)a1.textContent=String(state.turn===0?state.turnLeft:30);
-  if(a2)a2.textContent=String(state.turn===1?state.turnLeft:30);
+  if(a1)a1.textContent=String(state.turn===0?state.turnLeft:40);
+  if(a2)a2.textContent=String(state.turn===1?state.turnLeft:40);
   t1?.classList.toggle('active',state.turn===0);t2?.classList.toggle('active',state.turn===1);
   t1?.classList.toggle('danger',state.turn===0&&state.turnLeft<=5);t2?.classList.toggle('danger',state.turn===1&&state.turnLeft<=5);
 }
@@ -7825,7 +7825,7 @@ function playGokdelenBell(){
 function clearTurnTimer(){if(state.turnTimer){clearInterval(state.turnTimer);state.turnTimer=null;}state.lastHeartSec=null;state.lastBellSec=null;}
 function startTurnTimer(){
   if(state.introActive)return;
-  clearTurnTimer();clearAiTimer();state.turnLeft=30;updateHud();
+  clearTurnTimer();clearAiTimer();state.turnLeft=40;updateHud();
   if(state.multiplayer){window.gokdelenNetwork?.startTurnClock();return;}
   if(state.turn===1&&!state.gameOver)state.aiTimer=setTimeout(aiTakeTurn,AI_LEVELS[state.aiLevel].delay);
   state.turnTimer=setInterval(()=>{
@@ -8123,7 +8123,7 @@ function reset(){
   clearReturnFlights();document.getElementById('ksm-confetti-layer')?.remove();
   clearInvalidFeedback();
   clearTimeout(state.popTimer);state.grid=Array.from({length:ROWS},()=>Array(COLS).fill(''));state.dirs=Array.from({length:ROWS},()=>Array(COLS).fill(0));
-  state.used.clear();state.seedKeys.clear();state.flowers.clear();state.words=[];state.scores=[0,0];state.turn=0;state.broomUsed=[0,0];state.bombUsed=[0,0];bombArmed=false;state.highestFloors=[0,0];state.longestWords=['',''];state.wordCounts=[0,0];state.bestMoveScores=[0,0];state.climbBonusTotals=[0,0];state.roofWinner=-1;state.missStreak=[0,0];state.forcedWinner=-1;state.endReason='';state.lowBagWarned=false;clearGokdelenFx();state.temp.clear();state.tempOrder=[];state.drag=null;state.meaningBlockedUntil=0;ghost.style.display='none';state.gameOver=false;state.turnLeft=30;clearAiTimer();
+  state.used.clear();state.seedKeys.clear();state.flowers.clear();state.words=[];state.scores=[0,0];state.turn=0;state.broomUsed=[0,0];state.bombUsed=[0,0];bombArmed=false;state.highestFloors=[0,0];state.longestWords=['',''];state.wordCounts=[0,0];state.bestMoveScores=[0,0];state.climbBonusTotals=[0,0];state.roofWinner=-1;state.missStreak=[0,0];state.forcedWinner=-1;state.endReason='';state.lowBagWarned=false;clearGokdelenFx();state.temp.clear();state.tempOrder=[];state.drag=null;state.meaningBlockedUntil=0;ghost.style.display='none';state.gameOver=false;state.turnLeft=40;clearAiTimer();
   state.bag=makeBag();const seed=chooseSeed();consumeSeedFromBag(seed);state.flowerIcons.clear();state.racks=[[],[]];drawRackToNine(0);drawRackToNine(1);
   document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');
   renderAll();renderBirds();renderRack();setFeedback('GÖKDELEN • Açılış hazırlanıyor…');playIntro(seed);
@@ -8225,7 +8225,7 @@ function reduceNetworkMatch(data,side,action,placed,now,revision){
     }
     else return null;
     if(!state.gameOver)state.gameOver=(state.roofWinner===0||state.roofWinner===1)||!state.bag.length;
-    return serializeMatch({seed:data.seed,revision:revision+1,turnDeadline:state.gameOver?0:((action==='broom'||action==='shuffle')?Number(data.turnDeadline):now+30000),passCount:passes,lastMove,lastPass,lastBomb});
+    return serializeMatch({seed:data.seed,revision:revision+1,turnDeadline:state.gameOver?0:((action==='broom'||action==='shuffle')?Number(data.turnDeadline):now+40000),passCount:passes,lastMove,lastPass,lastBomb});
   });
 }
 function applyNetworkMatch(data,round,intro=false){
