@@ -7032,8 +7032,10 @@ function tempAt(r,c){return state.temp.get(key(r,c))||null;}
 function charAt(r,c){const t=tempAt(r,c);return t?t.char:(state.grid[r]?.[c]||'');}
 function rackIndexUsed(index){for(const t of state.temp.values())if(t.rackIndex===index)return true;return false;}
 
-const GOKDELEN_BASE_ROW=ROWS-5;
+const GOKDELEN_SEED_ROW=ROWS-8; // kapının üstünden 4. satır
+const GOKDELEN_BASE_ROW=GOKDELEN_SEED_ROW;
 const GOKDELEN_ROOF_BONUS=20;
+function openingPlacementFree(){return Number(state.wordCounts?.[0]||0)+Number(state.wordCounts?.[1]||0)===0;}
 function floorForRow(r){return Math.max(0,GOKDELEN_BASE_ROW-Number(r||0));}
 function topCommittedRow(){
   for(let r=0;r<ROWS;r++)if(state.grid[r]?.some(Boolean))return r;
@@ -7045,7 +7047,7 @@ function updateGokdelenAtmosphere(){
   const level=floor>=30?3:floor>=20?2:floor>=10?1:0;
   if(screen.dataset.skyLevel!==String(level))screen.dataset.skyLevel=String(level);
   const badge=document.getElementById('ksm-floor-current');
-  if(badge)badge.textContent=floor>=35?'ÇATI':floor+'. KAT';
+  if(badge)badge.textContent=topCommittedRow()===0?'ÇATI':floor+'. KAT';
 }
 function recordMoveStats(side,result,placed){
   const floor=placed.length?Math.max(...placed.map(t=>floorForRow(t.r))):0;
@@ -7187,7 +7189,7 @@ function refreshPlacementPreview(){
   if(result){
     if(result.error)setFeedback(result.error,'bad');
     else setFeedback(result.words.map(w=>w.word).join(' • ')+' • +'+result.totalScore+' puan'+(result.climbBonus?' • YÜKSELİŞ +'+result.climbBonus:'')+(result.roofBonus?' • ÇATI +'+result.roofBonus:'')+' — GÖNDER ile onayla.','good');
-  }else if(myTurn()&&!state.gameOver)setFeedback('Harfleri yerleştir; GÖNDER’e kadar düzenleyebilirsin.');
+  }else if(myTurn()&&!state.gameOver)setFeedback(openingPlacementFree()?'İlk hamle serbest: sözcüğünü istediğin uygun yere kur.':'Harfleri yerleştir; GÖNDER’e kadar düzenleyebilirsin.');
   return result;
 }
 function renderRack(){
@@ -7213,6 +7215,7 @@ function buildBoard(){
   for(let i=0;i<4;i++)panels.appendChild(document.createElement('span'));
   const sill=document.createElement('div');sill.className='ksm-door-sill';sill.setAttribute('aria-hidden','true');
   door.append(crown,panels,sill);boardEl.appendChild(door);
+  const pediment=document.createElement('div');pediment.id='ksm-door-pediment';pediment.setAttribute('aria-hidden','true');boardEl.appendChild(pediment);
   const markers=document.createElement('div');markers.id='ksm-floor-markers';markers.setAttribute('aria-hidden','true');
   for(const floor of [5,10,15,20,25,30]){
     const mark=document.createElement('span');mark.className='ksm-floor-marker';mark.style.setProperty('--floor-row',String(GOKDELEN_BASE_ROW-floor));mark.textContent=floor+'. KAT';markers.appendChild(mark);
@@ -7230,7 +7233,7 @@ function chooseSeed(){
   previousSeed=choices[Math.floor(Math.random()*choices.length)];return previousSeed;
 }
 function placeSeedLetter(word,index,animate=false){
-  const r=ROWS-5,c=Math.floor((COLS-word.length)/2)+index;
+  const r=GOKDELEN_SEED_ROW,c=Math.floor((COLS-word.length)/2)+index;
   state.grid[r][c]=word[index];state.dirs[r][c]|=H;state.seedKeys.add(key(r,c));renderCell(r,c,animate);
   if(animate)animateTile(r,c);
 }
@@ -7397,7 +7400,7 @@ function dropAt(x,y){
   const invalidDoor=r>=doorRowsStart&&c>=doorColStart&&c<doorColStart+3;
   const occupiedRows=[];for(let rr=0;rr<ROWS;rr++)if(state.grid[rr].some(Boolean))occupiedRows.push(rr);
   const lowestOccupied=occupiedRows.length?Math.max(...occupiedRows):ROWS-1;
-  const invalidUp=r>lowestOccupied;
+  const invalidUp=!openingPlacementFree()&&r>lowestOccupied;
   const occupiedTemp=tempAt(r,c);
   const invalidSame=base===drag.letter;
   if(invalidDoor||invalidUp||occupiedTemp||invalidSame){
@@ -7465,21 +7468,25 @@ function evaluatePlacement(overlay){
   if(rackIds.size!==temps.length)return{error:'Aynı taş iki karede kullanılamaz.'};
   let topRow=ROWS,lowest=-1;
   for(let r=0;r<ROWS;r++)if(state.grid[r].some(Boolean)){if(topRow===ROWS)topRow=r;lowest=r;}
+  const openingFree=openingPlacementFree();
   for(const t of temps){
-    if(t.r<0||t.r>=ROWS||t.c<0||t.c>=COLS||t.r>lowest)return{error:'GÖKDELEN yalnızca yukarı doğru büyür.'};
+    if(t.r<0||t.r>=ROWS||t.c<0||t.c>=COLS)return{error:'Taş oyun alanının dışında.'};
+    if(!openingFree&&t.r>lowest)return{error:'GÖKDELEN yalnızca yukarı doğru büyür.'};
     if(t.r>=ROWS-4&&t.c>=3&&t.c<6)return{error:'Giriş kapısına harf yerleştirilemez.'};
   }
-  // Every new tile must reach the committed building through orthogonal letters.
-  const reachable=new Set(),queue=[];
-  for(const t of temps)if(state.grid[t.r][t.c]||[[0,1],[0,-1],[1,0],[-1,0]].some(([dr,dc])=>state.grid[t.r+dr]?.[t.c+dc])){reachable.add(key(t.r,t.c));queue.push(t);}
-  for(let i=0;i<queue.length;i++){
-    const {r,c}=queue[i];
-    for(const [dr,dc] of [[0,1],[0,-1],[1,0],[-1,0]]){
-      const k=key(r+dr,c+dc);if(reachable.has(k)||!overlay.has(k))continue;
-      reachable.add(k);queue.push(overlay.get(k));
+  // Açılış hamlesi serbesttir; ilk geçerli hamleden sonra yeni taşlar mevcut gökdelene bağlanır.
+  if(!openingFree){
+    const reachable=new Set(),queue=[];
+    for(const t of temps)if(state.grid[t.r][t.c]||[[0,1],[0,-1],[1,0],[-1,0]].some(([dr,dc])=>state.grid[t.r+dr]?.[t.c+dc])){reachable.add(key(t.r,t.c));queue.push(t);}
+    for(let i=0;i<queue.length;i++){
+      const {r,c}=queue[i];
+      for(const [dr,dc] of [[0,1],[0,-1],[1,0],[-1,0]]){
+        const k=key(r+dr,c+dc);if(reachable.has(k)||!overlay.has(k))continue;
+        reachable.add(k);queue.push(overlay.get(k));
+      }
     }
+    if(temps.some(t=>!reachable.has(key(t.r,t.c))))return{error:'Tüm yeni taşlar bir sözcükle mevcut gökdelene bağlanmalı.'};
   }
-  if(temps.some(t=>!reachable.has(key(t.r,t.c))))return{error:'Tüm yeni taşlar bir sözcükle mevcut gökdelene bağlanmalı.'};
   const words=[],seen=new Set(),covered=new Set();
   for(const t of temps)for(const [dr,dc,name,bit] of [[0,1,'h',H],[1,0,'v',V]]){
     const line=lineThroughOverlay(overlay,t.r,t.c,dr,dc);if(line.length<2)continue;
@@ -7808,7 +7815,7 @@ function makeNetworkMatch(){
   const seed=chooseSeed();
   return withMatch({},()=>{
     state.bag=makeBag();consumeSeedFromBag(seed);drawRackToNine(0);drawRackToNine(1);
-    for(let i=0;i<seed.length;i++){const r=ROWS-5,c=1+i;state.grid[r][c]=seed[i];state.dirs[r][c]=H;state.seedKeys.add(key(r,c));}
+    for(let i=0;i<seed.length;i++){const r=GOKDELEN_SEED_ROW,c=1+i;state.grid[r][c]=seed[i];state.dirs[r][c]=H;state.seedKeys.add(key(r,c));}
     state.used.add(seed);return serializeMatch({seed,revision:0,turnDeadline:0,passCount:0});
   });
 }
