@@ -6963,7 +6963,7 @@ if(!screen||!boardEl||!wrap||!rackP1El||!ghost)return;
 
 const ROWS=40,COLS=9,H=1,V=2,TOTAL_TILES=200;
 const LETTER_POOL='AAAAAAAABCCÇDDEEEEEEEEGĞHIIIIİİİİKKKLLLLMMMNNNNOOÖPRRRRSSSSŞTTTTUUÜVYYZ';
-const SEEDS=['ARKADAŞ','PENCERE','ÇİÇEKLİ','BİLGİLİ','KARINCA','KELEBEK','GÖKYÜZÜ','KİTAPÇI','SÜPÜRGE','KAPLAMA','ÖĞRENCİ','SEVGİLİ','KIRMIZI','TURUNCU','DOSTLUK','BAHÇELİ','ÇOCUKÇA','DÜŞÜNCE','BULMACA','DENİZCİ','GÜNEŞLİ'];
+const SEEDS=['ARKADAŞ','PENCERE','ÇİÇEKLİ','BİLGİLİ','KARINCA','KELEBEK','GÖKYÜZÜ','KİTAPÇI','SÜPÜRGE','KAPLAMA','ÖĞRENCİ','SEVGİLİ','KIRMIZI','TURUNCU','DOSTLUK','BAHÇELİ','ÇOCUKÇA','DÜŞÜNCE','BULMACA','DENİZCİ','GÜNEŞLİ','OYUNCAK','PATATES','DOMATES','BALIKÇI','ÇALIŞMA','DÜNYALI','YAPRAKLI','KÖPEKÇİ','KEDİCİK','GÜNLÜKÇÜ','KARANLIK','AYDINLIK','SOKAKTA','KAHVALTI','MERAKLI','SEVİMLİ','YUMUŞAK','KUVVETLİ','RENKLİCE','AKILLIYI'];
 const AI_LEVELS={
   easy:{maxLen:4,focus:.12,top:24,variety:.38,delay:2200,rackTrials:24},
   medium:{maxLen:5,focus:.28,top:16,variety:.31,delay:1800,rackTrials:48},
@@ -7089,7 +7089,7 @@ function flashOpponentMove(placed,side){
   if(Number(side)===Number(state.mySide))return;
   const cls=Number(side)===0?'ksm-opponent-p1':'ksm-opponent-p2';
   for(const t of placed||[])cells[t.r*COLS+t.c]?.classList.add(cls);
-  setTimeout(()=>{for(const t of placed||[])cells[t.r*COLS+t.c]?.classList.remove(cls);},1150);
+  setTimeout(()=>{for(const t of placed||[])cells[t.r*COLS+t.c]?.classList.remove(cls);},3200);
 }
 function celebrateLongWord(){
   boardEl.querySelector('.ksm-window-flash')?.remove();
@@ -7268,7 +7268,7 @@ function buildBoard(){
   const roof=document.createElement('span');roof.className='ksm-floor-marker roof';roof.style.setProperty('--floor-row','0');roof.textContent='ÇATI';markers.appendChild(roof);
   boardEl.appendChild(markers);
 }
-let previousSeed='';
+const recentSeeds=[];
 function seedEaseScore(word){
   const chars=Array.from(String(word||'').toLocaleUpperCase('tr-TR'));
   const easyVowels=new Set(Array.from('AEIİ')),allVowels=RACK_VOWELS;
@@ -7280,18 +7280,30 @@ function seedEaseScore(word){
     if('ĞJÖŞÜ'.includes(chars[i]))rare++;
   }
   const balance=Math.max(0,4-Math.abs(3-vowels));
-  return easy*4+vowels*2+alternating*2+balance-rare*2;
+  const distinct=new Set(chars).size;
+  return easy*4+vowels*2+alternating*2+balance+Math.min(4,distinct-3)-rare*2;
 }
 function chooseSeed(){
-  const common=SEEDS.filter(w=>GAME_WORD_SET.has(w)&&w.length===7);
-  const valid=common.length?common:[...GAME_WORD_SET].filter(w=>w.length===7);
-  const ranked=valid.filter(w=>w!==previousSeed).map(w=>({w,score:seedEaseScore(w)})).sort((a,b)=>b.score-a.score);
-  const source=ranked.length?ranked:valid.map(w=>({w,score:seedEaseScore(w)})).sort((a,b)=>b.score-a.score);
-  if(!source.length)throw new Error('seven-letter-seed-missing');
-  const best=source[0].score;
-  const easyPool=source.filter(x=>x.score>=best-5).slice(0,10);
-  const choices=easyPool.length?easyPool:source.slice(0,Math.min(10,source.length));
-  previousSeed=choices[Math.floor(Math.random()*choices.length)].w;return previousSeed;
+  const allSeven=[...GAME_WORD_SET].filter(w=>w.length===7);
+  if(!allSeven.length)throw new Error('seven-letter-seed-missing');
+  const curated=SEEDS.filter(w=>GAME_WORD_SET.has(w)&&w.length===7);
+  const curatedSet=new Set(curated);
+  const recentSet=new Set(recentSeeds);
+  let candidates=allSeven.filter(w=>!recentSet.has(w));
+  if(candidates.length<18)candidates=allSeven.filter(w=>w!==recentSeeds[recentSeeds.length-1]);
+  const ranked=candidates.map(w=>({
+    w,
+    score:seedEaseScore(w)+(curatedSet.has(w)?7:0)
+  })).sort((a,b)=>b.score-a.score);
+  const best=ranked[0]?.score??0;
+  const broadPool=ranked.filter(x=>x.score>=best-11).slice(0,48);
+  const choices=broadPool.length>=16?broadPool:ranked.slice(0,Math.min(32,ranked.length));
+  const top=Math.max(1,Math.ceil(choices.length*.55));
+  const pool=Math.random()<.65?choices.slice(0,top):choices;
+  const selected=pool[Math.floor(Math.random()*pool.length)]?.w||ranked[0].w;
+  recentSeeds.push(selected);
+  if(recentSeeds.length>8)recentSeeds.shift();
+  return selected;
 }
 function placeSeedLetter(word,index,animate=false){
   const r=GOKDELEN_SEED_ROW,c=Math.floor((COLS-word.length)/2)+index;
