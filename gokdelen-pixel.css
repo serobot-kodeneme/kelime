@@ -107,3 +107,10 @@
   #screen-kesisim .ksm-cell.filled small,#screen-kesisim .ksm-rack-tile small{font-size:.52rem!important}
 }
 @media(prefers-reduced-motion:reduce){#screen-kesisim .ksm-cell.filled,#screen-kesisim .ksm-rack-tile{transition:none!important}}
+
+/* v656 — GÖKDELEN yükseliş görünümü: giriş tuğlaları ve daha yukarı açılış başlığı. */
+#screen-kesisim #ksm-intro-title{top:36%!important}
+#screen-kesisim #ksm-board .ksm-cell.entry-wall:not(.filled){
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  background:#e4b37b url('assets/gokdelen-pixel/wall.svg') center/8px 32px repeat!important;
+}
