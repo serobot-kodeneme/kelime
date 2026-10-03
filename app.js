@@ -6969,6 +6969,7 @@ const state={
   dirs:Array.from({length:ROWS},()=>Array(COLS).fill(0)),
   used:new Set(),seedKeys:new Set(),flowers:new Set(),flowerIcons:new Map(),words:[],scores:[0,0],turn:0,bag:[],racks:[[],[]],broomUsed:[0,0],
   temp:new Map(),tempOrder:[],drag:null,meaningBlockedUntil:0,popTimer:null,gameOver:false,turnLeft:30,turnTimer:null,aiTimer:null,lastHeartSec:null,lastBellSec:null,
+  highestFloors:[0,0],longestWords:['',''],wordCounts:[0,0],roofWinner:-1,lowBagWarned:false,finalBagTimer:null,
   introActive:false,introToken:0,introFrame:null,introCamera:null,introTimers:new Set()
 };
 const cells=[];
@@ -7031,6 +7032,83 @@ function tempAt(r,c){return state.temp.get(key(r,c))||null;}
 function charAt(r,c){const t=tempAt(r,c);return t?t.char:(state.grid[r]?.[c]||'');}
 function rackIndexUsed(index){for(const t of state.temp.values())if(t.rackIndex===index)return true;return false;}
 
+const GOKDELEN_BASE_ROW=ROWS-5;
+const GOKDELEN_ROOF_BONUS=20;
+function floorForRow(r){return Math.max(0,GOKDELEN_BASE_ROW-Number(r||0));}
+function topCommittedRow(){
+  for(let r=0;r<ROWS;r++)if(state.grid[r]?.some(Boolean))return r;
+  return GOKDELEN_BASE_ROW;
+}
+function currentBuildingFloor(){return floorForRow(topCommittedRow());}
+function updateGokdelenAtmosphere(){
+  const floor=currentBuildingFloor();
+  const level=floor>=30?3:floor>=20?2:floor>=10?1:0;
+  if(screen.dataset.skyLevel!==String(level))screen.dataset.skyLevel=String(level);
+  const badge=document.getElementById('ksm-floor-current');
+  if(badge)badge.textContent=floor>=35?'ÇATI':floor+'. KAT';
+}
+function recordMoveStats(side,result,placed){
+  const floor=placed.length?Math.max(...placed.map(t=>floorForRow(t.r))):0;
+  state.highestFloors[side]=Math.max(Number(state.highestFloors[side]||0),floor);
+  const moveWords=(result.words||[]).map(w=>String(w.word||'')).filter(Boolean);
+  state.wordCounts[side]=Number(state.wordCounts[side]||0)+moveWords.length;
+  for(const word of moveWords){
+    const prev=String(state.longestWords[side]||'');
+    if(word.length>prev.length)state.longestWords[side]=word;
+  }
+  if(Number(result.roofBonus||0)>0&&state.roofWinner<0)state.roofWinner=side;
+}
+function clearGokdelenFx(){
+  if(state.finalBagTimer){clearTimeout(state.finalBagTimer);state.finalBagTimer=null;}
+  boardEl.querySelectorAll('.ksm-cell-bonus-tag,.ksm-window-flash').forEach(el=>el.remove());
+  cells.forEach(el=>el.classList.remove('ksm-opponent-p1','ksm-opponent-p2'));
+}
+function showCellBonusTag(r,c,text,kind='climb'){
+  const cell=cells[r*COLS+c];if(!cell)return;
+  const tag=document.createElement('div');tag.className='ksm-cell-bonus-tag '+kind;tag.textContent=text;
+  tag.style.left=(cell.offsetLeft+cell.offsetWidth/2)+'px';tag.style.top=Math.max(2,cell.offsetTop-3)+'px';
+  boardEl.appendChild(tag);setTimeout(()=>tag.remove(),1750);
+}
+function flashOpponentMove(placed,side){
+  if(Number(side)===Number(state.mySide))return;
+  const cls=Number(side)===0?'ksm-opponent-p1':'ksm-opponent-p2';
+  for(const t of placed||[])cells[t.r*COLS+t.c]?.classList.add(cls);
+  setTimeout(()=>{for(const t of placed||[])cells[t.r*COLS+t.c]?.classList.remove(cls);},1150);
+}
+function celebrateLongWord(){
+  boardEl.querySelector('.ksm-window-flash')?.remove();
+  const fx=document.createElement('div');fx.className='ksm-window-flash';fx.setAttribute('aria-hidden','true');boardEl.appendChild(fx);
+  setTimeout(()=>fx.remove(),1350);
+}
+function showMoveIdentityFx(result,placed,side){
+  for(const t of result.climbTiles||[])showCellBonusTag(t.r,t.c,'+5','climb');
+  const tower=(placed||[]).find(t=>t.tower);if(tower)showCellBonusTag(tower.r,tower.c,'▲ KULE','tower');
+  if(Number(result.roofBonus||0)>0){
+    const roof=(placed||[]).find(t=>t.r===0);if(roof)showCellBonusTag(roof.r,roof.c,'ÇATI +20','roof');
+  }
+  if((result.words||[]).some(w=>String(w.word||'').length>=6))celebrateLongWord();
+  flashOpponentMove(placed,side);
+  updateGokdelenAtmosphere();
+}
+function maybeWarnFinalBag(delay=2300){
+  if(state.lowBagWarned||state.bag.length>30||state.gameOver)return;
+  state.lowBagWarned=true;
+  const token=state.introToken;
+  state.finalBagTimer=setTimeout(()=>{
+    state.finalBagTimer=null;
+    if(token!==state.introToken||screen.classList.contains('hidden')||state.gameOver)return;
+    showPop('SON KATLAR','TORBADA '+state.bag.length+' HARF KALDI',1400);
+  },Math.max(0,delay));
+}
+function renderGameOverStats(){
+  const p2Name=state.multiplayer?'2. OYUNCU':aiName();
+  const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value;};
+  set('ksm-over-p1-name',state.multiplayer?'1. OYUNCU':'OYUNCU');set('ksm-over-p2-name',p2Name);
+  set('ksm-over-p1-floor',state.highestFloors[0]+' KAT');set('ksm-over-p2-floor',state.highestFloors[1]+' KAT');
+  set('ksm-over-p1-longest',state.longestWords[0]||'—');set('ksm-over-p2-longest',state.longestWords[1]||'—');
+  set('ksm-over-p1-words',String(state.wordCounts[0]||0));set('ksm-over-p2-words',String(state.wordCounts[1]||0));
+}
+
 function updateHud(){
   document.getElementById('ksm-p1-score').textContent=String(state.scores[0]);
   document.getElementById('ksm-p2-score').textContent=String(state.scores[1]);
@@ -7038,11 +7116,13 @@ function updateHud(){
   const bagCard=bagCount?.closest('.ksm-bag-card');
   if(bagCard){
     const left=state.bag.length;
-    bagCard.classList.remove('bag-warm','bag-hot','bag-critical');
-    if(left<=60)bagCard.classList.add('bag-critical');
+    bagCard.classList.remove('bag-warm','bag-hot','bag-critical','ksm-final-bag');
+    if(left<=30)bagCard.classList.add('bag-critical','ksm-final-bag');
+    else if(left<=60)bagCard.classList.add('bag-critical');
     else if(left<=120)bagCard.classList.add('bag-hot');
     else if(left<=200)bagCard.classList.add('bag-warm');
   }
+  updateGokdelenAtmosphere();
   document.getElementById('ksm-p1-label')?.classList.toggle('active',state.turn===0);
   document.getElementById('ksm-p2-label')?.classList.toggle('active',state.turn===1);
   document.getElementById('ksm-p1-card')?.classList.toggle('active',state.turn===0);
@@ -7106,7 +7186,7 @@ function refreshPlacementPreview(){
   }
   if(result){
     if(result.error)setFeedback(result.error,'bad');
-    else setFeedback(result.words.map(w=>w.word).join(' • ')+' • +'+result.totalScore+' puan'+(result.climbBonus?' • YÜKSELİŞ +'+result.climbBonus:'')+' — GÖNDER ile onayla.','good');
+    else setFeedback(result.words.map(w=>w.word).join(' • ')+' • +'+result.totalScore+' puan'+(result.climbBonus?' • YÜKSELİŞ +'+result.climbBonus:'')+(result.roofBonus?' • ÇATI +'+result.roofBonus:'')+' — GÖNDER ile onayla.','good');
   }else if(myTurn()&&!state.gameOver)setFeedback('Harfleri yerleştir; GÖNDER’e kadar düzenleyebilirsin.');
   return result;
 }
@@ -7133,6 +7213,12 @@ function buildBoard(){
   for(let i=0;i<4;i++)panels.appendChild(document.createElement('span'));
   const sill=document.createElement('div');sill.className='ksm-door-sill';sill.setAttribute('aria-hidden','true');
   door.append(crown,panels,sill);boardEl.appendChild(door);
+  const markers=document.createElement('div');markers.id='ksm-floor-markers';markers.setAttribute('aria-hidden','true');
+  for(const floor of [5,10,15,20,25,30]){
+    const mark=document.createElement('span');mark.className='ksm-floor-marker';mark.style.setProperty('--floor-row',String(GOKDELEN_BASE_ROW-floor));mark.textContent=floor+'. KAT';markers.appendChild(mark);
+  }
+  const roof=document.createElement('span');roof.className='ksm-floor-marker roof';roof.style.setProperty('--floor-row','0');roof.textContent='ÇATI';markers.appendChild(roof);
+  boardEl.appendChild(markers);
 }
 let previousSeed='';
 function chooseSeed(){
@@ -7417,10 +7503,13 @@ function evaluatePlacement(overlay){
   // v656 — Scrabble tipi tüm sözcük puanlarına gerçek kat yükseliş bonusunu ekle.
   for(const w of words)w.score=w.baseScore;
   if(rackBonus)main.score*=2;
-  const climbCount=temps.filter(t=>!state.grid[t.r]?.[t.c]&&t.r<topRow).length;
+  const climbTiles=temps.filter(t=>!state.grid[t.r]?.[t.c]&&t.r<topRow).map(t=>({r:t.r,c:t.c}));
+  const climbCount=climbTiles.length;
   const climbBonus=climbCount*5;
-  const totalScore=words.reduce((sum,w)=>sum+w.score,0)+climbBonus;
-  return{...main,words,totalScore,rackBonus,placedCount,climbCount,climbBonus,flowerBonus:false};
+  const roofReached=state.roofWinner<0&&temps.some(t=>!state.grid[t.r]?.[t.c]&&t.r===0);
+  const roofBonus=roofReached?GOKDELEN_ROOF_BONUS:0;
+  const totalScore=words.reduce((sum,w)=>sum+w.score,0)+climbBonus+roofBonus;
+  return{...main,words,totalScore,rackBonus,placedCount,climbCount,climbTiles,climbBonus,roofBonus,flowerBonus:false};
 }
 function validate(){return evaluatePlacement(state.temp);}
 function clearAiTimer(){if(state.aiTimer){clearTimeout(state.aiTimer);state.aiTimer=null;}}
@@ -7617,7 +7706,9 @@ function commit(){
   for(const t of placed)state.grid[t.r][t.c]=t.char;
   for(const w of v.words)for(const x of w.line)state.dirs[x.r][x.c]|=w.bit;
   for(const w of v.words){state.used.add(w.word);state.words.push(w.word);}
-  state.scores[state.turn]+=v.totalScore;
+  const moveSide=state.turn;
+  state.scores[moveSide]+=v.totalScore;
+  recordMoveStats(moveSide,v,placed);
   const rack=state.racks[state.turn];
   const used=[...new Set(placed.map(t=>t.rackIndex))].sort((a,b)=>b-a);
   for(const idx of used)rack.splice(idx,1);
@@ -7628,8 +7719,11 @@ function commit(){
   wrap.classList.remove('ksm-send-burst');void wrap.offsetWidth;wrap.classList.add('ksm-send-burst');setTimeout(()=>wrap.classList.remove('ksm-send-burst'),460);
   const scoredWords=v.words.map(w=>w.word+' +'+w.score).join(' • ');
   const climbText=v.climbBonus?' • YÜKSELİŞ +'+v.climbBonus:'';
-  if(v.rackBonus)showBonusPop('5+ HARF BONUSU!','TOPLAM +'+v.totalScore+' • '+scoredWords+climbText,false,1350);
-  else showPop('+'+v.totalScore,scoredWords+climbText+(placed.some(t=>t.tower)?' • KULE HAMLESİ':''),1250);
+  const roofText=v.roofBonus?' • ÇATI +'+v.roofBonus:'';
+  const towerText=placed.some(t=>t.tower)?' • KULE HAMLESİ':'';
+  if(v.rackBonus)showBonusPop('5+ HARF BONUSU!','TOPLAM +'+v.totalScore+' • '+scoredWords+climbText+roofText+towerText,false,1350);
+  else showPop('+'+v.totalScore,scoredWords+climbText+roofText+towerText,1250);
+  showMoveIdentityFx(v,placed,moveSide);maybeWarnFinalBag();
   const matchToken=state.introToken;
   state.turn=state.turn?0:1;renderRack();updateHud();
   setFeedback(state.turn===1?aiName()+' düşünüyor…':'1. oyuncunun sırası.','good');
@@ -7662,6 +7756,7 @@ function checkEnd(){
   const a=state.scores[0],b=state.scores[1],title=document.getElementById('ksm-over-title'),txt=document.getElementById('ksm-over-text');
   if(title)title.textContent=a===b?'BERABERE!':(a>b?'1. OYUNCU KAZANDI!':'2. OYUNCU KAZANDI!');
   if(txt)txt.textContent='300 harf bitti • '+a+' - '+b;
+  renderGameOverStats();
   document.getElementById('ksm-gameover')?.classList.remove('hidden');
 }
 function reset(){
@@ -7671,7 +7766,7 @@ function reset(){
   clearReturnFlights();document.getElementById('ksm-confetti-layer')?.remove();
   clearInvalidFeedback();
   clearTimeout(state.popTimer);state.grid=Array.from({length:ROWS},()=>Array(COLS).fill(''));state.dirs=Array.from({length:ROWS},()=>Array(COLS).fill(0));
-  state.used.clear();state.seedKeys.clear();state.flowers.clear();state.words=[];state.scores=[0,0];state.turn=0;state.broomUsed=[0,0];state.temp.clear();state.tempOrder=[];state.drag=null;state.meaningBlockedUntil=0;ghost.style.display='none';state.gameOver=false;state.turnLeft=30;clearAiTimer();
+  state.used.clear();state.seedKeys.clear();state.flowers.clear();state.words=[];state.scores=[0,0];state.turn=0;state.broomUsed=[0,0];state.highestFloors=[0,0];state.longestWords=['',''];state.wordCounts=[0,0];state.roofWinner=-1;state.lowBagWarned=false;clearGokdelenFx();state.temp.clear();state.tempOrder=[];state.drag=null;state.meaningBlockedUntil=0;ghost.style.display='none';state.gameOver=false;state.turnLeft=30;clearAiTimer();
   state.bag=makeBag();const seed=chooseSeed();consumeSeedFromBag(seed);state.flowerIcons.clear();state.racks=[[],[]];drawRackToNine(0);drawRackToNine(1);
   document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');
   renderAll();renderBirds();renderRack();setFeedback('GÖKDELEN • Açılış hazırlanıyor…');playIntro(seed);
@@ -7688,7 +7783,7 @@ document.addEventListener('pointercancel',e=>{
   state.drag=null;ghost.style.display='none';
 },{passive:true});
 // The same pure rule engine is used locally and by both network clients.
-const MATCH_FIELDS=['grid','dirs','used','seedKeys','words','scores','turn','bag','racks','broomUsed','gameOver','multiplayer','mySide'];
+const MATCH_FIELDS=['grid','dirs','used','seedKeys','words','scores','turn','bag','racks','broomUsed','highestFloors','longestWords','wordCounts','roofWinner','gameOver','multiplayer','mySide'];
 function withMatch(data,fn){
   const saved=Object.fromEntries(MATCH_FIELDS.map(k=>[k,state[k]]));
   try{
@@ -7697,12 +7792,17 @@ function withMatch(data,fn){
     state.used=new Set(data.words||[]);state.seedKeys=new Set(data.seedKeys||[]);state.words=[...(data.words||[])];
     state.scores=[Number(data.scores?.[0]||0),Number(data.scores?.[1]||0)];state.turn=Number(data.turn||0);
     state.bag=[...(data.bag||[])];state.racks=[[...(data.racks?.[0]||[])],[...(data.racks?.[1]||[])]];
-    state.broomUsed=[Number(data.broomUsed?.[0]||0),Number(data.broomUsed?.[1]||0)];state.gameOver=!!data.gameOver;state.multiplayer=true;
+    state.broomUsed=[Number(data.broomUsed?.[0]||0),Number(data.broomUsed?.[1]||0)];
+    state.highestFloors=[Number(data.highestFloors?.[0]||0),Number(data.highestFloors?.[1]||0)];
+    state.longestWords=[String(data.longestWords?.[0]||''),String(data.longestWords?.[1]||'')];
+    state.wordCounts=[Number(data.wordCounts?.[0]||0),Number(data.wordCounts?.[1]||0)];
+    state.roofWinner=Number.isInteger(data.roofWinner)?data.roofWinner:-1;
+    state.gameOver=!!data.gameOver;state.multiplayer=true;
     return fn();
   }finally{for(const k of MATCH_FIELDS)state[k]=saved[k];}
 }
 function serializeMatch(extra={}){
-  return{grid:state.grid,dirs:state.dirs,words:[...state.used],seedKeys:[...state.seedKeys],scores:state.scores,turn:state.turn,bag:state.bag,racks:state.racks,broomUsed:state.broomUsed,gameOver:state.gameOver,...extra};
+  return{grid:state.grid,dirs:state.dirs,words:[...state.used],seedKeys:[...state.seedKeys],scores:state.scores,turn:state.turn,bag:state.bag,racks:state.racks,broomUsed:state.broomUsed,highestFloors:state.highestFloors,longestWords:state.longestWords,wordCounts:state.wordCounts,roofWinner:state.roofWinner,gameOver:state.gameOver,...extra};
 }
 function makeNetworkMatch(){
   const seed=chooseSeed();
@@ -7731,9 +7831,10 @@ function reduceNetworkMatch(data,side,action,placed,now,revision){
       for(const t of overlay.values())state.grid[t.r][t.c]=t.char;
       for(const w of result.words){state.used.add(w.word);for(const t of w.line)state.dirs[t.r][t.c]|=w.bit;}
       state.scores[side]+=result.totalScore;
+      recordMoveStats(side,result,[...overlay.values()]);
       [...overlay.values()].map(t=>t.rackIndex).sort((a,b)=>b-a).forEach(i=>state.racks[side].splice(i,1));
       drawRackToNine(side);passes=0;
-      lastMove={side,placed:[...overlay.values()],word:result.word,words:result.words.map(w=>({word:w.word,score:w.score})),climbCount:result.climbCount,climbBonus:result.climbBonus,score:result.totalScore};
+      lastMove={side,placed:[...overlay.values()],word:result.word,words:result.words.map(w=>({word:w.word,score:w.score})),climbCount:result.climbCount,climbTiles:result.climbTiles,climbBonus:result.climbBonus,roofBonus:result.roofBonus,score:result.totalScore};
       state.turn=1-side;
     }else if(action==='broom'){
       if(state.broomUsed[side]>=2)return null;
@@ -7751,7 +7852,8 @@ function applyNetworkMatch(data,round,intro=false){
   clearTemp();clearAiTimer();clearTurnTimer();state.multiplayer=true;state.mySide=mpRole==='guest'?1:0;
   const restored=withMatch(data,()=>serializeMatch());
   state.grid=restored.grid;state.dirs=restored.dirs;state.used=new Set(restored.words);state.words=restored.words;state.seedKeys=new Set(restored.seedKeys);
-  state.scores=restored.scores;state.turn=restored.turn;state.bag=restored.bag;state.racks=restored.racks;state.broomUsed=restored.broomUsed;state.gameOver=restored.gameOver;
+  state.scores=restored.scores;state.turn=restored.turn;state.bag=restored.bag;state.racks=restored.racks;state.broomUsed=restored.broomUsed;
+  state.highestFloors=restored.highestFloors;state.longestWords=restored.longestWords;state.wordCounts=restored.wordCounts;state.roofWinner=restored.roofWinner;state.gameOver=restored.gameOver;
   state.flowers.clear();state.flowerIcons.clear();state.revision=Number(data.revision||0);
   document.getElementById('ksm-gameover')?.classList.add('hidden');
   if(intro){
@@ -7764,18 +7866,21 @@ function applyNetworkMatch(data,round,intro=false){
   if(data.lastMove&&previousRevision>=0&&previousRevision!==state.revision){
     const moveWords=Array.isArray(data.lastMove.words)&&data.lastMove.words.length?data.lastMove.words.map(w=>w.word+' +'+Number(w.score||0)).join(' • '):data.lastMove.word+' +'+data.lastMove.score;
     const climbText=Number(data.lastMove.climbBonus||0)>0?' • YÜKSELİŞ +'+Number(data.lastMove.climbBonus):'';
-    showPop('+'+data.lastMove.score,moveWords+climbText+' • '+(data.lastMove.side===state.mySide?'HAMLE ONAYLANDI':'RAKİBİN HAMLESİ'),1250);
+    const roofText=Number(data.lastMove.roofBonus||0)>0?' • ÇATI +'+Number(data.lastMove.roofBonus):'';
+    const towerText=(data.lastMove.placed||[]).some(t=>t.tower)?' • KULE HAMLESİ':'';
+    showPop('+'+data.lastMove.score,moveWords+climbText+roofText+towerText+' • '+(data.lastMove.side===state.mySide?'HAMLE ONAYLANDI':'RAKİBİN HAMLESİ'),1250);
+    showMoveIdentityFx(data.lastMove,data.lastMove.placed||[],Number(data.lastMove.side));maybeWarnFinalBag();
     const top=Math.min(...(data.lastMove.placed||[]).map(t=>t.r));
     if(Number.isFinite(top))wrap.scrollTo({top:Math.max(0,boardEl.offsetTop+top*boardEl.clientHeight/ROWS-wrap.clientHeight*.35),behavior:'smooth'});
   }
   if(state.gameOver){
     const [a,b]=state.scores;document.getElementById('ksm-over-title').textContent=a===b?'BERABERE!':(a>b?'1. OYUNCU KAZANDI!':'2. OYUNCU KAZANDI!');
-    document.getElementById('ksm-over-text').textContent='300 taş bitti • '+a+' - '+b;document.getElementById('ksm-gameover')?.classList.remove('hidden');
+    document.getElementById('ksm-over-text').textContent='300 taş bitti • '+a+' - '+b;renderGameOverStats();document.getElementById('ksm-gameover')?.classList.remove('hidden');
   }
 }
 function enterNetworkScene(data){
   cancelIntro();clearReturnFlights();clearInvalidFeedback();clearTurnTimer();clearAiTimer();
-  state.multiplayer=true;state.networkPlaying=false;state.mySide=mpRole==='guest'?1:0;state.revision=-1;state.networkBusy=false;
+  state.multiplayer=true;state.networkPlaying=false;state.mySide=mpRole==='guest'?1:0;state.revision=-1;state.networkBusy=false;state.lowBagWarned=false;clearGokdelenFx();
   if(!cells.length)buildBoard();
   document.body.dataset.gokdelenMenu='1';document.getElementById('screen-home')?.classList.add('hidden');screen.classList.remove('hidden');
   document.getElementById('screen-game')?.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');
