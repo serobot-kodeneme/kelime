@@ -595,9 +595,10 @@ if(typeof fx.animate==='function'){
 }
 }
 function isLetterIdleWaveEligible(){
+if(!isMatchActive||document.hidden)return false;
 const game=document.getElementById('screen-game');
 const grid=document.getElementById('scrabble-grid');
-if(!isMatchActive||document.hidden||!game||game.classList.contains('hidden')||!grid||!grid.children.length)return false;
+if(!game||game.classList.contains('hidden')||!grid||!grid.children.length)return false;
 if(atismaSetupActive)return false;
 return true;
 }
@@ -669,7 +670,7 @@ function updateGameTimerUI(seconds){
 const el=document.getElementById('game-timer');
 if(!el)return;
 const sec=Math.max(0,Math.ceil(Number(seconds)||0));
-el.textContent=sec;
+if(el.textContent!==String(sec))el.textContent=String(sec);
 const danger=sec<=10&&sec>0;
 el.classList.toggle('timer-warning',danger);
 el.classList.toggle('timer-critical',sec<=5&&sec>0);
@@ -4574,6 +4575,7 @@ html+=`<div class="letter-cell" id="cell-${r}-${c}"><span>${char}</span><span cl
 }
 container.innerHTML=html;
 domCells=Array.from(container.children);
+lastHoverCell=-1;hoverLiftCell=null;
 hoverGridRect=null;activeGridRect=null;hoverGridMetrics=null;activeGridMetrics=null;
 return true;
 }
@@ -5865,9 +5867,13 @@ async function loadVerifiedMeaning(key){
 const shard=key.codePointAt(0).toString(16).padStart(4,'0');
 if(!meaningShardCache.has(shard)){
 if(!meaningShardLoads.has(shard))meaningShardLoads.set(shard,(async()=>{
-const response=await fetch(`meanings/${shard}.json?v=643`);
+const controller=new AbortController();
+const timeout=setTimeout(()=>controller.abort(),7000);
+try{
+const response=await fetch(`meanings/${shard}.json?v=643`,{signal:controller.signal});
 if(!response.ok)throw new Error('meaning-load-failed');
 const data=await response.json();meaningShardCache.set(shard,data);return data;
+}finally{clearTimeout(timeout);}
 })().finally(()=>meaningShardLoads.delete(shard)));
 await meaningShardLoads.get(shard);
 }
@@ -7407,7 +7413,16 @@ function aiPlacement(word,sr,sc,dr,dc){
   };
 }
 function aiFindMove(){
-  const positions=aiBoardPositions(),candidates=[],seen=new Set(),frontier=[];
+  const positions=aiBoardPositions(),pool=[],seen=new Set(),frontier=[];
+  let topScore=-Infinity,topLength=-1;
+  // Keep only equally best moves, in the same order as the previous stable sort.
+  const keepBest=move=>{
+    const length=move.word.length;
+    if(move.score>topScore||(move.score===topScore&&length>topLength)){
+      topScore=move.score;topLength=length;pool.length=0;
+    }
+    if(move.score===topScore&&length===topLength)pool.push(move);
+  };
   let lowest=-1;for(let r=0;r<ROWS;r++)if(state.grid[r].some(Boolean))lowest=r;
   for(let r=0;r<=lowest;r++)for(let c=0;c<COLS;c++)if(!state.grid[r][c]&&[[0,1],[0,-1],[1,0],[-1,0]].some(([dr,dc])=>state.grid[r+dr]?.[c+dc]))frontier.push({r,c});
   for(const raw of GAME_WORD_SET){
@@ -7416,7 +7431,7 @@ function aiFindMove(){
     if(word.length<=state.racks[1].length&&aiRackIndicesFor(Array.from(word))){
       for(const p of frontier)for(let i=0;i<word.length;i++)for(const [dr,dc] of [[0,1],[1,0]]){
         const sr=p.r-dr*i,sc=p.c-dc*i,k=word+'@'+sr+','+sc+','+dr;
-        if(seen.has(k))continue;seen.add(k);const move=aiPlacement(word,sr,sc,dr,dc);if(move)candidates.push(move);
+        if(seen.has(k))continue;seen.add(k);const move=aiPlacement(word,sr,sc,dr,dc);if(move)keepBest(move);
       }
     }
     for(let i=0;i<word.length;i++){
@@ -7426,7 +7441,7 @@ function aiFindMove(){
           const sr=p.r-dr*i,sc=p.c-dc*i,key0=word+'@'+sr+','+sc+','+dr;
           if(seen.has(key0))continue;seen.add(key0);
           const cand=aiPlacement(word,sr,sc,dr,dc);
-          if(cand)candidates.push(cand);
+          if(cand)keepBest(cand);
         }
       }
     }
@@ -7437,12 +7452,10 @@ function aiFindMove(){
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(state.grid[r][c]&&state.grid[r][c]!==char){
       const placed={r,c,char,rackIndex,tower:true,under:state.grid[r][c]};
       const result=evaluatePlacement(new Map([[key(r,c),placed]]));
-      if(!result.error)candidates.push({word:result.word,words:result.words,score:result.totalScore,flowerBonus:result.flowerBonus,rackBonus:result.rackBonus,placed:[placed]});
+      if(!result.error)keepBest({word:result.word,words:result.words,score:result.totalScore,flowerBonus:result.flowerBonus,rackBonus:result.rackBonus,placed:[placed]});
     }
   });
-  if(!candidates.length)return null;
-  candidates.sort((a,b)=>b.score-a.score||b.word.length-a.word.length);
-  const pool=candidates.filter(x=>x.score===candidates[0].score&&x.word.length===candidates[0].word.length);
+  if(!pool.length)return null;
   return pool[Math.floor(Math.random()*pool.length)];
 }
 function aiPassTurn(text='HAMLE BULAMADI'){

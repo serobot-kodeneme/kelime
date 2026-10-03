@@ -1,9 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v652-pixel-complete';
+const CACHE_NAME='kapmaca-shell-v653-v651-restored';
 const APP_SHELL=[
   './',
   './index.html',
-  './gokdelen-pixel.css?v=652',
-  './kapisma-pixel.css?v=652-complete',
+  './gokdelen-pixel.css?v=653',
   './assets/gokdelen-pixel/window.svg',
   './assets/gokdelen-pixel/wall.svg',
   './assets/gokdelen-pixel/roof.svg',
@@ -11,7 +10,7 @@ const APP_SHELL=[
   './assets/gokdelen-pixel/door.svg',
   './assets/gokdelen-pixel/city.svg',
 
-  './app.js?v=652-kapisma-pixel',
+  './app.js?v=653-optimized',
   './manifest.webmanifest?v=593',
   './favicon-32.png?v=593',
   './apple-touch-icon.png?v=593',
@@ -36,14 +35,20 @@ self.addEventListener('activate',event=>{
   );
 });
 
-function cacheFirst(request){
+function storeResponse(event,key,response){
+  if(!response||!response.ok)return;
+  const copy=response.clone();
+  event.waitUntil(caches.open(CACHE_NAME)
+    .then(cache=>cache.put(key,copy))
+    .catch(()=>{}));
+}
+
+function cacheFirst(event){
+  const request=event.request;
   return caches.match(request).then(cached=>{
     if(cached)return cached;
     return fetch(request).then(response=>{
-      if(response&&response.ok){
-        const copy=response.clone();
-        caches.open(CACHE_NAME).then(cache=>cache.put(request,copy));
-      }
+      storeResponse(event,request,response);
       return response;
     });
   });
@@ -63,11 +68,13 @@ self.addEventListener('fetch',event=>{
   if(isNavigation){
     event.respondWith(
       fetch(event.request,{cache:'no-store'})
-        .then(response=>{
-          if(response&&response.ok){
-            const copy=response.clone();
-            caches.open(CACHE_NAME).then(cache=>cache.put(event.request,copy));
+        .then(async response=>{
+          if(response&&response.status>=500){
+            const cached=await caches.match('./index.html');
+            if(cached)return cached;
           }
+          // All room links use the same app shell; don't cache one HTML copy per room.
+          storeResponse(event,'./index.html',response);
           return response;
         })
         .catch(()=>caches.match(event.request).then(r=>r||caches.match('./index.html')))
@@ -89,17 +96,14 @@ self.addEventListener('fetch',event=>{
   // Pixel sprites are refreshed by each version's shell install, then read locally.
   const isPixelSprite=url.pathname.startsWith('/assets/gokdelen-pixel/')&&url.pathname.endsWith('.svg');
   if(isVersionedStatic||isPixelSprite){
-    event.respondWith(cacheFirst(event.request));
+    event.respondWith(cacheFirst(event));
     return;
   }
 
   event.respondWith(
     fetch(event.request)
       .then(response=>{
-        if(response&&response.ok){
-          const copy=response.clone();
-          caches.open(CACHE_NAME).then(cache=>cache.put(event.request,copy));
-        }
+        storeResponse(event,event.request,response);
         return response;
       })
       .catch(()=>caches.match(event.request))
