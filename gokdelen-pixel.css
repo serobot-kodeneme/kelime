@@ -1,5 +1,5 @@
 /* v649: GÖKDELEN pixel art skin. Game geometry, controls and animation timing stay unchanged. */
-#screen-kesisim{background:#3791b9 url('assets/gokdelen-pixel/city.svg') center bottom/cover no-repeat!important;color:#102f40!important;font-family:'Courier New',monospace!important}
+#screen-kesisim{background:#20385f url('assets/gokdelen-pixel/city.svg?v=657') center bottom/cover no-repeat!important;color:#102f40!important;font-family:'Courier New',monospace!important}
 #screen-kesisim img{image-rendering:pixelated;pointer-events:none;user-select:none}
 #screen-kesisim .ksm-hud{gap:4px!important;padding-bottom:4px!important}
 #screen-kesisim .ksm-player-card{border-radius:2px!important;border:2px solid #1e534a!important;background:linear-gradient(#91c770 0 3px,#6eaa66 3px calc(100% - 3px),#427c59 calc(100% - 3px))!important;box-shadow:2px 0 0 #153e41,-2px 0 0 #153e41,0 3px 0 #153e41,inset 2px 0 #b6dd8b!important}
@@ -113,4 +113,19 @@
 #screen-kesisim #ksm-board .ksm-cell.entry-wall:not(.filled){
   border:0!important;border-radius:0!important;box-shadow:none!important;
   background:#e4b37b url('assets/gokdelen-pixel/wall.svg') center/8px 32px repeat!important;
+}
+/* v657 — generated arcade title, deeper brickwork and detailed layered city. */
+#screen-kesisim #ksm-intro-title{
+  top:31%!important;
+  left:2%!important;right:2%!important;
+  width:96%!important;height:clamp(66px,18vw,96px)!important;
+  color:transparent!important;font-size:0!important;letter-spacing:0!important;text-shadow:none!important;
+  background:transparent url('assets/gokdelen-pixel/title-v657.png') center/contain no-repeat!important;
+  image-rendering:pixelated!important;
+  filter:drop-shadow(0 4px 0 rgba(9,24,50,.55))!important;
+}
+#screen-kesisim #ksm-board .ksm-cell.entry-wall:not(.filled){
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  background:#b53b16 url('assets/gokdelen-pixel/brick-v657.png') center/96px 96px repeat!important;
+  image-rendering:pixelated!important;
 }
