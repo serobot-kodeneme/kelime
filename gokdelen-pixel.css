@@ -1010,3 +1010,80 @@
   #screen-kesisim .ksm-guide-list li,
   #screen-kesisim .ksm-control-guide p{font-size:10px!important}
 }
+
+
+/* v695 — compact KISACA + five GÖKDELEN action buttons locked to one row. */
+#screen-kesisim .ksm-rack-tools{
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  grid-auto-flow:row!important;
+  grid-auto-columns:auto!important;
+  width:100%!important;
+  gap:4px!important;
+  margin-top:6px!important;
+  overflow:visible!important;
+}
+#screen-kesisim .ksm-rack-tools>button{
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  min-height:39px!important;
+  padding:0 2px!important;
+  margin:0!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  font-size:7.2px!important;
+  gap:2px!important;
+}
+#screen-kesisim .ksm-rack-tools>button .ksm-btn-emoji{
+  flex:0 0 auto!important;
+}
+#screen-kesisim #btn-ksm-place{
+  grid-column:auto!important;
+  grid-row:auto!important;
+}
+#screen-kesisim #ksm-quick-guide .ksm-quick-guide-card{
+  width:min(92%,340px)!important;
+  max-height:none!important;
+  overflow:visible!important;
+  padding:16px 16px 14px!important;
+}
+#screen-kesisim #ksm-quick-guide .ksm-quick-guide-title{
+  margin-bottom:9px!important;
+  font-size:22px!important;
+  line-height:24px!important;
+}
+#screen-kesisim #ksm-quick-guide .ksm-quick-guide-card>p{
+  margin:7px 0!important;
+  font-size:12.5px!important;
+  line-height:1.42!important;
+  font-weight:900!important;
+}
+#screen-kesisim #btn-ksm-quick-guide-ok{
+  min-height:40px!important;
+  margin-top:11px!important;
+  font-size:12px!important;
+}
+@media(max-width:430px){
+  #screen-kesisim .ksm-rack-tools{gap:3px!important}
+  #screen-kesisim .ksm-rack-tools>button{
+    min-height:37px!important;
+    padding:0 1px!important;
+    font-size:6.4px!important;
+    gap:1px!important;
+  }
+  #screen-kesisim .ksm-rack-tools>button .ksm-btn-emoji{
+    width:13px!important;height:13px!important;font-size:12px!important;
+  }
+  #screen-kesisim #btn-ksm-bomb .ksm-btn-emoji{
+    width:18px!important;height:18px!important;font-size:16px!important;
+  }
+  #screen-kesisim #ksm-quick-guide .ksm-quick-guide-card{
+    width:min(92%,320px)!important;
+    padding:15px 14px 13px!important;
+  }
+  #screen-kesisim #ksm-quick-guide .ksm-quick-guide-card>p{
+    font-size:12px!important;
+    line-height:1.4!important;
+  }
+}
