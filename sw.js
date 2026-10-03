@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v649-pixel-art';
+const CACHE_NAME='kapmaca-shell-v650-shared-letters';
 const APP_SHELL=[
   './',
   './index.html',
-  './gokdelen-pixel.css?v=649',
+  './gokdelen-pixel.css?v=650',
   './assets/gokdelen-pixel/window.svg',
   './assets/gokdelen-pixel/wall.svg',
   './assets/gokdelen-pixel/roof.svg',
@@ -10,7 +10,7 @@ const APP_SHELL=[
   './assets/gokdelen-pixel/door.svg',
   './assets/gokdelen-pixel/city.svg',
 
-  './app.js?v=649-pixel-art',
+  './app.js?v=650-shared-letters',
   './manifest.webmanifest?v=593',
   './favicon-32.png?v=593',
   './apple-touch-icon.png?v=593',
