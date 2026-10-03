@@ -7903,6 +7903,8 @@ function applyBombAt(r,c){
 function animateBombArea(r,c){
   if(!canBombAt(r,c))return;
   try{playAtismaExplosionSound();}catch(_){}
+  wrap.classList.remove('ksm-bomb-shake');void wrap.offsetWidth;wrap.classList.add('ksm-bomb-shake');
+  setTimeout(()=>wrap.classList.remove('ksm-bomb-shake'),620);
   for(const p of bombArea(r,c)){
     const el=cells[p.r*COLS+p.c];if(!el)continue;
     el.classList.remove('ksm-bomb-hit');void el.offsetWidth;el.classList.add('ksm-bomb-hit');
