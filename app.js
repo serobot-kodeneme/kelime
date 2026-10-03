@@ -3617,7 +3617,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=642-gokdelen-undo',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=669-readability-room',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -7649,8 +7649,10 @@ function aiFindMove(){
   return pool[Math.floor(Math.random()*count)];
 }
 function aiPassTurn(text='HAMLE BULAMADI'){
+  const passedSide=state.turn;
+  state.scores[passedSide]-=10;
   clearAiTimer();clearTemp();state.turn=0;renderRack();updateHud();
-  showPop(aiName(),text,800);setFeedback('1. oyuncunun sırası.','good');startTurnTimer();
+  showPop(aiName(),text+' • -10 PUAN',1000);setFeedback('1. oyuncunun sırası.','good');startTurnTimer();
 }
 function aiTakeTurn(){
   clearAiTimer();
@@ -7698,10 +7700,12 @@ function startTurnTimer(){
     updateHud();
     if(state.turnLeft<=0){
       clearTurnTimer();clearAiTimer();
+      const passedSide=state.turn;
+      state.scores[passedSide]-=10;
       clearTemp();
       state.turn=state.turn?0:1;
       renderRack();updateHud();
-      showPop('SÜRE DOLDU','SIRA DEĞİŞTİ',850);
+      showPop('BOŞ GEÇTİ','-10 PUAN • SIRA DEĞİŞTİ',1000);
       setFeedback(state.turn===1?aiName()+' düşünüyor…':'1. oyuncunun sırası.','bad');
       startTurnTimer();
     }
@@ -7773,14 +7777,14 @@ function scheduleGokdelenCityAmbience(delay=1200){
       if(gokdelenCityIntroStep<showcase.length)showcase[gokdelenCityIntroStep++]();
       else{
         const roll=Math.random();
-        if(roll<.31)playGokdelenCarPass();
-        else if(roll<.55)playGokdelenGull();
-        else if(roll<.69)playGokdelenTramBell();
-        else if(roll<.82)playGokdelenFerry();
+        if(roll<.18)playGokdelenCarPass();
+        else if(roll<.63)playGokdelenGull();
+        else if(roll<.76)playGokdelenTramBell();
+        else if(roll<.89)playGokdelenFerry();
         else playGokdelenHorn();
       }
     }
-    const next=gokdelenCityIntroStep<5?2400+Math.random()*1200:5200+Math.random()*6500;
+    const next=gokdelenCityIntroStep<5?2200+Math.random()*1000:3800+Math.random()*4500;
     scheduleGokdelenCityAmbience(next);
   },Math.max(250,delay));
 }
@@ -7913,7 +7917,7 @@ function reduceNetworkMatch(data,side,action,placed,now,revision){
     if(!data.turnDeadline||now<Number(data.turnDeadline))return null;
   }else if(Number(data.turn)!==side||now>=Number(data.turnDeadline)||!data.turnDeadline)return null;
   return withMatch(data,()=>{
-    let lastMove=null,passes=Number(data.passCount||0);
+    let lastMove=null,lastPass=null,passes=Number(data.passCount||0);
     if(action==='move'){
       if(!Array.isArray(placed)||!placed.length||placed.length>9)return null;
       const overlay=new Map();
@@ -7935,10 +7939,15 @@ function reduceNetworkMatch(data,side,action,placed,now,revision){
       if(state.broomUsed[side]>=2)return null;
       state.bag.push(...state.racks[side]);state.racks[side]=[];shuffle(state.bag);drawRackToNine(side);state.broomUsed[side]++;
     }else if(action==='shuffle')shuffle(state.racks[side]);
-    else if(action==='timeout'){state.turn=1-state.turn;passes++;}
+    else if(action==='timeout'){
+      const expiredSide=state.turn;
+      state.scores[expiredSide]-=10;
+      state.turn=1-expiredSide;passes++;
+      lastPass={side:expiredSide,score:-10,reason:'BOŞ GEÇTİ'};
+    }
     else return null;
     state.gameOver=!state.bag.length&&!state.racks[0].length&&!state.racks[1].length;
-    return serializeMatch({seed:data.seed,revision:revision+1,turnDeadline:action==='broom'||action==='shuffle'?Number(data.turnDeadline):now+30000,passCount:passes,lastMove});
+    return serializeMatch({seed:data.seed,revision:revision+1,turnDeadline:action==='broom'||action==='shuffle'?Number(data.turnDeadline):now+30000,passCount:passes,lastMove,lastPass});
   });
 }
 function applyNetworkMatch(data,round,intro=false){
@@ -7958,6 +7967,10 @@ function applyNetworkMatch(data,round,intro=false){
     if(previousRevision<0||old[r]?.[c]!==state.grid[r][c]){renderCell(r,c,previousRevision>=0);if(previousRevision>=0&&state.grid[r][c])animateTile(r,c);}
   }
   renderRack();
+  if(data.lastPass&&previousRevision>=0&&previousRevision!==state.revision){
+    const who=Number(data.lastPass.side)===state.mySide?'SEN':'RAKİP';
+    showPop('BOŞ GEÇTİ','-10 PUAN • '+who,1000);
+  }
   if(data.lastMove&&previousRevision>=0&&previousRevision!==state.revision){
     const moveWords=Array.isArray(data.lastMove.words)&&data.lastMove.words.length?data.lastMove.words.map(w=>w.word+' +'+Number(w.score||0)).join(' • '):data.lastMove.word+' +'+data.lastMove.score;
     const climbText=Number(data.lastMove.climbBonus||0)>0?' • YÜKSELİŞ +'+Number(data.lastMove.climbBonus):'';
