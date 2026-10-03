@@ -7179,7 +7179,6 @@ function updateHud(){
   const aiTurn=state.introActive||!myTurn();
   const broomBtn=document.getElementById('btn-ksm-broom');if(broomBtn)broomBtn.disabled=aiTurn||state.broomUsed[state.mySide]>=3||state.temp.size>0||state.gameOver||bombArmed;
   const bombBtn=document.getElementById('btn-ksm-bomb');if(bombBtn){bombBtn.disabled=aiTurn||state.bombUsed[state.mySide]>=1||state.temp.size>0||state.gameOver;bombBtn.classList.toggle('armed',bombArmed);}
-  const shuffleBtn=document.getElementById('btn-ksm-shuffle');if(shuffleBtn)shuffleBtn.disabled=aiTurn||state.temp.size>0||state.gameOver||bombArmed;
   const undoBtn=document.getElementById('btn-ksm-undo');if(undoBtn)undoBtn.disabled=aiTurn||!state.temp.size||state.gameOver;
   const placeBtn=document.getElementById('btn-ksm-place');if(placeBtn)placeBtn.disabled=aiTurn||!state.temp.size||state.gameOver;
   const turnTop=document.getElementById('ksm-turn-status-top');
@@ -7942,12 +7941,6 @@ function broom(){
   shuffle(state.bag);drawRackToNine(state.turn);state.broomUsed[state.turn]++;renderRack();updateHud();
   showPop('🧹 SÜPÜRGE','ISTAKA YENİLENDİ',850);
 }
-function shuffleRack(){
-  if(state.multiplayer){if(myTurn()&&!state.temp.size)window.gokdelenNetwork.submit('shuffle');return;}
-  if(state.introActive||state.gameOver||state.temp.size)return;
-  shuffle(state.racks[state.turn]);renderRack();
-  showPop('🔀 KARIŞTIR','ISTAKA KARIŞTIRILDI',650);
-}
 function showGokdelenGameOver(){
   const a=state.scores[0],b=state.scores[1],title=document.getElementById('ksm-over-title'),txt=document.getElementById('ksm-over-text');
   const threeMissWin=state.endReason==='three-misses'&&(state.forcedWinner===0||state.forcedWinner===1);
@@ -8064,8 +8057,7 @@ function reduceNetworkMatch(data,side,action,placed,now,revision){
       if(state.bombUsed[side]>=1||!canBombAt(r,c)||!bombArea(r,c).some(p=>!!state.grid[p.r]?.[p.c]))return null;
       const changed=applyBombAt(r,c);state.bombUsed[side]++;state.missStreak[side]=0;passes=0;
       lastBomb={side,r,c,count:changed.length};state.turn=1-side;
-    }else if(action==='shuffle')shuffle(state.racks[side]);
-    else if(action==='timeout'){
+    }else if(action==='timeout'){
       const expiredSide=state.turn;
       state.scores[expiredSide]-=10;
       state.missStreak[expiredSide]=Number(state.missStreak[expiredSide]||0)+1;
@@ -8079,7 +8071,7 @@ function reduceNetworkMatch(data,side,action,placed,now,revision){
     }
     else return null;
     if(!state.gameOver)state.gameOver=(state.roofWinner===0||state.roofWinner===1)||!state.bag.length;
-    return serializeMatch({seed:data.seed,revision:revision+1,turnDeadline:state.gameOver?0:(action==='broom'||action==='shuffle'?Number(data.turnDeadline):now+30000),passCount:passes,lastMove,lastPass,lastBomb});
+    return serializeMatch({seed:data.seed,revision:revision+1,turnDeadline:state.gameOver?0:(action==='broom'?Number(data.turnDeadline):now+30000),passCount:passes,lastMove,lastPass,lastBomb});
   });
 }
 function applyNetworkMatch(data,round,intro=false){
@@ -8156,7 +8148,6 @@ document.getElementById('btn-ksm-again')?.addEventListener('click',reset);
 document.getElementById('btn-ksm-new')?.addEventListener('click',reset);
 document.getElementById('btn-ksm-broom')?.addEventListener('click',broom);
 document.getElementById('btn-ksm-bomb')?.addEventListener('click',armBomb);
-document.getElementById('btn-ksm-shuffle')?.addEventListener('click',shuffleRack);
 document.getElementById('btn-ksm-place')?.addEventListener('click',commit);
 document.getElementById('btn-ksm-undo')?.addEventListener('click',undoLastTile);
 document.getElementById('btn-ksm-fullscreen')?.addEventListener('click',()=>toggleGameFullscreen());
