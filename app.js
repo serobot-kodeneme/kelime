@@ -7013,11 +7013,18 @@ function drawRackToNine(p){
 }
 function consumeSeedFromBag(word){for(const ch of word){const i=state.bag.indexOf(ch);if(i>=0)state.bag.splice(i,1);else if(state.bag.length)state.bag.pop();}}
 function setFeedback(text='',kind=''){const el=document.getElementById('ksm-feedback');if(el){el.textContent=text;el.classList.remove('good','bad');if(kind)el.classList.add(kind);}const top=document.getElementById('ksm-turn-status-top');if(top&&text)top.textContent=text;}
-function showPop(title,sub='',duration=950){const pop=document.getElementById('ksm-pop'),a=document.getElementById('ksm-pop-title'),b=document.getElementById('ksm-pop-sub');if(!pop||!a||!b)return;clearTimeout(state.popTimer);pop.classList.remove('ksm-bonus-pop','ksm-flower-pop');a.textContent=title;b.textContent=sub;pop.classList.add('show');state.popTimer=setTimeout(()=>pop.classList.remove('show'),duration);}
+const GOKDELEN_NOTICE_EXTRA_MS=1000;
+function showPop(title,sub='',duration=950){
+  const pop=document.getElementById('ksm-pop'),a=document.getElementById('ksm-pop-title'),b=document.getElementById('ksm-pop-sub');
+  if(!pop||!a||!b)return;
+  clearTimeout(state.popTimer);pop.classList.remove('ksm-bonus-pop','ksm-flower-pop');
+  a.textContent=title;b.textContent=sub;pop.classList.add('show');
+  state.popTimer=setTimeout(()=>pop.classList.remove('show'),Math.max(0,duration)+GOKDELEN_NOTICE_EXTRA_MS);
+}
 function showBonusPop(title,sub='',flower=false,duration=1100){
   const pop=document.getElementById('ksm-pop'),a=document.getElementById('ksm-pop-title'),b=document.getElementById('ksm-pop-sub');if(!pop||!a||!b)return;
   clearTimeout(state.popTimer);a.textContent=title;b.textContent=sub;pop.classList.add('show','ksm-bonus-pop');pop.classList.toggle('ksm-flower-pop',!!flower);
-  state.popTimer=setTimeout(()=>{pop.classList.remove('show','ksm-bonus-pop','ksm-flower-pop');},duration);
+  state.popTimer=setTimeout(()=>{pop.classList.remove('show','ksm-bonus-pop','ksm-flower-pop');},Math.max(0,duration)+GOKDELEN_NOTICE_EXTRA_MS);
 }
 function wordScore(word){return Array.from(word).reduce((n,ch)=>n+(TILE_SCORE_CACHE[ch]||1),0)+Math.max(0,word.length-2)*2;}
 function tempAt(r,c){return state.temp.get(key(r,c))||null;}
@@ -7589,7 +7596,7 @@ function showInvalidFeedback(result={}){
   const y=Math.min(...positions.map(el=>el.offsetTop));
   label.style.left=Math.max(90,Math.min(boardEl.clientWidth-90,x))+'px';label.style.top=Math.max(2,y-24)+'px';
   boardEl.appendChild(label);void screen.offsetWidth;screen.classList.add('ksm-invalid-shake');
-  invalidTimer=setTimeout(clearInvalidFeedback,1500);
+  invalidTimer=setTimeout(clearInvalidFeedback,2500);
 }
 function renderBirds(){
   document.getElementById('ksm-birds')?.remove();
