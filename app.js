@@ -1,3 +1,8 @@
+function syncDisplayedAppVersion(){
+  const version=document.querySelector('meta[name="game-version"]')?.content||'';
+  const label=document.getElementById('app-version-label');
+  if(label&&version)label.textContent=version;
+}
 const TILE_SCORES={
 'A':2,'B':4,'C':5,'Ç':5,'D':4,'E':2,'F':8,'G':6,'Ğ':9,'H':6,'I':3,
 'İ':2,'J':11,'K':2,'L':2,'M':3,'N':2,'O':3,'Ö':8,'P':6,'R':2,'S':3,
@@ -8194,3 +8199,5 @@ document.getElementById('btn-ksm-rules-top')?.addEventListener('click',()=>docum
 document.getElementById('btn-ksm-rule-close')?.addEventListener('click',()=>document.getElementById('ksm-rules')?.classList.add('hidden'));
 })();
 
+
+;if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncDisplayedAppVersion,{once:true});else syncDisplayedAppVersion();
