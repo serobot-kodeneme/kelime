@@ -6969,7 +6969,7 @@ const state={
   dirs:Array.from({length:ROWS},()=>Array(COLS).fill(0)),
   used:new Set(),seedKeys:new Set(),flowers:new Set(),flowerIcons:new Map(),words:[],scores:[0,0],turn:0,bag:[],racks:[[],[]],broomUsed:[0,0],
   temp:new Map(),tempOrder:[],drag:null,meaningBlockedUntil:0,popTimer:null,gameOver:false,turnLeft:30,turnTimer:null,aiTimer:null,lastHeartSec:null,lastBellSec:null,
-  introActive:false,introToken:0,introFrame:null,introCamera:null,introTimers:new Set()
+  introActive:false,introToken:0,introFrame:null,introCamera:null,introTimers:new Set(),quickGuideTimer:null
 };
 const cells=[];
 function myTurn(){return (!state.multiplayer||state.networkPlaying)&&!state.networkBusy&&state.turn===state.mySide;}
@@ -7141,11 +7141,19 @@ function placeSeedLetter(word,index,animate=false){
   state.grid[r][c]=word[index];state.dirs[r][c]|=H;state.seedKeys.add(key(r,c));renderCell(r,c,animate);
   if(animate)animateTile(r,c);
 }
+function hideQuickGuide(){
+  if(state.quickGuideTimer){clearTimeout(state.quickGuideTimer);state.quickGuideTimer=null;}
+  const guide=document.getElementById('ksm-quick-guide');
+  const ok=document.getElementById('btn-ksm-quick-guide-ok');
+  guide?.classList.add('hidden');
+  if(ok)ok.onclick=null;
+}
 function cancelIntro(){
   state.introToken++;state.introActive=false;
   if(state.introCamera){state.introCamera.cancel();state.introCamera=null;}
   if(state.introFrame!==null){cancelAnimationFrame(state.introFrame);state.introFrame=null;}
   for(const timer of state.introTimers)clearTimeout(timer);state.introTimers.clear();
+  hideQuickGuide();
   screen.classList.remove('ksm-intro');
   clearTimeout(state.popTimer);state.popTimer=null;
   document.getElementById('ksm-pop')?.classList.remove('show','ksm-bonus-pop','ksm-flower-pop');
@@ -7155,21 +7163,33 @@ function introLater(fn,ms,token){
   const timer=setTimeout(()=>{state.introTimers.delete(timer);if(state.introActive&&token===state.introToken&&!screen.classList.contains('hidden'))fn();},ms);
   state.introTimers.add(timer);
 }
+function showQuickGuide(next,token){
+  const guide=document.getElementById('ksm-quick-guide');
+  const ok=document.getElementById('btn-ksm-quick-guide-ok');
+  if(!guide){next();return;}
+  let done=false;
+  const close=()=>{
+    if(done)return;done=true;
+    hideQuickGuide();
+    if(state.introActive&&token===state.introToken&&!screen.classList.contains('hidden'))next();
+  };
+  guide.classList.remove('hidden');
+  if(ok)ok.onclick=close;
+  state.quickGuideTimer=setTimeout(close,6000);
+}
 function playIntro(seed){
   state.introActive=true;const token=state.introToken;
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const title=document.getElementById('ksm-intro-title');
+  hideQuickGuide();
   screen.classList.add('ksm-intro');if(title){void title.offsetWidth;title.classList.add('show');}
   wrap.scrollTop=0;wrap.scrollLeft=Math.max(0,(boardEl.scrollWidth-wrap.clientWidth)/2);updateHud();
   const finish=()=>{
     if(!state.used.has(seed))state.words.push(seed);state.used.add(seed);
-    state.introActive=false;screen.classList.remove('ksm-intro');title?.classList.remove('show','fading');
+    state.introActive=false;screen.classList.remove('ksm-intro');title?.classList.remove('show','fading');hideQuickGuide();
     renderRack();setFeedback('Başlangıç sözcüğü: '+seed+'. 1. oyuncu başlıyor.','good');startTurnTimer();
   };
-  const reveal=()=>{
-    title?.classList.add('fading');
-    wrap.scrollTop=Math.max(0,wrap.scrollHeight-wrap.clientHeight);
-    if(state.introCamera){state.introCamera.cancel();state.introCamera=null;}
+  const placeSeed=()=>{
     setFeedback('Başlangıç sözcüğü yerleştiriliyor…');
     let index=0;
     const next=()=>{
@@ -7178,13 +7198,20 @@ function playIntro(seed){
     };
     next();
   };
+  const reveal=()=>{
+    title?.classList.add('fading');
+    wrap.scrollTop=Math.max(0,wrap.scrollHeight-wrap.clientHeight);
+    if(state.introCamera){state.introCamera.cancel();state.introCamera=null;}
+    setFeedback('GÖKDELEN • Kısaca nasıl oynanır?');
+    showQuickGuide(placeSeed,token);
+  };
   const descend=()=>{
     const content=document.getElementById('ksm-building-content');
     if(content&&typeof content.animate==='function'){
       const distance=Math.max(0,wrap.scrollHeight-wrap.clientHeight);
       const camera=content.animate([{transform:'translate3d(0,0,0)'},{transform:`translate3d(0,${-distance}px,0)`}],{duration:5000,easing:'cubic-bezier(.45,0,.55,1)',fill:'forwards'});
       state.introCamera=camera;
-      camera.onfinish=()=>{if(state.introActive&&token===state.introToken)introLater(reveal,350,token);};
+      camera.onfinish=()=>{if(state.introActive&&token===state.introToken)introLater(reveal,250,token);};
       return;
     }
     let lastFrame=null,elapsed=0;
@@ -7196,7 +7223,7 @@ function playIntro(seed){
       const eased=progress*progress*progress*(progress*(progress*6-15)+10);
       wrap.scrollTop=Math.max(0,wrap.scrollHeight-wrap.clientHeight)*eased;
       if(progress<1)state.introFrame=requestAnimationFrame(step);
-      else{state.introFrame=null;introLater(reveal,350,token);}
+      else{state.introFrame=null;introLater(reveal,250,token);}
     };
     state.introFrame=requestAnimationFrame(step);
   };
