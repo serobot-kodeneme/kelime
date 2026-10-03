@@ -6927,7 +6927,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v647 — GÖKDELEN: kesintisiz yavaş kamera ve gerçek ölçekli sokak */
+/* v648 — GÖKDELEN: kesintisiz yavaş kamera ve gerçek ölçekli sokak */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -7167,7 +7167,7 @@ function playIntro(seed){
     const content=document.getElementById('ksm-building-content');
     if(content&&typeof content.animate==='function'){
       const distance=Math.max(0,wrap.scrollHeight-wrap.clientHeight);
-      const camera=content.animate([{transform:'translate3d(0,0,0)'},{transform:`translate3d(0,${-distance}px,0)`}],{duration:reduced?17000:14000,easing:'cubic-bezier(.45,0,.55,1)',fill:'forwards'});
+      const camera=content.animate([{transform:'translate3d(0,0,0)'},{transform:`translate3d(0,${-distance}px,0)`}],{duration:5000,easing:'cubic-bezier(.45,0,.55,1)',fill:'forwards'});
       state.introCamera=camera;
       camera.onfinish=()=>{if(state.introActive&&token===state.introToken)introLater(reveal,350,token);};
       return;
@@ -7177,7 +7177,7 @@ function playIntro(seed){
       if(!state.introActive||token!==state.introToken||screen.classList.contains('hidden'))return;
       if(lastFrame!==null)elapsed+=Math.min(50,Math.max(0,now-lastFrame));
       lastFrame=now;
-      const progress=Math.min(1,elapsed/(reduced?17000:14000));
+      const progress=Math.min(1,elapsed/5000);
       const eased=progress*progress*progress*(progress*(progress*6-15)+10);
       wrap.scrollTop=Math.max(0,wrap.scrollHeight-wrap.clientHeight)*eased;
       if(progress<1)state.introFrame=requestAnimationFrame(step);
@@ -7185,7 +7185,7 @@ function playIntro(seed){
     };
     state.introFrame=requestAnimationFrame(step);
   };
-  introLater(descend,2400,token);
+  introLater(descend,0,token);
 }
 
 function startDrag(e,index){
