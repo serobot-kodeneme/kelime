@@ -7060,7 +7060,8 @@ function updateHud(){
 function renderCell(r,c,isNew=false){
   const el=cells[r*COLS+c];if(!el)return;
   const base=state.grid[r][c],t=tempAt(r,c),ch=t?t.char:base,flower=state.flowers.has(key(r,c));
-  el.className='ksm-cell'+(ch?' filled':'')+(base?' stackable':'')+(state.seedKeys.has(key(r,c))?' seed-cell':'')+(flower?' flower-cell':'')+(t?' ksm-temp':'')+(t?.tower?' ksm-temp-tower':'')+(isNew?' new-cell':'');
+  const entryWall=r>=ROWS-4&&(c<3||c>=6);
+  el.className='ksm-cell'+(ch?' filled':'')+(base?' stackable':'')+(state.seedKeys.has(key(r,c))?' seed-cell':'')+(flower?' flower-cell':'')+(entryWall?' entry-wall':'')+(t?' ksm-temp':'')+(t?.tower?' ksm-temp-tower':'')+(isNew?' new-cell':'');
   el.setAttribute('role','button');el.tabIndex=ch?0:-1;el.setAttribute('aria-label',ch?ch+' — sözcüğün anlamı':'Boş kare');
   el.textContent='';
   if(ch){const sp=document.createElement('span');const motion=document.createElement('span');motion.className='ksm-letter';motion.textContent=ch;sp.appendChild(motion);const sm=document.createElement('small');sm.textContent=String(TILE_SCORE_CACHE[ch]||1);el.append(sp,sm);}
@@ -7098,7 +7099,7 @@ function refreshPlacementPreview(){
   }
   if(result){
     if(result.error)setFeedback(result.error,'bad');
-    else setFeedback(result.words.map(w=>w.word).join(' • ')+' • +'+result.totalScore+' puan — GÖNDER ile onayla.','good');
+    else setFeedback(result.words.map(w=>w.word).join(' • ')+' • +'+result.totalScore+' puan'+(result.climbBonus?' • YÜKSELİŞ +'+result.climbBonus:'')+' — GÖNDER ile onayla.','good');
   }else if(myTurn()&&!state.gameOver)setFeedback('Harfleri yerleştir; GÖNDER’e kadar düzenleyebilirsin.');
   return result;
 }
@@ -7338,7 +7339,8 @@ function evaluatePlacement(overlay){
   }
   const rackIds=new Set(temps.map(t=>t.rackIndex));
   if(rackIds.size!==temps.length)return{error:'Aynı taş iki karede kullanılamaz.'};
-  let lowest=-1;for(let r=0;r<ROWS;r++)if(state.grid[r].some(Boolean))lowest=r;
+  let topRow=ROWS,lowest=-1;
+  for(let r=0;r<ROWS;r++)if(state.grid[r].some(Boolean)){if(topRow===ROWS)topRow=r;lowest=r;}
   for(const t of temps){
     if(t.r<0||t.r>=ROWS||t.c<0||t.c>=COLS||t.r>lowest)return{error:'GÖKDELEN yalnızca yukarı doğru büyür.'};
     if(t.r>=ROWS-4&&t.c>=3&&t.c<6)return{error:'Giriş kapısına harf yerleştirilemez.'};
@@ -7374,11 +7376,13 @@ function evaluatePlacement(overlay){
   mainWords.sort((a,b)=>b.baseScore-a.baseScore||b.line.length-a.line.length);
   const main=mainWords[0];
   if(temps.some(t=>!main.line.some(x=>x.r===t.r&&x.c===t.c)))return{error:'Yeni harfler tek bir ana sözcükte birleşmeli.'};
-  // v655 — Scrabble tipi puanlama: bu hamlede oluşan ana ve tüm yan sözcükler ayrı ayrı puanlanır.
+  // v656 — Scrabble tipi tüm sözcük puanlarına gerçek kat yükseliş bonusunu ekle.
   for(const w of words)w.score=w.baseScore;
   if(rackBonus)main.score*=2;
-  const totalScore=words.reduce((sum,w)=>sum+w.score,0);
-  return{...main,words,totalScore,rackBonus,placedCount,flowerBonus:false};
+  const climbCount=temps.filter(t=>!state.grid[t.r]?.[t.c]&&t.r<topRow).length;
+  const climbBonus=climbCount*5;
+  const totalScore=words.reduce((sum,w)=>sum+w.score,0)+climbBonus;
+  return{...main,words,totalScore,rackBonus,placedCount,climbCount,climbBonus,flowerBonus:false};
 }
 function validate(){return evaluatePlacement(state.temp);}
 function clearAiTimer(){if(state.aiTimer){clearTimeout(state.aiTimer);state.aiTimer=null;}}
@@ -7585,8 +7589,9 @@ function commit(){
   for(const t of placed)renderCell(t.r,t.c,true);
   wrap.classList.remove('ksm-send-burst');void wrap.offsetWidth;wrap.classList.add('ksm-send-burst');setTimeout(()=>wrap.classList.remove('ksm-send-burst'),460);
   const scoredWords=v.words.map(w=>w.word+' +'+w.score).join(' • ');
-  if(v.rackBonus)showBonusPop('5+ HARF BONUSU!','TOPLAM +'+v.totalScore+' • '+scoredWords,false,1350);
-  else showPop('+'+v.totalScore,scoredWords+(placed.some(t=>t.tower)?' • KULE HAMLESİ':''),1250);
+  const climbText=v.climbBonus?' • YÜKSELİŞ +'+v.climbBonus:'';
+  if(v.rackBonus)showBonusPop('5+ HARF BONUSU!','TOPLAM +'+v.totalScore+' • '+scoredWords+climbText,false,1350);
+  else showPop('+'+v.totalScore,scoredWords+climbText+(placed.some(t=>t.tower)?' • KULE HAMLESİ':''),1250);
   const matchToken=state.introToken;
   state.turn=state.turn?0:1;renderRack();updateHud();
   setFeedback(state.turn===1?aiName()+' düşünüyor…':'1. oyuncunun sırası.','good');
@@ -7690,7 +7695,7 @@ function reduceNetworkMatch(data,side,action,placed,now,revision){
       state.scores[side]+=result.totalScore;
       [...overlay.values()].map(t=>t.rackIndex).sort((a,b)=>b-a).forEach(i=>state.racks[side].splice(i,1));
       drawRackToNine(side);passes=0;
-      lastMove={side,placed:[...overlay.values()],word:result.word,words:result.words.map(w=>({word:w.word,score:w.score})),score:result.totalScore};
+      lastMove={side,placed:[...overlay.values()],word:result.word,words:result.words.map(w=>({word:w.word,score:w.score})),climbCount:result.climbCount,climbBonus:result.climbBonus,score:result.totalScore};
       state.turn=1-side;
     }else if(action==='broom'){
       if(state.broomUsed[side]>=2)return null;
@@ -7720,7 +7725,8 @@ function applyNetworkMatch(data,round,intro=false){
   renderRack();
   if(data.lastMove&&previousRevision>=0&&previousRevision!==state.revision){
     const moveWords=Array.isArray(data.lastMove.words)&&data.lastMove.words.length?data.lastMove.words.map(w=>w.word+' +'+Number(w.score||0)).join(' • '):data.lastMove.word+' +'+data.lastMove.score;
-    showPop('+'+data.lastMove.score,moveWords+' • '+(data.lastMove.side===state.mySide?'HAMLE ONAYLANDI':'RAKİBİN HAMLESİ'),1250);
+    const climbText=Number(data.lastMove.climbBonus||0)>0?' • YÜKSELİŞ +'+Number(data.lastMove.climbBonus):'';
+    showPop('+'+data.lastMove.score,moveWords+climbText+' • '+(data.lastMove.side===state.mySide?'HAMLE ONAYLANDI':'RAKİBİN HAMLESİ'),1250);
     const top=Math.min(...(data.lastMove.placed||[]).map(t=>t.r));
     if(Number.isFinite(top))wrap.scrollTo({top:Math.max(0,boardEl.offsetTop+top*boardEl.clientHeight/ROWS-wrap.clientHeight*.35),behavior:'smooth'});
   }
