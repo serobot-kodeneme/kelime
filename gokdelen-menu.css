@@ -56,3 +56,17 @@ body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes#home-game-su
 body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes#home-game-submodes #btn-create-room>span:first-child{font-size:0!important;background:url('assets/gokdelen-pixel/icon.svg') center/contain no-repeat!important;width:54px;height:58px;display:block}
 body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes#home-game-submodes #btn-random-match>span:first-child{font-size:0!important;filter:none!important;width:54px;height:58px;display:flex;align-items:center;justify-content:center}
 body[data-gokdelen-menu='1'] #home-game-submodes#home-game-submodes#home-game-submodes #btn-random-match>span:first-child::after{content:'?';font:bold 40px 'Courier New',monospace;color:#193d50;border:3px solid #193d50;background:#fff4d9;width:42px;height:44px;line-height:38px}
+
+
+/* v661 — home title matches the in-game GÖKDELEN arcade mark. */
+#screen-home #btn-mode-gokdelen .home-game-mode-copy b{
+  display:block!important;
+  width:min(170px,100%)!important;height:34px!important;
+  font-size:0!important;line-height:0!important;color:transparent!important;
+  background:transparent url('assets/gokdelen-pixel/title-v657.png?v=661') left center/contain no-repeat!important;
+  image-rendering:pixelated!important;
+  filter:drop-shadow(0 2px 0 rgba(9,24,50,.38))!important;
+}
+@media(max-width:380px){
+  #screen-home #btn-mode-gokdelen .home-game-mode-copy b{width:min(150px,100%)!important;height:30px!important}
+}
