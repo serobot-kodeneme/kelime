@@ -1,6 +1,7 @@
 /* GÖKDELEN — shared board and atomic, revision-checked turns. */
 (()=>{
 let activeRef=null,generation=0,clock=null,startTimer=null,autoExit=null,sceneRound=0,introRound=0,lastRevision=-1,startBusy=false,enterBusy=false,submitBusy=false,latest=null,lastCountdown=-1;
+const INTRO_READY_MS=15400;
 const engine=()=>window.gokdelenEngine;
 const side=()=>mpRole==='guest'?1:0;
 function stop(){
@@ -57,8 +58,8 @@ async function start(){
     await ref.transaction(data=>{
       if(!data?.gokdelen||data.gameState?.status!=='waiting'||!data.guestId||!data.ready?.host||!data.ready?.guest)return;
       if(!/^random-match-/.test(data.mode)&&data.invite?.guest!=='accepted')return;
-      const at=serverNow()+3200;data.gameState.status='countdown';data.gameState.startAt=at;
-      data.gokdelen.turnDeadline=at+9100+30000;return data;
+      const at=serverNow()+INTRO_READY_MS;data.gameState.status='countdown';data.gameState.startAt=at;
+      data.gokdelen.turnDeadline=at+30000;return data;
     },undefined,false);
   }catch(err){console.error('Gökdelen start failed',err);}
   finally{startBusy=false;}
@@ -104,16 +105,12 @@ async function watch(snapshot){
     await enter(data);if(token!==generation||ref!==activeRef)return;
     document.getElementById('modal-mp-waiting')?.classList.add('hidden');
     if(gs.status==='countdown'){
-      const number=document.getElementById('countdown-number'),status=document.getElementById('countdown-status');
-      const modal=document.getElementById('modal-countdown');modal?.classList.remove('single-countdown-active','hidden');
-      document.getElementById('single-countdown-message')?.classList.add('hidden');document.getElementById('single-countdown-understood')?.classList.add('hidden');
-      modal?.querySelector('.mp-demo')?.classList.add('hidden');if(status){status.textContent='GÖKDELEN • SENKRON HAZIR';status.classList.remove('hidden');}
-      const paintCountdown=()=>{if(token!==generation)return;const n=Math.max(1,Math.ceil((gs.startAt-serverNow())/1000));if(number){number.textContent=String(n);number.style.opacity='1';}if(n!==lastCountdown){lastCountdown=n;playCountdownBeep(n);}};
-      clearInterval(clock);paintCountdown();clock=setInterval(paintCountdown,250);
+      document.getElementById('modal-countdown')?.classList.add('hidden');
+      document.querySelector('#modal-countdown .mp-demo')?.classList.add('hidden');
+      if(introRound!==round)beginRound(data);
       clearTimeout(startTimer);startTimer=setTimeout(async()=>{
         if(token!==generation||ref!==activeRef)return;
-        beginRound(latest);
-        try{await ref.child('gameState').transaction(cur=>{if(cur?.status==='countdown'&&Number(cur.round)===round&&serverNow()>=Number(cur.startAt)){return{...cur,status:'playing'};}},undefined,false);}catch(err){console.error('Gökdelen countdown failed',err);}
+        try{await ref.child('gameState').transaction(cur=>{if(cur?.status==='countdown'&&Number(cur.round)===round&&serverNow()>=Number(cur.startAt)){return{...cur,status:'playing'};}},undefined,false);}catch(err){console.error('Gökdelen intro sync failed',err);}
       },Math.max(0,gs.startAt-serverNow()));
       return;
     }
@@ -154,7 +151,7 @@ async function submit(action,placed=null){
 async function restart(){
   if(!activeRef||submitBusy||isRandomHumanRoom())return;const ref=activeRef,token=generation;submitBusy=true;engine().busy(true);
   try{
-    const fresh=engine().makeMatch(),at=serverNow()+3200;fresh.turnDeadline=at+9100+30000;
+    const fresh=engine().makeMatch(),at=serverNow()+INTRO_READY_MS;fresh.turnDeadline=at+30000;
     const expectedRound=Number(latest?.gameState?.round||1);
     await ref.transaction(data=>{
       if(!data||Number(data.gameState?.round)!==expectedRound||!['playing','finished'].includes(data.gameState?.status))return;
