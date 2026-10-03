@@ -937,3 +937,76 @@
 #screen-kesisim #btn-ksm-fullscreen{grid-column:2!important;grid-row:1!important}
 #screen-kesisim #btn-ksm-exit-bottom{grid-column:3!important;grid-row:1!important}
 #screen-kesisim .ksm-entry{padding-bottom:4px!important}
+
+
+/* v692 — SİL / KARIŞTIR / sürükle-bırak BOMBA ve güncel KISACA rehberi */
+#screen-kesisim .ksm-rack-tools{
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:4px!important;
+}
+#screen-kesisim .ksm-rack-tools button{
+  min-width:0!important;
+  padding:0 3px!important;
+  font-size:7.6px!important;
+}
+#screen-kesisim #btn-ksm-broom .ksm-btn-emoji,
+#screen-kesisim #btn-ksm-shuffle .ksm-btn-emoji{
+  background-image:none!important;
+  font-size:14px!important;
+  width:16px!important;height:16px!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  image-rendering:auto!important;
+}
+#screen-kesisim #btn-ksm-shuffle{background:#118fc5!important}
+#screen-kesisim #btn-ksm-bomb{
+  cursor:grab!important;
+  padding:0!important;
+  position:relative!important;
+}
+#screen-kesisim #btn-ksm-bomb:active{cursor:grabbing!important}
+#screen-kesisim #btn-ksm-bomb .ksm-btn-emoji{width:21px!important;height:21px!important}
+#screen-kesisim .ksm-bomb-count{
+  position:absolute;right:2px;bottom:1px;
+  font-size:6px!important;line-height:7px!important;
+  color:#fff!important;text-shadow:1px 1px #183d4e!important;
+}
+#ksm-drag-ghost.ksm-bomb-drag{
+  font-size:24px!important;
+  background:#df4362!important;
+  border:2px solid #183d4e!important;
+  color:#fff!important;
+}
+#screen-kesisim .ksm-bottom{
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+}
+#screen-kesisim #btn-ksm-fullscreen{grid-column:3!important}
+#screen-kesisim #btn-ksm-exit-bottom{grid-column:4!important}
+#screen-kesisim .ksm-guide-section{
+  text-align:left!important;
+  margin:10px 0!important;
+  padding:9px 10px!important;
+  border:2px solid #193d50!important;
+  background:rgba(255,255,255,.52)!important;
+}
+#screen-kesisim .ksm-guide-heading{
+  display:block!important;
+  margin-bottom:6px!important;
+  text-align:center!important;
+  font-size:12px!important;
+}
+#screen-kesisim .ksm-guide-list{
+  margin:0!important;padding-left:18px!important;
+  list-style:disc!important;
+}
+#screen-kesisim .ksm-guide-list li,
+#screen-kesisim .ksm-control-guide p{
+  margin:5px 0!important;
+  font-size:11px!important;line-height:1.38!important;
+  font-weight:900!important;
+}
+@media(max-width:430px){
+  #screen-kesisim .ksm-rack-tools{gap:3px!important}
+  #screen-kesisim .ksm-rack-tools button{font-size:6.7px!important;padding:0 2px!important}
+  #screen-kesisim .ksm-guide-list li,
+  #screen-kesisim .ksm-control-guide p{font-size:10px!important}
+}

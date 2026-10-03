@@ -3619,7 +3619,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=690',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=692',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -7179,6 +7179,7 @@ function updateHud(){
   const aiTurn=state.introActive||!myTurn();
   const broomBtn=document.getElementById('btn-ksm-broom');if(broomBtn)broomBtn.disabled=aiTurn||state.broomUsed[state.mySide]>=3||state.temp.size>0||state.gameOver||bombArmed;
   const bombBtn=document.getElementById('btn-ksm-bomb');if(bombBtn){bombBtn.disabled=aiTurn||state.bombUsed[state.mySide]>=1||state.temp.size>0||state.gameOver;bombBtn.classList.toggle('armed',bombArmed);}
+  const shuffleBtn=document.getElementById('btn-ksm-shuffle');if(shuffleBtn)shuffleBtn.disabled=aiTurn||state.temp.size>0||state.gameOver||bombArmed;
   const undoBtn=document.getElementById('btn-ksm-undo');if(undoBtn)undoBtn.disabled=aiTurn||!state.temp.size||state.gameOver;
   const placeBtn=document.getElementById('btn-ksm-place');if(placeBtn)placeBtn.disabled=aiTurn||!state.temp.size||state.gameOver;
   const turnTop=document.getElementById('ksm-turn-status-top');
@@ -7454,6 +7455,13 @@ function moveGhost(x,y){ghost.style.left=x+'px';ghost.style.top=y+'px';}
 function dropAt(x,y){
   const drag=state.drag;if(!drag)return;
   const target=document.elementFromPoint(x,y);
+  if(drag.source==='bomb'){
+    const el=target?.closest?.('.ksm-cell');
+    if(!el||!boardEl.contains(el)){bombArmed=false;updateHud();setFeedback('Bombayı tahta üzerindeki bir hedef hücreye bırak.','bad');return;}
+    const r=Number(el.dataset.r),c=Number(el.dataset.c);
+    handleBombTarget(r,c);
+    return;
+  }
   if(target&&(target===rackP1El||rackP1El.contains(target))){
     if(drag.source==='temp'){
       returnTempTile(drag.fromKey,drag.from,{x,y});
@@ -7910,6 +7918,13 @@ function animateBombArea(r,c){
     setTimeout(()=>el.classList.remove('ksm-bomb-hit'),1050);
   }
 }
+function startBombDrag(e){
+  if(state.introActive||state.gameOver||!myTurn()||state.temp.size||state.drag||state.bombUsed[state.mySide]>=1)return;
+  e.preventDefault();e.stopPropagation();bombArmed=true;
+  state.drag={source:'bomb',pointerId:e.pointerId,letter:'💣'};
+  ghost.classList.add('ksm-bomb-drag');ghost.textContent='💣';ghost.style.display='flex';moveGhost(e.clientX,e.clientY);
+  setFeedback('💣 Bombayı hedef 3×3 alanın orta hücresine sürükleyip bırak.','good');
+}
 function armBomb(){
   if(state.introActive||state.gameOver||!myTurn()||state.temp.size||state.bombUsed[state.mySide]>=1)return;
   bombArmed=!bombArmed;
@@ -7939,7 +7954,13 @@ function broom(){
   const rack=state.racks[state.turn];
   while(rack.length)state.bag.push(rack.pop());
   shuffle(state.bag);drawRackToNine(state.turn);state.broomUsed[state.turn]++;renderRack();updateHud();
-  showPop('🧹 SÜPÜRGE','ISTAKA YENİLENDİ',850);
+  showPop('🧽 SİL','ISTAKA YENİLENDİ',850);
+}
+function shuffleRack(){
+  if(state.introActive||state.gameOver||!myTurn()||state.temp.size||state.drag)return;
+  if(state.multiplayer){window.gokdelenNetwork.submit('shuffle');return;}
+  shuffle(state.racks[state.turn]);renderRack();updateHud();
+  showPop('🔀 KARIŞTIR','HARFLERİN SIRASI DEĞİŞTİ',650);
 }
 function showGokdelenGameOver(){
   const a=state.scores[0],b=state.scores[1],title=document.getElementById('ksm-over-title'),txt=document.getElementById('ksm-over-text');
@@ -7983,12 +8004,13 @@ function exit(){if(state.multiplayer){window.gokdelenNetwork.leave();return;}sto
 async function open(){activeGameMode='single';state.multiplayer=false;state.mySide=0;document.body.dataset.gokdelenMenu='1';cancelIntro();const openingToken=state.introToken;document.getElementById('screen-home')?.classList.add('hidden');screen.classList.remove('hidden');startGokdelenCityAmbience();setFeedback('GÖKDELEN hazırlanıyor…');try{await ensureWordDataLoaded();if(openingToken!==state.introToken||screen.classList.contains('hidden'))return;if(!cells.length)buildBoard();reset();}catch(err){console.error('Kesişim startup failed',err);showToast('GÖKDELEN hazırlanamadı.','rose');exit();}}
 
 document.addEventListener('pointermove',e=>{if(!state.drag||e.pointerId!==state.drag.pointerId)return;e.preventDefault();if(lastTempTap&&Math.hypot(e.clientX-lastTempTap.x,e.clientY-lastTempTap.y)>8)lastTempTap=null;moveGhost(e.clientX,e.clientY);},{passive:false});
-document.addEventListener('pointerup',e=>{if(!state.drag||e.pointerId!==state.drag.pointerId)return;e.preventDefault();state.meaningBlockedUntil=Date.now()+250;dropAt(e.clientX,e.clientY);state.drag=null;ghost.style.display='none';},{passive:false});
+document.addEventListener('pointerup',e=>{if(!state.drag||e.pointerId!==state.drag.pointerId)return;e.preventDefault();state.meaningBlockedUntil=Date.now()+250;dropAt(e.clientX,e.clientY);state.drag=null;bombArmed=false;ghost.classList.remove('ksm-bomb-drag');ghost.style.display='none';updateHud();},{passive:false});
 document.addEventListener('pointercancel',e=>{
   if(!state.drag||e.pointerId!==state.drag.pointerId)return;
   const drag=state.drag;
   if(drag.source==='temp'&&drag.from){state.temp.set(drag.fromKey,drag.from);renderCell(drag.from.r,drag.from.c,false);renderRack();}
-  state.drag=null;ghost.style.display='none';
+  if(drag.source==='bomb')bombArmed=false;
+  state.drag=null;ghost.classList.remove('ksm-bomb-drag');ghost.style.display='none';updateHud();
 },{passive:true});
 // The same pure rule engine is used locally and by both network clients.
 const MATCH_FIELDS=['grid','dirs','used','seedKeys','words','scores','turn','bag','racks','broomUsed','bombUsed','highestFloors','longestWords','wordCounts','roofWinner','missStreak','forcedWinner','endReason','gameOver','multiplayer','mySide'];
@@ -8052,6 +8074,8 @@ function reduceNetworkMatch(data,side,action,placed,now,revision){
     }else if(action==='broom'){
       if(state.broomUsed[side]>=3)return null;
       state.bag.push(...state.racks[side]);state.racks[side]=[];shuffle(state.bag);drawRackToNine(side);state.broomUsed[side]++;
+    }else if(action==='shuffle'){
+      shuffle(state.racks[side]);
     }else if(action==='bomb'){
       const r=Number(placed?.r),c=Number(placed?.c);
       if(state.bombUsed[side]>=1||!canBombAt(r,c)||!bombArea(r,c).some(p=>!!state.grid[p.r]?.[p.c]))return null;
@@ -8071,7 +8095,7 @@ function reduceNetworkMatch(data,side,action,placed,now,revision){
     }
     else return null;
     if(!state.gameOver)state.gameOver=(state.roofWinner===0||state.roofWinner===1)||!state.bag.length;
-    return serializeMatch({seed:data.seed,revision:revision+1,turnDeadline:state.gameOver?0:(action==='broom'?Number(data.turnDeadline):now+30000),passCount:passes,lastMove,lastPass,lastBomb});
+    return serializeMatch({seed:data.seed,revision:revision+1,turnDeadline:state.gameOver?0:((action==='broom'||action==='shuffle')?Number(data.turnDeadline):now+30000),passCount:passes,lastMove,lastPass,lastBomb});
   });
 }
 function applyNetworkMatch(data,round,intro=false){
@@ -8147,7 +8171,8 @@ document.getElementById('btn-ksm-home-exit')?.addEventListener('click',exit);
 document.getElementById('btn-ksm-again')?.addEventListener('click',reset);
 document.getElementById('btn-ksm-new')?.addEventListener('click',reset);
 document.getElementById('btn-ksm-broom')?.addEventListener('click',broom);
-document.getElementById('btn-ksm-bomb')?.addEventListener('click',armBomb);
+document.getElementById('btn-ksm-bomb')?.addEventListener('pointerdown',startBombDrag,{passive:false});
+document.getElementById('btn-ksm-shuffle')?.addEventListener('click',shuffleRack);
 document.getElementById('btn-ksm-place')?.addEventListener('click',commit);
 document.getElementById('btn-ksm-undo')?.addEventListener('click',undoLastTile);
 document.getElementById('btn-ksm-fullscreen')?.addEventListener('click',()=>toggleGameFullscreen());
