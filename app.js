@@ -6969,7 +6969,7 @@ const state={
   dirs:Array.from({length:ROWS},()=>Array(COLS).fill(0)),
   used:new Set(),seedKeys:new Set(),flowers:new Set(),flowerIcons:new Map(),words:[],scores:[0,0],turn:0,bag:[],racks:[[],[]],broomUsed:[0,0],
   temp:new Map(),tempOrder:[],drag:null,meaningBlockedUntil:0,popTimer:null,gameOver:false,turnLeft:30,turnTimer:null,aiTimer:null,lastHeartSec:null,lastBellSec:null,
-  introActive:false,introToken:0,introFrame:null,introCamera:null,introTimers:new Set(),quickGuideTimer:null
+  introActive:false,introToken:0,introFrame:null,introCamera:null,introTimers:new Set()
 };
 const cells=[];
 function myTurn(){return (!state.multiplayer||state.networkPlaying)&&!state.networkBusy&&state.turn===state.mySide;}
@@ -7142,7 +7142,6 @@ function placeSeedLetter(word,index,animate=false){
   if(animate)animateTile(r,c);
 }
 function hideQuickGuide(){
-  if(state.quickGuideTimer){clearTimeout(state.quickGuideTimer);state.quickGuideTimer=null;}
   const guide=document.getElementById('ksm-quick-guide');
   const ok=document.getElementById('btn-ksm-quick-guide-ok');
   guide?.classList.add('hidden');
@@ -7166,16 +7165,14 @@ function introLater(fn,ms,token){
 function showQuickGuide(next,token){
   const guide=document.getElementById('ksm-quick-guide');
   const ok=document.getElementById('btn-ksm-quick-guide-ok');
-  if(!guide){next();return;}
+  if(!guide||!ok){next();return;}
   let done=false;
-  const close=()=>{
+  ok.onclick=()=>{
     if(done)return;done=true;
     hideQuickGuide();
     if(state.introActive&&token===state.introToken&&!screen.classList.contains('hidden'))next();
   };
   guide.classList.remove('hidden');
-  if(ok)ok.onclick=close;
-  state.quickGuideTimer=setTimeout(close,6000);
 }
 function playIntro(seed){
   state.introActive=true;const token=state.introToken;
@@ -7187,7 +7184,14 @@ function playIntro(seed){
   const finish=()=>{
     if(!state.used.has(seed))state.words.push(seed);state.used.add(seed);
     state.introActive=false;screen.classList.remove('ksm-intro');title?.classList.remove('show','fading');hideQuickGuide();
-    renderRack();setFeedback('Başlangıç sözcüğü: '+seed+'. 1. oyuncu başlıyor.','good');startTurnTimer();
+    renderRack();
+    if(state.multiplayer){
+      setFeedback('Hazırsın. Rakibin hazırlanması bekleniyor…','good');
+      window.gokdelenNetwork?.introReady?.();
+    }else{
+      setFeedback('Başlangıç sözcüğü: '+seed+'. 1. oyuncu başlıyor.','good');
+      startTurnTimer();
+    }
   };
   const placeSeed=()=>{
     setFeedback('Başlangıç sözcüğü yerleştiriliyor…');
