@@ -135,7 +135,7 @@
 
 /* v659 — Istanbul skyline, compact HUD and top controls. Gameplay logic unchanged. */
 #screen-kesisim{
-  background:#17355f url('assets/gokdelen-pixel/city-v659.svg?v=659') center bottom/cover no-repeat!important;
+  background:#17355f url('assets/gokdelen-pixel/city-v659.svg?v=660') center bottom/cover no-repeat!important;
 }
 #screen-kesisim .ksm-topline{
   flex:0 0 auto!important;
@@ -177,7 +177,7 @@
 #screen-kesisim #btn-ksm-exit-bottom{background:#df4362!important}
 #screen-kesisim #ksm-board .ksm-cell.entry-wall:not(.filled){
   border:0!important;border-radius:0!important;box-shadow:none!important;
-  background:#a63c1b url('assets/gokdelen-pixel/brick-v659.svg?v=659') center/64px 48px repeat!important;
+  background:#a63c1b url('assets/gokdelen-pixel/brick-v659.svg?v=660') center/64px 48px repeat!important;
   image-rendering:pixelated!important;
 }
 @media(max-width:430px){
@@ -197,3 +197,8 @@
   #screen-kesisim .ksm-topline .ksm-player-meta>span{font-size:5px!important}
   #screen-kesisim .ksm-topline .ksm-player-card>strong{font-size:13px!important}
 }
+
+
+/* v660 — HUD nesting hotfix. Keeps v659 Istanbul art and top-control design intact. */
+#screen-kesisim .ksm-topline>.ksm-hud{align-self:stretch!important;height:auto!important}
+#screen-kesisim .ksm-topline>.ksm-top-action{align-self:stretch!important}
