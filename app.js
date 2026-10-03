@@ -7597,7 +7597,7 @@ function evaluatePlacement(overlay){
   if(rackBonus)main.score*=2;
   const climbTiles=temps.filter(t=>!state.grid[t.r]?.[t.c]&&t.r<topRow).map(t=>({r:t.r,c:t.c}));
   const climbCount=climbTiles.length;
-  const climbBonus=climbCount*5;
+  const climbBonus=climbCount*10;
   const roofReached=state.roofWinner<0&&temps.some(t=>!state.grid[t.r]?.[t.c]&&t.r===0);
   const totalScore=words.reduce((sum,w)=>sum+w.score,0)+climbBonus;
   return{...main,words,totalScore,rackBonus,placedCount,climbCount,climbTiles,climbBonus,roofReached,roofBonus:0,flowerBonus:false};
@@ -7754,10 +7754,19 @@ function startTurnTimer(){
       clearTurnTimer();clearAiTimer();
       const passedSide=state.turn;
       state.scores[passedSide]-=10;
+      state.missStreak[passedSide]=Number(state.missStreak[passedSide]||0)+1;
       clearTemp();
       state.turn=state.turn?0:1;
       renderRack();updateHud();
-      showPop('BOŞ GEÇTİ','-10 PUAN • SIRA DEĞİŞTİ',1000);
+      showPop('BOŞ GEÇTİ','-10 PUAN • '+state.missStreak[passedSide]+'/3',1000);
+      if(state.missStreak[passedSide]>=3){
+        state.forcedWinner=state.turn;
+        state.endReason='three-misses';
+        state.gameOver=true;
+        clearTurnTimer();clearAiTimer();
+        showGokdelenGameOver();
+        return;
+      }
       setFeedback(state.turn===1?aiName()+' düşünüyor…':'1. oyuncunun sırası.','bad');
       startTurnTimer();
     }
@@ -7859,6 +7868,7 @@ function commit(){
   for(const w of v.words){state.used.add(w.word);state.words.push(w.word);}
   const moveSide=state.turn;
   state.scores[moveSide]+=v.totalScore;
+  state.missStreak[moveSide]=0;
   recordMoveStats(moveSide,v,placed);
   const rack=state.racks[state.turn];
   const used=[...new Set(placed.map(t=>t.rackIndex))].sort((a,b)=>b-a);
