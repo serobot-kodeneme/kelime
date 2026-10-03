@@ -1,8 +1,16 @@
-const CACHE_NAME='kapmaca-shell-v648-seated-street';
+const CACHE_NAME='kapmaca-shell-v649-pixel-art';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=648-seated-street',
+  './gokdelen-pixel.css?v=649',
+  './assets/gokdelen-pixel/window.svg',
+  './assets/gokdelen-pixel/wall.svg',
+  './assets/gokdelen-pixel/roof.svg',
+  './assets/gokdelen-pixel/street.svg',
+  './assets/gokdelen-pixel/door.svg',
+  './assets/gokdelen-pixel/city.svg',
+
+  './app.js?v=649-pixel-art',
   './manifest.webmanifest?v=593',
   './favicon-32.png?v=593',
   './apple-touch-icon.png?v=593',
