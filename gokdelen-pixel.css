@@ -135,7 +135,7 @@
 
 /* v659 — Istanbul skyline, compact HUD and top controls. Gameplay logic unchanged. */
 #screen-kesisim{
-  background:#17355f url('assets/gokdelen-pixel/city-v659.svg?v=661') center bottom/cover no-repeat!important;
+  background:#17355f url('assets/gokdelen-pixel/city-v659.svg?v=662') center bottom/cover no-repeat!important;
 }
 #screen-kesisim .ksm-topline{
   flex:0 0 auto!important;
@@ -177,7 +177,7 @@
 #screen-kesisim #btn-ksm-exit-bottom{background:#df4362!important}
 #screen-kesisim #ksm-board .ksm-cell.entry-wall:not(.filled){
   border:0!important;border-radius:0!important;box-shadow:none!important;
-  background:#a63c1b url('assets/gokdelen-pixel/brick-v659.svg?v=661') center/64px 48px repeat!important;
+  background:#a63c1b url('assets/gokdelen-pixel/brick-v659.svg?v=662') center/64px 48px repeat!important;
   image-rendering:pixelated!important;
 }
 @media(max-width:430px){
@@ -204,7 +204,7 @@
 #screen-kesisim .ksm-topline>.ksm-top-action{align-self:stretch!important}
 
 
-/* v661 — slimmer HUD, edge controls and six-second quick-start guide. */
+/* v661 — slimmer HUD, edge controls and compact quick-start guide. */
 #screen-kesisim .ksm-topline{
   position:relative!important;
   width:100%!important;max-width:none!important;
@@ -300,3 +300,8 @@
   #screen-kesisim .ksm-topline .ksm-player-card>strong{font-size:12px!important}
   #ksm-quick-guide .ksm-quick-guide-card{width:min(94%,300px);padding:12px}
 }
+
+
+/* v662 — explicit guide acknowledgement; no countdown or auto-close. */
+#ksm-quick-guide{pointer-events:auto}
+#btn-ksm-quick-guide-ok{cursor:pointer}
