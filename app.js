@@ -3626,7 +3626,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=692',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=700',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -6967,6 +6967,43 @@ const wrap=document.getElementById('ksm-board-wrap');
 const rackP1El=document.getElementById('ksm-rack-p1');
 const ghost=document.getElementById('ksm-drag-ghost');
 if(!screen||!boardEl||!wrap||!rackP1El||!ghost)return;
+
+/* v700 — GÖKDELEN işlem ipuçları: masaüstünde hover/focus, dokunmatikte parmak basışı. */
+const controlTip=document.getElementById('ksm-control-tip');
+let controlTipTimer=0;
+function hideControlTip(){
+  clearTimeout(controlTipTimer);
+  if(!controlTip)return;
+  controlTip.classList.add('hidden');
+  controlTip.textContent='';
+}
+function showControlTip(button,autoHide=false){
+  if(!controlTip||!button)return;
+  const message=button.dataset.ksmTip;
+  if(!message)return;
+  clearTimeout(controlTipTimer);
+  controlTip.textContent=message;
+  controlTip.classList.remove('hidden');
+  const rect=button.getBoundingClientRect();
+  const tipRect=controlTip.getBoundingClientRect();
+  const margin=8;
+  const left=Math.max(margin,Math.min(window.innerWidth-tipRect.width-margin,rect.left+rect.width/2-tipRect.width/2));
+  const top=Math.max(margin,rect.top-tipRect.height-8);
+  controlTip.style.left=left+'px';
+  controlTip.style.top=top+'px';
+  if(autoHide)controlTipTimer=setTimeout(hideControlTip,1900);
+}
+for(const button of screen.querySelectorAll('.ksm-rack-tools [data-ksm-tip]')){
+  button.addEventListener('pointerenter',event=>{if(event.pointerType==='mouse')showControlTip(button,false);});
+  button.addEventListener('pointerleave',event=>{if(event.pointerType==='mouse')hideControlTip();});
+  button.addEventListener('focus',()=>showControlTip(button,false));
+  button.addEventListener('blur',hideControlTip);
+  button.addEventListener('pointerdown',event=>{
+    if(event.pointerType!=='mouse')showControlTip(button,true);
+  },{passive:true});
+}
+window.addEventListener('resize',hideControlTip,{passive:true});
+document.addEventListener('scroll',hideControlTip,{passive:true,capture:true});
 
 const ROWS=40,COLS=9,H=1,V=2,TOTAL_TILES=200;
 const LETTER_POOL='AAAAAAAABCCÇDDEEEEEEEEGĞHIIIIİİİİKKKLLLLMMMNNNNOOÖPRRRRSSSSŞTTTTUUÜVYYZ';
