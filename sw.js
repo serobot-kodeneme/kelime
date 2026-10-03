@@ -1,8 +1,8 @@
-const CACHE_NAME='kapmaca-shell-v645-slow-intro-sidewalk';
+const CACHE_NAME='kapmaca-shell-v646-living-street';
 const APP_SHELL=[
   './',
   './index.html',
-  './app.js?v=645-slow-intro-sidewalk',
+  './app.js?v=646-living-street',
   './manifest.webmanifest?v=593',
   './favicon-32.png?v=593',
   './apple-touch-icon.png?v=593',

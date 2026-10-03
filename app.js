@@ -6927,7 +6927,7 @@ window.addEventListener('resize',()=>{
 },{passive:true});
 })();
 
-/* v645 — GÖKDELEN: ağır kamera inişi, uzun başlık ve yaşayan kaldırım */
+/* v646 — GÖKDELEN: kesintisiz yavaş kamera ve gerçek ölçekli sokak */
 (()=>{
 const screen=document.getElementById('screen-kesisim');
 const boardEl=document.getElementById('ksm-board');
@@ -7162,12 +7162,12 @@ function playIntro(seed){
     next();
   };
   const descend=()=>{
-    if(reduced){reveal();return;}
-    let started=null;
+    let lastFrame=null,elapsed=0;
     const step=now=>{
       if(!state.introActive||token!==state.introToken||screen.classList.contains('hidden'))return;
-      if(started===null)started=now;
-      const progress=Math.min(1,(now-started)/11000);
+      if(lastFrame!==null)elapsed+=Math.min(50,Math.max(0,now-lastFrame));
+      lastFrame=now;
+      const progress=Math.min(1,elapsed/(reduced?17000:14000));
       const eased=progress*progress*progress*(progress*(progress*6-15)+10);
       wrap.scrollTop=Math.max(0,wrap.scrollHeight-wrap.clientHeight)*eased;
       if(progress<1)state.introFrame=requestAnimationFrame(step);
@@ -7175,7 +7175,7 @@ function playIntro(seed){
     };
     state.introFrame=requestAnimationFrame(step);
   };
-  introLater(descend,reduced?450:2400,token);
+  introLater(descend,2400,token);
 }
 
 function startDrag(e,index){
