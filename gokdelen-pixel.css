@@ -544,7 +544,7 @@
   position:absolute;left:50%;bottom:132px;z-index:21;pointer-events:none;
   width:calc(var(--ksm-cell-size)*4.7);height:calc(var(--ksm-cell-size)*2.05);
   transform:translateX(-50%);
-  background:transparent url('assets/gokdelen-pixel/pediment-v666.svg?v=666') center bottom/contain no-repeat;
+  background:transparent url('assets/gokdelen-pixel/pediment-v666.svg?v=667') center bottom/contain no-repeat;
   image-rendering:pixelated;
 }
 @media(max-width:430px){
@@ -552,7 +552,7 @@
 }
 
 
-/* v666 — exact 3x4 door alignment, 3-cell inactive pediment and unrestricted board placement. */
+/* v667 — exact 3x4 door alignment, flush pediment and connected upward play. */
 #screen-kesisim #ksm-building-door{
   width:calc(var(--ksm-cell-size)*3)!important;
   height:calc(var(--ksm-cell-size)*4)!important;
@@ -560,11 +560,11 @@
 }
 #ksm-door-pediment{
   left:calc(8px + var(--ksm-cell-size)*4.5)!important;
-  bottom:calc(var(--ksm-cell-size)*4)!important;
+  bottom:calc(var(--ksm-cell-size)*4 - 2px)!important;
   width:calc(var(--ksm-cell-size)*3)!important;
   height:calc(var(--ksm-cell-size)*1.35)!important;
   transform:translateX(-50%)!important;
-  background:transparent url('assets/gokdelen-pixel/pediment-v666.svg?v=666') center bottom/100% 100% no-repeat!important;
+  background:transparent url('assets/gokdelen-pixel/pediment-v666.svg?v=667') center bottom/100% 100% no-repeat!important;
   z-index:29!important;
 }
 #screen-kesisim #ksm-board .ksm-cell.architectural-blocked{
@@ -579,8 +579,22 @@
 #screen-kesisim #ksm-board .ksm-cell.pediment-cell::after{display:none!important}
 @media(max-width:430px){
   #ksm-door-pediment{
-    bottom:calc(var(--ksm-cell-size)*4)!important;
+    bottom:calc(var(--ksm-cell-size)*4 - 2px)!important;
     width:calc(var(--ksm-cell-size)*3)!important;
     height:calc(var(--ksm-cell-size)*1.35)!important;
   }
 }
+
+
+/* v667 — lightweight feedback: no large images, no idle animation loops. */
+#ksm-confetti-layer{position:absolute;inset:0;z-index:80;pointer-events:none;overflow:hidden}
+#ksm-confetti-layer i{position:absolute;left:var(--cx);top:43%;width:6px;height:6px;background:#ffd65a;box-shadow:1px 1px 0 rgba(25,61,80,.38);animation:ksmPixelConfetti .9s steps(8,end) var(--delay) both}
+#ksm-confetti-layer i:nth-child(3n){background:#60a5fa}#ksm-confetti-layer i:nth-child(3n+1){background:#f87171}#ksm-confetti-layer i:nth-child(4n){width:4px;height:8px;background:#86efac}
+@keyframes ksmPixelConfetti{0%{opacity:0;transform:translate(-50%,-10px) rotate(0)}12%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),var(--dy)) rotate(var(--rot))}}
+.ksm-floor-rise-flash{position:absolute;left:8px;right:8px;height:var(--ksm-cell-size);z-index:31;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,228,138,.72),transparent);mix-blend-mode:screen;animation:ksmFloorRise .72s steps(5,end) both}
+@keyframes ksmFloorRise{0%,100%{opacity:0}20%{opacity:.9}52%{opacity:.22}75%{opacity:.7}}
+.ksm-roof-flag{position:absolute;z-index:55;left:50%;top:2px;width:2px;height:22px;background:#193d50;pointer-events:none;animation:ksmRoofFlag 1.8s steps(6,end) both}
+.ksm-roof-flag::after{content:'';position:absolute;left:2px;top:1px;width:16px;height:9px;background:#ffd65a;border:2px solid #193d50;box-sizing:border-box;clip-path:polygon(0 0,100% 0,72% 50%,100% 100%,0 100%)}
+@keyframes ksmRoofFlag{0%{opacity:0;transform:translateY(10px)}12%,78%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-3px)}}
+#screen-kesisim :is(#ksm-p1-card,#ksm-p2-card).active{filter:brightness(1.045);transform:translateY(-1px)}
+@media(prefers-reduced-motion:reduce){#ksm-confetti-layer,.ksm-floor-rise-flash,.ksm-roof-flag{display:none!important}}
