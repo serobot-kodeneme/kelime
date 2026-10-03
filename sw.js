@@ -1,19 +1,11 @@
-const CACHE_NAME='kapmaca-shell-v654-gokdelen-qa';
+const CACHE_NAME='kapmaca-shell-v667-maintenance';
 const APP_SHELL=[
   './',
   './index.html',
-  './gokdelen-pixel.css?v=654',
-  './gokdelen-menu.css?v=654',
-  './gokdelen-network.js?v=654',
-  './assets/gokdelen-pixel/icon.svg',
-  './assets/gokdelen-pixel/window.svg',
-  './assets/gokdelen-pixel/wall.svg',
-  './assets/gokdelen-pixel/roof.svg',
-  './assets/gokdelen-pixel/street.svg',
-  './assets/gokdelen-pixel/door.svg',
-  './assets/gokdelen-pixel/city.svg',
-
-  './app.js?v=654-gokdelen-qa',
+  './gokdelen-menu.css?v=667',
+  // GÖKDELEN game CSS, network code and pixel scenery load on demand from the page;
+  // do not duplicate them in the install-time shell cache.
+  './app.js?v=667-gokdelen-maintenance',
   './manifest.webmanifest?v=593',
   './favicon-32.png?v=593',
   './apple-touch-icon.png?v=593',
