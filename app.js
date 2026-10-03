@@ -3626,7 +3626,7 @@ showToast(isiOS?'Paylaş → Ana Ekrana Ekle seçeneğini kullan.':'Tarayıcı m
 });
 if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
-navigator.serviceWorker.register('./sw.js?v=700',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+navigator.serviceWorker.register('./sw.js?v=701',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 },{once:true});
 }
 const homeGameSubmodes=document.getElementById('home-game-submodes');
@@ -7978,12 +7978,27 @@ function applyBombAt(r,c){
 function animateBombArea(r,c){
   if(!canBombAt(r,c))return;
   try{playAtismaExplosionSound();}catch(_){}
+  try{if(navigator.vibrate)navigator.vibrate([90,35,130]);}catch(_){}
   wrap.classList.remove('ksm-bomb-shake');void wrap.offsetWidth;wrap.classList.add('ksm-bomb-shake');
-  setTimeout(()=>wrap.classList.remove('ksm-bomb-shake'),620);
+  screen.classList.remove('ksm-bomb-flash');void screen.offsetWidth;screen.classList.add('ksm-bomb-flash');
+  setTimeout(()=>wrap.classList.remove('ksm-bomb-shake'),760);
+  setTimeout(()=>screen.classList.remove('ksm-bomb-flash'),520);
+  const target=cells[r*COLS+c];
+  if(target){
+    const rect=target.getBoundingClientRect();
+    const burst=document.createElement('div');
+    burst.className='ksm-bomb-burst';
+    burst.textContent='💥';
+    burst.setAttribute('aria-hidden','true');
+    burst.style.left=(rect.left+rect.width/2)+'px';
+    burst.style.top=(rect.top+rect.height/2)+'px';
+    document.body.appendChild(burst);
+    setTimeout(()=>burst.remove(),820);
+  }
   for(const p of bombArea(r,c)){
     const el=cells[p.r*COLS+p.c];if(!el)continue;
     el.classList.remove('ksm-bomb-hit');void el.offsetWidth;el.classList.add('ksm-bomb-hit');
-    setTimeout(()=>el.classList.remove('ksm-bomb-hit'),1050);
+    setTimeout(()=>el.classList.remove('ksm-bomb-hit'),1100);
   }
 }
 function startBombDrag(e){
