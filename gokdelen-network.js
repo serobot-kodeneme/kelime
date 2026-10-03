@@ -92,7 +92,8 @@ async function watch(snapshot){
   setMpState(gs.status||MP_STATES.WAITING);
   const exitSignal=data.roomExit;
   if(exitSignal?.id&&exitSignal.id!==mpLastExitSignalId){mpLastExitSignalId=exitSignal.id;handleSynchronizedRoomExit(exitSignal.reason||'game-cancelled',exitSignal.by||'');return;}
-  handleOpponentPresenceState(isOnline(data.presence?.[mpRole==='host'?'guest':'host']));
+  const forcedThreeMissFinish=gs.status==='finished'&&data.gokdelen?.endReason==='three-misses';
+  if(!forcedThreeMissFinish)handleOpponentPresenceState(isOnline(data.presence?.[mpRole==='host'?'guest':'host']));
   if(gs.status==='waiting'){
     const random=/^random-match-/.test(data.mode);
     const accepted=random||data.invite?.guest==='accepted';
@@ -116,8 +117,9 @@ async function watch(snapshot){
     }
     if(gs.status==='finished'){
       clearInterval(clock);clock=null;
-      document.getElementById('btn-ksm-again')?.classList.toggle('hidden',/^random-match-/.test(data.mode));
-      if(/^random-match-/.test(data.mode)&&!autoExit)autoExit=setTimeout(()=>leave(),5000);
+      const threeMiss=data.gokdelen?.endReason==='three-misses';
+      document.getElementById('btn-ksm-again')?.classList.toggle('hidden',/^random-match-/.test(data.mode)&&!threeMiss);
+      if(/^random-match-/.test(data.mode)&&!threeMiss&&!autoExit)autoExit=setTimeout(()=>leave(),5000);
     }else startTurnClock();
   }
 }
@@ -183,5 +185,16 @@ async function leave(){
   try{if(ref)await closeAndLockPrivateRoom(ref,mpRoomCode,'gokdelen-exit');}catch(err){console.error('Gökdelen exit failed',err);}
   returnToHomeFromMultiplayer();
 }
-window.gokdelenNetwork={attach,enter,start,stop,startTurnClock,introReady,submit,restart,leave,createPrivate,openPrivate,createRandom:async(host,guest)=>(await createRecord('random-match-gokdelen-v1',host,guest)).code};
+async function leaveAfterForcedLoss(){
+  const ref=mpRoomRef,role=mpRole;
+  stop();
+  try{
+    if(ref&&role)await ref.child('presence/'+role).set({online:false,clientId:getClientToken(),at:firebase.database.ServerValue.TIMESTAMP});
+  }catch(_){}
+  returnToHomeFromMultiplayer();
+}
+async function leaveAfterResult(){
+  return leave();
+}
+window.gokdelenNetwork={attach,enter,start,stop,startTurnClock,introReady,submit,restart,leave,leaveAfterForcedLoss,leaveAfterResult,createPrivate,openPrivate,createRandom:async(host,guest)=>(await createRecord('random-match-gokdelen-v1',host,guest)).code};
 })();
