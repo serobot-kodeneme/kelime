@@ -1,9 +1,9 @@
-const CACHE_NAME='kapmaca-shell-v652-kapisma-pixel';
+const CACHE_NAME='kapmaca-shell-v652-pixel-final';
 const APP_SHELL=[
   './',
   './index.html',
   './gokdelen-pixel.css?v=652',
-  './kapisma-pixel.css?v=652',
+  './kapisma-pixel.css?v=652-final',
   './assets/gokdelen-pixel/window.svg',
   './assets/gokdelen-pixel/wall.svg',
   './assets/gokdelen-pixel/roof.svg',
