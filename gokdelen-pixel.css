@@ -131,3 +131,69 @@
 }
 
 /* v658 — richer city silhouette polish; gameplay geometry and behavior unchanged. */
+
+
+/* v659 — Istanbul skyline, compact HUD and top controls. Gameplay logic unchanged. */
+#screen-kesisim{
+  background:#17355f url('assets/gokdelen-pixel/city-v659.svg?v=659') center bottom/cover no-repeat!important;
+}
+#screen-kesisim .ksm-topline{
+  flex:0 0 auto!important;
+  width:min(calc(100% - 10px),470px)!important;
+  margin:2px auto 4px!important;
+  display:grid!important;
+  grid-template-columns:56px minmax(0,1fr) 56px!important;
+  align-items:stretch!important;
+  gap:5px!important;
+  z-index:8!important;
+}
+#screen-kesisim .ksm-topline .ksm-hud{
+  width:100%!important;max-width:none!important;margin:0!important;
+  grid-template-columns:minmax(0,1fr) 66px minmax(0,1fr)!important;
+  gap:4px!important;
+}
+#screen-kesisim .ksm-topline .ksm-hud>div{min-height:34px!important;padding:3px 4px!important}
+#screen-kesisim .ksm-topline .ksm-player-card{gap:4px!important;padding:3px 5px!important}
+#screen-kesisim .ksm-topline .ksm-player-avatar{width:21px!important;height:21px!important;flex-basis:21px!important}
+#screen-kesisim .ksm-topline .ksm-player-meta{gap:3px!important}
+#screen-kesisim .ksm-topline .ksm-player-meta>span{font-size:5.8px!important;letter-spacing:.04em!important}
+#screen-kesisim .ksm-topline .ksm-name-timer{height:18px!important;min-width:34px!important;padding:2px 5px!important}
+#screen-kesisim .ksm-topline .ksm-name-timer strong{font-size:11px!important}
+#screen-kesisim .ksm-topline .ksm-name-timer small{font-size:4.5px!important}
+#screen-kesisim .ksm-topline .ksm-player-card>strong{font-size:15px!important}
+#screen-kesisim .ksm-topline .ksm-center-stack .ksm-bag-card{width:62px!important;min-height:24px!important}
+#screen-kesisim .ksm-topline #ksm-turn-status-top{font-size:5.4px!important;min-height:11px!important}
+#screen-kesisim .ksm-top-action{
+  min-width:0!important;min-height:34px!important;padding:3px 2px!important;
+  border:2px solid #183d4e!important;border-radius:3px!important;
+  box-shadow:inset 0 2px #ffffff55,inset 2px 0 #ffffff25,inset -2px -2px #00000024,0 3px #183d4e!important;
+  color:#fff!important;font-family:'Courier New',monospace!important;font-weight:900!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  gap:1px!important;line-height:1!important;text-shadow:1px 1px #183d4e!important;
+}
+#screen-kesisim .ksm-top-action .ksm-top-icon{font-size:12px!important;line-height:12px!important}
+#screen-kesisim .ksm-top-action .ksm-top-label{font-size:5.5px!important;white-space:nowrap!important}
+#screen-kesisim #btn-ksm-fullscreen{background:#34556d!important}
+#screen-kesisim #btn-ksm-exit-bottom{background:#df4362!important}
+#screen-kesisim #ksm-board .ksm-cell.entry-wall:not(.filled){
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  background:#a63c1b url('assets/gokdelen-pixel/brick-v659.svg?v=659') center/64px 48px repeat!important;
+  image-rendering:pixelated!important;
+}
+@media(max-width:430px){
+  #screen-kesisim .ksm-topline{
+    width:min(calc(100% - 6px),350px)!important;
+    grid-template-columns:42px minmax(0,1fr) 42px!important;
+    gap:3px!important;
+  }
+  #screen-kesisim .ksm-topline .ksm-hud{
+    grid-template-columns:minmax(0,1fr) 58px minmax(0,1fr)!important;
+    gap:3px!important;
+  }
+  #screen-kesisim .ksm-top-action .ksm-top-label{font-size:4.6px!important}
+  #screen-kesisim .ksm-top-action .ksm-top-icon{font-size:11px!important}
+  #screen-kesisim .ksm-topline .ksm-player-avatar{width:18px!important;height:18px!important;flex-basis:18px!important}
+  #screen-kesisim .ksm-topline .ksm-player-card{gap:3px!important;padding:2px 3px!important}
+  #screen-kesisim .ksm-topline .ksm-player-meta>span{font-size:5px!important}
+  #screen-kesisim .ksm-topline .ksm-player-card>strong{font-size:13px!important}
+}
