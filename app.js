@@ -7068,7 +7068,8 @@ function recordMoveStats(side,result,placed){
 }
 function clearGokdelenFx(){
   if(state.finalBagTimer){clearTimeout(state.finalBagTimer);state.finalBagTimer=null;}
-  boardEl.querySelectorAll('.ksm-cell-bonus-tag,.ksm-window-flash').forEach(el=>el.remove());
+  boardEl.querySelectorAll('.ksm-cell-bonus-tag,.ksm-window-flash,.ksm-floor-rise-flash,.ksm-roof-flag').forEach(el=>el.remove());
+  document.getElementById('ksm-confetti-layer')?.remove();
   cells.forEach(el=>el.classList.remove('ksm-opponent-p1','ksm-opponent-p2'));
 }
 function showCellBonusTag(r,c,text,kind='climb'){
@@ -7088,12 +7089,41 @@ function celebrateLongWord(){
   const fx=document.createElement('div');fx.className='ksm-window-flash';fx.setAttribute('aria-hidden','true');boardEl.appendChild(fx);
   setTimeout(()=>fx.remove(),1350);
 }
+function celebrateWordConfetti(){
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  document.getElementById('ksm-confetti-layer')?.remove();
+  const layer=document.createElement('div');layer.id='ksm-confetti-layer';layer.setAttribute('aria-hidden','true');
+  const count=18;
+  for(let i=0;i<count;i++){
+    const p=document.createElement('i');
+    p.style.setProperty('--cx',(8+Math.random()*84).toFixed(1)+'%');
+    p.style.setProperty('--dx',(-54+Math.random()*108).toFixed(0)+'px');
+    p.style.setProperty('--dy',(58+Math.random()*72).toFixed(0)+'px');
+    p.style.setProperty('--rot',(90+Math.random()*360).toFixed(0)+'deg');
+    p.style.setProperty('--delay',(Math.random()*90).toFixed(0)+'ms');
+    layer.appendChild(p);
+  }
+  screen.appendChild(layer);setTimeout(()=>layer.remove(),1050);
+}
+function flashNewFloor(result){
+  const rows=(result.climbTiles||[]).map(t=>Number(t.r)).filter(Number.isFinite);if(!rows.length)return;
+  const row=Math.min(...rows);const fx=document.createElement('div');fx.className='ksm-floor-rise-flash';fx.setAttribute('aria-hidden','true');
+  fx.style.top=`calc(${row} * var(--ksm-cell-size))`;boardEl.appendChild(fx);setTimeout(()=>fx.remove(),760);
+}
+function celebrateRoof(){
+  boardEl.querySelector('.ksm-roof-flag')?.remove();
+  const flag=document.createElement('div');flag.className='ksm-roof-flag';flag.setAttribute('aria-hidden','true');boardEl.appendChild(flag);
+  setTimeout(()=>flag.remove(),1900);
+}
 function showMoveIdentityFx(result,placed,side){
   for(const t of result.climbTiles||[])showCellBonusTag(t.r,t.c,'+5','climb');
   const tower=(placed||[]).find(t=>t.tower);if(tower)showCellBonusTag(tower.r,tower.c,'▲ KULE','tower');
   if(Number(result.roofBonus||0)>0){
     const roof=(placed||[]).find(t=>t.r===0);if(roof)showCellBonusTag(roof.r,roof.c,'ÇATI +20','roof');
+    celebrateRoof();
   }
+  if((result.words||[]).length)celebrateWordConfetti();
+  if((result.climbTiles||[]).length)flashNewFloor(result);
   if((result.words||[]).some(w=>String(w.word||'').length>=6))celebrateLongWord();
   flashOpponentMove(placed,side);
   updateGokdelenAtmosphere();
@@ -7168,12 +7198,12 @@ function animateTile(r,c,from=null){
   const el=cells[r*COLS+c]?.querySelector('.ksm-letter');
   if(!el||typeof el.animate!=='function'||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   const rect=el.getBoundingClientRect();
-  const dx=from?from.x-(rect.left+rect.width/2):0,dy=from?from.y-(rect.top+rect.height/2):-18;
+  const dx=from?from.x-(rect.left+rect.width/2):0,dy=from?from.y-(rect.top+rect.height/2):-14;
   el.animate([
-    {transform:`translate(${dx}px,${dy}px) scale(.96)`,opacity:.55},
-    {offset:.70,transform:'translate(0,-1px) scale(.995)',opacity:.95},
+    {transform:`translate(${dx}px,${dy}px) scale(.97)`,opacity:.65},
+    {offset:.72,transform:'translate(0,2px) scale(1.025)',opacity:1},
     {transform:'translate(0,0) scale(1)',opacity:1}
-  ],{duration:850,easing:'cubic-bezier(.25,.65,.28,1)'});
+  ],{duration:460,easing:'cubic-bezier(.22,.72,.24,1)'});
 }
 function showCellMeaning(r,c){
   if(state.introActive||state.drag||Date.now()<state.meaningBlockedUntil||tempAt(r,c)||!state.grid[r][c])return;
@@ -7197,7 +7227,7 @@ function refreshPlacementPreview(){
   if(result){
     if(result.error)setFeedback(result.error,'bad');
     else setFeedback(result.words.map(w=>w.word).join(' • ')+' • +'+result.totalScore+' puan'+(result.climbBonus?' • YÜKSELİŞ +'+result.climbBonus:'')+(result.roofBonus?' • ÇATI +'+result.roofBonus:'')+' — GÖNDER ile onayla.','good');
-  }else if(myTurn()&&!state.gameOver)setFeedback('Aktif hücrelerin herhangi bir yerinde yatay veya dikey sözcük kurabilirsin.');
+  }else if(myTurn()&&!state.gameOver)setFeedback('Başlangıç sözcüğüne bağlan; gökdeleni yalnız yukarı doğru büyüt.');
   return result;
 }
 function renderRack(){
@@ -7405,11 +7435,14 @@ function dropAt(x,y){
     return;
   }
   const invalidArchitecture=isArchitecturalBlockedCell(r,c);
+  let lowestOccupied=-1;for(let rr=0;rr<ROWS;rr++)if(state.grid[rr].some(Boolean))lowestOccupied=rr;
+  const invalidUp=lowestOccupied>=0&&r>lowestOccupied;
   const occupiedTemp=tempAt(r,c);
   const invalidSame=base===drag.letter;
-  if(invalidArchitecture||occupiedTemp||invalidSame){
+  if(invalidArchitecture||invalidUp||occupiedTemp||invalidSame){
     if(drag.source==='temp'&&drag.from){state.temp.set(drag.fromKey,drag.from);renderCell(drag.from.r,drag.from.c,false);refreshPlacementPreview();}
     if(invalidArchitecture)setFeedback(r===GOKDELEN_PEDIMENT_ROW?'Kapı üstü süsü oynanamaz.':'Giriş kapısına harf yerleştirilemez.','bad');
+    else if(invalidUp)setFeedback('GÖKDELEN yalnızca başlangıç sözcüğünden yukarı doğru büyür.','bad');
     else if(occupiedTemp)setFeedback('Bu karede zaten geçici taş var.','bad');
     else setFeedback('Aynı harfi üst üste koymaya gerek yok.','bad');
     return;
@@ -7469,12 +7502,28 @@ function evaluatePlacement(overlay){
   }
   const rackIds=new Set(temps.map(t=>t.rackIndex));
   if(rackIds.size!==temps.length)return{error:'Aynı taş iki karede kullanılamaz.'};
-  let topRow=ROWS;
-  for(let r=0;r<ROWS;r++)if(state.grid[r].some(Boolean)){topRow=r;break;}
+  let topRow=ROWS,lowest=-1;
+  for(let r=0;r<ROWS;r++)if(state.grid[r].some(Boolean)){if(topRow===ROWS)topRow=r;lowest=r;}
   for(const t of temps){
     if(t.r<0||t.r>=ROWS||t.c<0||t.c>=COLS)return{error:'Taş oyun alanının dışında.'};
     if(isArchitecturalBlockedCell(t.r,t.c))return{error:t.r===GOKDELEN_PEDIMENT_ROW?'Kapı üstü süsü oynanamaz.':'Giriş kapısına harf yerleştirilemez.'};
+    if(lowest>=0&&t.r>lowest)return{error:'GÖKDELEN yalnızca başlangıç sözcüğünden yukarı doğru büyür.'};
   }
+  // Every newly placed tile must connect orthogonally to the committed building,
+  // directly or through the other tiles in this same move.
+  const reachable=new Set(),queue=[];
+  for(const t of temps){
+    const touchesCommitted=!!state.grid[t.r]?.[t.c]||[[0,1],[0,-1],[1,0],[-1,0]].some(([dr,dc])=>!!state.grid[t.r+dr]?.[t.c+dc]);
+    if(touchesCommitted){reachable.add(key(t.r,t.c));queue.push(t);}
+  }
+  for(let i=0;i<queue.length;i++){
+    const {r,c}=queue[i];
+    for(const [dr,dc] of [[0,1],[0,-1],[1,0],[-1,0]]){
+      const k=key(r+dr,c+dc);if(reachable.has(k)||!overlay.has(k))continue;
+      reachable.add(k);queue.push(overlay.get(k));
+    }
+  }
+  if(temps.some(t=>!reachable.has(key(t.r,t.c))))return{error:'Tüm yeni taşlar mevcut gökdelene bağlanmalı.'};
   const words=[],seen=new Set(),covered=new Set();
   for(const t of temps)for(const [dr,dc,name,bit] of [[0,1,'h',H],[1,0,'v',V]]){
     const line=lineThroughOverlay(overlay,t.r,t.c,dr,dc);if(line.length<2)continue;
@@ -7574,15 +7623,6 @@ function aiFindMove(){
     if(typeof raw==='string'&&raw.length>level.maxLen)continue;
     const word=String(raw||'').toLocaleUpperCase('tr-TR');
     if(word.length<2||word.length>level.maxLen||isArgoWord(word)||isForeignWord(word))continue;
-    if(word.length<=state.racks[1].length&&aiRackIndicesFor(Array.from(word))){
-      // v666: bağımsız sözcükler tahtanın her aktif bölgesine kurulabilir.
-      for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)for(const [dr,dc] of [[0,1],[1,0]]){
-        const er=r+dr*(word.length-1),ec=c+dc*(word.length-1);
-        if(er>=ROWS||ec>=COLS)continue;
-        const k=word+'@'+r+','+c+','+dr;if(seen.has(k))continue;seen.add(k);
-        const move=aiPlacement(word,r,c,dr,dc);if(move)keepBest(move);
-      }
-    }
     for(let i=0;i<word.length;i++){
       const anchors=positions.get(word[i]);if(!anchors)continue;
       for(const p of anchors){
