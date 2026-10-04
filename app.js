@@ -5107,13 +5107,13 @@ if(!el.isConnected)return;
 el.classList.remove('remote-word-flash-p1','remote-word-flash-p2');
 void el.offsetWidth;
 el.classList.add(cls);
-setTimeout(()=>el.classList.remove(cls),400);
+setTimeout(()=>el.classList.remove(cls),1350);
 },i*50);
 });
 if(badge){
 const badgeCls=isP1?'remote-word-badge-p1':'remote-word-badge-p2';
 badge.classList.add(badgeCls);
-setTimeout(()=>badge.classList.remove(badgeCls),720);
+setTimeout(()=>badge.classList.remove(badgeCls),1350);
 }
 }
 function playWordConfetti(length){
@@ -7130,11 +7130,23 @@ function showCellBonusTag(r,c,text,kind='climb'){
   tag.style.left=(cell.offsetLeft+cell.offsetWidth/2)+'px';tag.style.top=Math.max(2,cell.offsetTop-3)+'px';
   boardEl.appendChild(tag);setTimeout(()=>tag.remove(),1750);
 }
-function flashOpponentMove(placed,side){
+function flashOpponentMove(placed,side,words=[]){
   if(Number(side)===Number(state.mySide))return;
   const cls=Number(side)===0?'ksm-opponent-p1':'ksm-opponent-p2';
-  for(const t of placed||[])cells[t.r*COLS+t.c]?.classList.add(cls);
-  setTimeout(()=>{for(const t of placed||[])cells[t.r*COLS+t.c]?.classList.remove(cls);},1800);
+  const points=new Map();
+  for(const w of words||[])for(const p of w?.line||[]){
+    if(Number.isInteger(p?.r)&&Number.isInteger(p?.c))points.set(p.r+':'+p.c,{r:p.r,c:p.c});
+  }
+  if(!points.size)for(const p of placed||[]){
+    if(Number.isInteger(p?.r)&&Number.isInteger(p?.c))points.set(p.r+':'+p.c,{r:p.r,c:p.c});
+  }
+  const targets=[...points.values()].map(p=>cells[p.r*COLS+p.c]).filter(Boolean);
+  for(const el of targets){
+    el.classList.remove('ksm-opponent-p1','ksm-opponent-p2');
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }
+  setTimeout(()=>{for(const el of targets)el.classList.remove(cls);},1650);
 }
 function celebrateLongWord(){
   boardEl.querySelector('.ksm-window-flash')?.remove();
@@ -7177,7 +7189,7 @@ function showMoveIdentityFx(result,placed,side){
   if((result.words||[]).length)celebrateWordConfetti();
   if((result.climbTiles||[]).length)flashNewFloor(result);
   if((result.words||[]).some(w=>String(w.word||'').length>=6))celebrateLongWord();
-  flashOpponentMove(placed,side);
+  flashOpponentMove(placed,side,result.words);
   updateGokdelenAtmosphere();
 }
 function maybeWarnFinalBag(delay=2300){
@@ -8183,7 +8195,7 @@ function reduceNetworkMatch(data,side,action,placed,now,revision){
       [...overlay.values()].map(t=>t.rackIndex).sort((a,b)=>b-a).forEach(i=>state.racks[side].splice(i,1));
       drawRackToNine(side);passes=0;
       state.missStreak[side]=0;
-      lastMove={side,placed:[...overlay.values()],word:result.word,words:result.words.map(w=>({word:w.word,score:w.score})),climbCount:result.climbCount,climbTiles:result.climbTiles,climbBonus:result.climbBonus,roofReached:!!result.roofReached,roofBonus:0,score:result.totalScore};
+      lastMove={side,placed:[...overlay.values()],word:result.word,words:result.words.map(w=>({word:w.word,score:w.score,line:(w.line||[]).map(p=>({r:p.r,c:p.c}))})),climbCount:result.climbCount,climbTiles:result.climbTiles,climbBonus:result.climbBonus,roofReached:!!result.roofReached,roofBonus:0,score:result.totalScore};
       state.turn=1-side;
     }else if(action==='broom'){
       if(state.broomUsed[side]>=3)return null;
