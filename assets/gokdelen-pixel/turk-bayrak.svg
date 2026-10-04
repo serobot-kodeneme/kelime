@@ -1,18 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 78" shape-rendering="crispEdges">
-<rect x="5" y="8" width="4" height="66" fill="#183b4d"/>
-<rect x="6" y="9" width="1" height="64" fill="#91b2b7"/>
-<rect x="3" y="73" width="9" height="3" fill="#183b4d"/>
-<rect x="8" y="10" width="36" height="24" fill="#c91f2c"/>
-<rect x="8" y="10" width="36" height="2" fill="#ed4b55"/>
-<rect x="8" y="32" width="36" height="2" fill="#8f1722"/>
-<rect x="19" y="15" width="5" height="2" fill="#fff9e8"/>
-<rect x="17" y="17" width="7" height="2" fill="#fff9e8"/>
-<rect x="16" y="19" width="6" height="6" fill="#fff9e8"/>
-<rect x="17" y="25" width="7" height="2" fill="#fff9e8"/>
-<rect x="19" y="27" width="5" height="2" fill="#fff9e8"/>
-<rect x="21" y="18" width="5" height="8" fill="#c91f2c"/>
-<rect x="30" y="17" width="2" height="10" fill="#fff9e8"/>
-<rect x="26" y="21" width="10" height="2" fill="#fff9e8"/>
-<rect x="28" y="19" width="6" height="6" fill="#fff9e8"/>
-<rect x="29" y="20" width="4" height="4" fill="#c91f2c"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 54 108" shape-rendering="crispEdges">
+  <!-- long pole: fixed base at SVG bottom -->
+  <rect x="43" y="2" width="5" height="103" fill="#183b4d"/>
+  <rect x="44" y="3" width="1" height="101" fill="#91b2b7"/>
+  <rect x="41" y="105" width="11" height="3" fill="#183b4d"/>
+  <rect x="42" y="105" width="9" height="1" fill="#91b2b7"/>
+  <!-- Turkish flag waves to the LEFT; pole remains beside/right of the vent -->
+  <rect x="8" y="8" width="36" height="24" fill="#c91f2c"/>
+  <rect x="8" y="8" width="36" height="2" fill="#ed4b55"/>
+  <rect x="8" y="30" width="36" height="2" fill="#8f1722"/>
+  <!-- mirrored pixel crescent/star for a right-hand hoist -->
+  <rect x="28" y="13" width="5" height="2" fill="#fff9e8"/>
+  <rect x="28" y="15" width="7" height="2" fill="#fff9e8"/>
+  <rect x="30" y="17" width="6" height="6" fill="#fff9e8"/>
+  <rect x="28" y="23" width="7" height="2" fill="#fff9e8"/>
+  <rect x="28" y="25" width="5" height="2" fill="#fff9e8"/>
+  <rect x="26" y="16" width="5" height="8" fill="#c91f2c"/>
+  <rect x="20" y="15" width="2" height="10" fill="#fff9e8"/>
+  <rect x="16" y="19" width="10" height="2" fill="#fff9e8"/>
+  <rect x="18" y="17" width="6" height="6" fill="#fff9e8"/>
+  <rect x="19" y="18" width="4" height="4" fill="#c91f2c"/>
 </svg>
