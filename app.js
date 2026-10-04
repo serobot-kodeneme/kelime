@@ -7021,7 +7021,8 @@ const state={
   temp:new Map(),tempOrder:[],drag:null,meaningBlockedUntil:0,popTimer:null,gameOver:false,turnLeft:40,turnTimer:null,aiTimer:null,lastHeartSec:null,lastBellSec:null,
   highestFloors:[0,0],longestWords:['',''],wordCounts:[0,0],bestMoveScores:[0,0],climbBonusTotals:[0,0],roofWinner:-1,lowBagWarned:false,finalBagTimer:null,
   missStreak:[0,0],forcedWinner:-1,endReason:'',
-  introActive:false,introToken:0,introFrame:null,introCamera:null,introTimers:new Set()
+  introActive:false,introToken:0,introFrame:null,introCamera:null,introTimers:new Set(),
+  finalSequenceActive:false,finalSequenceDone:false,finalToken:0,finalCamera:null,finalHoldTimer:null,finalFallbackTimer:null
 };
 const cells=[];
 function myTurn(){return (!state.multiplayer||state.networkPlaying)&&!state.networkBusy&&state.turn===state.mySide;}
@@ -7175,9 +7176,10 @@ function flashNewFloor(result){
   fx.style.top=`calc(${row} * var(--ksm-cell-size))`;boardEl.appendChild(fx);setTimeout(()=>fx.remove(),760);
 }
 function celebrateRoof(){
-  boardEl.querySelector('.ksm-roof-flag')?.remove();
-  const flag=document.createElement('div');flag.className='ksm-roof-flag';flag.setAttribute('aria-label','Türk bayrağı');boardEl.appendChild(flag);
-  setTimeout(()=>flag.remove(),2600);
+  const flag=document.getElementById('ksm-turkish-flag');
+  if(!flag)return;
+  flag.classList.remove('celebrate');void flag.offsetWidth;flag.classList.add('celebrate');
+  setTimeout(()=>flag.classList.remove('celebrate'),2600);
 }
 function showMoveIdentityFx(result,placed,side){
   for(const t of result.climbTiles||[])showCellBonusTag(t.r,t.c,'+5','climb');
@@ -8086,20 +8088,108 @@ function shuffleRack(){
   shuffle(state.racks[state.turn]);renderRack();updateHud();
   showPop('🔀 KARIŞTIR','HARFLERİN SIRASI DEĞİŞTİ',650);
 }
-function showGokdelenGameOver(){
+function renderGokdelenGameOverModal(){
   const a=state.scores[0],b=state.scores[1],title=document.getElementById('ksm-over-title'),txt=document.getElementById('ksm-over-text');
+  const preview=state.endReason==='debug-final';
   const threeMissWin=state.endReason==='three-misses'&&(state.forcedWinner===0||state.forcedWinner===1);
   const roofWon=state.roofWinner===0||state.roofWinner===1;
   if(title){
-    if(threeMissWin)title.textContent=state.multiplayer&&state.forcedWinner===state.mySide?'KAZANDIN!':(state.forcedWinner===0?'1. OYUNCU KAZANDI!':'2. OYUNCU KAZANDI!');
+    if(preview)title.textContent='FİNAL ÖNİZLEME';
+    else if(threeMissWin)title.textContent=state.multiplayer&&state.forcedWinner===state.mySide?'KAZANDIN!':(state.forcedWinner===0?'1. OYUNCU KAZANDI!':'2. OYUNCU KAZANDI!');
     else if(roofWon){
       if(state.multiplayer)title.textContent=state.roofWinner===state.mySide?'KAZANDIN!':'RAKİP KAZANDI!';
       else title.textContent=state.roofWinner===0?'KAZANDIN!':aiName()+' KAZANDI!';
     }else title.textContent=a===b?'BERABERE!':(a>b?'1. OYUNCU KAZANDI!':'2. OYUNCU KAZANDI!');
   }
-  if(txt)txt.textContent=threeMissWin?'Rakip art arda 3 tur sözcük yazamadı • '+a+' - '+b:(roofWon?'🇹🇷 Çatıya ilk ulaşan kazandı • '+a+' - '+b:'Kalan harfler bitti • '+a+' - '+b);
+  if(txt)txt.textContent=preview?'GÖKDELEN oyun sonu animasyonu • '+a+' - '+b:(threeMissWin?'Rakip art arda 3 tur sözcük yazamadı • '+a+' - '+b:(roofWon?'Çatıya ilk ulaşan kazandı • '+a+' - '+b:'Kalan harfler bitti • '+a+' - '+b));
   renderGameOverStats();
   document.getElementById('ksm-gameover')?.classList.remove('hidden');
+}
+function resetGokdelenFinalSequence(){
+  state.finalToken++;
+  state.finalSequenceActive=false;state.finalSequenceDone=false;
+  if(state.finalCamera){try{state.finalCamera.cancel();}catch(_){}state.finalCamera=null;}
+  if(state.finalHoldTimer){clearTimeout(state.finalHoldTimer);state.finalHoldTimer=null;}
+  if(state.finalFallbackTimer){clearTimeout(state.finalFallbackTimer);state.finalFallbackTimer=null;}
+  const content=document.getElementById('ksm-building-content');
+  if(content){content.style.transition='';content.style.transform='';}
+  screen.classList.remove('ksm-final-sequence','ksm-final-roof-focus');
+}
+function finishGokdelenFinalSequence(token){
+  if(token!==state.finalToken||screen.classList.contains('hidden'))return;
+  if(state.finalCamera){try{state.finalCamera.cancel();}catch(_){}state.finalCamera=null;}
+  if(state.finalFallbackTimer){clearTimeout(state.finalFallbackTimer);state.finalFallbackTimer=null;}
+  const content=document.getElementById('ksm-building-content');
+  if(content){content.style.transition='';content.style.transform='';}
+  wrap.scrollTop=0;
+  state.finalSequenceActive=false;state.finalSequenceDone=true;
+  screen.classList.remove('ksm-final-sequence','ksm-final-roof-focus');
+  renderGokdelenGameOverModal();
+}
+function showGokdelenGameOver(){
+  if(state.finalSequenceDone){renderGokdelenGameOverModal();return;}
+  if(state.finalSequenceActive)return;
+  if(state.introActive)cancelIntro();
+  clearTurnTimer();clearAiTimer();hideQuickGuide();clearInvalidFeedback();
+  document.getElementById('ksm-gameover')?.classList.add('hidden');
+  clearTimeout(state.popTimer);state.popTimer=null;
+  document.getElementById('ksm-pop')?.classList.remove('show','ksm-bonus-pop','ksm-flower-pop');
+  state.finalSequenceActive=true;
+  const token=++state.finalToken;
+  screen.classList.add('ksm-final-sequence');
+  screen.classList.remove('ksm-final-roof-focus');
+  const content=document.getElementById('ksm-building-content');
+  const distance=Math.max(0,wrap.scrollHeight-wrap.clientHeight);
+  wrap.scrollTop=0;wrap.scrollLeft=Math.max(0,(boardEl.scrollWidth-wrap.clientWidth)/2);
+  const finishClimb=()=>{
+    if(token!==state.finalToken||!state.finalSequenceActive||screen.classList.contains('hidden'))return;
+    screen.classList.add('ksm-final-roof-focus');
+    state.finalHoldTimer=setTimeout(()=>{
+      state.finalHoldTimer=null;
+      finishGokdelenFinalSequence(token);
+    },4000);
+  };
+  if(content&&typeof content.animate==='function'){
+    if(state.finalCamera){try{state.finalCamera.cancel();}catch(_){}}
+    const camera=content.animate([
+      {transform:`translate3d(0,${-distance}px,0)`},
+      {transform:'translate3d(0,0,0)'}
+    ],{duration:5000,easing:'cubic-bezier(.45,0,.55,1)',fill:'forwards'});
+    state.finalCamera=camera;
+    camera.onfinish=finishClimb;
+  }else if(content){
+    content.style.transition='none';
+    content.style.transform=`translate3d(0,${-distance}px,0)`;
+    void content.offsetHeight;
+    content.style.transition='transform 5000ms cubic-bezier(.45,0,.55,1)';
+    content.style.transform='translate3d(0,0,0)';
+    state.finalFallbackTimer=setTimeout(()=>{state.finalFallbackTimer=null;finishClimb();},5000);
+  }else finishClimb();
+}
+async function triggerGokdelenFinalPreview(){
+  if(state.finalSequenceActive)return;
+  if(screen.classList.contains('hidden')){
+    try{await open();}catch(_){return;}
+  }
+  if(state.multiplayer){showToast('Final testi yalnız tek oyuncuda kullanılabilir.','sky');return;}
+  cancelIntro();resetGokdelenFinalSequence();
+  clearTurnTimer();clearAiTimer();clearTemp();
+  state.gameOver=true;state.endReason='debug-final';state.forcedWinner=-1;
+  updateHud();setFeedback('FİNAL ANİMASYONU TESTİ','good');
+  showGokdelenGameOver();
+}
+function registerGokdelenFinalTestTarget(el){
+  if(!el)return;
+  let taps=0,lastTapAt=0;
+  el.addEventListener('pointerup',event=>{
+    const now=performance.now();
+    if(now-lastTapAt>2600)taps=0;
+    lastTapAt=now;taps++;
+    if(taps<5)return;
+    taps=0;lastTapAt=0;
+    event.preventDefault();event.stopPropagation();
+    triggerGokdelenFinalPreview();
+  },{passive:false});
 }
 function checkEnd(){
   const roofWon=state.roofWinner===0||state.roofWinner===1;
@@ -8115,7 +8205,7 @@ function reset(){
     window.gokdelenNetwork.restart();return;
   }
   state.aiLevel=AI_LEVELS[botDiffLevel]?botDiffLevel:'easy';state.mySide=0;document.getElementById('btn-ksm-again')?.classList.remove('hidden');
-  cancelIntro();clearTurnTimer();
+  cancelIntro();resetGokdelenFinalSequence();clearTurnTimer();
   clearReturnFlights();document.getElementById('ksm-confetti-layer')?.remove();
   clearInvalidFeedback();
   clearTimeout(state.popTimer);state.grid=Array.from({length:ROWS},()=>Array(COLS).fill(''));state.dirs=Array.from({length:ROWS},()=>Array(COLS).fill(0));
@@ -8124,7 +8214,7 @@ function reset(){
   document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');
   renderAll();renderBirds();renderRack();setFeedback('GÖKDELEN • Açılış hazırlanıyor…');playIntro(seed);
 }
-function exit(){if(state.multiplayer){window.gokdelenNetwork.leave();return;}stopGokdelenCityAmbience();cancelIntro();clearReturnFlights();document.getElementById('ksm-confetti-layer')?.remove();clearInvalidFeedback();clearTimeout(state.popTimer);clearTurnTimer();clearAiTimer();state.drag=null;ghost.style.display='none';screen.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}
+function exit(){if(state.multiplayer){window.gokdelenNetwork.leave();return;}stopGokdelenCityAmbience();cancelIntro();resetGokdelenFinalSequence();clearReturnFlights();document.getElementById('ksm-confetti-layer')?.remove();clearInvalidFeedback();clearTimeout(state.popTimer);clearTurnTimer();clearAiTimer();state.drag=null;ghost.style.display='none';screen.classList.add('hidden');document.getElementById('ksm-rules')?.classList.add('hidden');document.getElementById('ksm-gameover')?.classList.add('hidden');document.getElementById('screen-home')?.classList.remove('hidden');}
 async function open(){activeGameMode='single';state.multiplayer=false;state.mySide=0;document.body.dataset.gokdelenMenu='1';cancelIntro();const openingToken=state.introToken;document.getElementById('screen-home')?.classList.add('hidden');screen.classList.remove('hidden');startGokdelenCityAmbience();setFeedback('GÖKDELEN hazırlanıyor…');try{await ensureWordDataLoaded();if(openingToken!==state.introToken||screen.classList.contains('hidden'))return;if(!cells.length)buildBoard();reset();}catch(err){console.error('Kesişim startup failed',err);showToast('GÖKDELEN hazırlanamadı.','rose');exit();}}
 
 document.addEventListener('pointermove',e=>{if(!state.drag||e.pointerId!==state.drag.pointerId)return;e.preventDefault();if(lastTempTap&&Math.hypot(e.clientX-lastTempTap.x,e.clientY-lastTempTap.y)>8)lastTempTap=null;moveGhost(e.clientX,e.clientY);if(state.drag.source==='bomb')previewBombFromPoint(e.clientX,e.clientY);},{passive:false});
@@ -8225,6 +8315,7 @@ function reduceNetworkMatch(data,side,action,placed,now,revision){
   });
 }
 function applyNetworkMatch(data,round,intro=false){
+  if(intro)resetGokdelenFinalSequence();
   if(!intro&&state.introActive)cancelIntro();
   const old=state.grid,previousRevision=state.revision;
   clearTemp();clearAiTimer();clearTurnTimer();state.multiplayer=true;state.mySide=mpRole==='guest'?1:0;
@@ -8271,7 +8362,7 @@ function applyNetworkMatch(data,round,intro=false){
   }
 }
 function enterNetworkScene(data){
-  cancelIntro();clearReturnFlights();clearInvalidFeedback();clearTurnTimer();clearAiTimer();
+  cancelIntro();resetGokdelenFinalSequence();clearReturnFlights();clearInvalidFeedback();clearTurnTimer();clearAiTimer();
   state.multiplayer=true;state.networkPlaying=false;state.mySide=mpRole==='guest'?1:0;state.revision=-1;state.networkBusy=false;state.lowBagWarned=false;clearGokdelenFx();
   if(!cells.length)buildBoard();
   document.body.dataset.gokdelenMenu='1';document.getElementById('screen-home')?.classList.add('hidden');screen.classList.remove('hidden');startGokdelenCityAmbience();
@@ -8285,7 +8376,7 @@ function networkTick(deadline,playing){
   if(!state.introActive){updateHud();if(!state.gameOver)setFeedback(playing?(myTurn()?'Sıra sende. Harflerini tek hatta yerleştir.':'Rakibinin hamlesi bekleniyor…'):'Rakip bekleniyor…');}
 }
 function stopNetworkScene(){
-  stopGokdelenCityAmbience();cancelIntro();clearReturnFlights();clearInvalidFeedback();clearTurnTimer();clearAiTimer();clearTemp();
+  stopGokdelenCityAmbience();cancelIntro();resetGokdelenFinalSequence();clearReturnFlights();clearInvalidFeedback();clearTurnTimer();clearAiTimer();clearTemp();
   state.multiplayer=false;state.networkPlaying=false;state.mySide=0;state.networkBusy=false;state.revision=-1;screen.classList.add('hidden');document.getElementById('ksm-gameover')?.classList.add('hidden');
 }
 function networkBusy(busy){state.networkBusy=busy;updateHud();}
@@ -8306,6 +8397,9 @@ document.getElementById('btn-ksm-exit-bottom')?.addEventListener('click',exit);
 document.getElementById('btn-ksm-rules')?.addEventListener('click',()=>document.getElementById('ksm-rules')?.classList.remove('hidden'));
 document.getElementById('btn-ksm-rules-top')?.addEventListener('click',()=>document.getElementById('ksm-rules')?.classList.remove('hidden'));
 document.getElementById('btn-ksm-rule-close')?.addEventListener('click',()=>document.getElementById('ksm-rules')?.classList.add('hidden'));
+registerGokdelenFinalTestTarget(document.querySelector('#btn-mode-gokdelen .home-game-mode-copy b'));
+registerGokdelenFinalTestTarget(document.getElementById('ksm-intro-title'));
+registerGokdelenFinalTestTarget(document.getElementById('ksm-turn-status-top'));
 })();
 
 

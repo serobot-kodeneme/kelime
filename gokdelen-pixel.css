@@ -1202,3 +1202,130 @@ button:disabled{cursor:default!important}
     height:calc(var(--ksm-cell-size)*1.95);
   }
 }
+
+
+/* v713 — GÖKDELEN rooftop Turkish flag, cinematic finale and pixel-art results. */
+#screen-kesisim #ksm-roof .ksm-turkish-flag{
+  position:absolute!important;
+  z-index:58!important;
+  left:76.5%!important;
+  bottom:10px!important;
+  width:48px!important;
+  height:78px!important;
+  object-fit:contain!important;
+  image-rendering:pixelated!important;
+  pointer-events:none!important;
+  transform-origin:8px 70px!important;
+  filter:drop-shadow(2px 2px 0 rgba(25,61,80,.55))!important;
+}
+#screen-kesisim #ksm-roof .ksm-turkish-flag.celebrate{
+  animation:ksmPermanentFlagCelebrate 2.55s steps(7,end) both!important;
+}
+@keyframes ksmPermanentFlagCelebrate{
+  0%{transform:translateY(4px) scale(.94)}
+  18%{transform:translateY(0) scale(1.04)}
+  34%{transform:translateY(-2px) scale(1)}
+  52%{transform:translateY(0) scale(1.035)}
+  70%{transform:translateY(-1px) scale(1)}
+  100%{transform:none}
+}
+#screen-kesisim.ksm-final-sequence #ksm-board-wrap{
+  overflow:hidden!important;
+  touch-action:none!important;
+  scroll-behavior:auto!important;
+}
+#screen-kesisim.ksm-final-sequence :is(.ksm-topline,.ksm-floating-timers,.ksm-entry){
+  pointer-events:none!important;
+  opacity:.34!important;
+  transition:opacity .3s steps(3,end)!important;
+}
+#screen-kesisim.ksm-final-roof-focus #ksm-roof .ksm-turkish-flag{
+  animation:ksmFinalFlagFocus .8s steps(4,end) infinite!important;
+  filter:drop-shadow(2px 2px 0 #193d50) drop-shadow(0 0 5px rgba(255,238,151,.7))!important;
+}
+@keyframes ksmFinalFlagFocus{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-2px)}
+}
+#screen-kesisim #ksm-gameover{
+  background:
+    linear-gradient(90deg,rgba(16,47,64,.86) 0 2px,rgba(19,61,80,.86) 2px 4px),
+    rgba(16,47,64,.9)!important;
+  image-rendering:pixelated!important;
+}
+#screen-kesisim #ksm-gameover .ksm-modal{
+  width:min(92%,390px)!important;
+  border:4px solid #193d50!important;
+  border-radius:2px!important;
+  background:#fff4d9!important;
+  color:#193d50!important;
+  box-shadow:6px 6px 0 #102f40, inset 3px 3px 0 #fff9e9!important;
+  font-family:'Courier New','Lucida Console',monospace!important;
+  letter-spacing:.035em!important;
+  padding:17px 14px 15px!important;
+}
+#screen-kesisim #ksm-gameover .ksm-modal::before{
+  content:'';
+  display:block;
+  width:38px;height:28px;
+  margin:0 auto 8px;
+  image-rendering:pixelated;
+  background:
+    linear-gradient(#193d50,#193d50) 10px 0/18px 3px no-repeat,
+    linear-gradient(#f3b544,#f3b544) 7px 3px/24px 12px no-repeat,
+    linear-gradient(#193d50,#193d50) 4px 3px/3px 8px no-repeat,
+    linear-gradient(#193d50,#193d50) 31px 3px/3px 8px no-repeat,
+    linear-gradient(#193d50,#193d50) 12px 15px/14px 3px no-repeat,
+    linear-gradient(#193d50,#193d50) 17px 18px/4px 5px no-repeat,
+    linear-gradient(#193d50,#193d50) 12px 23px/14px 3px no-repeat;
+}
+#screen-kesisim #ksm-gameover #ksm-over-title{
+  margin:0 0 7px!important;
+  color:#a33a21!important;
+  font:900 22px/25px 'Courier New','Lucida Console',monospace!important;
+  letter-spacing:.055em!important;
+  text-shadow:2px 2px 0 #f3c97f!important;
+}
+#screen-kesisim #ksm-gameover #ksm-over-text{
+  color:#193d50!important;
+  font:900 10px/15px 'Courier New','Lucida Console',monospace!important;
+  text-shadow:none!important;
+}
+#screen-kesisim #ksm-gameover .ksm-over-stats{
+  gap:8px!important;
+  margin-top:12px!important;
+}
+#screen-kesisim #ksm-gameover .ksm-over-player{
+  border:3px solid #193d50!important;
+  border-radius:0!important;
+  background:#ffe9a8!important;
+  box-shadow:3px 3px 0 #193d50, inset 2px 2px 0 #fff6cf!important;
+  font-family:'Courier New','Lucida Console',monospace!important;
+}
+#screen-kesisim #ksm-gameover .ksm-over-player:nth-child(2){background:#c8ebff!important}
+#screen-kesisim #ksm-gameover .ksm-modal-actions{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:9px!important;
+  margin-top:14px!important;
+}
+#screen-kesisim #ksm-gameover .ksm-modal-actions button{
+  min-height:42px!important;
+  border:3px solid #193d50!important;
+  border-radius:2px!important;
+  box-shadow:0 4px 0 #193d50, inset 2px 2px 0 rgba(255,255,255,.35)!important;
+  font:900 9px/11px 'Courier New','Lucida Console',monospace!important;
+  letter-spacing:.035em!important;
+  text-shadow:1px 1px 0 rgba(25,61,80,.45)!important;
+}
+#screen-kesisim #ksm-gameover #btn-ksm-again{background:#42a96e!important;color:#fff8dc!important}
+#screen-kesisim #ksm-gameover #btn-ksm-home-exit{background:#df5364!important;color:#fff8dc!important}
+#screen-kesisim #ksm-gameover .ksm-modal-actions button:active{
+  transform:translateY(3px)!important;
+  box-shadow:0 1px 0 #193d50!important;
+}
+@media(max-width:430px){
+  #screen-kesisim #ksm-roof .ksm-turkish-flag{left:76%!important;width:44px!important;height:72px!important;bottom:9px!important}
+  #screen-kesisim #ksm-gameover #ksm-over-title{font-size:18px!important;line-height:21px!important}
+  #screen-kesisim #ksm-gameover .ksm-modal{padding:14px 11px 12px!important}
+}
