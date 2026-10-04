@@ -504,19 +504,19 @@
 @keyframes ksmWindowCelebrate{
   0%,100%{opacity:0}15%{opacity:.62}35%{opacity:.08}55%{opacity:.72}75%{opacity:.12}90%{opacity:.55}
 }
-.ksm-cell.ksm-opponent-p1{animation:ksmOpponentP1 3.1s ease-out both!important;z-index:24!important;transform-origin:center!important}
-.ksm-cell.ksm-opponent-p2{animation:ksmOpponentP2 3.1s ease-out both!important;z-index:24!important;transform-origin:center!important}
+.ksm-cell.ksm-opponent-p1{animation:ksmOpponentP1 1.55s ease-in-out both!important;z-index:24!important;transform-origin:center!important}
+.ksm-cell.ksm-opponent-p2{animation:ksmOpponentP2 1.55s ease-in-out both!important;z-index:24!important;transform-origin:center!important}
 @keyframes ksmOpponentP1{
-  0%{transform:scale(.94);box-shadow:0 2px 0 #aab7c5}
-  12%,72%{transform:scale(1.14);box-shadow:0 0 0 4px #facc15,0 0 22px rgba(250,204,21,.95)}
-  88%{transform:scale(1.08);box-shadow:0 0 0 2px #facc15,0 0 10px rgba(250,204,21,.55)}
-  100%{transform:scale(1);box-shadow:0 2px 0 #aab7c5}
+  0%,100%{transform:scale(1);filter:brightness(1);box-shadow:0 2px 0 #aab7c5}
+  10%,36%,62%{transform:scale(1.12);filter:brightness(1.34) saturate(1.22);box-shadow:0 0 0 4px #facc15,0 0 22px rgba(250,204,21,.95)}
+  22%,48%,74%{transform:scale(1.01);filter:brightness(1.02);box-shadow:0 2px 0 #aab7c5}
+  88%{transform:scale(1.06);filter:brightness(1.16);box-shadow:0 0 0 2px #facc15,0 0 10px rgba(250,204,21,.55)}
 }
 @keyframes ksmOpponentP2{
-  0%{transform:scale(.94);box-shadow:0 2px 0 #aab7c5}
-  12%,72%{transform:scale(1.14);box-shadow:0 0 0 4px #38bdf8,0 0 22px rgba(56,189,248,.95)}
-  88%{transform:scale(1.08);box-shadow:0 0 0 2px #38bdf8,0 0 10px rgba(56,189,248,.55)}
-  100%{transform:scale(1);box-shadow:0 2px 0 #aab7c5}
+  0%,100%{transform:scale(1);filter:brightness(1);box-shadow:0 2px 0 #aab7c5}
+  10%,36%,62%{transform:scale(1.12);filter:brightness(1.38) saturate(1.26);box-shadow:0 0 0 4px #38bdf8,0 0 22px rgba(56,189,248,.95)}
+  22%,48%,74%{transform:scale(1.01);filter:brightness(1.02);box-shadow:0 2px 0 #aab7c5}
+  88%{transform:scale(1.06);filter:brightness(1.16);box-shadow:0 0 0 2px #38bdf8,0 0 10px rgba(56,189,248,.55)}
 }
 
 #screen-kesisim .ksm-bag-card.ksm-final-bag{
@@ -1111,7 +1111,7 @@ button:disabled{cursor:default!important}
 }
 #screen-kesisim .ksm-cell.ksm-opponent-p1,
 #screen-kesisim .ksm-cell.ksm-opponent-p2{
-  animation-duration:1.8s!important;
+  animation-duration:1.55s!important;
 }
 #ksm-gameover .ksm-over-player>span:nth-last-child(-n+2){
   margin-top:2px;
